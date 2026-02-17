@@ -1,0 +1,77 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/identity/identity",
+    "pages/cert-enterprise/cert-enterprise",
+    "pages/cert-worker/cert-worker",
+    "pages/mine/mine",
+    "pages/messages/messages",
+    "pages/publish/publish",
+    "pages/publish-job/publish-job",
+    "pages/post-detail/post-detail",
+    "pages/job-detail/job-detail",
+    "pages/my-posts/my-posts",
+    "pages/my-applications/my-applications",
+    "pages/category/category",
+    "pages/exposure/exposure",
+    "pages/exposure-board/exposure-board",
+    "pages/report/report",
+    "pages/membership/membership",
+    "pages/bean-recharge/bean-recharge",
+    "pages/promotion/promotion",
+    "pages/wallet/wallet",
+    "pages/income/income",
+    "pages/checkin/checkin",
+    "pages/work-record/work-record",
+    "pages/settlement/settlement",
+    "pages/ad-purchase/ad-purchase"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "小灵通",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#F5F5F5",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#94A3B8",
+    "selectedColor": "#3B82F6",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/tab-home.png",
+        "selectedIconPath": "images/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/exposure-board/exposure-board",
+        "text": "曝光",
+        "iconPath": "images/tab-exposure.png",
+        "selectedIconPath": "images/tab-exposure-active.png"
+      },
+      {
+        "pagePath": "pages/publish/publish",
+        "text": "发布",
+        "iconPath": "images/tab-publish.png",
+        "selectedIconPath": "images/tab-publish-active.png"
+      },
+      {
+        "pagePath": "pages/messages/messages",
+        "text": "消息",
+        "iconPath": "images/tab-msg.png",
+        "selectedIconPath": "images/tab-msg-active.png"
+      },
+      {
+        "pagePath": "pages/mine/mine",
+        "text": "我的",
+        "iconPath": "images/tab-mine.png",
+        "selectedIconPath": "images/tab-mine-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

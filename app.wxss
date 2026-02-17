@@ -1,0 +1,16 @@
+/* 全局样式 */
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 28rpx;
+  color: #1E293B;
+  background-color: #F5F5F5;
+  box-sizing: border-box;
+}
+
+/* 主题色变量 */
+.text-primary { color: #3B82F6; }
+.text-cta { color: #F97316; }
+.text-sub { color: #64748B; }
+.text-muted { color: #94A3B8; }
+.bg-primary { background-color: #3B82F6; }
+.bg-cta { background-color: #F97316; }
