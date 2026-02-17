@@ -3848,7 +3848,30 @@
           logging: false,
           useCORS: true,
           windowHeight: phoneContent ? phoneContent.scrollHeight + 100 : undefined,
-          height: phoneContent ? phoneContent.scrollHeight + 60 : undefined
+          height: phoneContent ? phoneContent.scrollHeight + 60 : undefined,
+          onclone: function(clonedDoc) {
+            // 修复 html2canvas flex 文字下沉问题
+            const allEls = clonedDoc.querySelectorAll('*');
+            allEls.forEach(function(el) {
+              const style = window.getComputedStyle(el);
+              if (style.display === 'flex' || style.display === 'inline-flex') {
+                el.style.alignItems = style.alignItems;
+              }
+              // 强制设置 line-height 避免文字偏移
+              if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'H3' || el.tagName === 'H4' || el.tagName === 'LABEL' || el.tagName === 'BUTTON') {
+                if (!el.style.lineHeight) {
+                  el.style.lineHeight = style.lineHeight;
+                }
+              }
+            });
+            // 给所有 flex 子元素加 transform 触发独立图层
+            clonedDoc.querySelectorAll('.flex, .inline-flex, [class*="flex"]').forEach(function(el) {
+              el.style.transform = 'translateZ(0)';
+              Array.from(el.children).forEach(function(child) {
+                child.style.transform = 'translateZ(0)';
+              });
+            });
+          }
         });
 
         phoneFrame.style.height = originalHeight;
