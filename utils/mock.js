@@ -62,6 +62,29 @@ const stockList = [
   }
 ]
 
+// 企业首页 - 代加工
+const processList = [
+  {
+    id: 'pr1',
+    type: 'process',
+    avatar: '',
+    avatarText: '加',
+    avatarBg: '#FEF3C7',
+    avatarColor: '#F59E0B',
+    location: '深圳',
+    certText: '已认证工厂',
+    industry: '模具加工',
+    fields: [
+      { label: '加工类型', value: '注塑加工' },
+      { label: '产品', value: '手机壳（TPU材质）' },
+      { label: '起订量', value: '500个起', bold: true },
+      { label: '单价', value: '面议' },
+      { label: '交期', value: '15天' }
+    ],
+    time: '1天前'
+  }
+]
+
 // 企业首页 - 招工信息
 const jobListEnterprise = [
   {
@@ -70,10 +93,10 @@ const jobListEnterprise = [
     companyAvatar: '',
     time: '02-07',
     location: '东莞长安',
-    title: '电子组装工 · 需15人',
-    salary: '22元/小时',
-    salaryType: '计时',
-    tags: ['包午餐', '有空调', '长期合作'],
+    title: '电子组装工',
+    salary: '20元/小时',
+    desc: '需要15人，工期7天，08:00-18:00，包午餐，有空调车间。',
+    urgent: true,
     applied: 5,
     total: 15
   }
@@ -86,30 +109,45 @@ const jobListWorker = [
     title: '电子组装工',
     salary: '20',
     salaryUnit: '元/小时',
-    salaryType: '计时',
-    distance: '2.5km',
-    location: '东莞长安镇xxx工业区',
+    distance: '3km',
+    location: '东莞长安',
     need: 15,
     applied: 5,
-    dateRange: '02-10 至 02-17',
+    dateRange: '02-07',
     companyName: '鑫达电子厂',
-    creditScore: 92,
-    tags: ['包午餐', '有空调', '长期合作']
+    tagText: '急招',
+    tagColor: 'text-rose',
+    benefit: '包午餐，有空调车间，长期合作优先'
   },
   {
     id: 'j2',
     title: '包装工',
     salary: '18',
     salaryUnit: '元/小时',
-    salaryType: '计时',
-    distance: '3.8km',
-    location: '东莞虎门镇xxx路',
-    need: 8,
+    distance: '5km',
+    location: '深圳宝安',
+    need: 20,
+    applied: 12,
+    dateRange: '02-06',
+    companyName: '顺丰物流仓',
+    tagText: '长期',
+    tagColor: 'text-fresh',
+    benefit: '提供工作餐，月结工资'
+  },
+  {
+    id: 'j3',
+    title: '缝纫工',
+    salary: '计件 0.5',
+    salaryUnit: '元/件',
+    distance: '8km',
+    location: '广州番禺',
+    need: 10,
     applied: 3,
-    dateRange: '02-12 至 02-14',
-    companyName: '顺丰包装厂',
-    creditScore: 88,
-    tags: ['包午餐', '日结']
+    dateRange: '02-05',
+    companyName: '美华服装厂',
+    tagText: '',
+    tagColor: '',
+    benefit: '熟手优先，有缝纫经验者优先录用'
   }
 ]
 
@@ -249,6 +287,7 @@ const incomeList = [
 module.exports = {
   purchaseList,
   stockList,
+  processList,
   jobListEnterprise,
   jobListWorker,
   exposureList,

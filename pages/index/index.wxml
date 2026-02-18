@@ -5,7 +5,7 @@
     <view class="top-bar-inner">
       <!-- 城市选择 -->
       <view class="city-selector">
-        <text class="city-icon">📍</text>
+        <text class="city-icon text-primary">📍</text>
         <text class="city-name">东莞</text>
         <text class="city-arrow">▾</text>
       </view>
@@ -50,73 +50,165 @@
     </view>
 
     <!-- Tab 0: 采购需求 -->
-    <view wx:if="{{currentTab === 0}}" class="list-wrap">
-      <view class="section-header">
-        <text class="section-title">最新采购需求</text>
-        <text class="section-more text-primary">查看更多</text>
+    <view wx:if="{{currentTab === 0}}">
+      <!-- 分类图标 -->
+      <view class="cate-grid-wrap">
+        <view class="cate-grid">
+          <view class="cate-item" wx:for="{{catePurchase}}" wx:key="label">
+            <view class="cate-icon" style="background-color: {{item.bg}};">
+              <text>{{item.icon}}</text>
+            </view>
+            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+          </view>
+        </view>
       </view>
-      <info-card wx:for="{{purchaseList}}" wx:key="id"
-                 item="{{item}}"
-                 bind:tap="onCardTap"
-                 bind:wechat="onWechat"
-                 bind:phone="onPhone" />
-      <empty-state wx:if="{{purchaseList.length === 0}}" text="暂无采购需求" />
+      <view class="list-wrap">
+        <view class="section-header">
+          <text class="section-title">最新采购需求</text>
+          <text class="section-more text-primary">查看更多</text>
+        </view>
+        <info-card wx:for="{{purchaseList}}" wx:key="id"
+                   item="{{item}}"
+                   bind:tap="onCardTap"
+                   bind:wechat="onWechat"
+                   bind:phone="onPhone" />
+        <empty-state wx:if="{{purchaseList.length === 0}}" text="暂无采购需求" />
+      </view>
     </view>
 
     <!-- Tab 1: 工厂库存 -->
-    <view wx:if="{{currentTab === 1}}" class="list-wrap">
-      <view class="section-header">
-        <text class="section-title">最新工厂库存</text>
-        <text class="section-more text-primary">查看更多</text>
+    <view wx:if="{{currentTab === 1}}">
+      <view class="cate-grid-wrap">
+        <view class="cate-grid">
+          <view class="cate-item" wx:for="{{cateStock}}" wx:key="label">
+            <view class="cate-icon" style="background-color: {{item.bg}};">
+              <text>{{item.icon}}</text>
+            </view>
+            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+          </view>
+        </view>
       </view>
-      <info-card wx:for="{{stockList}}" wx:key="id"
-                 item="{{item}}"
-                 bind:tap="onCardTap"
-                 bind:wechat="onWechat"
-                 bind:phone="onPhone" />
-      <empty-state wx:if="{{stockList.length === 0}}" text="暂无库存信息" />
+      <view class="list-wrap">
+        <view class="section-header">
+          <text class="section-title">最新工厂库存</text>
+          <text class="section-more text-primary">查看更多</text>
+        </view>
+        <info-card wx:for="{{stockList}}" wx:key="id"
+                   item="{{item}}"
+                   bind:tap="onCardTap"
+                   bind:wechat="onWechat"
+                   bind:phone="onPhone" />
+        <empty-state wx:if="{{stockList.length === 0}}" text="暂无库存信息" />
+      </view>
     </view>
 
     <!-- Tab 2: 代加工 -->
-    <view wx:if="{{currentTab === 2}}" class="list-wrap">
-      <empty-state text="暂无代加工信息" subText="敬请期待" />
+    <view wx:if="{{currentTab === 2}}">
+      <view class="cate-grid-wrap">
+        <view class="cate-grid">
+          <view class="cate-item" wx:for="{{cateProcess}}" wx:key="label">
+            <view class="cate-icon" style="background-color: {{item.bg}};">
+              <text>{{item.icon}}</text>
+            </view>
+            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="list-wrap">
+        <view class="section-header">
+          <text class="section-title">最新代加工</text>
+          <text class="section-more text-primary">查看更多</text>
+        </view>
+        <info-card wx:for="{{processList}}" wx:key="id"
+                   item="{{item}}"
+                   bind:tap="onCardTap"
+                   bind:wechat="onWechat"
+                   bind:phone="onPhone" />
+        <empty-state wx:if="{{!processList || processList.length === 0}}" text="暂无代加工信息" />
+      </view>
     </view>
 
-    <!-- Tab 3: 招工信息 -->
-    <view wx:if="{{currentTab === 3}}" class="list-wrap">
-      <view class="section-header">
-        <text class="section-title">最新招工信息</text>
-        <text class="section-more text-primary">查看更多</text>
-      </view>
-      <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
-            data-id="{{item.id}}" bindtap="onJobTap">
-        <view class="job-header">
-          <view class="job-header-left">
-            <view class="job-avatar-placeholder">
-              <text>🏭</text>
+    <!-- Tab 3: 发布招工 -->
+    <view wx:if="{{currentTab === 3}}">
+      <view class="cate-grid-wrap">
+        <view class="cate-grid">
+          <view class="cate-item" wx:for="{{cateJob}}" wx:key="label">
+            <view class="cate-icon" style="background-color: {{item.bg}};">
+              <text>{{item.icon}}</text>
             </view>
-            <view class="job-company-info">
-              <text class="job-company">{{item.companyName}}</text>
-              <text class="job-meta">{{item.time}} · {{item.location}}</text>
-            </view>
-          </view>
-          <view class="contact-btns">
-            <view class="contact-btn btn-wechat" catchtap="onWechat">微信</view>
-            <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
+            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
         </view>
-        <view class="job-title-row">
-          <text class="job-title">{{item.title}}</text>
-          <text class="job-salary text-cta">{{item.salary}}</text>
+      </view>
+      <view class="list-wrap">
+        <view class="section-header">
+          <text class="section-title">最新招工信息</text>
+          <text class="section-more text-primary">查看更多</text>
         </view>
-        <view class="job-tags">
-          <text class="job-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+        <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
+              data-id="{{item.id}}" bindtap="onJobTap">
+          <view class="job-header">
+            <view class="job-header-left">
+              <view class="job-avatar-placeholder">
+                <text>🏭</text>
+              </view>
+              <view class="job-company-info">
+                <text class="job-company">{{item.companyName}}</text>
+                <text class="job-meta">{{item.time}} · {{item.location}}</text>
+              </view>
+            </view>
+            <view class="contact-btns">
+              <view class="contact-btn btn-wechat" catchtap="onWechat">微信</view>
+              <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
+            </view>
+          </view>
+          <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}</text> · {{item.title}} · <text class="text-rose" wx:if="{{item.urgent}}">急招</text></text>
+          <text class="job-desc">{{item.desc}}</text>
+          <view class="job-footer">
+            <text class="job-applied">已报名 {{item.applied}}/{{item.total}}人</text>
+            <view class="job-actions">
+              <text class="job-action">分享</text>
+              <text class="job-action">投诉</text>
+            </view>
+          </view>
         </view>
-        <view class="job-footer">
-          <text class="job-applied">已报名 {{item.applied}}/{{item.total}}人</text>
+        <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="暂无招工信息" />
+      </view>
+    </view>
+
+    <!-- Tab 4: 工厂名录 -->
+    <view wx:if="{{currentTab === 4}}">
+      <view class="cate-grid-wrap">
+        <view class="cate-grid">
+          <view class="cate-item" wx:for="{{cateFactory}}" wx:key="label">
+            <view class="cate-icon" style="background-color: {{item.bg}};">
+              <text>{{item.icon}}</text>
+            </view>
+            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+          </view>
         </view>
       </view>
-      <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="暂无招工信息" />
+      <view class="list-wrap">
+        <view class="section-header">
+          <text class="section-title">工厂名录</text>
+          <text class="section-more text-primary">查看更多</text>
+        </view>
+        <view class="factory-card" wx:for="{{factoryList}}" wx:key="id">
+          <view class="factory-top">
+            <view class="factory-logo">🏭</view>
+            <view class="factory-info">
+              <text class="factory-name">{{item.name}}</text>
+              <text class="factory-sub">{{item.type}} · {{item.location}}</text>
+            </view>
+          </view>
+          <view class="factory-tags">
+            <text class="factory-tag tag-blue">已认证</text>
+            <text class="factory-tag" style="background-color:{{item.scaleBg}};color:{{item.scaleColor}};">{{item.scale}}</text>
+            <text class="factory-years">入驻{{item.years}}年</text>
+          </view>
+        </view>
+        <empty-state wx:if="{{!factoryList || factoryList.length === 0}}" text="暂无工厂" />
+      </view>
     </view>
   </view>
 
@@ -139,14 +231,8 @@
           <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
         </view>
       </view>
-      <view class="job-title-row">
-        <text class="job-salary-big text-cta">{{item.salary}}<text class="job-salary-unit">{{item.salaryUnit}}</text></text>
-        <text class="job-type-label">{{item.title}}</text>
-      </view>
-      <text class="job-desc">需要{{item.need}}人，工期{{item.dateRange}}，包午餐</text>
-      <view class="job-tags">
-        <text class="job-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
-      </view>
+      <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text> · {{item.title}} · <text class="{{item.tagColor}}">{{item.tagText}}</text></text>
+      <text class="job-desc">需要{{item.need}}人，工期{{item.dateRange}}，{{item.benefit}}</text>
       <view class="job-footer">
         <text class="job-applied">已报名 {{item.applied}}/{{item.need}}人</text>
         <view class="job-actions">

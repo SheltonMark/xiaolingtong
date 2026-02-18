@@ -1,5 +1,5 @@
 .index-page {
-  background-color: #F5F5F5;
+  background-color: #F8FAFC;
   min-height: 100vh;
 }
 
@@ -64,22 +64,24 @@
   display: flex;
   padding: 0 24rpx;
   border-bottom: 1rpx solid #F1F5F9;
+  white-space: nowrap;
 }
 .tab-item {
-  flex: 1;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16rpx 0 20rpx;
+  padding: 16rpx 16rpx 20rpx;
   position: relative;
 }
 .tab-text {
   font-size: 26rpx;
   font-weight: 500;
-  color: #94A3B8;
+  color: #64748B;
+  white-space: nowrap;
 }
 .tab-active .tab-text {
-  color: #3B82F6;
+  color: #F97316;
   font-weight: 600;
 }
 .tab-line {
@@ -87,7 +89,7 @@
   bottom: 0;
   width: 48rpx;
   height: 4rpx;
-  background-color: #3B82F6;
+  background-color: #F97316;
   border-radius: 4rpx;
 }
 
@@ -105,7 +107,7 @@
   justify-content: center;
   gap: 4rpx;
 }
-.filter-text { font-size: 24rpx; color: #64748B; }
+.filter-text { font-size: 24rpx; color: #1E293B; }
 .filter-arrow { font-size: 18rpx; color: #94A3B8; }
 
 /* ===== Banner ===== */
@@ -124,6 +126,40 @@
   color: #ffffff;
   font-size: 28rpx;
   font-weight: 600;
+}
+
+/* ===== 分类图标网格 ===== */
+.cate-grid-wrap {
+  padding: 16rpx 24rpx 0;
+}
+.cate-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx 0;
+}
+.cate-item {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+.cate-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+}
+.cate-label {
+  font-size: 20rpx;
+  color: #64748B;
+}
+.cate-label-active {
+  color: #3B82F6;
+  font-weight: 500;
 }
 
 /* ===== 列表区域 ===== */
@@ -154,7 +190,7 @@
 }
 .job-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 16rpx;
 }
@@ -182,7 +218,7 @@
   min-width: 0;
 }
 .job-company {
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 500;
   color: #1E293B;
   overflow: hidden;
@@ -190,7 +226,7 @@
   white-space: nowrap;
 }
 .job-meta {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #94A3B8;
   margin-top: 4rpx;
 }
@@ -208,39 +244,21 @@
 }
 .btn-wechat { background-color: #10B981; }
 .btn-phone { background-color: #3B82F6; }
-.job-title-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12rpx;
-}
-.job-title {
-  font-size: 28rpx;
-  font-weight: 600;
+
+/* 薪资行 */
+.job-salary-line {
+  font-size: 26rpx;
   color: #1E293B;
-}
-.job-salary {
-  font-size: 24rpx;
-  font-weight: 600;
-}
-.job-salary-big {
-  font-size: 36rpx;
-  font-weight: 700;
-}
-.job-salary-unit {
-  font-size: 22rpx;
-  font-weight: 500;
-}
-.job-type-label {
-  font-size: 24rpx;
-  color: #1E293B;
-  font-weight: 500;
+  line-height: 1.625;
+  margin-bottom: 8rpx;
+  display: block;
 }
 .job-desc {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #64748B;
   line-height: 1.625;
   margin-bottom: 16rpx;
+  display: block;
 }
 .job-tags {
   display: flex;
@@ -259,9 +277,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-top: 16rpx;
 }
 .job-applied {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #94A3B8;
 }
 .job-actions {
@@ -269,6 +288,65 @@
   gap: 24rpx;
 }
 .job-action {
-  font-size: 20rpx;
+  font-size: 22rpx;
   color: #94A3B8;
+}
+
+/* ===== 工厂名录卡片 ===== */
+.factory-card {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+}
+.factory-top {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-bottom: 16rpx;
+}
+.factory-logo {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  background-color: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  flex-shrink: 0;
+}
+.factory-info {
+  flex: 1;
+  min-width: 0;
+}
+.factory-name {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #1E293B;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.factory-sub {
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-top: 6rpx;
+  display: block;
+}
+.factory-tags {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.factory-tag {
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+.factory-years {
+  font-size: 20rpx;
+  color: #CBD5E1;
+  margin-left: auto;
 }

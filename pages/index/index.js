@@ -6,9 +6,56 @@ Page({
     statusBarHeight: 0,
     // 企业端
     currentTab: 0,
-    tabs: ['采购需求', '工厂库存', '代加工', '招工信息'],
+    tabs: ['采购需求', '工厂库存', '代加工', '发布招工', '工厂名录'],
     purchaseList: [],
     stockList: [],
+    processList: [],
+    // 分类图标
+    catePurchase: [
+      { icon: '☰', label: '全部', bg: '#3B82F6', active: true },
+      { icon: '🛒', label: '日用百货', bg: '#FFF7ED' },
+      { icon: '📱', label: '电子数码', bg: '#E0F2FE' },
+      { icon: '👗', label: '服装鞋帽', bg: '#FCE7F3' },
+      { icon: '🔧', label: '五金工具', bg: '#EFF6FF' },
+      { icon: '🏠', label: '厨房卫浴', bg: '#ECFDF5' },
+      { icon: '🧸', label: '母婴玩具', bg: '#FFF1F2' }
+    ],
+    cateStock: [
+      { icon: '☰', label: '全部', bg: '#3B82F6', active: true },
+      { icon: '📱', label: '电子数码', bg: '#E0F2FE' },
+      { icon: '🛒', label: '日用百货', bg: '#FFF7ED' },
+      { icon: '👗', label: '服装鞋帽', bg: '#FCE7F3' },
+      { icon: '🔧', label: '五金工具', bg: '#EFF6FF' },
+      { icon: '📦', label: '家具家电', bg: '#F3E8FF' }
+    ],
+    cateProcess: [
+      { icon: '☰', label: '全部', bg: '#3B82F6', active: true },
+      { icon: '🧪', label: '注塑加工', bg: '#FFFBEB' },
+      { icon: '⚙️', label: 'CNC加工', bg: '#EFF6FF' },
+      { icon: '🎨', label: '丝印印刷', bg: '#F3E8FF' },
+      { icon: '🧵', label: '缝纫加工', bg: '#FCE7F3' },
+      { icon: '🏗', label: '模具制造', bg: '#ECFDF5' }
+    ],
+    cateJob: [
+      { icon: '☰', label: '全部', bg: '#3B82F6', active: true },
+      { icon: '🔌', label: '电子组装', bg: '#E0F2FE' },
+      { icon: '📦', label: '包装工', bg: '#FFFBEB' },
+      { icon: '🧵', label: '缝纫工', bg: '#FCE7F3' },
+      { icon: '🏭', label: '仓储物流', bg: '#ECFDF5' },
+      { icon: '✅', label: '质检', bg: '#F3E8FF' }
+    ],
+    cateFactory: [
+      { icon: '☰', label: '全部', bg: '#3B82F6', active: true },
+      { icon: '🔌', label: '电子组装', bg: '#E0F2FE' },
+      { icon: '⚙️', label: '模具加工', bg: '#FFFBEB' },
+      { icon: '🧪', label: '注塑', bg: '#FFF7ED' },
+      { icon: '👗', label: '服装纺织', bg: '#FCE7F3' },
+      { icon: '🔧', label: '五金加工', bg: '#EFF6FF' }
+    ],
+    factoryList: [
+      { id: 'f1', name: '东莞市鑫达电子科技有限公司', type: '电子组装', location: '东莞长安', scale: '500+员工', scaleBg: '#ECFDF5', scaleColor: '#10B981', years: 3 },
+      { id: 'f2', name: '深圳市精密模具制造厂', type: '模具加工', location: '深圳宝安', scale: '100+员工', scaleBg: '#FFFBEB', scaleColor: '#F59E0B', years: 2 }
+    ],
     // 临工端
     jobList: [],
     filterLabels: ['工种', '计费方式', '距离', '工价']
@@ -30,6 +77,7 @@ Page({
       this.setData({
         purchaseList: mock.purchaseList,
         stockList: mock.stockList,
+        processList: mock.processList || [],
         jobListEnterprise: mock.jobListEnterprise
       })
     } else {
