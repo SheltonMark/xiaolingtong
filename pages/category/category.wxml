@@ -1,2 +1,52 @@
 <!--pages/category/category.wxml-->
-<text>pages/category/category.wxml</text>
+<view class="category-page">
+  <!-- 搜索框 -->
+  <view class="search-wrap">
+    <view class="search-input-wrap">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索关键词" value="{{keyword}}" bindinput="onInput" bindconfirm="onSearch" />
+    </view>
+  </view>
+
+  <!-- 品类 -->
+  <view class="filter-section">
+    <text class="filter-title">品类</text>
+    <view class="filter-tags">
+      <view class="filter-tag {{categoryIndex === index ? 'filter-tag-active' : ''}}"
+            wx:for="{{categories}}" wx:key="index"
+            data-index="{{index}}" bindtap="onCategoryTap">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 地区 -->
+  <view class="filter-section">
+    <text class="filter-title">地区</text>
+    <view class="filter-tags">
+      <view class="filter-tag {{cityIndex === index ? 'filter-tag-active' : ''}}"
+            wx:for="{{cities}}" wx:key="index"
+            data-index="{{index}}" bindtap="onCityTap">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 排序 -->
+  <view class="filter-section">
+    <text class="filter-title">排序</text>
+    <view class="filter-tags">
+      <view class="filter-tag {{sortIndex === index ? 'filter-tag-active' : ''}}"
+            wx:for="{{sorts}}" wx:key="index"
+            data-index="{{index}}" bindtap="onSortTap">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-btns">
+    <button class="btn btn-outline" style="flex:1;" bindtap="onReset">重置</button>
+    <button class="btn btn-primary" style="flex:1;" bindtap="onConfirm">确认</button>
+  </view>
+</view>

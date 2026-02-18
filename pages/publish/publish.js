@@ -1,66 +1,75 @@
-// pages/publish/publish.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    typeIndex: 0,
+    types: ['采购需求', '工厂库存', '代加工服务'],
+    form: {
+      title: '',
+      productName: '',
+      category: '',
+      spec: '',
+      quantity: '',
+      price: '',
+      deliveryDays: '',
+      description: '',
+      contact: '',
+      phone: '',
+      wechat: ''
+    },
+    images: [],
+    categoryOptions: ['日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具', '其他'],
+    stockStatusIndex: 0,
+    stockStatusOptions: ['现货', '预售']
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onTypeChange(e) {
+    this.setData({ typeIndex: e.currentTarget.dataset.index })
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+  onInput(e) {
+    const field = e.currentTarget.dataset.field
+    this.setData({ ['form.' + field]: e.detail.value })
   },
 
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
+  onCategoryChange(e) {
+    this.setData({ 'form.category': this.data.categoryOptions[e.detail.value] })
   },
 
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
+  onStockStatusChange(e) {
+    this.setData({ stockStatusIndex: e.detail.value })
   },
 
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
+  onChooseImage() {
+    if (this.data.images.length >= 9) {
+      wx.showToast({ title: '最多9张图片', icon: 'none' })
+      return
+    }
+    wx.chooseMedia({
+      count: 9 - this.data.images.length,
+      mediaType: ['image'],
+      success: (res) => {
+        const newImages = res.tempFiles.map(f => f.tempFilePath)
+        this.setData({ images: [...this.data.images, ...newImages] })
+      }
+    })
   },
 
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
+  onDeleteImage(e) {
+    const idx = e.currentTarget.dataset.index
+    const images = this.data.images.filter((_, i) => i !== idx)
+    this.setData({ images })
   },
 
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onSubmit() {
+    const { form } = this.data
+    if (!form.title) {
+      wx.showToast({ title: '请输入标题', icon: 'none' })
+      return
+    }
+    if (!form.contact || !form.phone) {
+      wx.showToast({ title: '请填写联系方式', icon: 'none' })
+      return
+    }
+    wx.showToast({ title: '发布成功', icon: 'success' })
+    setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
   }
 })

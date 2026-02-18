@@ -1,66 +1,39 @@
-// pages/category/category.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    keyword: '',
+    categoryIndex: -1,
+    categories: ['全部', '日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具'],
+    cityIndex: -1,
+    cities: ['全部', '东莞', '深圳', '广州', '佛山', '中山'],
+    sortIndex: 0,
+    sorts: ['最新发布', '距离最近', '价格最低']
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onInput(e) {
+    this.setData({ keyword: e.detail.value })
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+  onSearch() {
+    wx.showToast({ title: '搜索: ' + this.data.keyword, icon: 'none' })
   },
 
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
+  onCategoryTap(e) {
+    this.setData({ categoryIndex: e.currentTarget.dataset.index })
   },
 
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
+  onCityTap(e) {
+    this.setData({ cityIndex: e.currentTarget.dataset.index })
   },
 
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
+  onSortTap(e) {
+    this.setData({ sortIndex: e.currentTarget.dataset.index })
   },
 
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
+  onReset() {
+    this.setData({ keyword: '', categoryIndex: -1, cityIndex: -1, sortIndex: 0 })
   },
 
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onConfirm() {
+    wx.navigateBack()
   }
 })

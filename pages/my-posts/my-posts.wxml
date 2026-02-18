@@ -1,2 +1,39 @@
 <!--pages/my-posts/my-posts.wxml-->
-<text>pages/my-posts/my-posts.wxml</text>
+<view class="my-posts-page">
+  <!-- Tab -->
+  <view class="tab-bar">
+    <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+          wx:for="{{tabs}}" wx:key="index"
+          data-index="{{index}}" bindtap="onTabChange">
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 列表 -->
+  <view class="post-list">
+    <view class="post-card" wx:for="{{posts}}" wx:key="id"
+          wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}">
+      <view class="post-top">
+        <text class="post-type tag tag-blue">{{item.type}}</text>
+        <text class="post-status status-{{item.status}}">{{item.statusText}}</text>
+      </view>
+      <text class="post-title">{{item.title}}</text>
+      <view class="post-meta">
+        <text class="meta-item">发布：{{item.publishTime}}</text>
+        <text class="meta-item" wx:if="{{item.expireTime}}">有效期至：{{item.expireTime}}</text>
+      </view>
+      <!-- 驳回原因 -->
+      <view class="reject-reason" wx:if="{{item.status === 'rejected'}}">
+        <text class="reject-label">驳回原因：</text>
+        <text class="reject-text">{{item.rejectReason}}</text>
+      </view>
+      <!-- 操作 -->
+      <view class="post-actions">
+        <text class="action-btn" data-id="{{item.id}}" bindtap="onViewPost">查看</text>
+        <text class="action-btn action-delete" data-id="{{item.id}}" bindtap="onDeletePost">删除</text>
+      </view>
+    </view>
+  </view>
+
+  <empty-state wx:if="{{posts.length === 0}}" text="暂无发布记录" subText="去发布第一条信息吧" />
+</view>

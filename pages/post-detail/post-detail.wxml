@@ -1,2 +1,88 @@
 <!--pages/post-detail/post-detail.wxml-->
-<text>pages/post-detail/post-detail.wxml</text>
+<view class="detail-page">
+  <!-- 图片轮播 -->
+  <swiper class="image-swiper" wx:if="{{detail.images.length > 0}}"
+          indicator-dots autoplay circular>
+    <swiper-item wx:for="{{detail.images}}" wx:key="*this">
+      <image src="{{item}}" mode="aspectFill" class="swiper-img" />
+    </swiper-item>
+  </swiper>
+
+  <!-- 标题区 -->
+  <view class="title-section">
+    <text class="detail-title">{{detail.title}}</text>
+    <view class="title-meta">
+      <text class="meta-text">{{detail.industry}}</text>
+      <text class="meta-dot">·</text>
+      <text class="meta-text">发布于 {{detail.publishTime}}</text>
+      <text class="meta-dot">·</text>
+      <text class="meta-text">有效期至 {{detail.expireTime}}</text>
+    </view>
+  </view>
+
+  <!-- 发布者信息 -->
+  <view class="publisher-section">
+    <view class="publisher-left">
+      <view class="pub-avatar" style="background-color: {{detail.avatarBg}};">
+        <text style="color: {{detail.avatarColor}};" class="pub-avatar-text">{{detail.avatarText}}</text>
+      </view>
+      <view class="pub-info">
+        <text class="pub-name">{{detail.location}} · {{detail.certText}}</text>
+        <text class="pub-industry">{{detail.industry}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 详细信息 -->
+  <view class="info-section">
+    <text class="section-label">详细信息</text>
+    <view class="info-list">
+      <view class="info-row" wx:for="{{detail.fields}}" wx:key="label">
+        <text class="info-label">{{item.label}}</text>
+        <text class="info-value">{{item.value}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系方式 -->
+  <view class="contact-section">
+    <text class="section-label">联系方式</text>
+    <!-- 未解锁 -->
+    <view class="contact-locked" wx:if="{{!contactUnlocked}}">
+      <text class="lock-icon">🔒</text>
+      <text class="lock-title">查看联系方式</text>
+      <text class="lock-desc">消耗1次查看机会 / 会员免费查看</text>
+      <button class="btn btn-cta" style="margin-top: 24rpx;" bindtap="onUnlockContact">立即查看</button>
+    </view>
+    <!-- 已解锁 -->
+    <view class="contact-unlocked" wx:else>
+      <view class="contact-row">
+        <text class="contact-label">联系人</text>
+        <text class="contact-value">{{contactInfo.name}}</text>
+      </view>
+      <view class="contact-row">
+        <text class="contact-label">电话</text>
+        <text class="contact-value text-primary" bindtap="onCallPhone">{{contactInfo.phone}}</text>
+      </view>
+      <view class="contact-row" wx:if="{{contactInfo.wechat}}">
+        <text class="contact-label">微信</text>
+        <text class="contact-value">{{contactInfo.wechat}}</text>
+        <text class="copy-btn" bindtap="onCopyWechat">复制</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-actions">
+    <view class="action-item" bindtap="onShare">
+      <text class="action-icon">📤</text>
+      <text class="action-text">分享</text>
+    </view>
+    <view class="action-item" bindtap="onReport">
+      <text class="action-icon">⚠️</text>
+      <text class="action-text">举报</text>
+    </view>
+    <button class="btn btn-primary" style="flex:1;margin-left:24rpx;" bindtap="onUnlockContact" wx:if="{{!contactUnlocked}}">查看联系方式</button>
+    <button class="btn btn-primary" style="flex:1;margin-left:24rpx;" bindtap="onCallPhone" wx:else>立即联系</button>
+  </view>
+</view>

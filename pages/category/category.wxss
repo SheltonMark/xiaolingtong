@@ -1,1 +1,57 @@
-/* pages/category/category.wxss */
+.category-page {
+  min-height: 100vh;
+  background-color: #ffffff;
+  padding-bottom: 140rpx;
+}
+.search-wrap {
+  padding: 20rpx 24rpx;
+}
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background-color: #F1F5F9;
+  border-radius: 9999rpx;
+  padding: 16rpx 24rpx;
+}
+.search-icon { font-size: 28rpx; }
+.search-input { flex: 1; font-size: 26rpx; }
+.filter-section {
+  padding: 24rpx 32rpx;
+}
+.filter-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  display: block;
+  margin-bottom: 20rpx;
+}
+.filter-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+.filter-tag {
+  padding: 12rpx 28rpx;
+  background-color: #F1F5F9;
+  border-radius: 9999rpx;
+  font-size: 24rpx;
+  color: #64748B;
+}
+.filter-tag-active {
+  background-color: #EFF6FF;
+  color: #3B82F6;
+  font-weight: 500;
+}
+.bottom-btns {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 24rpx;
+  padding: 20rpx 48rpx;
+  background-color: #ffffff;
+  box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+}
