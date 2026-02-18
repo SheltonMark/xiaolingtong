@@ -1,38 +1,93 @@
 <!--pages/cert-enterprise/cert-enterprise.wxml-->
 <view class="cert-page">
-  <view class="form-wrap">
+  <!-- 认证提示 -->
+  <view class="tip-banner tip-blue">
+    <text class="tip-icon">ℹ️</text>
+    <text class="tip-text">完成企业认证后，即可发布供需信息、查看联系方式。请确保信息真实有效。</text>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form-area">
     <view class="form-group">
-      <text class="form-label required">企业名称</text>
-      <input class="form-input" placeholder="请输入企业全称" data-field="companyName" bindinput="onInput" />
+      <text class="form-label">企业名称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入营业执照上的企业全称" data-field="companyName" bindinput="onInput" />
     </view>
+
     <view class="form-group">
-      <text class="form-label required">统一社会信用代码</text>
+      <text class="form-label">统一社会信用代码 <text class="required">*</text></text>
       <input class="form-input" placeholder="请输入18位信用代码" data-field="creditCode" bindinput="onInput" />
     </view>
+
     <view class="form-group">
-      <text class="form-label required">法人姓名</text>
-      <input class="form-input" placeholder="请输入法人姓名" data-field="legalPerson" bindinput="onInput" />
-    </view>
-    <view class="form-group">
-      <text class="form-label required">联系电话</text>
-      <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="onInput" />
-    </view>
-    <view class="form-group">
-      <text class="form-label">企业地址</text>
-      <input class="form-input" placeholder="请输入详细地址" data-field="address" bindinput="onInput" />
-    </view>
-    <view class="form-group">
-      <text class="form-label required">营业执照</text>
-      <view class="upload-area" bindtap="onUploadLicense">
+      <text class="form-label">营业执照 <text class="required">*</text></text>
+      <view class="upload-area upload-large" bindtap="onUploadLicense">
         <image wx:if="{{licenseImage}}" src="{{licenseImage}}" mode="aspectFill" class="upload-preview" />
         <view wx:else class="upload-placeholder">
-          <text class="upload-icon">📄</text>
-          <text class="upload-text">点击上传营业执照</text>
+          <text class="upload-icon">🖼</text>
+          <text class="upload-hint">点击上传营业执照照片</text>
         </view>
       </view>
     </view>
-  </view>
-  <view class="submit-wrap">
-    <button class="btn btn-primary" bindtap="onSubmit">提交认证</button>
+
+    <view class="form-group">
+      <text class="form-label">法人身份证 <text class="required">*</text></text>
+      <view class="upload-grid">
+        <view class="upload-area upload-half" bindtap="onUploadIdFront">
+          <image wx:if="{{idFrontImage}}" src="{{idFrontImage}}" mode="aspectFill" class="upload-preview" />
+          <view wx:else class="upload-placeholder">
+            <text class="upload-icon-sm">🪪</text>
+            <text class="upload-hint-sm">人像面</text>
+          </view>
+        </view>
+        <view class="upload-area upload-half" bindtap="onUploadIdBack">
+          <image wx:if="{{idBackImage}}" src="{{idBackImage}}" mode="aspectFill" class="upload-preview" />
+          <view wx:else class="upload-placeholder">
+            <text class="upload-icon-sm">🪪</text>
+            <text class="upload-hint-sm">国徽面</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">企业类型 <text class="required">*</text></text>
+      <view class="form-select" bindtap="onSelectType">
+        <text class="select-text {{selectedType ? '' : 'select-placeholder'}}">{{selectedType || '请选择企业类型'}}</text>
+        <text class="select-arrow">▾</text>
+      </view>
+      <view class="tag-list">
+        <text class="form-tag {{selectedType === item ? 'form-tag-active' : ''}}"
+              wx:for="{{typeOptions}}" wx:key="*this" data-tag="{{item}}" bindtap="onTypeTap">{{item}}</text>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">主营品类 <text class="required">*</text></text>
+      <view class="form-select">
+        <text class="select-placeholder">请选择主营品类</text>
+        <text class="select-arrow">▾</text>
+      </view>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">联系人 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入联系人姓名" data-field="contactName" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">联系电话 <text class="required">*</text></text>
+      <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">企业地址 <text class="required">*</text></text>
+      <view class="form-select" bindtap="onSelectAddress">
+        <text class="select-placeholder">请选择省/市/区</text>
+        <text class="select-arrow-loc">📍</text>
+      </view>
+    </view>
+
+    <button class="submit-btn submit-blue" bindtap="onSubmit">提交认证</button>
+    <text class="submit-hint">审核结果将在1-3个工作日内通知您</text>
   </view>
 </view>
