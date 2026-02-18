@@ -3204,17 +3204,77 @@
         <span class="text-[10px] text-primary cursor-pointer">全部已读</span>
       </div>
 
-      <!-- Tab筛选 -->
+      <!-- Tab筛选：业务消息（左）+ 系统通知（右），带未读badge -->
       <div class="bg-white px-4 flex border-b border-slate-100">
-        <div class="flex-1 py-2.5 text-center text-xs font-medium text-primary border-b-2 border-primary cursor-pointer">全部</div>
-        <div class="flex-1 py-2.5 text-center text-xs text-text-sub cursor-pointer">系统通知</div>
-        <div class="flex-1 py-2.5 text-center text-xs text-text-sub cursor-pointer">业务消息</div>
+        <div class="flex-1 py-2.5 text-center text-xs font-medium text-primary border-b-2 border-primary cursor-pointer relative">
+          业务消息
+          <span class="absolute -top-0.5 ml-0.5 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white rounded-full" style="background:#F43F5E;">4</span>
+        </div>
+        <div class="flex-1 py-2.5 text-center text-xs text-text-sub cursor-pointer relative">
+          系统通知
+          <span class="absolute -top-0.5 ml-0.5 inline-flex items-center justify-center w-4 h-4 text-[9px] font-bold text-white rounded-full" style="background:#F43F5E;">3</span>
+        </div>
       </div>
 
-      <!-- 消息列表 -->
+      <!-- 业务消息列表（聊天对话） -->
       <div class="px-4 py-3 space-y-2">
 
-        <!-- 未读消息：审核通过 -->
+        <!-- 聊天1：未读 -->
+        <div class="bg-white rounded-xl p-4 card-hover text-left">
+          <div class="flex items-center gap-3">
+            <div class="relative shrink-0">
+              <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop" class="w-11 h-11 rounded-full object-cover">
+              <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-[9px] font-bold flex items-center justify-center" style="background:#F43F5E;">3</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-0.5">
+                <p class="text-xs font-semibold text-text-main">***贸易公司</p>
+                <span class="text-[10px] text-text-muted shrink-0">14:35</span>
+              </div>
+              <p class="text-[10px] text-text-sub truncate">3000个的话可以给你12元/个，含logo丝印，交期25天</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 聊天2：未读 -->
+        <div class="bg-white rounded-xl p-4 card-hover text-left">
+          <div class="flex items-center gap-3">
+            <div class="relative shrink-0">
+              <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop" class="w-11 h-11 rounded-full object-cover">
+              <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full text-white text-[9px] font-bold flex items-center justify-center" style="background:#F43F5E;">1</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-0.5">
+                <p class="text-xs font-semibold text-text-main">鑫达电子厂</p>
+                <span class="text-[10px] text-text-muted shrink-0">昨天</span>
+              </div>
+              <p class="text-[10px] text-text-sub truncate">好的，明天8点准时到厂区门口集合</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 聊天3：已读 -->
+        <div class="bg-white rounded-xl p-4 card-hover text-left">
+          <div class="flex items-center gap-3">
+            <div class="relative shrink-0">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop" class="w-11 h-11 rounded-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-0.5">
+                <p class="text-xs font-medium text-text-sub">张师傅</p>
+                <span class="text-[10px] text-text-muted shrink-0">02-15</span>
+              </div>
+              <p class="text-[10px] text-text-muted truncate">收到，我会准时到的</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 系统通知列表（隐藏，切换tab时显示） -->
+      <!-- 未读消息：审核通过 -->
+      <div class="px-4 py-3 space-y-2" style="display:none;">
+
         <div class="bg-white rounded-xl p-4 card-hover text-left border-l-4 border-primary">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
@@ -3233,7 +3293,6 @@
           </div>
         </div>
 
-        <!-- 未读消息：有人查看 -->
         <div class="bg-white rounded-xl p-4 card-hover text-left border-l-4 border-fresh">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
@@ -3252,7 +3311,6 @@
           </div>
         </div>
 
-        <!-- 未读消息：出勤提醒 -->
         <div class="bg-white rounded-xl p-4 card-hover text-left border-l-4 border-cta">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
@@ -3271,7 +3329,6 @@
           </div>
         </div>
 
-        <!-- 已读消息：工资到账 -->
         <div class="bg-white rounded-xl p-4 card-hover text-left">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
@@ -3287,7 +3344,6 @@
           </div>
         </div>
 
-        <!-- 已读消息：系统通知 -->
         <div class="bg-white rounded-xl p-4 card-hover text-left">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
@@ -3303,7 +3359,6 @@
           </div>
         </div>
 
-        <!-- 已读消息：举报处理 -->
         <div class="bg-white rounded-xl p-4 card-hover text-left">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 bg-slate-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
