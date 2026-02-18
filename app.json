@@ -25,7 +25,9 @@
     "pages/checkin/checkin",
     "pages/work-record/work-record",
     "pages/settlement/settlement",
-    "pages/ad-purchase/ad-purchase"
+    "pages/ad-purchase/ad-purchase",
+    "pages/exposure-detail/exposure-detail",
+    "pages/chat/chat"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

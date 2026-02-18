@@ -1,0 +1,46 @@
+<!--pages/chat/chat.wxml-->
+<view class="chat-page">
+  <!-- 聊天消息区 -->
+  <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}">
+    <!-- 时间标记 -->
+    <view class="time-mark"><text>今天 14:30</text></view>
+
+    <!-- 系统提示 -->
+    <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
+
+    <!-- 对方消息 -->
+    <view class="msg-row msg-left" wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
+      <block wx:if="{{item.from === 'other'}}">
+        <view class="msg-avatar-wrap"><view class="msg-avatar">🏭</view></view>
+        <view class="msg-bubble-wrap">
+          <view class="bubble bubble-left">
+            <text>{{item.text}}</text>
+          </view>
+          <image wx:if="{{item.image}}" src="{{item.image}}" mode="widthFix" class="msg-image" />
+          <text class="msg-time-text">{{item.time}}</text>
+        </view>
+      </block>
+      <block wx:if="{{item.from === 'me'}}">
+        <view class="msg-bubble-wrap msg-bubble-right">
+          <view class="bubble bubble-right">
+            <text>{{item.text}}</text>
+          </view>
+          <text class="msg-time-text msg-time-right">{{item.time}}</text>
+        </view>
+        <view class="msg-avatar-wrap"><view class="msg-avatar">🏢</view></view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <!-- 底部输入栏 -->
+  <view class="chat-bottom">
+    <view class="chat-input-row">
+      <text class="chat-tool-btn">🎤</text>
+      <input class="chat-input" placeholder="输入消息..." bindinput="onMsgInput" value="{{inputText}}" confirm-type="send" bindconfirm="onSend" />
+      <text class="chat-tool-btn" bindtap="onChooseImage">🖼</text>
+      <view class="chat-send-btn" bindtap="onSend">
+        <text class="send-arrow">↑</text>
+      </view>
+    </view>
+  </view>
+</view>

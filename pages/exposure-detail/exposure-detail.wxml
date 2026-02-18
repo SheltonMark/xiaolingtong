@@ -1,0 +1,57 @@
+<!--pages/exposure-detail/exposure-detail.wxml-->
+<view class="ed-page">
+  <!-- 发布者信息 -->
+  <view class="ed-card">
+    <view class="ed-author">
+      <view class="ed-avatar">👤</view>
+      <view class="ed-author-info">
+        <text class="ed-author-name">匿名用户</text>
+        <text class="ed-author-time">2026-02-05 发布</text>
+      </view>
+    </view>
+
+    <!-- 曝光模版信息 -->
+    <view class="ed-fields">
+      <view class="ed-field"><text class="ed-field-label">对方公司</text><text class="ed-field-value">***塑胶制品厂</text></view>
+      <view class="ed-field"><text class="ed-field-label">对方姓名</text><text class="ed-field-value">王**</text></view>
+      <view class="ed-field"><text class="ed-field-label">欠款金额</text><text class="ed-field-value text-cta">¥12,800</text></view>
+    </view>
+
+    <text class="ed-content">发布虚假库存信息，实际无货源，多名用户投诉。经多次沟通仍拒绝退款，态度恶劣。合同签订后以各种理由拖延发货，最终失联。</text>
+
+    <!-- 证据图片 -->
+    <view class="ed-images">
+      <view class="ed-img-item" wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="ed-img" data-index="{{index}}" bindtap="onPreviewImage" />
+      </view>
+    </view>
+
+    <view class="ed-meta">
+      <text class="ed-meta-item">👁 326次浏览</text>
+      <text class="ed-meta-item">💬 {{comments.length}}条评论</text>
+    </view>
+  </view>
+
+  <!-- 评论区 -->
+  <view class="ed-card">
+    <text class="ed-section-title">评论 ({{comments.length}})</text>
+    <view class="comment-list">
+      <view class="comment-item" wx:for="{{comments}}" wx:key="id">
+        <view class="comment-avatar">👤</view>
+        <view class="comment-body">
+          <view class="comment-header">
+            <text class="comment-name">{{item.name}}</text>
+            <text class="comment-time">{{item.time}}</text>
+          </view>
+          <text class="comment-text">{{item.content}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部评论输入 -->
+  <view class="ed-bottom">
+    <input class="ed-input" placeholder="写评论..." bindinput="onCommentInput" value="{{commentText}}" />
+    <button class="ed-send-btn" bindtap="onSendComment">发送</button>
+  </view>
+</view>
