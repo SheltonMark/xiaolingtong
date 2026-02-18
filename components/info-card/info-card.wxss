@@ -1,0 +1,86 @@
+.info-card {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 20rpx;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+.avatar-circle {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.avatar-text {
+  font-size: 28rpx;
+  font-weight: 600;
+}
+.header-info {
+  display: flex;
+  flex-direction: column;
+}
+.header-title {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #1E293B;
+}
+.header-sub {
+  font-size: 20rpx;
+  color: #94A3B8;
+  margin-top: 4rpx;
+}
+.header-btns {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+.contact-btn {
+  font-size: 22rpx;
+  color: #ffffff;
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+}
+.btn-wechat { background-color: #10B981; }
+.btn-phone { background-color: #3B82F6; }
+.card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  padding-left: 100rpx;
+}
+.field-row {
+  display: flex;
+  font-size: 24rpx;
+}
+.field-label {
+  color: #64748B;
+  width: 80rpx;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+.field-value {
+  color: #1E293B;
+}
+.card-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+.footer-time {
+  font-size: 20rpx;
+  color: #94A3B8;
+}

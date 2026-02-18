@@ -1,0 +1,9 @@
+<view class="empty-state">
+  <image wx:if="{{icon}}" src="{{icon}}" class="empty-icon" mode="aspectFit" />
+  <view wx:else class="empty-icon-default">
+    <text class="empty-emoji">📭</text>
+  </view>
+  <text class="empty-text">{{text || '暂无数据'}}</text>
+  <text wx:if="{{subText}}" class="empty-sub">{{subText}}</text>
+  <slot></slot>
+</view>

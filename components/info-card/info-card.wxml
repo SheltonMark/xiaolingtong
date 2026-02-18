@@ -1,0 +1,29 @@
+<view class="info-card" bindtap="onTapCard">
+  <!-- 头部：头像 + 信息 + 联系按钮 -->
+  <view class="card-header">
+    <view class="header-left">
+      <view class="avatar-circle" style="background-color: {{item.avatarBg}};">
+        <text style="color: {{item.avatarColor}};" class="avatar-text">{{item.avatarText}}</text>
+      </view>
+      <view class="header-info">
+        <text class="header-title">{{item.location}} · {{item.certText}}</text>
+        <text class="header-sub">{{item.industry}}</text>
+      </view>
+    </view>
+    <view class="header-btns" wx:if="{{showContact}}">
+      <view class="contact-btn btn-wechat" catchtap="onTapWechat">微信</view>
+      <view class="contact-btn btn-phone" catchtap="onTapPhone">电话</view>
+    </view>
+  </view>
+  <!-- 详情字段 -->
+  <view class="card-fields">
+    <view class="field-row" wx:for="{{item.fields}}" wx:key="label">
+      <text class="field-label">{{item.label}}</text>
+      <text class="field-value {{item.bold ? 'font-medium' : ''}}">{{item.value}}</text>
+    </view>
+  </view>
+  <!-- 底部时间 -->
+  <view class="card-footer">
+    <text class="footer-time">{{item.time}}</text>
+  </view>
+</view>
