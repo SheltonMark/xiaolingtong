@@ -1,1 +1,201 @@
-/* pages/mine/mine.wxss */
+.mine-page {
+  min-height: 100vh;
+  background-color: #F5F5F5;
+}
+
+/* ===== 头部 ===== */
+.header {
+  padding: 0 32rpx 32rpx;
+}
+.header-enterprise {
+  background: linear-gradient(180deg, #EFF6FF 0%, #F1F5F9 100%);
+}
+.header-worker {
+  background: linear-gradient(180deg, #FFF7ED 0%, #F1F5F9 100%);
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+  padding-top: 16rpx;
+}
+.header-label {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+.settings-icon {
+  font-size: 36rpx;
+}
+
+/* ===== 用户信息 ===== */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+.avatar-wrap {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 50%;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.06);
+  flex-shrink: 0;
+}
+.avatar-emoji {
+  font-size: 64rpx;
+}
+.user-detail {
+  flex: 1;
+  min-width: 0;
+}
+.user-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+.user-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+.cert-badge {
+  font-size: 20rpx;
+  background-color: #10B981;
+  color: #ffffff;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+.user-sub {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+/* ===== 数据卡片 ===== */
+.data-card {
+  margin-top: 32rpx;
+  background-color: #ffffff;
+  border-radius: 32rpx;
+  padding: 32rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
+}
+.data-card-3 .data-item {
+  flex: 1;
+}
+.data-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+.data-value {
+  font-size: 40rpx;
+  font-weight: 700;
+}
+.data-value-sm {
+  font-size: 24rpx;
+  font-weight: 600;
+  margin-top: 12rpx;
+}
+.data-label {
+  font-size: 22rpx;
+  color: #64748B;
+}
+.data-divider {
+  width: 1rpx;
+  height: 60rpx;
+  background-color: #F1F5F9;
+}
+
+/* ===== 功能入口 ===== */
+.func-grid {
+  margin: 24rpx 24rpx 0;
+  background-color: #ffffff;
+  border-radius: 32rpx;
+  padding: 32rpx 16rpx;
+  display: flex;
+  flex-wrap: wrap;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
+}
+.func-item {
+  width: 20%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+.func-icon {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.func-emoji {
+  font-size: 40rpx;
+}
+.func-label {
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+/* ===== Tab 区域 ===== */
+.tab-section {
+  margin: 24rpx 24rpx 0;
+  background-color: #ffffff;
+  border-radius: 32rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
+}
+.tab-bar-mine {
+  display: flex;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+.tab-item-mine {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 26rpx;
+  color: #94A3B8;
+  position: relative;
+}
+.tab-active-mine {
+  color: #3B82F6;
+  font-weight: 600;
+}
+.tab-active-mine::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background-color: #3B82F6;
+  border-radius: 4rpx;
+}
+.tab-active-worker {
+  color: #F97316;
+  font-weight: 600;
+}
+.tab-active-worker::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background-color: #F97316;
+  border-radius: 4rpx;
+}

@@ -1,2 +1,123 @@
 <!--pages/mine/mine.wxml-->
-<text>pages/mine/mine.wxml</text>
+<view class="mine-page">
+  <!-- ===== 企业端 ===== -->
+  <view wx:if="{{userRole === 'enterprise'}}">
+    <!-- 头部 -->
+    <view class="header header-enterprise" style="padding-top: {{statusBarHeight + 10}}px;">
+      <view class="header-top">
+        <text class="header-label">我的</text>
+        <text class="settings-icon" bindtap="onSettings">⚙️</text>
+      </view>
+      <view class="user-info">
+        <view class="avatar-wrap">
+          <text class="avatar-emoji">🏢</text>
+        </view>
+        <view class="user-detail">
+          <view class="user-name-row">
+            <text class="user-name">鑫达贸易公司</text>
+            <text class="cert-badge">已认证</text>
+          </view>
+          <text class="user-sub">工贸一体 · 日用百货</text>
+        </view>
+      </view>
+      <!-- 数据卡片 -->
+      <view class="data-card">
+        <view class="data-item" bindtap="onMembership">
+          <text class="data-value text-cta">128</text>
+          <text class="data-label">灵豆</text>
+        </view>
+        <view class="data-divider"></view>
+        <view class="data-item" bindtap="onMembership">
+          <text class="data-value-sm text-warm">未开通</text>
+          <text class="data-label">会员中心</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 功能入口 -->
+    <view class="func-grid">
+      <view class="func-item" wx:for="{{enterpriseFuncs}}" wx:key="label"
+            data-url="{{item.url}}" bindtap="onFuncTap">
+        <view class="func-icon" style="background-color: {{item.bg}};">
+          <text class="func-emoji">{{item.icon}}</text>
+        </view>
+        <text class="func-label">{{item.label}}</text>
+      </view>
+    </view>
+
+    <!-- Tab 内容 -->
+    <view class="tab-section">
+      <view class="tab-bar-mine">
+        <view class="tab-item-mine {{currentTab === index ? 'tab-active-mine' : ''}}"
+              wx:for="{{enterpriseTabs}}" wx:key="index"
+              data-index="{{index}}" bindtap="onTabChange">
+          <text>{{item}}</text>
+        </view>
+      </view>
+      <empty-state text="暂无数据" subText="快去发布动态吧~" />
+    </view>
+  </view>
+
+  <!-- ===== 临工端 ===== -->
+  <view wx:if="{{userRole === 'worker'}}">
+    <!-- 头部 -->
+    <view class="header header-worker" style="padding-top: {{statusBarHeight + 10}}px;">
+      <view class="header-top">
+        <text class="header-label">我的</text>
+        <text class="settings-icon" bindtap="onSettings">⚙️</text>
+      </view>
+      <view class="user-info">
+        <view class="avatar-wrap">
+          <text class="avatar-emoji">👷</text>
+        </view>
+        <view class="user-detail">
+          <view class="user-name-row">
+            <text class="user-name">张三</text>
+            <text class="cert-badge">已认证</text>
+          </view>
+          <text class="user-sub">信用分 <text class="text-cta font-semibold">95</text> · 组装工/包装工</text>
+        </view>
+      </view>
+      <!-- 数据卡片 -->
+      <view class="data-card data-card-3">
+        <view class="data-item" bindtap="onWallet">
+          <text class="data-value text-cta">¥520</text>
+          <text class="data-label">钱包余额</text>
+        </view>
+        <view class="data-divider"></view>
+        <view class="data-item">
+          <text class="data-value text-warm">86</text>
+          <text class="data-label">灵豆</text>
+        </view>
+        <view class="data-divider"></view>
+        <view class="data-item">
+          <text class="data-value text-primary">50</text>
+          <text class="data-label">累计接单</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 功能入口 -->
+    <view class="func-grid">
+      <view class="func-item" wx:for="{{workerFuncs}}" wx:key="label"
+            data-url="{{item.url}}" bindtap="onFuncTap">
+        <view class="func-icon" style="background-color: {{item.bg}};">
+          <text class="func-emoji">{{item.icon}}</text>
+        </view>
+        <text class="func-label">{{item.label}}</text>
+      </view>
+    </view>
+
+    <!-- Tab 内容 -->
+    <view class="tab-section">
+      <view class="tab-bar-mine">
+        <view class="tab-item-mine {{currentTab === index ? 'tab-active-worker' : ''}}"
+              wx:for="{{workerTabs}}" wx:key="index"
+              data-index="{{index}}" bindtap="onTabChange">
+          <text>{{item}}</text>
+        </view>
+      </view>
+      <empty-state text="暂无记录" subText="快去报名接单吧~" />
+    </view>
+  </view>
+</view>

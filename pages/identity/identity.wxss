@@ -1,1 +1,101 @@
-/* pages/identity/identity.wxss */
+.identity-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #ffffff;
+}
+.header {
+  padding: 24rpx 32rpx;
+}
+.title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+.desc {
+  padding: 0 64rpx;
+  margin-bottom: 48rpx;
+}
+.desc-text {
+  font-size: 24rpx;
+  color: #64748B;
+  line-height: 1.625;
+}
+.cards {
+  flex: 1;
+  padding: 0 48rpx;
+}
+.identity-card {
+  border: 2rpx solid #E2E8F0;
+  border-radius: 32rpx;
+  padding: 40rpx;
+  margin-bottom: 32rpx;
+  background-color: #ffffff;
+  transition: all 0.2s;
+}
+.card-active {
+  border-color: #3B82F6;
+  background-color: #EFF6FF;
+}
+.card-active .card-arrow {
+  color: #3B82F6;
+}
+.card-main {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+}
+.card-icon {
+  width: 112rpx;
+  height: 112rpx;
+  border-radius: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.icon-enterprise {
+  background-color: #EFF6FF;
+}
+.icon-worker {
+  background-color: #FFF7ED;
+}
+.icon-emoji {
+  font-size: 56rpx;
+}
+.card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.card-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+.card-sub {
+  font-size: 24rpx;
+  color: #64748B;
+  margin-top: 4rpx;
+}
+.card-arrow {
+  font-size: 40rpx;
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+.card-desc {
+  padding-left: 144rpx;
+  margin-top: 16rpx;
+}
+.card-desc-text {
+  font-size: 20rpx;
+  color: #64748B;
+}
+.tip {
+  padding: 48rpx;
+  text-align: center;
+}
+.tip-text {
+  font-size: 20rpx;
+  color: #94A3B8;
+}

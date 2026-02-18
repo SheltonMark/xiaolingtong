@@ -1,2 +1,52 @@
 <!--pages/identity/identity.wxml-->
-<text>pages/identity/identity.wxml</text>
+<view class="identity-page">
+  <!-- 标题 -->
+  <view class="header">
+    <text class="title">选择您的身份</text>
+  </view>
+  <view class="desc">
+    <text class="desc-text">首次登录请选择您的身份类型，选择后不可更改。不同身份将看到不同的功能和内容。</text>
+  </view>
+
+  <!-- 身份卡片 -->
+  <view class="cards">
+    <!-- 企业用户 -->
+    <view class="identity-card {{selected === 'enterprise' ? 'card-active' : ''}}" bindtap="onSelectEnterprise">
+      <view class="card-main">
+        <view class="card-icon icon-enterprise">
+          <text class="icon-emoji">🏭</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">企业用户</text>
+          <text class="card-sub">工厂、贸易公司、电商、门店等</text>
+        </view>
+        <text class="card-arrow">›</text>
+      </view>
+      <view class="card-desc">
+        <text class="card-desc-text">可发布采购需求、工厂库存、代加工服务、招工信息，查看供需联系方式</text>
+      </view>
+    </view>
+
+    <!-- 临工用户 -->
+    <view class="identity-card {{selected === 'worker' ? 'card-active' : ''}}" bindtap="onSelectWorker">
+      <view class="card-main">
+        <view class="card-icon icon-worker">
+          <text class="icon-emoji">👷</text>
+        </view>
+        <view class="card-info">
+          <text class="card-title">临工用户</text>
+          <text class="card-sub">找临时工作、日结/计件工</text>
+        </view>
+        <text class="card-arrow">›</text>
+      </view>
+      <view class="card-desc">
+        <text class="card-desc-text">浏览招工信息、报名应聘、打卡出勤、工资结算提现</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部提示 -->
+  <view class="tip">
+    <text class="tip-text">身份选择后不可更改，请谨慎选择</text>
+  </view>
+</view>

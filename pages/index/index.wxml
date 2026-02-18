@@ -1,2 +1,160 @@
 <!--pages/index/index.wxml-->
-<text>pages/index/index.wxml</text>
+<view class="index-page">
+  <!-- 顶部栏 -->
+  <view class="top-bar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="top-bar-inner">
+      <!-- 城市选择 -->
+      <view class="city-selector">
+        <text class="city-icon">📍</text>
+        <text class="city-name">东莞</text>
+        <text class="city-arrow">▾</text>
+      </view>
+      <!-- 搜索框 -->
+      <view class="search-bar" bindtap="onSearch">
+        <text class="search-icon">🔍</text>
+        <text class="search-placeholder">{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}</text>
+      </view>
+      <!-- 通知 -->
+      <view class="notify-btn" bindtap="onNotification">
+        <text class="notify-icon">🔔</text>
+        <view class="notify-badge">3</view>
+      </view>
+    </view>
+
+    <!-- 企业端 Tab -->
+    <view class="tab-bar" wx:if="{{userRole === 'enterprise'}}">
+      <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+            wx:for="{{tabs}}" wx:key="index"
+            data-index="{{index}}" bindtap="onTabChange">
+        <text class="tab-text">{{item}}</text>
+        <view class="tab-line" wx:if="{{currentTab === index}}"></view>
+      </view>
+    </view>
+
+    <!-- 临工端筛选 -->
+    <view class="filter-bar" wx:if="{{userRole === 'worker'}}">
+      <view class="filter-item" wx:for="{{filterLabels}}" wx:key="index">
+        <text class="filter-text">{{item}}</text>
+        <text class="filter-arrow">▾</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- ===== 企业端内容 ===== -->
+  <view wx:if="{{userRole === 'enterprise'}}">
+    <!-- 广告 Banner -->
+    <view class="banner-wrap">
+      <view class="banner-placeholder">
+        <text class="banner-text">📢 广告位招商中</text>
+      </view>
+    </view>
+
+    <!-- Tab 0: 采购需求 -->
+    <view wx:if="{{currentTab === 0}}" class="list-wrap">
+      <view class="section-header">
+        <text class="section-title">最新采购需求</text>
+        <text class="section-more text-primary">查看更多</text>
+      </view>
+      <info-card wx:for="{{purchaseList}}" wx:key="id"
+                 item="{{item}}"
+                 bind:tap="onCardTap"
+                 bind:wechat="onWechat"
+                 bind:phone="onPhone" />
+      <empty-state wx:if="{{purchaseList.length === 0}}" text="暂无采购需求" />
+    </view>
+
+    <!-- Tab 1: 工厂库存 -->
+    <view wx:if="{{currentTab === 1}}" class="list-wrap">
+      <view class="section-header">
+        <text class="section-title">最新工厂库存</text>
+        <text class="section-more text-primary">查看更多</text>
+      </view>
+      <info-card wx:for="{{stockList}}" wx:key="id"
+                 item="{{item}}"
+                 bind:tap="onCardTap"
+                 bind:wechat="onWechat"
+                 bind:phone="onPhone" />
+      <empty-state wx:if="{{stockList.length === 0}}" text="暂无库存信息" />
+    </view>
+
+    <!-- Tab 2: 代加工 -->
+    <view wx:if="{{currentTab === 2}}" class="list-wrap">
+      <empty-state text="暂无代加工信息" subText="敬请期待" />
+    </view>
+
+    <!-- Tab 3: 招工信息 -->
+    <view wx:if="{{currentTab === 3}}" class="list-wrap">
+      <view class="section-header">
+        <text class="section-title">最新招工信息</text>
+        <text class="section-more text-primary">查看更多</text>
+      </view>
+      <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
+            data-id="{{item.id}}" bindtap="onJobTap">
+        <view class="job-header">
+          <view class="job-header-left">
+            <view class="job-avatar-placeholder">
+              <text>🏭</text>
+            </view>
+            <view class="job-company-info">
+              <text class="job-company">{{item.companyName}}</text>
+              <text class="job-meta">{{item.time}} · {{item.location}}</text>
+            </view>
+          </view>
+          <view class="contact-btns">
+            <view class="contact-btn btn-wechat" catchtap="onWechat">微信</view>
+            <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
+          </view>
+        </view>
+        <view class="job-title-row">
+          <text class="job-title">{{item.title}}</text>
+          <text class="job-salary text-cta">{{item.salary}}</text>
+        </view>
+        <view class="job-tags">
+          <text class="job-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+        </view>
+        <view class="job-footer">
+          <text class="job-applied">已报名 {{item.applied}}/{{item.total}}人</text>
+        </view>
+      </view>
+      <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="暂无招工信息" />
+    </view>
+  </view>
+
+  <!-- ===== 临工端内容 ===== -->
+  <view wx:if="{{userRole === 'worker'}}" class="list-wrap">
+    <view class="job-card" wx:for="{{jobList}}" wx:key="id"
+          data-id="{{item.id}}" bindtap="onJobTap">
+      <view class="job-header">
+        <view class="job-header-left">
+          <view class="job-avatar-placeholder">
+            <text>🏭</text>
+          </view>
+          <view class="job-company-info">
+            <text class="job-company">{{item.companyName}}</text>
+            <text class="job-meta">{{item.dateRange}} · {{item.location}} · {{item.distance}}</text>
+          </view>
+        </view>
+        <view class="contact-btns">
+          <view class="contact-btn btn-wechat" catchtap="onWechat">微信</view>
+          <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
+        </view>
+      </view>
+      <view class="job-title-row">
+        <text class="job-salary-big text-cta">{{item.salary}}<text class="job-salary-unit">{{item.salaryUnit}}</text></text>
+        <text class="job-type-label">{{item.title}}</text>
+      </view>
+      <text class="job-desc">需要{{item.need}}人，工期{{item.dateRange}}，包午餐</text>
+      <view class="job-tags">
+        <text class="job-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+      </view>
+      <view class="job-footer">
+        <text class="job-applied">已报名 {{item.applied}}/{{item.need}}人</text>
+        <view class="job-actions">
+          <text class="job-action">分享</text>
+          <text class="job-action">投诉</text>
+        </view>
+      </view>
+    </view>
+    <empty-state wx:if="{{jobList.length === 0}}" text="暂无招工信息" subText="附近暂时没有招工需求" />
+  </view>
+</view>

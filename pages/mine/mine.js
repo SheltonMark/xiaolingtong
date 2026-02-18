@@ -1,66 +1,60 @@
-// pages/mine/mine.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    userRole: 'enterprise',
+    statusBarHeight: 0,
+    currentTab: 0,
+    // 企业端
+    enterpriseTabs: ['我的动态', '浏览记录', '对接记录'],
+    enterpriseFuncs: [
+      { icon: '📋', label: '我的发布', bg: '#EFF6FF', url: '/pages/my-posts/my-posts' },
+      { icon: '⭐', label: '我的收藏', bg: '#FFFBEB', url: '' },
+      { icon: '💎', label: '灵豆充值', bg: '#FFF7ED', url: '/pages/bean-recharge/bean-recharge' },
+      { icon: '✅', label: '企业认证', bg: '#ECFDF5', url: '/pages/cert-enterprise/cert-enterprise' },
+      { icon: '👥', label: '用工管理', bg: '#FFF1F2', url: '' }
+    ],
+    // 临工端
+    workerTabs: ['接单记录', '浏览记录'],
+    workerFuncs: [
+      { icon: '📝', label: '我的报名', bg: '#E0F2FE', url: '/pages/my-applications/my-applications' },
+      { icon: '💰', label: '我的钱包', bg: '#FFF7ED', url: '/pages/wallet/wallet' },
+      { icon: '💎', label: '灵豆商城', bg: '#FFFBEB', url: '/pages/bean-recharge/bean-recharge' },
+      { icon: '📊', label: '收入明细', bg: '#EFF6FF', url: '/pages/income/income' },
+      { icon: '🪪', label: '实名认证', bg: '#ECFDF5', url: '/pages/cert-worker/cert-worker' }
+    ]
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onLoad() {
+    const sysInfo = wx.getSystemInfoSync()
+    this.setData({ statusBarHeight: sysInfo.statusBarHeight })
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
   onShow() {
-
+    const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    this.setData({ userRole, currentTab: 0 })
   },
 
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
+  onTabChange(e) {
+    this.setData({ currentTab: e.currentTarget.dataset.index })
   },
 
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
+  onFuncTap(e) {
+    const { url } = e.currentTarget.dataset
+    if (url) {
+      wx.navigateTo({ url })
+    } else {
+      wx.showToast({ title: '功能开发中', icon: 'none' })
+    }
   },
 
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
+  onSettings() {
+    wx.showToast({ title: '设置', icon: 'none' })
   },
 
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
+  onMembership() {
+    wx.navigateTo({ url: '/pages/membership/membership' })
   },
 
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onWallet() {
+    wx.navigateTo({ url: '/pages/wallet/wallet' })
   }
 })
