@@ -1,2 +1,38 @@
 <!--pages/cert-enterprise/cert-enterprise.wxml-->
-<text>pages/cert-enterprise/cert-enterprise.wxml</text>
+<view class="cert-page">
+  <view class="form-wrap">
+    <view class="form-group">
+      <text class="form-label required">企业名称</text>
+      <input class="form-input" placeholder="请输入企业全称" data-field="companyName" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label required">统一社会信用代码</text>
+      <input class="form-input" placeholder="请输入18位信用代码" data-field="creditCode" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label required">法人姓名</text>
+      <input class="form-input" placeholder="请输入法人姓名" data-field="legalPerson" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label required">联系电话</text>
+      <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">企业地址</text>
+      <input class="form-input" placeholder="请输入详细地址" data-field="address" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label required">营业执照</text>
+      <view class="upload-area" bindtap="onUploadLicense">
+        <image wx:if="{{licenseImage}}" src="{{licenseImage}}" mode="aspectFill" class="upload-preview" />
+        <view wx:else class="upload-placeholder">
+          <text class="upload-icon">📄</text>
+          <text class="upload-text">点击上传营业执照</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="submit-wrap">
+    <button class="btn btn-primary" bindtap="onSubmit">提交认证</button>
+  </view>
+</view>

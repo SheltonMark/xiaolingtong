@@ -1,66 +1,29 @@
-// pages/promotion/promotion.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    selectedIndex: 0,
+    options: [
+      { id: 1, name: '置顶3天', desc: '信息在列表顶部展示3天', beans: 30, tag: '' },
+      { id: 2, name: '置顶7天', desc: '信息在列表顶部展示7天', beans: 50, tag: '热门' },
+      { id: 3, name: '精选推荐', desc: '出现在首页精选栏目', beans: 80, tag: '' },
+      { id: 4, name: '全城推送', desc: '推送给全城匹配用户', beans: 150, tag: '效果最佳' }
+    ],
+    myBeans: 128
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onSelect(e) { this.setData({ selectedIndex: e.currentTarget.dataset.index }) },
+  onPay() {
+    const opt = this.data.options[this.data.selectedIndex]
+    if (this.data.myBeans < opt.beans) {
+      wx.showModal({
+        title: '灵豆不足',
+        content: '当前灵豆不足，是否前往充值？',
+        success: (res) => { if (res.confirm) wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' }) }
+      })
+      return
+    }
+    wx.showModal({
+      title: '确认推广',
+      content: '消耗 ' + opt.beans + ' 灵豆，' + opt.name,
+      success: (res) => { if (res.confirm) wx.showToast({ title: '推广成功', icon: 'success' }) }
+    })
   }
 })

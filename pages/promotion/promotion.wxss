@@ -1,1 +1,17 @@
-/* pages/promotion/promotion.wxss */
+.pm-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 140rpx; }
+.pm-balance { margin: 20rpx 24rpx 0; background-color: #fff; border-radius: 24rpx; padding: 24rpx 32rpx; display: flex; align-items: center; justify-content: space-between; }
+.pm-bal-left { display: flex; align-items: center; gap: 12rpx; }
+.pm-bal-icon { font-size: 36rpx; }
+.pm-bal-text { font-size: 26rpx; color: #1E293B; }
+.pm-bal-num { font-weight: 700; color: #3B82F6; }
+.pm-recharge { font-size: 24rpx; color: #3B82F6; }
+.pm-list { padding: 24rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.pm-card { background-color: #fff; border-radius: 20rpx; padding: 28rpx 32rpx; border: 2rpx solid transparent; display: flex; align-items: center; justify-content: space-between; position: relative; }
+.pm-selected { border-color: #3B82F6; background-color: #EFF6FF; }
+.pm-tag { position: absolute; top: -2rpx; right: -2rpx; font-size: 18rpx; background-color: #F43F5E; color: #fff; padding: 4rpx 12rpx; border-radius: 0 20rpx 0 12rpx; }
+.pm-left { display: flex; flex-direction: column; gap: 4rpx; }
+.pm-name { font-size: 26rpx; font-weight: 600; color: #1E293B; }
+.pm-desc { font-size: 22rpx; color: #94A3B8; }
+.pm-beans { font-size: 28rpx; font-weight: 700; color: #3B82F6; }
+.pm-beans-unit { font-size: 20rpx; color: #94A3B8; }
+.pm-bottom { position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx; background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04); padding-bottom: calc(20rpx + env(safe-area-inset-bottom)); }

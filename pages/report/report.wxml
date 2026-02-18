@@ -1,2 +1,33 @@
 <!--pages/report/report.wxml-->
-<text>pages/report/report.wxml</text>
+<view class="rp-page">
+  <view class="form-wrap">
+    <view class="form-group">
+      <text class="form-label required">举报类型</text>
+      <view class="type-tags">
+        <view class="t-tag {{selectedType === item ? 't-tag-active' : ''}}"
+              wx:for="{{types}}" wx:key="*this" data-tag="{{item}}" bindtap="onTypeTap">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="form-group">
+      <text class="form-label required">举报说明</text>
+      <textarea class="form-textarea" placeholder="请描述具体问题" data-field="description" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">截图证据</text>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{images}}" wx:key="*this">
+          <image src="{{item}}" mode="aspectFill" class="upload-img" />
+          <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
+        </view>
+        <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 4}}">
+          <text class="add-icon">+</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="submit-wrap">
+    <button class="btn btn-primary" bindtap="onSubmit">提交举报</button>
+  </view>
+</view>

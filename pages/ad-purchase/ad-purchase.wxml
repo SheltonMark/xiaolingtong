@@ -1,2 +1,22 @@
 <!--pages/ad-purchase/ad-purchase.wxml-->
-<text>pages/ad-purchase/ad-purchase.wxml</text>
+<view class="ad-page">
+  <view class="ad-header">
+    <text class="ad-title">广告投放</text>
+    <text class="ad-sub">精准触达目标客户，提升曝光转化</text>
+  </view>
+  <view class="ad-list">
+    <view class="ad-card {{selectedIndex === index ? 'ad-selected' : ''}}"
+          wx:for="{{plans}}" wx:key="id" data-index="{{index}}" bindtap="onSelect">
+      <text class="ad-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
+      <text class="ad-name">{{item.name}}</text>
+      <text class="ad-desc">{{item.desc}}</text>
+      <view class="ad-price-row">
+        <text class="ad-price">¥{{item.price}}</text>
+        <text class="ad-unit">{{item.unit}}</text>
+      </view>
+    </view>
+  </view>
+  <view class="ad-bottom">
+    <button class="btn btn-primary" bindtap="onPay">立即购买 ¥{{plans[selectedIndex].price}}</button>
+  </view>
+</view>

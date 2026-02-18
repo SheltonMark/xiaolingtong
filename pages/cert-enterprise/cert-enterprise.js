@@ -1,66 +1,22 @@
-// pages/cert-enterprise/cert-enterprise.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    form: { companyName: '', creditCode: '', legalPerson: '', phone: '', address: '' },
+    licenseImage: ''
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onInput(e) {
+    this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value })
   },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
+  onUploadLicense() {
+    wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
+      this.setData({ licenseImage: res.tempFiles[0].tempFilePath })
+    }})
   },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onSubmit() {
+    const { form, licenseImage } = this.data
+    if (!form.companyName || !form.creditCode || !licenseImage) {
+      wx.showToast({ title: '请填写必填项', icon: 'none' }); return
+    }
+    wx.showToast({ title: '提交成功，等待审核', icon: 'success' })
+    setTimeout(() => wx.navigateBack(), 1500)
   }
 })

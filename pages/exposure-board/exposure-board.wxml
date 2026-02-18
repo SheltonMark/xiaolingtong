@@ -1,2 +1,20 @@
 <!--pages/exposure-board/exposure-board.wxml-->
-<text>pages/exposure-board/exposure-board.wxml</text>
+<view class="eb-page">
+  <view class="eb-header">
+    <text class="eb-title">曝光榜</text>
+    <text class="eb-sub">维护行业秩序，保障临工权益</text>
+  </view>
+  <view class="eb-list">
+    <view class="eb-card" wx:for="{{list}}" wx:key="id">
+      <view class="eb-top">
+        <text class="eb-company">{{item.company}}</text>
+        <text class="eb-count">被曝光 {{item.count}} 次</text>
+      </view>
+      <text class="eb-reason">{{item.reason}}</text>
+      <view class="eb-meta">
+        <text class="eb-meta-item">{{item.location}}</text>
+        <text class="eb-meta-item">最近曝光：{{item.lastTime}}</text>
+      </view>
+    </view>
+  </view>
+</view>

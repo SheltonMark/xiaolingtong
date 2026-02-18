@@ -1,66 +1,24 @@
-// pages/report/report.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    types: ['虚假信息', '诈骗', '侵权', '色情低俗', '其他'],
+    selectedType: '',
+    form: { description: '' },
+    images: []
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onTypeTap(e) { this.setData({ selectedType: e.currentTarget.dataset.tag }) },
+  onInput(e) { this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value }) },
+  onChooseImage() {
+    if (this.data.images.length >= 4) return
+    wx.chooseMedia({ count: 4 - this.data.images.length, mediaType: ['image'], success: (res) => {
+      this.setData({ images: [...this.data.images, ...res.tempFiles.map(f => f.tempFilePath)] })
+    }})
   },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onDeleteImage(e) { this.setData({ images: this.data.images.filter((_, i) => i !== e.currentTarget.dataset.index) }) },
+  onSubmit() {
+    if (!this.data.selectedType || !this.data.form.description) {
+      wx.showToast({ title: '请填写必填项', icon: 'none' }); return
+    }
+    wx.showToast({ title: '举报已提交', icon: 'success' })
+    setTimeout(() => wx.navigateBack(), 1500)
   }
 })

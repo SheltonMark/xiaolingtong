@@ -1,1 +1,15 @@
-/* pages/membership/membership.wxss */
+.mb-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 140rpx; }
+.mb-header { background: linear-gradient(135deg, #1E293B, #334155); padding: 48rpx 32rpx; color: #fff; }
+.mb-title { font-size: 36rpx; font-weight: 700; display: block; margin-bottom: 8rpx; }
+.mb-sub { font-size: 24rpx; opacity: 0.7; }
+.plan-list { margin: 24rpx 24rpx 0; display: flex; flex-direction: column; gap: 20rpx; }
+.plan-card { background-color: #fff; border-radius: 24rpx; padding: 32rpx; border: 2rpx solid transparent; position: relative; }
+.plan-selected { border-color: #3B82F6; }
+.plan-tag { position: absolute; top: 0; right: 32rpx; font-size: 18rpx; background-color: #F43F5E; color: #fff; padding: 4rpx 16rpx; border-radius: 0 0 8rpx 8rpx; }
+.plan-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16rpx; }
+.plan-name { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.plan-price { font-size: 36rpx; font-weight: 700; color: #3B82F6; }
+.plan-unit { font-size: 22rpx; color: #94A3B8; }
+.plan-features { display: flex; flex-direction: column; gap: 8rpx; }
+.plan-feat { font-size: 22rpx; color: #64748B; }
+.mb-bottom { position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx; background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04); padding-bottom: calc(20rpx + env(safe-area-inset-bottom)); }

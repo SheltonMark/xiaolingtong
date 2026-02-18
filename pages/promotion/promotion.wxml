@@ -1,2 +1,32 @@
 <!--pages/promotion/promotion.wxml-->
-<text>pages/promotion/promotion.wxml</text>
+<view class="pm-page">
+  <!-- 灵豆余额 -->
+  <view class="pm-balance">
+    <view class="pm-bal-left">
+      <text class="pm-bal-icon">💎</text>
+      <text class="pm-bal-text">灵豆余额：<text class="pm-bal-num">{{myBeans}}</text></text>
+    </view>
+    <navigator url="/pages/bean-recharge/bean-recharge" class="pm-recharge">去充值</navigator>
+  </view>
+
+  <!-- 推广选项 -->
+  <view class="pm-list">
+    <view class="pm-card {{selectedIndex === index ? 'pm-selected' : ''}}"
+          wx:for="{{options}}" wx:key="id" data-index="{{index}}" bindtap="onSelect">
+      <text class="pm-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
+      <view class="pm-left">
+        <text class="pm-name">{{item.name}}</text>
+        <text class="pm-desc">{{item.desc}}</text>
+      </view>
+      <view>
+        <text class="pm-beans">{{item.beans}}</text>
+        <text class="pm-beans-unit"> 灵豆</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部 -->
+  <view class="pm-bottom">
+    <button class="btn btn-primary" bindtap="onPay">确认推广（{{options[selectedIndex].beans}}灵豆）</button>
+  </view>
+</view>

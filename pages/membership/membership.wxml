@@ -1,2 +1,27 @@
 <!--pages/membership/membership.wxml-->
-<text>pages/membership/membership.wxml</text>
+<view class="mb-page">
+  <view class="mb-header">
+    <text class="mb-title">小灵通会员</text>
+    <text class="mb-sub">解锁更多特权，提升商机转化</text>
+  </view>
+  <view class="plan-list">
+    <view class="plan-card {{selectedIndex === index ? 'plan-selected' : ''}}"
+          wx:for="{{plans}}" wx:key="id"
+          data-index="{{index}}" bindtap="onSelect">
+      <text class="plan-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
+      <view class="plan-top">
+        <text class="plan-name">{{item.name}}</text>
+        <view>
+          <text class="plan-price">¥{{item.price}}</text>
+          <text class="plan-unit">{{item.unit}}</text>
+        </view>
+      </view>
+      <view class="plan-features">
+        <text class="plan-feat" wx:for="{{item.features}}" wx:for-item="f" wx:key="*this">✓ {{f}}</text>
+      </view>
+    </view>
+  </view>
+  <view class="mb-bottom">
+    <button class="btn btn-primary" bindtap="onPay">立即开通 ¥{{plans[selectedIndex].price}}</button>
+  </view>
+</view>

@@ -1,2 +1,39 @@
 <!--pages/exposure/exposure.wxml-->
-<text>pages/exposure/exposure.wxml</text>
+<view class="exp-page">
+  <view class="form-wrap">
+    <view class="form-group">
+      <text class="form-label required">被曝光企业</text>
+      <input class="form-input" placeholder="请输入企业名称" data-field="company" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label required">曝光类型</text>
+      <view class="type-tags">
+        <view class="t-tag {{selectedType === item ? 't-tag-active' : ''}}"
+              wx:for="{{types}}" wx:key="*this" data-tag="{{item}}" bindtap="onTypeTap">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="form-group">
+      <text class="form-label required">详细描述</text>
+      <textarea class="form-textarea" placeholder="请详细描述问题，以便平台核实" data-field="description" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label">证据图片</text>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{images}}" wx:key="*this">
+          <image src="{{item}}" mode="aspectFill" class="upload-img" />
+          <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
+        </view>
+        <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加</text>
+        </view>
+      </view>
+    </view>
+  </view>
+  <view class="submit-wrap">
+    <button class="btn btn-rose" bindtap="onSubmit">提交曝光</button>
+    <text class="submit-hint">曝光信息经平台审核后公开展示</text>
+  </view>
+</view>

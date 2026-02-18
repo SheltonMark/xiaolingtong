@@ -1,66 +1,9 @@
-// pages/exposure-board/exposure-board.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+    list: [
+      { id: 1, company: '某某电子厂', count: 5, reason: '拖欠工资，承诺20元/时实际只付15元', location: '东莞长安', lastTime: '02-15' },
+      { id: 2, company: '某某包装厂', count: 3, reason: '工作环境恶劣，无空调无通风', location: '深圳宝安', lastTime: '02-10' },
+      { id: 3, company: '某某五金厂', count: 2, reason: '强制加班不给加班费', location: '广州番禺', lastTime: '02-08' }
+    ]
   }
 })

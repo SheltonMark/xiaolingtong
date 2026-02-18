@@ -1,2 +1,37 @@
 <!--pages/messages/messages.wxml-->
-<text>pages/messages/messages.wxml</text>
+<view class="msg-page">
+  <view class="tab-bar">
+    <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+          wx:for="{{tabs}}" wx:key="index" data-index="{{index}}" bindtap="onTabChange">
+      <text>{{item}}</text>
+    </view>
+  </view>
+  <!-- 系统通知 -->
+  <view class="msg-list" wx:if="{{currentTab === 0}}">
+    <view class="msg-item" wx:for="{{notifications}}" wx:key="id" bindtap="onTapItem">
+      <view class="msg-icon">{{item.icon}}</view>
+      <view class="msg-content">
+        <view class="msg-title-row">
+          <text class="msg-title">{{item.title}}</text>
+          <text class="msg-time">{{item.time}}</text>
+        </view>
+        <text class="msg-desc">{{item.desc}}</text>
+      </view>
+      <view class="unread-dot" wx:if="{{!item.read}}"></view>
+    </view>
+  </view>
+  <!-- 互动消息 -->
+  <view class="msg-list" wx:if="{{currentTab === 1}}">
+    <view class="msg-item" wx:for="{{interactions}}" wx:key="id" bindtap="onTapItem">
+      <view class="msg-icon">{{item.avatar}}</view>
+      <view class="msg-content">
+        <view class="msg-title-row">
+          <text class="msg-title">{{item.name}}</text>
+          <text class="msg-time">{{item.time}}</text>
+        </view>
+        <text class="msg-desc">{{item.desc}}</text>
+      </view>
+      <view class="unread-dot" wx:if="{{!item.read}}"></view>
+    </view>
+  </view>
+</view>

@@ -1,1 +1,17 @@
-/* pages/income/income.wxss */
+.inc-page { min-height: 100vh; background-color: #F5F5F5; }
+.inc-card { margin: 20rpx 24rpx 0; background: linear-gradient(135deg, #10B981, #34D399); border-radius: 24rpx; padding: 40rpx 32rpx; color: #fff; }
+.inc-label { font-size: 24rpx; opacity: 0.8; display: block; margin-bottom: 8rpx; }
+.inc-amount { font-size: 48rpx; font-weight: 700; display: block; margin-bottom: 24rpx; }
+.inc-row { display: flex; gap: 48rpx; }
+.inc-stat { display: flex; flex-direction: column; gap: 4rpx; }
+.inc-sv { font-size: 28rpx; font-weight: 600; }
+.inc-sl { font-size: 20rpx; opacity: 0.7; }
+.inc-section { margin: 24rpx 24rpx 0; background-color: #fff; border-radius: 24rpx; padding: 32rpx; }
+.sec-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 20rpx; }
+.inc-list { display: flex; flex-direction: column; }
+.inc-item { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 0; border-bottom: 1rpx solid #F1F5F9; }
+.inc-item:last-child { border-bottom: none; }
+.inc-left { display: flex; flex-direction: column; gap: 4rpx; }
+.inc-name { font-size: 26rpx; color: #1E293B; }
+.inc-time { font-size: 20rpx; color: #94A3B8; }
+.inc-val { font-size: 28rpx; font-weight: 600; }

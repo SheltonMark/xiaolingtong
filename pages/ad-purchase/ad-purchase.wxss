@@ -1,1 +1,14 @@
-/* pages/ad-purchase/ad-purchase.wxss */
+.ad-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 140rpx; }
+.ad-header { background: linear-gradient(135deg, #8B5CF6, #A78BFA); padding: 32rpx; color: #fff; }
+.ad-title { font-size: 32rpx; font-weight: 700; display: block; margin-bottom: 8rpx; }
+.ad-sub { font-size: 22rpx; opacity: 0.8; }
+.ad-list { padding: 24rpx; display: flex; flex-direction: column; gap: 20rpx; }
+.ad-card { background-color: #fff; border-radius: 24rpx; padding: 32rpx; border: 2rpx solid transparent; position: relative; }
+.ad-selected { border-color: #8B5CF6; }
+.ad-tag { position: absolute; top: 0; right: 32rpx; font-size: 18rpx; background-color: #F43F5E; color: #fff; padding: 4rpx 16rpx; border-radius: 0 0 8rpx 8rpx; }
+.ad-name { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 8rpx; }
+.ad-desc { font-size: 22rpx; color: #64748B; display: block; margin-bottom: 16rpx; }
+.ad-price-row { display: flex; align-items: baseline; gap: 4rpx; }
+.ad-price { font-size: 36rpx; font-weight: 700; color: #8B5CF6; }
+.ad-unit { font-size: 22rpx; color: #94A3B8; }
+.ad-bottom { position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx; background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04); padding-bottom: calc(20rpx + env(safe-area-inset-bottom)); }

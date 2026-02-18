@@ -1,66 +1,25 @@
-// pages/bean-recharge/bean-recharge.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    balance: 128,
+    selectedIndex: 1,
+    packages: [
+      { id: 1, beans: 50, price: '9.9', tag: '' },
+      { id: 2, beans: 120, price: '19.9', tag: '热门' },
+      { id: 3, beans: 300, price: '39.9', tag: '超值' },
+      { id: 4, beans: 600, price: '68', tag: '' },
+      { id: 5, beans: 1500, price: '158', tag: '最划算' },
+      { id: 6, beans: 3000, price: '298', tag: '' }
+    ]
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onSelect(e) { this.setData({ selectedIndex: e.currentTarget.dataset.index }) },
+  onPay() {
+    const pkg = this.data.packages[this.data.selectedIndex]
+    wx.showModal({
+      title: '确认支付',
+      content: '支付 ¥' + pkg.price + ' 获得 ' + pkg.beans + ' 灵豆',
+      success: (res) => {
+        if (res.confirm) wx.showToast({ title: '充值成功', icon: 'success' })
+      }
+    })
   }
 })

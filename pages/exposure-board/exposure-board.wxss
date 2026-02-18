@@ -1,1 +1,12 @@
-/* pages/exposure-board/exposure-board.wxss */
+.eb-page { min-height: 100vh; background-color: #F5F5F5; }
+.eb-header { background: linear-gradient(135deg, #F43F5E, #FB7185); padding: 32rpx; color: #fff; }
+.eb-title { font-size: 32rpx; font-weight: 700; display: block; margin-bottom: 8rpx; }
+.eb-sub { font-size: 22rpx; opacity: 0.8; }
+.eb-list { padding: 20rpx 24rpx; }
+.eb-card { background-color: #fff; border-radius: 24rpx; padding: 32rpx; margin-bottom: 20rpx; }
+.eb-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.eb-company { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.eb-count { font-size: 22rpx; color: #F43F5E; }
+.eb-reason { font-size: 24rpx; color: #64748B; display: block; margin-bottom: 12rpx; }
+.eb-meta { display: flex; gap: 24rpx; }
+.eb-meta-item { font-size: 20rpx; color: #94A3B8; }

@@ -1,66 +1,21 @@
-// pages/membership/membership.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    selectedIndex: 1,
+    plans: [
+      { id: 1, name: '月度会员', price: '29.9', unit: '/月', features: ['每日5次免费查看', '信息优先展示', '专属客服'] },
+      { id: 2, name: '季度会员', price: '69.9', unit: '/季', tag: '推荐', features: ['每日10次免费查看', '信息优先展示', '专属客服', '数据分析'] },
+      { id: 3, name: '年度会员', price: '199', unit: '/年', tag: '最划算', features: ['无限次免费查看', '信息置顶', '专属客服', '数据分析', '广告折扣'] }
+    ]
   },
-
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onSelect(e) { this.setData({ selectedIndex: e.currentTarget.dataset.index }) },
+  onPay() {
+    const plan = this.data.plans[this.data.selectedIndex]
+    wx.showModal({
+      title: '开通' + plan.name,
+      content: '支付 ¥' + plan.price + plan.unit,
+      success: (res) => {
+        if (res.confirm) wx.showToast({ title: '开通成功', icon: 'success' })
+      }
+    })
   }
 })

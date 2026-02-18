@@ -1,2 +1,23 @@
 <!--pages/income/income.wxml-->
-<text>pages/income/income.wxml</text>
+<view class="inc-page">
+  <view class="inc-card">
+    <text class="inc-label">累计收入（元）</text>
+    <text class="inc-amount">¥3,960</text>
+    <view class="inc-row">
+      <view class="inc-stat"><text class="inc-sv">¥1,400</text><text class="inc-sl">本月</text></view>
+      <view class="inc-stat"><text class="inc-sv">50</text><text class="inc-sl">累计接单</text></view>
+    </view>
+  </view>
+  <view class="inc-section">
+    <text class="sec-title">收入明细</text>
+    <view class="inc-list">
+      <view class="inc-item" wx:for="{{records}}" wx:key="id">
+        <view class="inc-left">
+          <text class="inc-name">{{item.title}}</text>
+          <text class="inc-time">{{item.time}}</text>
+        </view>
+        <text class="inc-val text-fresh">+¥{{item.amount}}</text>
+      </view>
+    </view>
+  </view>
+</view>
