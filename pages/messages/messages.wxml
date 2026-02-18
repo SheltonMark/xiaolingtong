@@ -9,12 +9,16 @@
   <!-- Tab筛选：业务消息（左）+ 系统通知（右），带未读badge -->
   <view class="tab-bar">
     <view class="tab-item {{currentTab === 0 ? 'tab-active' : ''}}" data-index="{{0}}" bindtap="onTabChange">
-      <text>业务消息</text>
-      <view class="tab-badge" wx:if="{{chatUnreadCount > 0}}">{{chatUnreadCount}}</view>
+      <view class="tab-text-wrap">
+        <text>业务消息</text>
+        <view class="tab-badge" wx:if="{{chatUnreadCount > 0}}">{{chatUnreadCount}}</view>
+      </view>
     </view>
     <view class="tab-item {{currentTab === 1 ? 'tab-active' : ''}}" data-index="{{1}}" bindtap="onTabChange">
-      <text>系统通知</text>
-      <view class="tab-badge" wx:if="{{systemUnreadCount > 0}}">{{systemUnreadCount}}</view>
+      <view class="tab-text-wrap">
+        <text>系统通知</text>
+        <view class="tab-badge" wx:if="{{systemUnreadCount > 0}}">{{systemUnreadCount}}</view>
+      </view>
     </view>
   </view>
 

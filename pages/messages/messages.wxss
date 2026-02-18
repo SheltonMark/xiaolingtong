@@ -6,7 +6,8 @@
 .tab-item { flex: 1; text-align: center; padding: 20rpx 0; font-size: 24rpx; color: #64748B; position: relative; }
 .tab-active { color: #3B82F6; font-weight: 500; }
 .tab-active::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 48rpx; height: 4rpx; background-color: #3B82F6; border-radius: 4rpx; }
-.tab-badge { position: absolute; top: 8rpx; right: 50rpx; min-width: 28rpx; height: 28rpx; background-color: #F43F5E; color: #fff; font-size: 18rpx; font-weight: 600; border-radius: 9999rpx; display: flex; align-items: center; justify-content: center; padding: 0 6rpx; }
+.tab-text-wrap { display: inline-flex; align-items: flex-start; position: relative; }
+.tab-badge { min-width: 24rpx; height: 24rpx; background-color: #F43F5E; color: #fff; font-size: 16rpx; font-weight: 700; border-radius: 9999rpx; display: inline-flex; align-items: center; justify-content: center; padding: 0 6rpx; margin-left: 4rpx; margin-top: -4rpx; }
 .msg-list { padding: 24rpx 32rpx; display: flex; flex-direction: column; gap: 16rpx; }
 .msg-card { background-color: #fff; border-radius: 20rpx; padding: 28rpx; display: flex; align-items: flex-start; gap: 20rpx; }
 .msg-unread { border-left-width: 6rpx; border-left-style: solid; }
