@@ -1,37 +1,76 @@
 <!--pages/messages/messages.wxml-->
 <view class="msg-page">
+  <!-- 顶部 -->
+  <view class="msg-header">
+    <text class="msg-header-title">消息</text>
+    <text class="msg-read-all" bindtap="onReadAll">全部已读</text>
+  </view>
+
+  <!-- Tab筛选 -->
   <view class="tab-bar">
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
           wx:for="{{tabs}}" wx:key="index" data-index="{{index}}" bindtap="onTabChange">
       <text>{{item}}</text>
     </view>
   </view>
-  <!-- 系统通知 -->
-  <view class="msg-list" wx:if="{{currentTab === 0}}">
-    <view class="msg-item" wx:for="{{notifications}}" wx:key="id" bindtap="onTapItem">
-      <view class="msg-icon">{{item.icon}}</view>
-      <view class="msg-content">
-        <view class="msg-title-row">
-          <text class="msg-title">{{item.title}}</text>
-          <text class="msg-time">{{item.time}}</text>
+
+  <!-- 消息列表 -->
+  <view class="msg-list">
+    <!-- 系统通知 + 业务消息混合（全部tab） -->
+    <block wx:if="{{currentTab === 0}}">
+      <view class="msg-card {{item.unread ? 'msg-unread' : ''}}" style="{{item.unread ? 'border-left: 6rpx solid ' + item.borderColor + ';' : ''}}"
+            wx:for="{{allMessages}}" wx:key="id" bindtap="onTapMsg" data-item="{{item}}">
+        <view class="msg-icon-wrap" style="background-color: {{item.iconBg}};">
+          <text class="msg-icon-text">{{item.icon}}</text>
         </view>
-        <text class="msg-desc">{{item.desc}}</text>
-      </view>
-      <view class="unread-dot" wx:if="{{!item.read}}"></view>
-    </view>
-  </view>
-  <!-- 互动消息 -->
-  <view class="msg-list" wx:if="{{currentTab === 1}}">
-    <view class="msg-item" wx:for="{{interactions}}" wx:key="id" bindtap="onTapItem">
-      <view class="msg-icon">{{item.avatar}}</view>
-      <view class="msg-content">
-        <view class="msg-title-row">
-          <text class="msg-title">{{item.name}}</text>
-          <text class="msg-time">{{item.time}}</text>
+        <view class="msg-body">
+          <view class="msg-top-row">
+            <text class="msg-title {{item.unread ? '' : 'msg-title-read'}}">{{item.title}}</text>
+            <view class="msg-time-wrap">
+              <view class="unread-dot" wx:if="{{item.unread}}"></view>
+              <text class="msg-time">{{item.time}}</text>
+            </view>
+          </view>
+          <text class="msg-desc {{item.unread ? '' : 'msg-desc-read'}}">{{item.desc}}</text>
         </view>
-        <text class="msg-desc">{{item.desc}}</text>
       </view>
-      <view class="unread-dot" wx:if="{{!item.read}}"></view>
-    </view>
+    </block>
+
+    <!-- 系统通知 -->
+    <block wx:if="{{currentTab === 1}}">
+      <view class="msg-card {{item.unread ? 'msg-unread' : ''}}" style="{{item.unread ? 'border-left: 6rpx solid ' + item.borderColor + ';' : ''}}"
+            wx:for="{{systemMessages}}" wx:key="id" bindtap="onTapMsg" data-item="{{item}}">
+        <view class="msg-icon-wrap" style="background-color: {{item.iconBg}};">
+          <text class="msg-icon-text">{{item.icon}}</text>
+        </view>
+        <view class="msg-body">
+          <view class="msg-top-row">
+            <text class="msg-title {{item.unread ? '' : 'msg-title-read'}}">{{item.title}}</text>
+            <view class="msg-time-wrap">
+              <view class="unread-dot" wx:if="{{item.unread}}"></view>
+              <text class="msg-time">{{item.time}}</text>
+            </view>
+          </view>
+          <text class="msg-desc {{item.unread ? '' : 'msg-desc-read'}}">{{item.desc}}</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 业务消息（聊天） -->
+    <block wx:if="{{currentTab === 2}}">
+      <view class="msg-card chat-card" wx:for="{{chatMessages}}" wx:key="id" bindtap="onTapChat" data-item="{{item}}">
+        <view class="chat-avatar-wrap">
+          <text class="chat-avatar-text">{{item.avatar}}</text>
+          <view class="chat-badge" wx:if="{{item.unreadCount > 0}}">{{item.unreadCount}}</view>
+        </view>
+        <view class="msg-body">
+          <view class="msg-top-row">
+            <text class="msg-title">{{item.name}}</text>
+            <text class="msg-time">{{item.time}}</text>
+          </view>
+          <text class="msg-desc">{{item.lastMsg}}</text>
+        </view>
+      </view>
+    </block>
   </view>
 </view>
