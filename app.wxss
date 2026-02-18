@@ -155,6 +155,7 @@ page {
   border-radius: 8rpx;
 }
 .btn-green { background-color: #10B981; color: #ffffff; }
+.btn-fresh { background-color: #10B981; color: #ffffff; }
 .btn-blue { background-color: #3B82F6; color: #ffffff; }
 
 /* ===== 标签 ===== */
