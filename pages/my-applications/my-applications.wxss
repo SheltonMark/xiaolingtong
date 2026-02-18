@@ -1,1 +1,39 @@
-/* pages/my-applications/my-applications.wxss */
+.ma-page { min-height: 100vh; background-color: #F5F5F5; }
+.tab-scroll { white-space: nowrap; background-color: #ffffff; }
+.tab-bar { display: inline-flex; padding: 0 24rpx; border-bottom: 1rpx solid #F1F5F9; }
+.tab-item { padding: 24rpx 24rpx; font-size: 26rpx; color: #94A3B8; position: relative; flex-shrink: 0; }
+.tab-active { color: #F97316; font-weight: 600; }
+.tab-active::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 48rpx; height: 4rpx; background-color: #F97316; border-radius: 4rpx;
+}
+.app-list { padding: 20rpx 24rpx; }
+.app-card { background-color: #ffffff; border-radius: 24rpx; padding: 32rpx; margin-bottom: 20rpx; }
+.card-faded { opacity: 0.6; }
+.app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.app-header-left { display: flex; align-items: center; gap: 12rpx; }
+.app-avatar {
+  width: 64rpx; height: 64rpx; border-radius: 50%; background-color: #F1F5F9;
+  display: flex; align-items: center; justify-content: center; font-size: 28rpx;
+}
+.app-company { font-size: 26rpx; font-weight: 500; color: #1E293B; }
+.app-status { font-size: 22rpx; font-weight: 500; }
+.app-job-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8rpx; }
+.app-job-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.app-salary { font-size: 26rpx; font-weight: 600; }
+.app-date { font-size: 22rpx; color: #94A3B8; display: block; margin-bottom: 16rpx; }
+.app-alert {
+  background-color: #FFFBEB; border-radius: 12rpx; padding: 16rpx;
+  margin-bottom: 16rpx; border-left: 4rpx solid #F59E0B;
+}
+.alert-text { font-size: 22rpx; color: #92400E; }
+.app-stats {
+  display: flex; background-color: #F8FAFC; border-radius: 12rpx;
+  padding: 20rpx; margin-bottom: 16rpx;
+}
+.stat-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
+.stat-value { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.stat-label { font-size: 20rpx; color: #94A3B8; }
+.app-actions { display: flex; justify-content: flex-end; gap: 24rpx; }
+.btn-sm { padding: 12rpx 32rpx !important; font-size: 24rpx !important; height: auto !important; }
+.action-link { font-size: 24rpx; color: #3B82F6; padding: 12rpx 0; }

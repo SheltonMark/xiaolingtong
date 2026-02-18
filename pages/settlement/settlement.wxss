@@ -1,1 +1,55 @@
-/* pages/settlement/settlement.wxss */
+.st-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 160rpx; }
+.st-card { background-color: #ffffff; margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 32rpx; }
+.st-job-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
+.st-avatar {
+  width: 72rpx; height: 72rpx; border-radius: 50%; background-color: #F1F5F9;
+  display: flex; align-items: center; justify-content: center; font-size: 32rpx;
+}
+.st-job-info { display: flex; flex-direction: column; }
+.st-company { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.st-date { font-size: 22rpx; color: #94A3B8; margin-top: 4rpx; }
+.st-summary { display: flex; background-color: #F8FAFC; border-radius: 16rpx; padding: 20rpx; }
+.st-sum-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
+.st-sum-val { font-size: 28rpx; font-weight: 700; color: #1E293B; }
+.st-sum-label { font-size: 20rpx; color: #94A3B8; }
+.card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 20rpx; }
+
+/* 步骤 */
+.step-list { display: flex; flex-direction: column; gap: 20rpx; }
+.step-item { display: flex; align-items: center; gap: 16rpx; }
+.step-dot {
+  width: 48rpx; height: 48rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22rpx; flex-shrink: 0;
+}
+.dot-done { background-color: #ECFDF5; color: #10B981; }
+.dot-pending { background-color: #FFFBEB; color: #F59E0B; }
+.step-content { display: flex; flex-direction: column; }
+.step-label { font-size: 24rpx; color: #1E293B; }
+.step-time { font-size: 20rpx; color: #94A3B8; }
+
+/* 表格 */
+.table-header { display: flex; padding: 12rpx 0; border-bottom: 1rpx solid #E2E8F0; }
+.th { font-size: 20rpx; color: #94A3B8; font-weight: 500; }
+.table-row { display: flex; padding: 16rpx 0; border-bottom: 1rpx solid #F1F5F9; }
+.table-row:last-of-type { border-bottom: none; }
+.td { font-size: 22rpx; color: #1E293B; }
+.view-all { display: block; text-align: center; font-size: 24rpx; color: #3B82F6; margin-top: 20rpx; }
+
+/* 费用 */
+.fee-list { display: flex; flex-direction: column; gap: 16rpx; }
+.fee-row { display: flex; align-items: center; justify-content: space-between; }
+.fee-label { font-size: 24rpx; color: #64748B; }
+.fee-value { font-size: 24rpx; color: #1E293B; }
+.fee-minus { color: #64748B; }
+.fee-divider { height: 1rpx; background-color: #E2E8F0; margin: 8rpx 0; }
+.fee-total .fee-label { font-size: 26rpx; font-weight: 600; color: #1E293B; }
+.fee-total .fee-value { font-size: 32rpx; font-weight: 700; }
+
+/* 底部 */
+.st-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx;
+  background-color: #ffffff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+}
+.st-hint { display: block; text-align: center; font-size: 20rpx; color: #94A3B8; margin-top: 12rpx; }

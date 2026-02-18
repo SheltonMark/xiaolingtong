@@ -1,2 +1,132 @@
 <!--pages/publish-job/publish-job.wxml-->
-<text>pages/publish-job/publish-job.wxml</text>
+<view class="pj-page">
+  <view class="form-wrap">
+    <!-- 岗位名称 -->
+    <view class="form-group">
+      <text class="form-label required">岗位名称</text>
+      <input class="form-input" placeholder="如：电子组装工" data-field="title" bindinput="onInput" />
+    </view>
+
+    <!-- 工种 -->
+    <view class="form-group">
+      <text class="form-label required">工种</text>
+      <picker mode="selector" range="{{jobTypes}}" bindchange="onJobTypeChange">
+        <view class="form-picker">
+          <text class="{{jobTypeIndex >= 0 ? '' : 'placeholder'}}">{{jobTypeIndex >= 0 ? jobTypes[jobTypeIndex] : '请选择工种'}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 结算方式 -->
+    <view class="form-group">
+      <text class="form-label required">结算方式</text>
+      <view class="radio-row">
+        <view class="radio-item {{salaryMode === index ? 'radio-active' : ''}}"
+              wx:for="{{salaryModes}}" wx:key="index"
+              data-index="{{index}}" bindtap="onSalaryModeChange">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 工价 -->
+    <view class="form-group">
+      <text class="form-label required">工价</text>
+      <view class="input-with-unit">
+        <input class="form-input" style="flex:1;" type="digit" placeholder="请输入金额" data-field="salary" bindinput="onInput" />
+        <text class="input-unit">{{salaryMode === 0 ? '元/小时' : '元/件'}}</text>
+      </view>
+    </view>
+
+    <!-- 需求人数 -->
+    <view class="form-group">
+      <text class="form-label required">需求人数</text>
+      <view class="input-with-unit">
+        <input class="form-input" style="flex:1;" type="number" placeholder="请输入人数" data-field="need" bindinput="onInput" />
+        <text class="input-unit">人</text>
+      </view>
+    </view>
+
+    <!-- 工作日期 -->
+    <view class="form-group">
+      <text class="form-label required">工作日期</text>
+      <view class="date-row">
+        <picker mode="date" data-field="startDate" bindchange="onDateChange">
+          <view class="form-picker" style="flex:1;">
+            <text class="{{form.startDate ? '' : 'placeholder'}}">{{form.startDate || '开始日期'}}</text>
+          </view>
+        </picker>
+        <text class="date-sep">至</text>
+        <picker mode="date" data-field="endDate" bindchange="onDateChange">
+          <view class="form-picker" style="flex:1;">
+            <text class="{{form.endDate ? '' : 'placeholder'}}">{{form.endDate || '结束日期'}}</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 每日工时 -->
+    <view class="form-group">
+      <text class="form-label required">每日工时</text>
+      <view class="date-row">
+        <picker mode="time" data-field="startTime" value="{{form.startTime}}" bindchange="onTimeChange">
+          <view class="form-picker" style="flex:1;">
+            <text>{{form.startTime}}</text>
+          </view>
+        </picker>
+        <text class="date-sep">至</text>
+        <picker mode="time" data-field="endTime" value="{{form.endTime}}" bindchange="onTimeChange">
+          <view class="form-picker" style="flex:1;">
+            <text>{{form.endTime}}</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <!-- 工作描述 -->
+    <view class="form-group">
+      <text class="form-label required">工作描述</text>
+      <textarea class="form-textarea" placeholder="描述工作内容、要求等" data-field="description" bindinput="onInput" />
+    </view>
+
+    <!-- 工作地点 -->
+    <view class="form-group">
+      <text class="form-label required">工作地点</text>
+      <input class="form-input" placeholder="如：东莞长安镇xxx工业区" data-field="location" bindinput="onInput" />
+    </view>
+
+    <!-- 福利标签 -->
+    <view class="form-group">
+      <text class="form-label">福利待遇</text>
+      <view class="benefit-tags">
+        <view class="b-tag {{selectedBenefits.indexOf(item) > -1 ? 'b-tag-active' : ''}}"
+              wx:for="{{benefits}}" wx:key="*this"
+              data-tag="{{item}}" bindtap="onBenefitTap">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 图片 -->
+    <view class="form-group">
+      <text class="form-label">现场照片</text>
+      <view class="image-grid">
+        <view class="image-item" wx:for="{{images}}" wx:key="*this">
+          <image src="{{item}}" mode="aspectFill" class="upload-img" />
+          <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
+        </view>
+        <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
+          <text class="add-icon">+</text>
+          <text class="add-text">添加</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交 -->
+  <view class="submit-wrap">
+    <button class="btn btn-primary" bindtap="onSubmit">提交发布</button>
+    <text class="submit-hint">招工信息免费发布，审核通过后展示</text>
+  </view>
+</view>

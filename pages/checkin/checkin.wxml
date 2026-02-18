@@ -1,2 +1,63 @@
 <!--pages/checkin/checkin.wxml-->
-<text>pages/checkin/checkin.wxml</text>
+<view class="ci-page">
+  <!-- 工作信息 -->
+  <view class="ci-card">
+    <view class="ci-job-header">
+      <view class="ci-avatar">🏭</view>
+      <view class="ci-job-info">
+        <text class="ci-company">{{jobInfo.company}}</text>
+        <text class="ci-date">{{jobInfo.date}} · {{jobInfo.time}}</text>
+      </view>
+    </view>
+    <view class="ci-stats">
+      <view class="ci-stat">
+        <text class="ci-stat-val">{{jobInfo.total}}</text>
+        <text class="ci-stat-label">应到</text>
+      </view>
+      <view class="ci-stat">
+        <text class="ci-stat-val text-fresh">{{jobInfo.checkedIn}}</text>
+        <text class="ci-stat-label">已签到</text>
+      </view>
+      <view class="ci-stat">
+        <text class="ci-stat-val text-rose">{{jobInfo.notCheckedIn}}</text>
+        <text class="ci-stat-label">未签到</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- GPS 区域 -->
+  <view class="ci-card">
+    <view class="gps-area">
+      <view class="gps-circle">
+        <text class="gps-icon">📍</text>
+        <text class="gps-dist">{{distance}}m</text>
+      </view>
+      <text class="gps-hint">距工厂{{distance}}m（需在{{maxDistance}}m范围内）</text>
+    </view>
+    <button class="btn btn-fresh" bindtap="onCheckin">立即签到</button>
+  </view>
+
+  <!-- 签到列表 -->
+  <view class="ci-card">
+    <text class="card-title">签到记录</text>
+    <view class="worker-list">
+      <view class="worker-row" wx:for="{{workers}}" wx:key="id">
+        <view class="worker-left">
+          <view class="worker-avatar">👷</view>
+          <text class="worker-name">{{item.name}}</text>
+        </view>
+        <view class="worker-right">
+          <text class="worker-time" wx:if="{{item.time}}">{{item.time}}</text>
+          <text class="worker-status status-{{item.status}}">{{item.statusText}}</text>
+          <text class="manual-btn" wx:if="{{item.status === 'absent'}}"
+                data-id="{{item.id}}" bindtap="onManualCheckin">手动签到</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部 -->
+  <view class="ci-bottom">
+    <button class="btn btn-fresh" bindtap="onConfirmStart">确认开工</button>
+  </view>
+</view>

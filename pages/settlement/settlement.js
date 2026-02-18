@@ -1,66 +1,43 @@
-// pages/settlement/settlement.js
 Page({
-
-  /**
-   * 页面的初始数据
-   */
   data: {
-
+    job: {
+      company: '鑫达电子厂',
+      jobType: '电子组装工',
+      dateRange: '02-10 至 02-17 · 共7天',
+      totalWorkers: 12,
+      totalHours: 840,
+      factoryTotal: '21,000'
+    },
+    steps: [
+      { label: '临时管理员已确认', time: '02-17 18:30', done: true },
+      { label: '平台已审核', time: '02-17 19:00', done: true },
+      { label: '等待工厂付款', time: '48小时内', done: false }
+    ],
+    workers: [
+      { name: '张三', hours: 70, factoryPay: '1,750', workerPay: '1,400', confirmed: true },
+      { name: '李四', hours: 64, factoryPay: '1,600', workerPay: '1,280', confirmed: false }
+    ],
+    fees: {
+      factoryTotal: '21,000.00',
+      platformFee: '4,200.00',
+      managerFee: '420.00',
+      workerTotal: '16,380.00'
+    }
   },
 
-  /**
-   * 生命周期函数--监听页面加载
-   */
-  onLoad(options) {
-
+  onViewAll() {
+    wx.showToast({ title: '查看全部明细', icon: 'none' })
   },
 
-  /**
-   * 生命周期函数--监听页面初次渲染完成
-   */
-  onReady() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide() {
-
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload() {
-
-  },
-
-  /**
-   * 页面相关事件处理函数--监听用户下拉动作
-   */
-  onPullDownRefresh() {
-
-  },
-
-  /**
-   * 页面上拉触底事件的处理函数
-   */
-  onReachBottom() {
-
-  },
-
-  /**
-   * 用户点击右上角分享
-   */
-  onShareAppMessage() {
-
+  onPay() {
+    wx.showModal({
+      title: '确认支付',
+      content: '支付后工资将自动发放至临工钱包',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showToast({ title: '支付成功', icon: 'success' })
+        }
+      }
+    })
   }
 })

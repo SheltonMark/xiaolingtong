@@ -1,2 +1,72 @@
 <!--pages/work-record/work-record.wxml-->
-<text>pages/work-record/work-record.wxml</text>
+<view class="wr-page">
+  <!-- 当前状态卡片 -->
+  <view class="status-card">
+    <view class="sc-top">
+      <text class="sc-company">{{status.company}} · {{status.jobType}}</text>
+      <text class="sc-badge">进行中</text>
+    </view>
+    <view class="sc-hours">
+      <text class="sc-hours-big">{{status.hoursToday}}</text>
+      <text class="sc-hours-unit">小时</text>
+    </view>
+    <text class="sc-sub">今日已工作时长 · {{status.startTime}} 开始</text>
+    <view class="sc-stats">
+      <view class="sc-stat">
+        <text class="sc-stat-val">{{status.todayAttend}}</text>
+        <text class="sc-stat-label">今日出勤</text>
+      </view>
+      <view class="sc-stat">
+        <text class="sc-stat-val text-rose">{{status.todayAnomaly}}</text>
+        <text class="sc-stat-label">异常</text>
+      </view>
+      <view class="sc-stat">
+        <text class="sc-stat-val">{{status.estimateEnd}}</text>
+        <text class="sc-stat-label">预计收工</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 现场拍照 -->
+  <view class="wr-card">
+    <text class="card-title">现场拍照（每2小时）</text>
+    <view class="photo-list">
+      <view class="photo-item {{item.status === 'done' ? 'photo-done' : 'photo-pending'}}"
+            wx:for="{{photoRecords}}" wx:key="id">
+        <view class="photo-left">
+          <text class="photo-time">{{item.timeRange}}</text>
+          <text class="photo-status" wx:if="{{item.status === 'done'}}">已上传 · {{item.uploadTime}}</text>
+          <text class="photo-status photo-status-pending" wx:else>待上传</text>
+        </view>
+        <view class="photo-right">
+          <text class="photo-check" wx:if="{{item.status === 'done'}}">✓</text>
+          <text class="photo-btn" wx:else data-id="{{item.id}}" bindtap="onTakePhoto">拍照</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 异常记录 -->
+  <view class="wr-card">
+    <view class="card-header-row">
+      <text class="card-title">异常记录</text>
+      <text class="record-btn" bindtap="onRecordAnomaly">记录异常</text>
+    </view>
+    <view class="anomaly-list" wx:if="{{anomalies.length > 0}}">
+      <view class="anomaly-item" wx:for="{{anomalies}}" wx:key="id">
+        <view class="anomaly-top">
+          <text class="anomaly-name">{{item.name}} · {{item.type}}</text>
+          <text class="anomaly-time">{{item.time}}</text>
+        </view>
+        <text class="anomaly-desc">{{item.desc}}</text>
+      </view>
+    </view>
+    <text class="empty-text" wx:else>暂无异常记录</text>
+  </view>
+
+  <!-- 底部 -->
+  <view class="wr-bottom">
+    <button class="btn btn-rose" bindtap="onFinishWork">确认收工</button>
+    <text class="wr-hint">收工后将生成结算单，请确保所有工时记录准确</text>
+  </view>
+</view>

@@ -1,1 +1,46 @@
-/* pages/checkin/checkin.wxss */
+.ci-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 140rpx; }
+.ci-card { background-color: #ffffff; margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 32rpx; }
+.ci-job-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
+.ci-avatar {
+  width: 72rpx; height: 72rpx; border-radius: 50%; background-color: #F1F5F9;
+  display: flex; align-items: center; justify-content: center; font-size: 32rpx;
+}
+.ci-job-info { display: flex; flex-direction: column; }
+.ci-company { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.ci-date { font-size: 22rpx; color: #94A3B8; margin-top: 4rpx; }
+.ci-stats { display: flex; background-color: #F8FAFC; border-radius: 16rpx; padding: 20rpx; }
+.ci-stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
+.ci-stat-val { font-size: 32rpx; font-weight: 700; color: #1E293B; }
+.ci-stat-label { font-size: 20rpx; color: #94A3B8; }
+.gps-area { display: flex; flex-direction: column; align-items: center; padding: 32rpx 0; }
+.gps-circle {
+  width: 200rpx; height: 200rpx; border-radius: 50%;
+  background: radial-gradient(circle, #ECFDF5 0%, #D1FAE5 50%, #A7F3D0 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  margin-bottom: 16rpx;
+}
+.gps-icon { font-size: 48rpx; }
+.gps-dist { font-size: 24rpx; font-weight: 600; color: #10B981; }
+.gps-hint { font-size: 22rpx; color: #94A3B8; margin-bottom: 24rpx; }
+.card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 20rpx; }
+.worker-list { display: flex; flex-direction: column; gap: 16rpx; }
+.worker-row { display: flex; align-items: center; justify-content: space-between; padding: 12rpx 0; border-bottom: 1rpx solid #F1F5F9; }
+.worker-row:last-child { border-bottom: none; }
+.worker-left { display: flex; align-items: center; gap: 12rpx; }
+.worker-avatar {
+  width: 56rpx; height: 56rpx; border-radius: 50%; background-color: #F1F5F9;
+  display: flex; align-items: center; justify-content: center; font-size: 24rpx;
+}
+.worker-name { font-size: 26rpx; color: #1E293B; }
+.worker-right { display: flex; align-items: center; gap: 16rpx; }
+.worker-time { font-size: 22rpx; color: #94A3B8; }
+.worker-status { font-size: 22rpx; font-weight: 500; }
+.status-ontime { color: #10B981; }
+.status-late { color: #F59E0B; }
+.status-absent { color: #F43F5E; }
+.manual-btn { font-size: 22rpx; color: #3B82F6; padding: 4rpx 16rpx; border: 1rpx solid #3B82F6; border-radius: 8rpx; }
+.ci-bottom {
+  position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx;
+  background-color: #ffffff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+}

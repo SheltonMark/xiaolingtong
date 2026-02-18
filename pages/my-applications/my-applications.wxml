@@ -1,2 +1,53 @@
 <!--pages/my-applications/my-applications.wxml-->
-<text>pages/my-applications/my-applications.wxml</text>
+<view class="ma-page">
+  <!-- Tab -->
+  <scroll-view scroll-x class="tab-scroll">
+    <view class="tab-bar">
+      <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+            wx:for="{{tabs}}" wx:key="index"
+            data-index="{{index}}" bindtap="onTabChange">
+        <text>{{item}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 列表 -->
+  <view class="app-list">
+    <view class="app-card {{item.status === 'rejected' ? 'card-faded' : ''}}"
+          wx:for="{{list}}" wx:key="id">
+      <!-- 头部 -->
+      <view class="app-header">
+        <view class="app-header-left">
+          <view class="app-avatar">🏭</view>
+          <text class="app-company">{{item.company}}</text>
+        </view>
+        <text class="app-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
+      </view>
+      <!-- 岗位+薪资 -->
+      <view class="app-job-row">
+        <text class="app-job-title">{{item.title}}</text>
+        <text class="app-salary text-cta">{{item.salary}}</text>
+      </view>
+      <text class="app-date">{{item.date}}</text>
+      <!-- 提醒 -->
+      <view class="app-alert" wx:if="{{item.alert}}">
+        <text class="alert-text">{{item.alert}}</text>
+      </view>
+      <!-- 统计 -->
+      <view class="app-stats" wx:if="{{item.stats}}">
+        <view class="stat-item" wx:for="{{item.stats}}" wx:for-item="s" wx:key="label">
+          <text class="stat-value">{{s.value}}</text>
+          <text class="stat-label">{{s.label}}</text>
+        </view>
+      </view>
+      <!-- 操作 -->
+      <view class="app-actions">
+        <button class="btn btn-cta btn-sm" wx:if="{{item.status === 'confirm'}}"
+                data-id="{{item.id}}" bindtap="onConfirmAttend">确认出勤</button>
+        <text class="action-link" wx:if="{{item.status === 'done'}}" data-id="{{item.id}}" bindtap="onViewDetail">查看详情</text>
+      </view>
+    </view>
+  </view>
+
+  <empty-state wx:if="{{list.length === 0}}" text="暂无报名记录" />
+</view>
