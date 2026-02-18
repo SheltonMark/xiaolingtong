@@ -1,6 +1,6 @@
 .mine-page {
   min-height: 100vh;
-  background-color: #F5F5F5;
+  background-color: #F8FAFC;
 }
 
 /* ===== 头部 ===== */
@@ -8,10 +8,10 @@
   padding: 0 32rpx 32rpx;
 }
 .header-enterprise {
-  background: linear-gradient(180deg, #EFF6FF 0%, #F1F5F9 100%);
+  background: linear-gradient(180deg, #EFF6FF 0%, #F8FAFC 100%);
 }
 .header-worker {
-  background: linear-gradient(180deg, #FFF7ED 0%, #F1F5F9 100%);
+  background: linear-gradient(180deg, #FFF7ED 0%, #F8FAFC 100%);
 }
 .header-top {
   display: flex;
@@ -39,11 +39,11 @@
   width: 128rpx;
   height: 128rpx;
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: #F1F5F9;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.06);
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
   flex-shrink: 0;
 }
 .avatar-emoji {
@@ -57,12 +57,13 @@
   display: flex;
   align-items: center;
   gap: 12rpx;
-  margin-bottom: 8rpx;
+  margin-bottom: 16rpx;
 }
 .user-name {
   font-size: 36rpx;
   font-weight: 600;
   color: #1E293B;
+  line-height: 1.2;
 }
 .cert-badge {
   font-size: 20rpx;
@@ -166,7 +167,7 @@
   text-align: center;
   padding: 24rpx 0;
   font-size: 26rpx;
-  color: #94A3B8;
+  color: #64748B;
   position: relative;
 }
 .tab-active-mine {
