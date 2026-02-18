@@ -3910,22 +3910,18 @@
     </div>
     <!-- 底部输入栏 -->
     <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-3 py-2" style="z-index:50;">
-      <div class="flex items-end gap-2">
+      <div class="flex items-center gap-2">
         <!-- 语音按钮 -->
         <button class="w-8 h-8 flex items-center justify-center text-text-sub shrink-0 cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
         </button>
         <!-- 输入框 -->
-        <div class="flex-1 bg-slate-100 rounded-2xl px-3 py-2 flex items-center">
-          <input type="text" placeholder="输入消息..." class="flex-1 text-sm outline-none bg-transparent text-text-main placeholder-text-muted">
+        <div class="flex-1 bg-slate-100 rounded-2xl px-3 py-2 flex items-center min-w-0">
+          <input type="text" placeholder="输入消息..." class="flex-1 text-sm outline-none bg-transparent text-text-main placeholder-text-muted min-w-0">
         </div>
         <!-- 图片按钮 -->
         <button class="w-8 h-8 flex items-center justify-center text-text-sub shrink-0 cursor-pointer">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        </button>
-        <!-- 拍照按钮 -->
-        <button class="w-8 h-8 flex items-center justify-center text-text-sub shrink-0 cursor-pointer">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </button>
         <!-- 发送按钮 -->
         <button class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 cursor-pointer text-white" style="background:#3B82F6;">
@@ -3980,27 +3976,44 @@
           useCORS: true,
           windowHeight: phoneContent ? phoneContent.scrollHeight + 100 : undefined,
           height: phoneContent ? phoneContent.scrollHeight + 60 : undefined,
-          onclone: function(clonedDoc) {
+          onclone: function(clonedDoc, element) {
             // 修复 html2canvas flex 文字下沉问题
-            const allEls = clonedDoc.querySelectorAll('*');
-            allEls.forEach(function(el) {
-              const style = window.getComputedStyle(el);
-              if (style.display === 'flex' || style.display === 'inline-flex') {
-                el.style.alignItems = style.alignItems;
+            var allEls = clonedDoc.querySelectorAll('*');
+            allEls.forEach(function(clonedEl) {
+              // 找到原始文档中对应的元素获取计算样式
+              var style = getComputedStyle(clonedEl);
+
+              // 强制所有元素的关键样式
+              clonedEl.style.boxSizing = 'border-box';
+              clonedEl.style.lineHeight = style.lineHeight;
+              clonedEl.style.fontSize = style.fontSize;
+              clonedEl.style.fontWeight = style.fontWeight;
+              clonedEl.style.letterSpacing = style.letterSpacing;
+
+              var display = style.display;
+              if (display === 'flex' || display === 'inline-flex') {
+                clonedEl.style.display = display;
+                clonedEl.style.alignItems = style.alignItems;
+                clonedEl.style.justifyContent = style.justifyContent;
+                clonedEl.style.flexDirection = style.flexDirection;
+                clonedEl.style.flexWrap = style.flexWrap;
+                clonedEl.style.gap = style.gap;
               }
-              // 强制设置 line-height 避免文字偏移
-              if (el.tagName === 'SPAN' || el.tagName === 'P' || el.tagName === 'H3' || el.tagName === 'H4' || el.tagName === 'LABEL' || el.tagName === 'BUTTON') {
-                if (!el.style.lineHeight) {
-                  el.style.lineHeight = style.lineHeight;
-                }
+
+              // inline 元素强制 vertical-align
+              if (display === 'inline' || display === 'inline-block' || display === 'inline-flex') {
+                clonedEl.style.verticalAlign = style.verticalAlign;
               }
-            });
-            // 给所有 flex 子元素加 transform 触发独立图层
-            clonedDoc.querySelectorAll('.flex, .inline-flex, [class*="flex"]').forEach(function(el) {
-              el.style.transform = 'translateZ(0)';
-              Array.from(el.children).forEach(function(child) {
-                child.style.transform = 'translateZ(0)';
-              });
+
+              // 所有元素强制 padding 和 margin
+              clonedEl.style.paddingTop = style.paddingTop;
+              clonedEl.style.paddingBottom = style.paddingBottom;
+              clonedEl.style.paddingLeft = style.paddingLeft;
+              clonedEl.style.paddingRight = style.paddingRight;
+              clonedEl.style.marginTop = style.marginTop;
+              clonedEl.style.marginBottom = style.marginBottom;
+              clonedEl.style.marginLeft = style.marginLeft;
+              clonedEl.style.marginRight = style.marginRight;
             });
           }
         });
