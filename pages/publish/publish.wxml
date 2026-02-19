@@ -1,115 +1,243 @@
 <!--pages/publish/publish.wxml-->
 <view class="publish-page">
-  <!-- 类型选择 -->
-  <view class="type-tabs">
-    <view class="type-tab {{typeIndex === index ? 'type-active' : ''}}"
-          wx:for="{{types}}" wx:key="index"
-          data-index="{{index}}" bindtap="onTypeChange">
-      <text>{{item}}</text>
+  <!-- 信息类型选择 -->
+  <view class="type-card">
+    <text class="form-label">信息类型</text>
+    <view class="type-grid">
+      <view class="type-item {{typeIndex === 0 ? 'type-active' : ''}}" data-index="{{0}}" bindtap="onTypeChange">
+        <text class="type-icon">🛒</text>
+        <text class="type-text">采购需求</text>
+      </view>
+      <view class="type-item {{typeIndex === 1 ? 'type-active' : ''}}" data-index="{{1}}" bindtap="onTypeChange">
+        <text class="type-icon">📦</text>
+        <text class="type-text">工厂库存</text>
+      </view>
+      <view class="type-item {{typeIndex === 2 ? 'type-active' : ''}}" data-index="{{2}}" bindtap="onTypeChange">
+        <text class="type-icon">⚙</text>
+        <text class="type-text">代加工</text>
+      </view>
     </view>
   </view>
 
-  <!-- 表单 -->
-  <view class="form-wrap">
-    <!-- 标题 -->
-    <view class="form-group">
-      <text class="form-label required">标题</text>
-      <input class="form-input" placeholder="请输入标题" data-field="title" bindinput="onInput" />
+  <!-- ====== 采购需求模版 ====== -->
+  <block wx:if="{{typeIndex === 0}}">
+    <view class="form-card">
+      <text class="form-label required">物品名称</text>
+      <input class="form-input" placeholder="如：304不锈钢保温杯" data-field="productName" bindinput="onInput" />
     </view>
-
-    <!-- 产品名称 -->
-    <view class="form-group">
-      <text class="form-label required">产品名称</text>
-      <input class="form-input" placeholder="请输入产品名称" data-field="productName" bindinput="onInput" />
-    </view>
-
-    <!-- 品类 -->
-    <view class="form-group">
+    <view class="form-card">
       <text class="form-label required">品类</text>
       <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange">
         <view class="form-picker">
           <text class="{{form.category ? '' : 'placeholder'}}">{{form.category || '请选择品类'}}</text>
-          <text class="picker-arrow">›</text>
+          <text class="picker-arrow">▼</text>
         </view>
       </picker>
     </view>
-
-    <!-- 规格参数 -->
-    <view class="form-group">
-      <text class="form-label required">规格参数</text>
-      <textarea class="form-textarea" placeholder="请描述规格参数" data-field="spec" bindinput="onInput" />
-    </view>
-
-    <!-- 采购数量 / 库存数量 -->
-    <view class="form-group">
-      <text class="form-label required">{{typeIndex === 1 ? '库存数量' : '数量'}}</text>
-      <input class="form-input" placeholder="请输入数量" data-field="quantity" bindinput="onInput" />
-    </view>
-
-    <!-- 价格/预算 -->
-    <view class="form-group">
-      <text class="form-label">{{typeIndex === 0 ? '预算范围' : '单价'}}</text>
-      <input class="form-input" placeholder="{{typeIndex === 0 ? '如 10-15元/个' : '如 ¥2.5/件'}}" data-field="price" bindinput="onInput" />
-    </view>
-
-    <!-- 库存状态（仅工厂库存） -->
-    <view class="form-group" wx:if="{{typeIndex === 1}}">
-      <text class="form-label required">库存状态</text>
-      <picker mode="selector" range="{{stockStatusOptions}}" value="{{stockStatusIndex}}" bindchange="onStockStatusChange">
-        <view class="form-picker">
-          <text>{{stockStatusOptions[stockStatusIndex]}}</text>
-          <text class="picker-arrow">›</text>
+    <view class="form-card">
+      <view class="form-group-inner">
+        <text class="form-label required">规格参数</text>
+        <textarea class="form-textarea" placeholder="如：500ml容量，带保温盖，双层真空" data-field="spec" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <view class="form-col">
+          <text class="form-label required">采购数量</text>
+          <view class="input-with-unit">
+            <input class="form-input" style="flex:1;" type="number" placeholder="数量" data-field="quantity" bindinput="onInput" />
+            <text class="input-unit">个</text>
+          </view>
         </view>
-      </picker>
-    </view>
-
-    <!-- 交货周期 -->
-    <view class="form-group">
-      <text class="form-label required">交货周期</text>
-      <input class="form-input" placeholder="如 30天内" data-field="deliveryDays" bindinput="onInput" />
-    </view>
-
-    <!-- 补充说明 -->
-    <view class="form-group">
-      <text class="form-label">补充说明</text>
-      <textarea class="form-textarea" placeholder="其他需要说明的信息" data-field="description" bindinput="onInput" />
-    </view>
-
-    <!-- 图片上传 -->
-    <view class="form-group">
-      <text class="form-label">图片（最多9张）</text>
-      <view class="image-grid">
-        <view class="image-item" wx:for="{{images}}" wx:key="*this">
-          <image src="{{item}}" mode="aspectFill" class="upload-img" />
-          <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
-        </view>
-        <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
-          <text class="add-icon">+</text>
-          <text class="add-text">添加</text>
+        <view class="form-col">
+          <text class="form-label required">交货周期</text>
+          <picker mode="selector" range="{{deliveryOptions}}" bindchange="onDeliveryChange">
+            <view class="form-picker">
+              <text class="{{form.deliveryDays ? '' : 'placeholder'}}">{{form.deliveryDays || '选择'}}</text>
+              <text class="picker-arrow">📅</text>
+            </view>
+          </picker>
         </view>
       </view>
     </view>
-
-    <!-- 分割线 -->
-    <view class="divider"></view>
-
-    <!-- 联系方式 -->
-    <view class="form-group">
-      <text class="form-label required">联系人</text>
-      <input class="form-input" placeholder="请输入联系人姓名" data-field="contact" bindinput="onInput" />
+    <view class="form-card">
+      <view class="form-group-inner">
+        <text class="form-label">预算范围 <text class="label-hint">(选填)</text></text>
+        <view class="range-row">
+          <input class="form-input range-input" placeholder="最低" data-field="priceMin" bindinput="onInput" />
+          <text class="range-sep">~</text>
+          <input class="form-input range-input" placeholder="最高" data-field="priceMax" bindinput="onInput" />
+          <text class="range-unit">元/个</text>
+        </view>
+      </view>
+      <view class="form-group-inner" style="margin-top:24rpx;">
+        <text class="form-label">质量要求 <text class="label-hint">(选填)</text></text>
+        <textarea class="form-textarea" placeholder="如：需通过FDA认证，无毒无味" data-field="quality" bindinput="onInput" />
+      </view>
     </view>
-    <view class="form-group">
-      <text class="form-label required">联系电话</text>
-      <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="onInput" />
+    <view class="form-card">
+      <text class="form-label">补充描述 <text class="label-hint">(选填)</text></text>
+      <textarea class="form-textarea form-textarea-lg" placeholder="其他需要说明的信息，自由填写" data-field="description" bindinput="onInput" />
     </view>
-    <view class="form-group">
-      <text class="form-label">联系微信</text>
-      <input class="form-input" placeholder="选填" data-field="wechat" bindinput="onInput" />
+  </block>
+
+  <!-- ====== 工厂库存模版 ====== -->
+  <block wx:if="{{typeIndex === 1}}">
+    <view class="form-card">
+      <text class="form-label required">物品名称</text>
+      <input class="form-input" placeholder="如：TWS蓝牙耳机" data-field="productName" bindinput="onInput" />
+    </view>
+    <view class="form-card">
+      <text class="form-label required">品类</text>
+      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange">
+        <view class="form-picker">
+          <text class="{{form.category ? '' : 'placeholder'}}">{{form.category || '请选择品类'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-card">
+      <view class="form-group-inner">
+        <text class="form-label required">规格参数</text>
+        <textarea class="form-textarea" placeholder="如：入耳式，主动降噪，续航6小时" data-field="spec" bindinput="onInput" />
+      </view>
+      <view class="form-row">
+        <view class="form-col">
+          <text class="form-label required">库存数量</text>
+          <view class="input-with-unit">
+            <input class="form-input" style="flex:1;" type="number" placeholder="数量" data-field="quantity" bindinput="onInput" />
+            <text class="input-unit">个</text>
+          </view>
+        </view>
+        <view class="form-col">
+          <text class="form-label required">单价</text>
+          <view class="input-with-unit">
+            <input class="form-input" style="flex:1;" type="digit" placeholder="价格" data-field="price" bindinput="onInput" />
+            <text class="input-unit">元</text>
+          </view>
+        </view>
+      </view>
+      <view class="form-group-inner" style="margin-top:24rpx;">
+        <text class="form-label required">最小起订量</text>
+        <view class="input-with-unit">
+          <input class="form-input" style="flex:1;" type="number" placeholder="如：100" data-field="minOrder" bindinput="onInput" />
+          <text class="input-unit">个起</text>
+        </view>
+      </view>
+    </view>
+    <view class="form-card">
+      <text class="form-label">补充描述 <text class="label-hint">(选填)</text></text>
+      <textarea class="form-textarea form-textarea-lg" placeholder="其他需要说明的信息，如支持OEM、可验货等" data-field="description" bindinput="onInput" />
+    </view>
+  </block>
+
+  <!-- ====== 代加工模版 ====== -->
+  <block wx:if="{{typeIndex === 2}}">
+    <view class="form-card">
+      <text class="form-label required">加工类型</text>
+      <input class="form-input" placeholder="如：注塑加工、CNC加工、丝印" data-field="processType" bindinput="onInput" />
+    </view>
+    <view class="form-card">
+      <text class="form-label required">工艺说明</text>
+      <textarea class="form-textarea" placeholder="详细描述加工工艺、设备能力等" data-field="processDesc" bindinput="onInput" />
+    </view>
+    <view class="form-card">
+      <view class="form-row">
+        <view class="form-col">
+          <text class="form-label required">产能</text>
+          <view class="input-with-unit">
+            <input class="form-input" style="flex:1;" type="number" placeholder="数量" data-field="capacity" bindinput="onInput" />
+            <text class="input-unit">件/天</text>
+          </view>
+        </view>
+        <view class="form-col">
+          <text class="form-label required">最小起订量</text>
+          <view class="input-with-unit">
+            <input class="form-input" style="flex:1;" type="number" placeholder="数量" data-field="minOrder" bindinput="onInput" />
+            <text class="input-unit">个起</text>
+          </view>
+        </view>
+      </view>
+      <view class="form-row" style="margin-top:24rpx;">
+        <view class="form-col">
+          <text class="form-label required">加工单价</text>
+          <view class="input-with-unit">
+            <input class="form-input" style="flex:1;" type="digit" placeholder="价格" data-field="price" bindinput="onInput" />
+            <text class="input-unit">元/件</text>
+          </view>
+        </view>
+        <view class="form-col">
+          <text class="form-label required">交货周期</text>
+          <picker mode="selector" range="{{deliveryOptions}}" bindchange="onDeliveryChange">
+            <view class="form-picker">
+              <text class="{{form.deliveryDays ? '' : 'placeholder'}}">{{form.deliveryDays || '选择'}}</text>
+              <text class="picker-arrow">📅</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
+    <view class="form-card">
+      <text class="form-label">补充描述 <text class="label-hint">(选填)</text></text>
+      <textarea class="form-textarea form-textarea-lg" placeholder="其他需要说明的信息，如来图定制、支持打样等" data-field="description" bindinput="onInput" />
+    </view>
+  </block>
+
+  <!-- 图片上传（通用） -->
+  <view class="form-card">
+    <text class="form-label">图片 <text class="label-hint">(选填，最多9张)</text></text>
+    <view class="image-grid">
+      <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
+        <text class="add-icon">+</text>
+        <text class="add-text">添加</text>
+      </view>
+      <view class="image-item" wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="upload-img" />
+        <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 联系方式 -->
+  <view class="form-card">
+    <text class="form-label">联系方式</text>
+    <view class="contact-info">
+      <view class="contact-row">
+        <text class="contact-label">联系人</text>
+        <text class="contact-value">{{contactInfo.name}}</text>
+      </view>
+      <view class="contact-row">
+        <view class="contact-left">
+          <view class="checkbox {{phoneChecked ? 'checked' : ''}}" bindtap="onTogglePhone">
+            <text wx:if="{{phoneChecked}}" class="check-icon">✓</text>
+          </view>
+          <text class="contact-label">电话</text>
+        </view>
+        <text class="contact-value">{{contactInfo.phone}}</text>
+      </view>
+      <view class="contact-row">
+        <view class="contact-left">
+          <view class="checkbox {{wechatChecked ? 'checked' : ''}}" bindtap="onToggleWechat">
+            <text wx:if="{{wechatChecked}}" class="check-icon">✓</text>
+          </view>
+          <text class="contact-label">微信</text>
+        </view>
+        <text class="contact-value">{{contactInfo.wechat}}</text>
+      </view>
+      <text class="contact-hint">勾选后对方可见，至少选择一种</text>
+      <view class="contact-row">
+        <text class="contact-label">有效期</text>
+        <picker mode="selector" range="{{validityOptions}}" value="{{validityIndex}}" bindchange="onValidityChange">
+          <view class="validity-picker">
+            <text class="validity-text">{{validityOptions[validityIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
     </view>
   </view>
 
   <!-- 提交按钮 -->
-  <view class="submit-wrap">
+  <view class="submit-area">
     <button class="btn btn-primary" bindtap="onSubmit">提交发布</button>
+    <text class="submit-hint">发布后将进行内容审核</text>
   </view>
 </view>
