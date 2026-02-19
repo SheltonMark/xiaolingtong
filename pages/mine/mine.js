@@ -8,10 +8,9 @@ Page({
     enterpriseTabs: ['我的动态', '浏览记录', '对接记录'],
     enterpriseFuncs: [
       { icon: '📋', label: '我的发布', bg: '#EFF6FF', url: '/pages/my-posts/my-posts' },
-      { icon: '⭐', label: '我的收藏', bg: '#FFFBEB', url: '' },
       { icon: '💎', label: '灵豆充值', bg: '#FFF7ED', url: '/pages/bean-recharge/bean-recharge' },
       { icon: '✅', label: '企业认证', bg: '#ECFDF5', url: '/pages/cert-enterprise/cert-enterprise' },
-      { icon: '👥', label: '用工管理', bg: '#FFF1F2', url: '' }
+      { icon: '👷', label: '我要招工', bg: '#FFF1F2', url: '/pages/post-job/post-job' }
     ],
     // 临工端
     workerTabs: ['接单记录', '浏览记录'],
