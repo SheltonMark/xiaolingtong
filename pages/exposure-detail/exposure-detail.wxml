@@ -3,7 +3,7 @@
   <!-- 发布者信息 -->
   <view class="ed-card">
     <view class="ed-author">
-      <view class="ed-avatar">👤</view>
+      <image class="ed-avatar-img" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop" mode="aspectFill" />
       <view class="ed-author-info">
         <text class="ed-author-name">匿名用户</text>
         <text class="ed-author-time">2026-02-05 发布</text>
@@ -37,7 +37,7 @@
     <text class="ed-section-title">评论 ({{comments.length}})</text>
     <view class="comment-list">
       <view class="comment-item" wx:for="{{comments}}" wx:key="id">
-        <view class="comment-avatar">👤</view>
+        <image class="comment-avatar-img" src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop" mode="aspectFill" />
         <view class="comment-body">
           <view class="comment-header">
             <text class="comment-name">{{item.name}}</text>

@@ -1,9 +1,8 @@
 .st-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 160rpx; }
 .st-card { background-color: #ffffff; margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 32rpx; }
 .st-job-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
-.st-avatar {
-  width: 72rpx; height: 72rpx; border-radius: 50%; background-color: #F1F5F9;
-  display: flex; align-items: center; justify-content: center; font-size: 32rpx;
+.st-avatar-img {
+  width: 72rpx; height: 72rpx; border-radius: 50%; flex-shrink: 0;
 }
 .st-job-info { display: flex; flex-direction: column; }
 .st-company { font-size: 28rpx; font-weight: 600; color: #1E293B; }
