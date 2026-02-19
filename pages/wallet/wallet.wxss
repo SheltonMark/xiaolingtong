@@ -1,16 +1,87 @@
 .wl-page { min-height: 100vh; background-color: #F5F5F5; }
-.wl-card { margin: 20rpx 24rpx 0; background: linear-gradient(135deg, #F97316, #FB923C); border-radius: 24rpx; padding: 40rpx 32rpx; color: #fff; }
-.wl-label { font-size: 24rpx; opacity: 0.8; display: block; margin-bottom: 12rpx; }
-.wl-amount { font-size: 56rpx; font-weight: 700; display: block; margin-bottom: 24rpx; }
-.wl-btn { background-color: rgba(255,255,255,0.2) !important; color: #fff !important; border-radius: 9999rpx !important; font-size: 26rpx !important; }
-.record-section { margin: 24rpx 24rpx 0; background-color: #fff; border-radius: 24rpx; padding: 32rpx; }
-.record-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 20rpx; }
-.record-list { display: flex; flex-direction: column; }
-.record-item { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 0; border-bottom: 1rpx solid #F1F5F9; }
-.record-item:last-child { border-bottom: none; }
-.record-left { display: flex; flex-direction: column; gap: 4rpx; }
-.record-name { font-size: 26rpx; color: #1E293B; }
-.record-time { font-size: 20rpx; color: #94A3B8; }
-.record-amount { font-size: 28rpx; font-weight: 600; }
-.amount-income { color: #10B981; }
-.amount-withdraw { color: #1E293B; }
+
+/* 余额卡片 */
+.wl-card {
+  margin: 24rpx 32rpx 0; border-radius: 32rpx; padding: 40rpx;
+  background: linear-gradient(135deg, #F97316, #EA580C);
+  color: #fff; position: relative; overflow: hidden;
+}
+.wl-card-bg1 {
+  position: absolute; top: -40rpx; right: -40rpx;
+  width: 256rpx; height: 256rpx; background-color: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+.wl-card-bg2 {
+  position: absolute; bottom: -64rpx; left: -64rpx;
+  width: 192rpx; height: 192rpx; background-color: rgba(255,255,255,0.1);
+  border-radius: 50%;
+}
+.wl-label { font-size: 22rpx; opacity: 0.8; display: block; margin-bottom: 8rpx; position: relative; }
+.wl-amount-row { display: flex; align-items: baseline; gap: 4rpx; margin-bottom: 8rpx; position: relative; }
+.wl-yen { font-size: 22rpx; opacity: 0.8; }
+.wl-amount { font-size: 64rpx; font-weight: 700; }
+.wl-total { font-size: 20rpx; opacity: 0.6; display: block; margin-bottom: 32rpx; position: relative; }
+.wl-btn-row { display: flex; gap: 24rpx; position: relative; }
+.wl-btn {
+  flex: 1; height: 72rpx; line-height: 72rpx; text-align: center;
+  border-radius: 24rpx; font-size: 24rpx; font-weight: 600; border: none;
+}
+.wl-btn::after { border: none; }
+.wl-btn-primary { background-color: #fff !important; color: #F97316 !important; }
+.wl-btn-outline {
+  background-color: rgba(255,255,255,0.2) !important; color: #fff !important;
+  border: 2rpx solid rgba(255,255,255,0.3) !important;
+}
+
+/* 快捷入口 */
+.wl-shortcuts {
+  margin: 24rpx 32rpx 0; background-color: #fff;
+  border-radius: 24rpx; padding: 32rpx;
+}
+.shortcut-grid { display: flex; text-align: center; gap: 24rpx; }
+.shortcut-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12rpx; }
+.shortcut-icon {
+  width: 80rpx; height: 80rpx; border-radius: 20rpx;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36rpx;
+}
+.shortcut-icon-orange { background-color: rgba(249,115,22,0.1); }
+.shortcut-icon-blue { background-color: #EFF6FF; }
+.shortcut-icon-green { background-color: #ECFDF5; }
+.shortcut-icon-amber { background-color: #FFFBEB; }
+.shortcut-text { font-size: 20rpx; color: #64748B; }
+
+/* 最近收入 */
+.wl-section {
+  margin: 24rpx 32rpx 0; background-color: #fff;
+  border-radius: 24rpx; padding: 32rpx;
+}
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 24rpx;
+}
+.section-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.section-action { font-size: 20rpx; color: #3B82F6; }
+.income-list { display: flex; flex-direction: column; gap: 24rpx; }
+.income-item { display: flex; align-items: center; gap: 20rpx; }
+.income-icon-wrap {
+  width: 72rpx; height: 72rpx; border-radius: 16rpx;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.income-icon-green { background-color: #ECFDF5; }
+.income-icon-rose { background-color: #FFF1F2; }
+.income-icon { font-size: 28rpx; font-weight: 700; }
+.income-icon-green .income-icon { color: #10B981; }
+.income-icon-rose .income-icon { color: #F43F5E; }
+.income-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+.income-name { font-size: 24rpx; font-weight: 500; color: #1E293B; }
+.income-time { font-size: 20rpx; color: #94A3B8; }
+.income-amount { font-size: 28rpx; font-weight: 600; flex-shrink: 0; }
+
+/* 提现说明 */
+.wl-tip {
+  margin: 24rpx 32rpx 32rpx; background-color: #F8FAFC;
+  border-radius: 24rpx; padding: 24rpx;
+}
+.wl-tip-text { font-size: 20rpx; color: #94A3B8; text-align: center; display: block; }

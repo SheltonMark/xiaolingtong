@@ -1,17 +1,60 @@
-.pm-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 140rpx; }
-.pm-balance { margin: 20rpx 24rpx 0; background-color: #fff; border-radius: 24rpx; padding: 24rpx 32rpx; display: flex; align-items: center; justify-content: space-between; }
-.pm-bal-left { display: flex; align-items: center; gap: 12rpx; }
-.pm-bal-icon { font-size: 36rpx; }
-.pm-bal-text { font-size: 26rpx; color: #1E293B; }
-.pm-bal-num { font-weight: 700; color: #3B82F6; }
-.pm-recharge { font-size: 24rpx; color: #3B82F6; }
-.pm-list { padding: 24rpx; display: flex; flex-direction: column; gap: 16rpx; }
-.pm-card { background-color: #fff; border-radius: 20rpx; padding: 28rpx 32rpx; border: 2rpx solid transparent; display: flex; align-items: center; justify-content: space-between; position: relative; }
-.pm-selected { border-color: #3B82F6; background-color: #EFF6FF; }
-.pm-tag { position: absolute; top: -2rpx; right: -2rpx; font-size: 18rpx; background-color: #F43F5E; color: #fff; padding: 4rpx 12rpx; border-radius: 0 20rpx 0 12rpx; }
-.pm-left { display: flex; flex-direction: column; gap: 4rpx; }
-.pm-name { font-size: 26rpx; font-weight: 600; color: #1E293B; }
-.pm-desc { font-size: 22rpx; color: #94A3B8; }
-.pm-beans { font-size: 28rpx; font-weight: 700; color: #3B82F6; }
-.pm-beans-unit { font-size: 20rpx; color: #94A3B8; }
-.pm-bottom { position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx; background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04); padding-bottom: calc(20rpx + env(safe-area-inset-bottom)); }
+.pm-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 40rpx; }
+.pm-section {
+  margin: 24rpx 32rpx 0; background-color: #fff;
+  border-radius: 24rpx; padding: 32rpx;
+}
+.section-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 16rpx; }
+.pm-hint { font-size: 22rpx; color: #94A3B8; display: block; margin-bottom: 16rpx; }
+
+/* 信息预览 */
+.pm-preview { display: flex; gap: 24rpx; }
+.pm-preview-img { width: 112rpx; height: 112rpx; border-radius: 16rpx; flex-shrink: 0; }
+.pm-preview-info { flex: 1; display: flex; flex-direction: column; }
+.pm-preview-title { font-size: 26rpx; font-weight: 500; color: #1E293B; line-height: 1.5; margin-bottom: 12rpx; }
+.pm-preview-tags { display: flex; gap: 8rpx; }
+.pm-tag-blue { font-size: 18rpx; background-color: #EFF6FF; color: #3B82F6; padding: 4rpx 12rpx; border-radius: 6rpx; }
+.pm-tag-amber { font-size: 18rpx; background-color: #FFFBEB; color: #F59E0B; padding: 4rpx 12rpx; border-radius: 6rpx; }
+
+/* 置顶效果 */
+.pm-effect-desc { font-size: 20rpx; color: #64748B; display: block; margin-bottom: 20rpx; }
+.pm-effect-box { background-color: #F8FAFC; border-radius: 16rpx; padding: 24rpx; }
+.pm-effect-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 8rpx; }
+.pm-top-badge {
+  font-size: 18rpx; color: #fff; background-color: #F97316;
+  padding: 4rpx 12rpx; border-radius: 6rpx; font-weight: 500;
+}
+.pm-effect-text { font-size: 24rpx; font-weight: 500; color: #1E293B; }
+.pm-effect-hint { font-size: 20rpx; color: #94A3B8; padding-left: 64rpx; }
+
+/* 时长选择 */
+.pm-options { display: flex; flex-direction: column; gap: 20rpx; }
+.pm-option {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 28rpx; border: 2rpx solid #E2E8F0;
+  border-radius: 24rpx; position: relative; overflow: hidden;
+}
+.pm-option-active { border-color: #3B82F6; border-width: 4rpx; background-color: rgba(239,246,255,0.5); }
+.pm-option-tag {
+  position: absolute; top: 16rpx; right: 16rpx;
+  font-size: 16rpx; color: #fff; padding: 2rpx 12rpx;
+  border-radius: 6rpx;
+}
+.pm-option-left { display: flex; align-items: center; gap: 24rpx; }
+.pm-radio {
+  width: 40rpx; height: 40rpx; border: 4rpx solid #CBD5E1;
+  border-radius: 50%; display: flex; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.pm-radio-active { border-color: #3B82F6; }
+.pm-radio-dot { width: 20rpx; height: 20rpx; background-color: #3B82F6; border-radius: 50%; }
+.pm-option-info { display: flex; flex-direction: column; }
+.pm-option-name { font-size: 28rpx; font-weight: 500; color: #1E293B; }
+.pm-option-desc { font-size: 20rpx; color: #94A3B8; margin-top: 4rpx; }
+.pm-option-price { font-size: 28rpx; font-weight: 700; color: #1E293B; }
+
+/* 规则 */
+.pm-rules { display: flex; flex-direction: column; gap: 12rpx; }
+.pm-rule { font-size: 20rpx; color: #64748B; line-height: 1.6; }
+
+/* 底部 */
+.pm-bottom-area { margin: 32rpx 32rpx 0; }

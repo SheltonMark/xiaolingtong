@@ -1,32 +1,67 @@
 <!--pages/promotion/promotion.wxml-->
 <view class="pm-page">
-  <!-- 灵豆余额 -->
-  <view class="pm-balance">
-    <view class="pm-bal-left">
-      <text class="pm-bal-icon">💎</text>
-      <text class="pm-bal-text">灵豆余额：<text class="pm-bal-num">{{myBeans}}</text></text>
-    </view>
-    <navigator url="/pages/bean-recharge/bean-recharge" class="pm-recharge">去充值</navigator>
-  </view>
-
-  <!-- 推广选项 -->
-  <view class="pm-list">
-    <view class="pm-card {{selectedIndex === index ? 'pm-selected' : ''}}"
-          wx:for="{{options}}" wx:key="id" data-index="{{index}}" bindtap="onSelect">
-      <text class="pm-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
-      <view class="pm-left">
-        <text class="pm-name">{{item.name}}</text>
-        <text class="pm-desc">{{item.desc}}</text>
-      </view>
-      <view>
-        <text class="pm-beans">{{item.beans}}</text>
-        <text class="pm-beans-unit"> 灵豆</text>
+  <!-- 推广信息预览 -->
+  <view class="pm-section">
+    <text class="pm-hint">推广信息</text>
+    <view class="pm-preview">
+      <image class="pm-preview-img" src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=100&h=100&fit=crop" mode="aspectFill" />
+      <view class="pm-preview-info">
+        <text class="pm-preview-title">保温杯3000个采购，304不锈钢材质</text>
+        <view class="pm-preview-tags">
+          <text class="pm-tag-blue">采购需求</text>
+          <text class="pm-tag-amber">日用百货</text>
+        </view>
       </view>
     </view>
   </view>
 
-  <!-- 底部 -->
-  <view class="pm-bottom">
-    <button class="btn btn-primary" bindtap="onPay">确认推广（{{options[selectedIndex].beans}}灵豆）</button>
+  <!-- 置顶效果预览 -->
+  <view class="pm-section">
+    <text class="section-title">置顶效果</text>
+    <text class="pm-effect-desc">置顶后您的信息将在列表顶部展示，带有醒目标识</text>
+    <view class="pm-effect-box">
+      <view class="pm-effect-row">
+        <text class="pm-top-badge">🔖 置顶</text>
+        <text class="pm-effect-text">保温杯3000个采购...</text>
+      </view>
+      <text class="pm-effect-hint">您的信息将展示在这里</text>
+    </view>
+  </view>
+
+  <!-- 置顶时长选择 -->
+  <view class="pm-section">
+    <text class="section-title">选择置顶时长</text>
+    <view class="pm-options">
+      <view class="pm-option {{selectedIndex === index ? 'pm-option-active' : ''}}"
+            wx:for="{{options}}" wx:key="id"
+            data-index="{{index}}" bindtap="onSelect">
+        <text class="pm-option-tag" wx:if="{{item.tag}}" style="background-color:{{item.tagColor}};">{{item.tag}}</text>
+        <view class="pm-option-left">
+          <view class="pm-radio {{selectedIndex === index ? 'pm-radio-active' : ''}}">
+            <view class="pm-radio-dot" wx:if="{{selectedIndex === index}}"></view>
+          </view>
+          <view class="pm-option-info">
+            <text class="pm-option-name">{{item.name}}</text>
+            <text class="pm-option-desc">{{item.desc}}</text>
+          </view>
+        </view>
+        <text class="pm-option-price {{selectedIndex === index ? 'text-primary' : ''}}">{{item.beans}}灵豆</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 置顶规则 -->
+  <view class="pm-section">
+    <text class="section-title">置顶规则</text>
+    <view class="pm-rules">
+      <text class="pm-rule">1. 多个置顶信息按购买时间排序，先买的在前</text>
+      <text class="pm-rule">2. 置顶到期后自动恢复普通排序</text>
+      <text class="pm-rule">3. 置顶期间信息被下架，不退款</text>
+    </view>
+  </view>
+
+  <!-- 支付按钮 -->
+  <view class="pm-bottom-area">
+    <button class="btn btn-primary" bindtap="onPay">立即支付 · {{options[selectedIndex].beans}}灵豆</button>
   </view>
 </view>
