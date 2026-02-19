@@ -4,13 +4,13 @@ Page({
     tabs: ['全部', '待确认', '已入选', '进行中', '已完成'],
     list: [
       {
-        id: 'a1', company: '鑫达电子厂', title: '电子组装工', salary: '20元/时',
+        id: 'a1', company: '鑫达电子厂', avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&fit=crop', title: '电子组装工', salary: '20元/时',
         status: 'confirm', statusText: '待确认出勤', statusColor: '#F59E0B',
         date: '02-10 08:00', alert: '明天开工，请在今天18:00前确认出勤',
         stats: null
       },
       {
-        id: 'a2', company: '顺丰包装厂', title: '包装工', salary: '18元/时',
+        id: 'a2', company: '顺丰包装厂', avatar: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=60&h=60&fit=crop', title: '包装工', salary: '18元/时',
         status: 'ongoing', statusText: '进行中', statusColor: '#10B981',
         date: '02-12 至 02-14', alert: '',
         stats: [
@@ -20,7 +20,7 @@ Page({
         ]
       },
       {
-        id: 'a3', company: '华美五金厂', title: '计件工', salary: '0.5元/件',
+        id: 'a3', company: '华美五金厂', avatar: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=60&h=60&fit=crop', title: '计件工', salary: '0.5元/件',
         status: 'done', statusText: '已完成', statusColor: '#94A3B8',
         date: '01-20 至 02-03', alert: '',
         stats: [
@@ -30,7 +30,7 @@ Page({
         ]
       },
       {
-        id: 'a4', company: '鑫达电子厂', title: '质检员', salary: '22元/时',
+        id: 'a4', company: '鑫达电子厂', avatar: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=60&h=60&fit=crop', title: '质检员', salary: '22元/时',
         status: 'rejected', statusText: '未入选', statusColor: '#F43F5E',
         date: '报名于 02-05', alert: '',
         stats: null

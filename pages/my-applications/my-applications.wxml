@@ -18,7 +18,7 @@
       <!-- 头部 -->
       <view class="app-header">
         <view class="app-header-left">
-          <view class="app-avatar">🏭</view>
+          <image class="app-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
           <text class="app-company">{{item.company}}</text>
         </view>
         <text class="app-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
