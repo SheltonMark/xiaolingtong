@@ -40,7 +40,7 @@
     </view>
   </view>
 
-  <view class="content-spacer" style="height: {{navBarHeight + (userRole === 'enterprise' ? 140 : 110)}}px;"></view>
+  <view class="content-spacer" style="height: {{headerHeight ? headerHeight + 'px' : (navBarHeight + (userRole === 'enterprise' ? 140 : 110)) + 'px'}};"></view>
 
   <!-- ===== 企业端内容 ===== -->
   <view wx:if="{{userRole === 'enterprise'}}">

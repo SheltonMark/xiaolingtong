@@ -71,16 +71,26 @@ Page({
       menuTop: menuBtn.top,
       navBarHeight: navBarHeight
     })
+    // 等渲染完成后精确测量固定头部高度
+    setTimeout(() => this.measureHeader(), 100)
+  },
+
+  measureHeader() {
+    wx.createSelectorQuery().select('.fixed-header').boundingClientRect(rect => {
+      if (rect) {
+        this.setData({ headerHeight: rect.height })
+      }
+    }).exec()
   },
 
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole })
     this.loadData()
-    // 设置自定义 tabBar 选中态和角色
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
     }
+    setTimeout(() => this.measureHeader(), 100)
   },
 
   loadData() {
