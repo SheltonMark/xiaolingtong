@@ -36,7 +36,7 @@
 .section-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 24rpx; }
 .pkg-grid { display: flex; flex-wrap: wrap; gap: 16rpx; }
 .pkg-item {
-  width: calc(33.33% - 11rpx); background-color: #fff;
+  width: calc((100% - 32rpx) / 3); background-color: #fff;
   border-radius: 20rpx; padding: 24rpx 0;
   display: flex; flex-direction: column; align-items: center; gap: 4rpx;
   border: 2rpx solid #E2E8F0; position: relative; box-sizing: border-box;

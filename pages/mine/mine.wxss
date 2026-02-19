@@ -19,6 +19,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 32rpx;
+  min-height: 64rpx;
 }
 .header-label {
   font-size: 30rpx;
