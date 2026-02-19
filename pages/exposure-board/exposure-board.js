@@ -34,6 +34,9 @@ Page({
     ]
   },
   onTabChange(e) { this.setData({ currentTab: Number(e.currentTarget.dataset.index) }) },
+  onTapCard(e) {
+    wx.navigateTo({ url: '/pages/exposure-detail/exposure-detail?id=' + e.currentTarget.dataset.id })
+  },
   onPublishExposure() {
     wx.navigateTo({ url: '/pages/exposure/exposure' })
   },

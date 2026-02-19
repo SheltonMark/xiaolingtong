@@ -20,7 +20,8 @@
   <!-- 曝光列表 -->
   <view class="eb-list-wrap">
     <view class="eb-card" wx:for="{{list}}" wx:key="id"
-          wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}">
+          wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}"
+          data-id="{{item.id}}" bindtap="onTapCard">
       <!-- 头部 -->
       <view class="eb-card-header">
         <view class="eb-avatar-wrap">
