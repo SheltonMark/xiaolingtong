@@ -2,18 +2,12 @@
 <view class="tab-bar safe-bottom" wx:if="{{userRole === 'enterprise'}}">
   <!-- 首页 -->
   <view class="tab-bar-item" data-path="/pages/index/index" data-istab="{{true}}" data-index="0" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image wx:if="{{selected === 0}}" src="/images/tab-home-active.png" class="tab-icon" />
-      <image wx:else src="/images/tab-home.png" class="tab-icon" />
-    </view>
+    <text class="tab-emoji {{selected === 0 ? 'tab-emoji-ent-active' : ''}}">🏠</text>
     <text class="tab-text {{selected === 0 ? 'tab-text-ent-active' : ''}}">首页</text>
   </view>
   <!-- 曝光 -->
   <view class="tab-bar-item" data-path="/pages/exposure-board/exposure-board" data-istab="{{true}}" data-index="1" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image wx:if="{{selected === 1}}" src="/images/tab-exposure-active.png" class="tab-icon" />
-      <image wx:else src="/images/tab-exposure.png" class="tab-icon" />
-    </view>
+    <text class="tab-emoji {{selected === 1 ? 'tab-emoji-ent-active' : ''}}">⚠️</text>
     <text class="tab-text {{selected === 1 ? 'tab-text-ent-active' : ''}}">曝光</text>
   </view>
   <!-- 发布（凸起按钮） -->
@@ -25,18 +19,12 @@
   </view>
   <!-- 消息 -->
   <view class="tab-bar-item" data-path="/pages/messages/messages" data-istab="{{true}}" data-index="3" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image wx:if="{{selected === 3}}" src="/images/tab-msg-active.png" class="tab-icon" />
-      <image wx:else src="/images/tab-msg.png" class="tab-icon" />
-    </view>
+    <text class="tab-emoji {{selected === 3 ? 'tab-emoji-ent-active' : ''}}">💬</text>
     <text class="tab-text {{selected === 3 ? 'tab-text-ent-active' : ''}}">消息</text>
   </view>
   <!-- 我的 -->
   <view class="tab-bar-item" data-path="/pages/mine/mine" data-istab="{{true}}" data-index="4" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image wx:if="{{selected === 4}}" src="/images/tab-mine-active.png" class="tab-icon" />
-      <image wx:else src="/images/tab-mine.png" class="tab-icon" />
-    </view>
+    <text class="tab-emoji {{selected === 4 ? 'tab-emoji-ent-active' : ''}}">👤</text>
     <text class="tab-text {{selected === 4 ? 'tab-text-ent-active' : ''}}">我的</text>
   </view>
 </view>
@@ -45,33 +33,22 @@
 <view class="tab-bar safe-bottom" wx:if="{{userRole === 'worker'}}">
   <!-- 首页 -->
   <view class="tab-bar-item" data-path="/pages/index/index" data-istab="{{true}}" data-index="0" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image wx:if="{{selected === 0}}" src="/images/tab-home-active.png" class="tab-icon" />
-      <image wx:else src="/images/tab-home.png" class="tab-icon" />
-    </view>
+    <text class="tab-emoji {{selected === 0 ? 'tab-emoji-worker-active' : ''}}">🏠</text>
     <text class="tab-text {{selected === 0 ? 'tab-text-worker-active' : ''}}">首页</text>
   </view>
   <!-- 我的报名 -->
   <view class="tab-bar-item" data-path="/pages/my-applications/my-applications" data-istab="{{false}}" data-index="1" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image src="/images/tab-exposure.png" class="tab-icon" />
-    </view>
-    <text class="tab-text">我的报名</text>
+    <text class="tab-emoji {{selected === 1 ? 'tab-emoji-worker-active' : ''}}">📋</text>
+    <text class="tab-text {{selected === 1 ? 'tab-text-worker-active' : ''}}">我的报名</text>
   </view>
   <!-- 消息 -->
   <view class="tab-bar-item" data-path="/pages/messages/messages" data-istab="{{true}}" data-index="2" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image wx:if="{{selected === 2}}" src="/images/tab-msg-active.png" class="tab-icon" />
-      <image wx:else src="/images/tab-msg.png" class="tab-icon" />
-    </view>
+    <text class="tab-emoji {{selected === 2 ? 'tab-emoji-worker-active' : ''}}">💬</text>
     <text class="tab-text {{selected === 2 ? 'tab-text-worker-active' : ''}}">消息</text>
   </view>
   <!-- 我的 -->
   <view class="tab-bar-item" data-path="/pages/mine/mine" data-istab="{{true}}" data-index="3" bindtap="switchTab">
-    <view class="tab-icon-wrap">
-      <image wx:if="{{selected === 3}}" src="/images/tab-mine-active.png" class="tab-icon" />
-      <image wx:else src="/images/tab-mine.png" class="tab-icon" />
-    </view>
+    <text class="tab-emoji {{selected === 3 ? 'tab-emoji-worker-active' : ''}}">👤</text>
     <text class="tab-text {{selected === 3 ? 'tab-text-worker-active' : ''}}">我的</text>
   </view>
 </view>

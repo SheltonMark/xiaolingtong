@@ -38,11 +38,25 @@
   font-size: 20rpx;
   color: #94A3B8;
 }
+.tab-emoji {
+  font-size: 44rpx;
+  line-height: 1;
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+.tab-emoji-ent-active {
+  filter: none;
+  opacity: 1;
+}
+.tab-emoji-worker-active {
+  filter: none;
+  opacity: 1;
+}
 .tab-text-ent-active {
   color: #F97316;
 }
 .tab-text-worker-active {
-  color: #F97316;
+  color: #3B82F6;
 }
 .tab-text-publish {
   color: #F97316;

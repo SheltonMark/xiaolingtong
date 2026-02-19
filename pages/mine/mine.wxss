@@ -1,6 +1,7 @@
 .mine-page {
   min-height: 100vh;
   background-color: #F8FAFC;
+  padding-bottom: 140rpx;
 }
 
 /* ===== 头部 ===== */
@@ -18,15 +19,15 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 32rpx;
-  padding-top: 16rpx;
 }
 .header-label {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #1E293B;
 }
 .settings-icon {
   font-size: 36rpx;
+  color: #64748B;
 }
 
 /* ===== 用户信息 ===== */
@@ -35,19 +36,12 @@
   align-items: center;
   gap: 24rpx;
 }
-.avatar-wrap {
+.avatar-img {
   width: 128rpx;
   height: 128rpx;
   border-radius: 50%;
-  background-color: #F1F5F9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
   flex-shrink: 0;
-}
-.avatar-emoji {
-  font-size: 64rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.06);
 }
 .user-detail {
   flex: 1;
@@ -170,11 +164,11 @@
   color: #64748B;
   position: relative;
 }
-.tab-active-mine {
-  color: #3B82F6;
+.tab-active-ent {
+  color: #F97316;
   font-weight: 600;
 }
-.tab-active-mine::after {
+.tab-active-ent::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -182,11 +176,11 @@
   transform: translateX(-50%);
   width: 48rpx;
   height: 4rpx;
-  background-color: #3B82F6;
+  background-color: #F97316;
   border-radius: 4rpx;
 }
 .tab-active-worker {
-  color: #F97316;
+  color: #3B82F6;
   font-weight: 600;
 }
 .tab-active-worker::after {
@@ -197,6 +191,6 @@
   transform: translateX(-50%);
   width: 48rpx;
   height: 4rpx;
-  background-color: #F97316;
+  background-color: #3B82F6;
   border-radius: 4rpx;
 }

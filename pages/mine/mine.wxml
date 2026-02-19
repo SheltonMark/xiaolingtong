@@ -3,15 +3,14 @@
   <!-- ===== 企业端 ===== -->
   <view wx:if="{{userRole === 'enterprise'}}">
     <!-- 头部 -->
-    <view class="header header-enterprise" style="padding-top: {{statusBarHeight + 10}}px;">
-      <view class="header-top">
+    <view class="header header-enterprise" style="padding-top: {{statusBarHeight}}px;">
+      <!-- 标题行（与胶囊同行） -->
+      <view class="header-top" style="height: {{menuHeight}}px;">
         <text class="header-label">我的</text>
         <text class="settings-icon" bindtap="onSettings">⚙️</text>
       </view>
       <view class="user-info">
-        <view class="avatar-wrap">
-          <text class="avatar-emoji">🏢</text>
-        </view>
+        <image src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=120&h=120&fit=crop" class="avatar-img" mode="aspectFill" />
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">鑫达贸易公司</text>
@@ -48,7 +47,7 @@
     <!-- Tab 内容 -->
     <view class="tab-section">
       <view class="tab-bar-mine">
-        <view class="tab-item-mine {{currentTab === index ? 'tab-active-mine' : ''}}"
+        <view class="tab-item-mine {{currentTab === index ? 'tab-active-ent' : ''}}"
               wx:for="{{enterpriseTabs}}" wx:key="index"
               data-index="{{index}}" bindtap="onTabChange">
           <text>{{item}}</text>
@@ -61,15 +60,14 @@
   <!-- ===== 临工端 ===== -->
   <view wx:if="{{userRole === 'worker'}}">
     <!-- 头部 -->
-    <view class="header header-worker" style="padding-top: {{statusBarHeight + 10}}px;">
-      <view class="header-top">
+    <view class="header header-worker" style="padding-top: {{statusBarHeight}}px;">
+      <!-- 标题行（与胶囊同行） -->
+      <view class="header-top" style="height: {{menuHeight}}px;">
         <text class="header-label">我的</text>
         <text class="settings-icon" bindtap="onSettings">⚙️</text>
       </view>
       <view class="user-info">
-        <view class="avatar-wrap">
-          <text class="avatar-emoji">👷</text>
-        </view>
+        <image src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&h=120&fit=crop" class="avatar-img" mode="aspectFill" />
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">张三</text>

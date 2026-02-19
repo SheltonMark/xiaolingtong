@@ -2,6 +2,7 @@ Page({
   data: {
     userRole: 'enterprise',
     statusBarHeight: 0,
+    menuHeight: 0,
     currentTab: 0,
     // 企业端
     enterpriseTabs: ['我的动态', '浏览记录', '对接记录'],
@@ -25,7 +26,11 @@ Page({
 
   onLoad() {
     const sysInfo = wx.getSystemInfoSync()
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight })
+    const menuBtn = wx.getMenuButtonBoundingClientRect()
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight,
+      menuHeight: menuBtn.height
+    })
   },
 
   onShow() {
