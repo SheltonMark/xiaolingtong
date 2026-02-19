@@ -40,7 +40,6 @@
     </view>
   </view>
 
-  <!-- 内容占位（撑开固定定位的顶部） -->
   <view class="content-spacer" style="height: {{navBarHeight + (userRole === 'enterprise' ? 140 : 110)}}px;"></view>
 
   <!-- ===== 企业端内容 ===== -->
