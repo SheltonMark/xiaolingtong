@@ -25,5 +25,12 @@ Page({
     wx.showToast({ title: '已全部已读', icon: 'success' })
   },
   onTapMsg() { wx.showToast({ title: '消息详情', icon: 'none' }) },
-  onTapChat() { wx.navigateTo({ url: '/pages/chat/chat' }) }
+  onTapChat() { wx.navigateTo({ url: '/pages/chat/chat' }) },
+
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+      this.getTabBar().setData({ selected: userRole === 'enterprise' ? 3 : 2, userRole })
+    }
+  }
 })

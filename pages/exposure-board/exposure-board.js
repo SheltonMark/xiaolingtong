@@ -5,5 +5,11 @@ Page({
       { id: 2, company: '某某包装厂', count: 3, reason: '工作环境恶劣，无空调无通风', location: '深圳宝安', lastTime: '02-10' },
       { id: 3, company: '某某五金厂', count: 2, reason: '强制加班不给加班费', location: '广州番禺', lastTime: '02-08' }
     ]
+  },
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+      this.getTabBar().setData({ selected: 1, userRole })
+    }
   }
 })

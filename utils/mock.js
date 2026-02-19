@@ -16,8 +16,16 @@ const purchaseList = [
       { label: '物品', value: '304不锈钢保温杯' },
       { label: '数量', value: '3000个', bold: true },
       { label: '规格', value: '500ml，带保温盖，双层真空' },
-      { label: '交期', value: '30天内' }
+      { label: '交期', value: '30天内' },
+      { label: '预算', value: '¥10~15/个', highlight: true }
     ],
+    desc: '有现货优先，长期合作，量大从优。',
+    images: [
+      'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1570554520913-ce2192a74574?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1544816155-12df9643f363?w=200&h=200&fit=crop'
+    ],
+    date: '02-07',
     time: '2小时前'
   },
   {
@@ -34,8 +42,12 @@ const purchaseList = [
       { label: '物品', value: 'Type-C数据线' },
       { label: '数量', value: '10000条', bold: true },
       { label: '规格', value: '1米/2米，PD快充60W' },
-      { label: '交期', value: '15天内' }
+      { label: '交期', value: '15天内' },
+      { label: '预算', value: '¥3~5/条', highlight: true }
     ],
+    desc: '需要3C认证，支持OEM。',
+    images: [],
+    date: '02-06',
     time: '5小时前'
   }
 ]
@@ -46,18 +58,22 @@ const stockList = [
     id: 's1',
     type: 'stock',
     avatar: '',
-    avatarText: '加',
-    avatarBg: '#FEF3C7',
-    avatarColor: '#F59E0B',
-    location: '深圳',
-    certText: '已认证工厂',
-    industry: '模具加工',
+    avatarText: '电',
+    avatarBg: '#D1FAE5',
+    avatarColor: '#10B981',
+    location: '广州',
+    certText: '已认证企业',
+    industry: '电子数码',
     fields: [
-      { label: '产品', value: 'ABS塑料外壳' },
-      { label: '库存', value: '50000件', bold: true },
-      { label: '单价', value: '¥2.5-3.8/件' },
-      { label: '状态', value: '现货' }
+      { label: '物品', value: 'TWS蓝牙耳机' },
+      { label: '库存', value: '5000副', bold: true },
+      { label: '规格', value: '入耳式，主动降噪，续航6小时' },
+      { label: '单价', value: '面议', highlight: true },
+      { label: '起订量', value: '100副起' }
     ],
+    desc: '可OEM贴牌，量大价优。',
+    images: [],
+    date: '02-05',
     time: '1天前'
   }
 ]
@@ -78,9 +94,15 @@ const processList = [
       { label: '加工类型', value: '注塑加工' },
       { label: '产品', value: '手机壳（TPU材质）' },
       { label: '起订量', value: '500个起', bold: true },
-      { label: '单价', value: '面议' },
+      { label: '单价', value: '面议', highlight: true },
       { label: '交期', value: '15天' }
     ],
+    desc: '支持来图定制，丝印能力。',
+    images: [
+      'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=200&h=200&fit=crop'
+    ],
+    date: '02-06',
     time: '1天前'
   }
 ]
@@ -90,7 +112,7 @@ const jobListEnterprise = [
   {
     id: 'j1',
     companyName: '鑫达电子厂',
-    companyAvatar: '',
+    companyAvatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
     time: '02-07',
     location: '东莞长安',
     title: '电子组装工',
@@ -115,9 +137,15 @@ const jobListWorker = [
     applied: 5,
     dateRange: '02-07',
     companyName: '鑫达电子厂',
+    companyAvatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
     tagText: '急招',
     tagColor: 'text-rose',
-    benefit: '包午餐，有空调车间，长期合作优先'
+    benefit: '包午餐，有空调车间，长期合作优先',
+    images: [
+      'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop',
+      'https://images.unsplash.com/photo-1565043666747-69f6646db940?w=200&h=200&fit=crop'
+    ]
   },
   {
     id: 'j2',
@@ -130,9 +158,11 @@ const jobListWorker = [
     applied: 12,
     dateRange: '02-06',
     companyName: '顺丰物流仓',
+    companyAvatar: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=80&h=80&fit=crop',
     tagText: '长期',
     tagColor: 'text-fresh',
-    benefit: '提供工作餐，月结工资'
+    benefit: '提供工作餐，月结工资',
+    images: []
   },
   {
     id: 'j3',
@@ -145,9 +175,11 @@ const jobListWorker = [
     applied: 3,
     dateRange: '02-05',
     companyName: '美华服装厂',
+    companyAvatar: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop',
     tagText: '',
     tagColor: '',
-    benefit: '熟手优先，有缝纫经验者优先录用'
+    benefit: '熟手优先，有缝纫经验者优先录用',
+    images: []
   }
 ]
 

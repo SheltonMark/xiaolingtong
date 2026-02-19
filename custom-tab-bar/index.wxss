@@ -1,0 +1,70 @@
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 120rpx;
+  background-color: #ffffff;
+  border-top: 1rpx solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 999;
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 4rpx;
+  position: relative;
+}
+.tab-icon-wrap {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tab-icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+.tab-text {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+.tab-text-ent-active {
+  color: #3B82F6;
+}
+.tab-text-worker-active {
+  color: #F97316;
+}
+.tab-text-publish {
+  color: #F97316;
+  margin-top: -4rpx;
+}
+
+/* 发布凸起按钮 */
+.publish-btn {
+  width: 112rpx;
+  height: 112rpx;
+  background-color: #F97316;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -64rpx;
+  box-shadow: 0 8rpx 30rpx rgba(249, 115, 22, 0.4);
+}
+.publish-icon {
+  font-size: 56rpx;
+  color: #ffffff;
+  font-weight: 300;
+  line-height: 1;
+  margin-top: -4rpx;
+}

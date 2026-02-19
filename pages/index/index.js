@@ -63,13 +63,23 @@ Page({
 
   onLoad() {
     const sysInfo = wx.getSystemInfoSync()
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight })
+    const menuBtn = wx.getMenuButtonBoundingClientRect()
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight,
+      menuRight: sysInfo.screenWidth - menuBtn.left,
+      menuHeight: menuBtn.height,
+      menuTop: menuBtn.top
+    })
   },
 
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole })
     this.loadData()
+    // 设置自定义 tabBar 选中态和角色
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0, userRole })
+    }
   },
 
   loadData() {
@@ -113,5 +123,18 @@ Page({
 
   onPhone(e) {
     wx.makePhoneCall({ phoneNumber: '13800138000', fail() {} })
+  },
+
+  // 长按城市切换角色（调试用）
+  onSwitchRole() {
+    const newRole = this.data.userRole === 'enterprise' ? 'worker' : 'enterprise'
+    getApp().globalData.userRole = newRole
+    wx.setStorageSync('userRole', newRole)
+    this.setData({ userRole: newRole })
+    this.loadData()
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 0, userRole: newRole })
+    }
+    wx.showToast({ title: '已切换为' + (newRole === 'enterprise' ? '企业端' : '临工端'), icon: 'none' })
   }
 })

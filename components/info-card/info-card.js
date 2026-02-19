@@ -12,6 +12,12 @@ Component({
     },
     onTapPhone() {
       this.triggerEvent('phone', { id: this.data.item.id })
+    },
+    onTapShare() {
+      this.triggerEvent('share', { id: this.data.item.id })
+    },
+    onTapReport() {
+      this.triggerEvent('report', { id: this.data.item.id })
     }
   }
 })

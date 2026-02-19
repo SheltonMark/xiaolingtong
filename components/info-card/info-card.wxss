@@ -2,11 +2,11 @@
   background-color: #ffffff;
   border-radius: 24rpx;
   padding: 32rpx;
-  margin-bottom: 20rpx;
+  margin-bottom: 24rpx;
 }
 .card-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 20rpx;
 }
@@ -33,7 +33,7 @@
   flex-direction: column;
 }
 .header-title {
-  font-size: 24rpx;
+  font-size: 26rpx;
   font-weight: 500;
   color: #1E293B;
 }
@@ -56,11 +56,13 @@
 }
 .btn-wechat { background-color: #10B981; }
 .btn-phone { background-color: #3B82F6; }
+
+/* 字段区域 */
 .card-fields {
   display: flex;
   flex-direction: column;
   gap: 12rpx;
-  margin-bottom: 16rpx;
+  margin-bottom: 24rpx;
   padding-left: 100rpx;
 }
 .field-row {
@@ -76,11 +78,76 @@
 .field-value {
   color: #1E293B;
 }
+
+/* 描述文字 */
+.card-desc {
+  padding-left: 100rpx;
+  margin-bottom: 24rpx;
+}
+.desc-text {
+  font-size: 24rpx;
+  color: #64748B;
+  line-height: 1.625;
+}
+
+/* 图片网格 */
+.card-images {
+  display: flex;
+  gap: 8rpx;
+  border-radius: 16rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+  position: relative;
+}
+.card-img-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.card-img-wrap::after {
+  content: '';
+  display: block;
+  padding-top: 100%;
+}
+.card-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+.img-date {
+  position: absolute;
+  bottom: 8rpx;
+  left: 8rpx;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #ffffff;
+  font-size: 18rpx;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+  z-index: 1;
+}
+
+/* 底部操作 */
 .card-footer {
   display: flex;
   justify-content: flex-end;
 }
-.footer-time {
-  font-size: 20rpx;
+.footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+.footer-action {
+  display: flex;
+  align-items: center;
+  gap: 6rpx;
+}
+.action-icon {
+  font-size: 24rpx;
+  color: #94A3B8;
+}
+.action-text {
+  font-size: 22rpx;
   color: #94A3B8;
 }

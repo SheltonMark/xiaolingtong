@@ -31,6 +31,9 @@ Page({
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole, currentTab: 0 })
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: userRole === 'enterprise' ? 4 : 3, userRole })
+    }
   },
 
   onTabChange(e) {

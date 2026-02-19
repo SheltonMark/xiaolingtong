@@ -71,5 +71,12 @@ Page({
     }
     wx.showToast({ title: '发布成功', icon: 'success' })
     setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
+  },
+
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+      this.getTabBar().setData({ selected: 2, userRole })
+    }
   }
 })

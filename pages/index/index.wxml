@@ -2,10 +2,10 @@
 <view class="index-page">
   <!-- 顶部栏 -->
   <view class="top-bar" style="padding-top: {{statusBarHeight}}px;">
-    <view class="top-bar-inner">
+    <view class="top-bar-inner" style="padding-right: {{menuRight + 8}}px;">
       <!-- 城市选择 -->
-      <view class="city-selector">
-        <text class="city-icon text-primary">📍</text>
+      <view class="city-selector" bindlongpress="onSwitchRole">
+        <text class="city-icon">📍</text>
         <text class="city-name">东莞</text>
         <text class="city-arrow">▾</text>
       </view>
@@ -44,19 +44,19 @@
   <view wx:if="{{userRole === 'enterprise'}}">
     <!-- 广告 Banner -->
     <view class="banner-wrap">
-      <view class="banner-placeholder">
-        <text class="banner-text">📢 广告位招商中</text>
+      <view class="banner-inner">
+        <image src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=700&h=280&fit=crop"
+               class="banner-img" mode="aspectFill" />
       </view>
     </view>
 
     <!-- Tab 0: 采购需求 -->
     <view wx:if="{{currentTab === 0}}">
-      <!-- 分类图标 -->
       <view class="cate-grid-wrap">
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{catePurchase}}" wx:key="label">
-            <view class="cate-icon" style="background-color: {{item.bg}};">
-              <text>{{item.icon}}</text>
+            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
             </view>
             <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
@@ -65,7 +65,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新采购需求</text>
-          <text class="section-more text-primary">查看更多</text>
+          <text class="section-more">查看更多</text>
         </view>
         <info-card wx:for="{{purchaseList}}" wx:key="id"
                    item="{{item}}"
@@ -81,8 +81,8 @@
       <view class="cate-grid-wrap">
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{cateStock}}" wx:key="label">
-            <view class="cate-icon" style="background-color: {{item.bg}};">
-              <text>{{item.icon}}</text>
+            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
             </view>
             <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
@@ -91,7 +91,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新工厂库存</text>
-          <text class="section-more text-primary">查看更多</text>
+          <text class="section-more">查看更多</text>
         </view>
         <info-card wx:for="{{stockList}}" wx:key="id"
                    item="{{item}}"
@@ -107,8 +107,8 @@
       <view class="cate-grid-wrap">
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{cateProcess}}" wx:key="label">
-            <view class="cate-icon" style="background-color: {{item.bg}};">
-              <text>{{item.icon}}</text>
+            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
             </view>
             <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
@@ -117,7 +117,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新代加工</text>
-          <text class="section-more text-primary">查看更多</text>
+          <text class="section-more">查看更多</text>
         </view>
         <info-card wx:for="{{processList}}" wx:key="id"
                    item="{{item}}"
@@ -133,8 +133,8 @@
       <view class="cate-grid-wrap">
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{cateJob}}" wx:key="label">
-            <view class="cate-icon" style="background-color: {{item.bg}};">
-              <text>{{item.icon}}</text>
+            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
             </view>
             <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
@@ -143,13 +143,14 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新招工信息</text>
-          <text class="section-more text-primary">查看更多</text>
+          <text class="section-more">查看更多</text>
         </view>
         <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
               data-id="{{item.id}}" bindtap="onJobTap">
           <view class="job-header">
             <view class="job-header-left">
-              <view class="job-avatar-placeholder">
+              <image wx:if="{{item.companyAvatar}}" src="{{item.companyAvatar}}" class="job-avatar" mode="aspectFill" />
+              <view wx:else class="job-avatar-placeholder">
                 <text>🏭</text>
               </view>
               <view class="job-company-info">
@@ -162,13 +163,19 @@
               <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
             </view>
           </view>
-          <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}</text> · {{item.title}} · <text class="text-rose" wx:if="{{item.urgent}}">急招</text></text>
+          <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}</text> · {{item.title}}<text wx:if="{{item.urgent}}" class="text-rose"> · 急招</text></text>
           <text class="job-desc">{{item.desc}}</text>
           <view class="job-footer">
             <text class="job-applied">已报名 {{item.applied}}/{{item.total}}人</text>
             <view class="job-actions">
-              <text class="job-action">分享</text>
-              <text class="job-action">投诉</text>
+              <view class="job-action-item">
+                <text class="action-icon">↗</text>
+                <text class="job-action">分享</text>
+              </view>
+              <view class="job-action-item">
+                <text class="action-icon">⚠</text>
+                <text class="job-action">投诉</text>
+              </view>
             </view>
           </view>
         </view>
@@ -181,8 +188,8 @@
       <view class="cate-grid-wrap">
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{cateFactory}}" wx:key="label">
-            <view class="cate-icon" style="background-color: {{item.bg}};">
-              <text>{{item.icon}}</text>
+            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
             </view>
             <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
@@ -191,11 +198,12 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">工厂名录</text>
-          <text class="section-more text-primary">查看更多</text>
+          <text class="section-more">查看更多</text>
         </view>
         <view class="factory-card" wx:for="{{factoryList}}" wx:key="id">
           <view class="factory-top">
-            <view class="factory-logo">🏭</view>
+            <image wx:if="{{item.image}}" src="{{item.image}}" class="factory-logo-img" mode="aspectFill" />
+            <view wx:else class="factory-logo">🏭</view>
             <view class="factory-info">
               <text class="factory-name">{{item.name}}</text>
               <text class="factory-sub">{{item.type}} · {{item.location}}</text>
@@ -213,12 +221,13 @@
   </view>
 
   <!-- ===== 临工端内容 ===== -->
-  <view wx:if="{{userRole === 'worker'}}" class="list-wrap">
+  <view wx:if="{{userRole === 'worker'}}" class="worker-list-wrap">
     <view class="job-card" wx:for="{{jobList}}" wx:key="id"
           data-id="{{item.id}}" bindtap="onJobTap">
       <view class="job-header">
         <view class="job-header-left">
-          <view class="job-avatar-placeholder">
+          <image wx:if="{{item.companyAvatar}}" src="{{item.companyAvatar}}" class="job-avatar" mode="aspectFill" />
+          <view wx:else class="job-avatar-placeholder">
             <text>🏭</text>
           </view>
           <view class="job-company-info">
@@ -231,13 +240,25 @@
           <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
         </view>
       </view>
-      <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text> · {{item.title}} · <text class="{{item.tagColor}}">{{item.tagText}}</text></text>
+      <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text> · {{item.title}}<text wx:if="{{item.tagText}}" class="{{item.tagColor}}"> · {{item.tagText}}</text></text>
       <text class="job-desc">需要{{item.need}}人，工期{{item.dateRange}}，{{item.benefit}}</text>
+      <!-- 图片网格 -->
+      <view class="job-images" wx:if="{{item.images && item.images.length > 0}}">
+        <view class="job-img-wrap" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
+          <image src="{{img}}" mode="aspectFill" class="job-img" />
+        </view>
+      </view>
       <view class="job-footer">
         <text class="job-applied">已报名 {{item.applied}}/{{item.need}}人</text>
         <view class="job-actions">
-          <text class="job-action">分享</text>
-          <text class="job-action">投诉</text>
+          <view class="job-action-item">
+            <text class="action-icon">↗</text>
+            <text class="job-action">分享</text>
+          </view>
+          <view class="job-action-item">
+            <text class="action-icon">⚠</text>
+            <text class="job-action">投诉</text>
+          </view>
         </view>
       </view>
     </view>
