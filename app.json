@@ -9,6 +9,7 @@
     "pages/messages/messages",
     "pages/publish/publish",
     "pages/publish-job/publish-job",
+    "pages/post-job/post-job",
     "pages/post-detail/post-detail",
     "pages/job-detail/job-detail",
     "pages/my-posts/my-posts",

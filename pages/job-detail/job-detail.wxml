@@ -1,9 +1,18 @@
 <!--pages/job-detail/job-detail.wxml-->
 <view class="jd-page">
-  <!-- 薪资+状态 -->
+  <!-- 现场图片 -->
+  <swiper class="jd-swiper" wx:if="{{job.images && job.images.length > 0}}"
+          indicator-dots autoplay circular bindchange="onSwiperChange">
+    <swiper-item wx:for="{{job.images}}" wx:key="*this">
+      <image src="{{item}}" mode="aspectFill" class="jd-swiper-img" />
+    </swiper-item>
+  </swiper>
+  <view class="swiper-counter" wx:if="{{job.images && job.images.length > 0}}">{{swiperCurrent + 1}}/{{job.images.length}}</view>
+
+  <!-- 核心信息 -->
   <view class="salary-section">
     <view class="salary-row">
-      <text class="salary-big text-cta">¥{{job.salary}}</text>
+      <text class="salary-big text-cta">{{job.salary}}</text>
       <text class="salary-unit text-cta">{{job.salaryUnit}}</text>
       <text class="urgent-badge" wx:if="{{job.urgent}}">急招</text>
     </view>
@@ -16,8 +25,14 @@
 
   <!-- 工作详情 -->
   <view class="detail-card">
-    <text class="card-label">工作详情</text>
+    <view class="card-header-row">
+      <text class="card-icon">📋</text>
+      <text class="card-label">工作详情</text>
+    </view>
     <view class="detail-list">
+      <view class="detail-row">
+        <text class="dl">工种</text><text class="dv">{{job.title}}</text>
+      </view>
       <view class="detail-row">
         <text class="dl">结算方式</text><text class="dv">{{job.salaryType}}</text>
       </view>
@@ -28,47 +43,57 @@
         <text class="dl">工作时间</text><text class="dv">{{job.hours}}</text>
       </view>
       <view class="detail-row">
-        <text class="dl">已报名</text><text class="dv">{{job.applied}}/{{job.total}}人</text>
+        <text class="dl">工作内容</text><text class="dv">{{job.description}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="dl">报名人数</text>
+        <text class="dv"><text class="text-cta font-semibold">{{job.applied}}</text> / {{job.total}}人</text>
       </view>
     </view>
-    <text class="detail-desc">{{job.description}}</text>
   </view>
 
   <!-- 福利标签 -->
   <view class="detail-card">
     <text class="card-label">福利待遇</text>
     <view class="tags-wrap">
-      <text class="benefit-tag" wx:for="{{job.tags}}" wx:key="*this">{{item}}</text>
+      <text class="benefit-tag benefit-{{item.color || 'green'}}" wx:for="{{job.benefits}}" wx:key="label">{{item.label}}</text>
     </view>
   </view>
 
-  <!-- 企业信息 -->
+  <!-- 招工企业 -->
   <view class="detail-card">
-    <text class="card-label">企业信息</text>
+    <view class="card-header-row">
+      <text class="card-icon">🏢</text>
+      <text class="card-label">招工企业</text>
+    </view>
     <view class="company-row">
-      <image class="comp-avatar-img" src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop" mode="aspectFill" />
+      <image class="comp-avatar-img" src="{{job.company.avatar || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop'}}" mode="aspectFill" />
       <view class="comp-info">
         <view class="comp-name-row">
           <text class="comp-name">{{job.company.name}}</text>
           <text class="cert-badge" wx:if="{{job.company.verified}}">已认证</text>
         </view>
-        <text class="comp-credit">信用分 <text class="text-cta font-semibold">{{job.company.creditScore}}</text></text>
+        <text class="comp-credit">信用分 <text class="text-cta font-semibold">{{job.company.creditScore}}</text> · {{job.location}}</text>
       </view>
     </view>
-    <view class="detail-list" style="margin-top:20rpx;">
-      <view class="detail-row">
-        <text class="dl">联系人</text><text class="dv">{{job.company.contact}}</text>
+    <view class="contact-list">
+      <view class="contact-row">
+        <text class="contact-label">联系人</text>
+        <text class="contact-value">{{job.company.contact}}</text>
       </view>
-      <view class="detail-row">
-        <text class="dl">电话</text>
-        <text class="dv text-primary" bindtap="onCallPhone">{{job.company.phone}}</text>
+      <view class="contact-row">
+        <text class="contact-label">联系电话</text>
+        <text class="contact-value text-primary font-medium" bindtap="onCallPhone">{{job.company.phone}}</text>
       </view>
     </view>
   </view>
 
   <!-- 底部报名 -->
   <view class="apply-wrap">
-    <button class="btn btn-cta" bindtap="onApply">立即报名</button>
+    <button class="btn btn-cta apply-btn" bindtap="onApply">
+      <text>✏️</text>
+      <text>立即报名</text>
+    </button>
     <text class="apply-hint">报名后等待平台分配，开工前一天需确认出勤</text>
   </view>
 </view>

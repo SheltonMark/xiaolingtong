@@ -1,0 +1,146 @@
+<!--pages/post-job/post-job.wxml-->
+<view class="pj-page">
+  <!-- 标题 -->
+  <view class="form-card">
+    <text class="form-label required">招工标题</text>
+    <input class="form-input" placeholder="如：电子组装工15人，20元/时" data-field="title" bindinput="onInput" />
+  </view>
+
+  <!-- 工种 + 结算方式 -->
+  <view class="form-card">
+    <view class="form-group">
+      <text class="form-label required">工种</text>
+      <picker mode="selector" range="{{jobTypes}}" bindchange="onJobTypeChange">
+        <view class="form-picker">
+          <text class="{{form.jobType ? '' : 'placeholder'}}">{{form.jobType || '请选择工种'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-group" style="margin-top:24rpx;">
+      <text class="form-label required">结算方式</text>
+      <view class="settle-row">
+        <view class="settle-item {{settleType === 0 ? 'settle-active' : ''}}" data-index="{{0}}" bindtap="onSettleChange">
+          <text>按小时计费</text>
+        </view>
+        <view class="settle-item {{settleType === 1 ? 'settle-active' : ''}}" data-index="{{1}}" bindtap="onSettleChange">
+          <text>按件计费</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 工价 + 人数 -->
+  <view class="form-card">
+    <view class="form-row">
+      <view class="form-col">
+        <text class="form-label required">工厂出价</text>
+        <view class="input-with-unit">
+          <input class="form-input" style="flex:1;" type="digit" placeholder="25" data-field="price" bindinput="onInput" />
+          <text class="input-unit">{{settleType === 0 ? '元/时' : '元/件'}}</text>
+        </view>
+      </view>
+      <view class="form-col">
+        <text class="form-label required">招工人数</text>
+        <view class="input-with-unit">
+          <input class="form-input" style="flex:1;" type="number" placeholder="15" data-field="headcount" bindinput="onInput" />
+          <text class="input-unit">人</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 工作内容 -->
+  <view class="form-card">
+    <text class="form-label required">工作内容</text>
+    <textarea class="form-textarea form-textarea-lg" placeholder="请描述具体工作内容、要求等" data-field="content" bindinput="onInput" />
+  </view>
+
+  <!-- 工作时间 -->
+  <view class="form-card">
+    <view class="form-group">
+      <text class="form-label required">工作日期</text>
+      <view class="form-row">
+        <view class="form-col">
+          <picker mode="date" bindchange="onStartDateChange">
+            <view class="form-picker">
+              <text class="{{form.startDate ? '' : 'placeholder'}}">{{form.startDate || '开始日期'}}</text>
+              <text class="picker-arrow">📅</text>
+            </view>
+          </picker>
+        </view>
+        <view class="form-col">
+          <picker mode="date" bindchange="onEndDateChange">
+            <view class="form-picker">
+              <text class="{{form.endDate ? '' : 'placeholder'}}">{{form.endDate || '结束日期'}}</text>
+              <text class="picker-arrow">📅</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
+    <view class="form-group" style="margin-top:24rpx;">
+      <text class="form-label required">每日工时</text>
+      <view class="form-row">
+        <view class="form-col">
+          <picker mode="time" bindchange="onStartTimeChange">
+            <view class="form-picker">
+              <text>{{form.startTime || '08:00'}}</text>
+              <text class="picker-hint">上班</text>
+            </view>
+          </picker>
+        </view>
+        <view class="form-col">
+          <picker mode="time" bindchange="onEndTimeChange">
+            <view class="form-picker">
+              <text>{{form.endTime || '18:00'}}</text>
+              <text class="picker-hint">下班</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 工作地点 -->
+  <view class="form-card">
+    <text class="form-label required">工作地点</text>
+    <view class="form-picker" bindtap="onChooseLocation">
+      <text class="{{form.address ? '' : 'placeholder'}}">{{form.address || '点击选择地址'}}</text>
+      <text class="picker-arrow" style="color:#3B82F6;">📍</text>
+    </view>
+  </view>
+
+  <!-- 福利/备注 -->
+  <view class="form-card">
+    <text class="form-label">福利/备注 <text class="label-hint">(选填)</text></text>
+    <view class="benefit-tags">
+      <view class="b-tag {{item.selected ? 'b-tag-active' : ''}}"
+            wx:for="{{benefits}}" wx:key="label"
+            data-index="{{index}}" bindtap="onToggleBenefit">
+        <text>{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 图片上传 -->
+  <view class="form-card">
+    <text class="form-label">现场照片 <text class="label-hint">(选填，最多9张)</text></text>
+    <view class="image-grid">
+      <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
+        <text class="add-icon">+</text>
+        <text class="add-text">添加</text>
+      </view>
+      <view class="image-item" wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="upload-img" />
+        <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交 -->
+  <view class="submit-area">
+    <button class="btn btn-primary" bindtap="onSubmit">提交发布</button>
+    <text class="submit-hint">招工信息免费发布，审核通过后展示</text>
+  </view>
+</view>

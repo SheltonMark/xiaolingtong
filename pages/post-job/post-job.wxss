@@ -1,0 +1,108 @@
+.pj-page {
+  min-height: 100vh;
+  background-color: #F5F5F5;
+  padding-bottom: 40rpx;
+}
+.form-card {
+  margin: 24rpx 32rpx 0;
+  background-color: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+}
+.form-label {
+  font-size: 24rpx; font-weight: 500; color: #1E293B;
+  margin-bottom: 12rpx; display: block;
+}
+.required::before { content: '*'; color: #F43F5E; margin-right: 4rpx; }
+.label-hint { font-weight: 400; color: #94A3B8; }
+.form-group { }
+.form-input {
+  width: 100%; height: 72rpx;
+  background-color: #F8FAFC; border: 2rpx solid #E2E8F0;
+  border-radius: 16rpx; padding: 0 24rpx;
+  font-size: 24rpx; color: #1E293B; box-sizing: border-box;
+}
+.form-textarea {
+  width: 100%; height: 128rpx;
+  background-color: #F8FAFC; border: 2rpx solid #E2E8F0;
+  border-radius: 16rpx; padding: 16rpx 24rpx;
+  font-size: 24rpx; color: #1E293B; box-sizing: border-box;
+}
+.form-textarea-lg { height: 160rpx; }
+.form-picker {
+  display: flex; align-items: center; justify-content: space-between;
+  height: 72rpx; background-color: #F8FAFC;
+  border: 2rpx solid #E2E8F0; border-radius: 16rpx;
+  padding: 0 24rpx; font-size: 24rpx; color: #1E293B;
+}
+.placeholder { color: #94A3B8; }
+.picker-arrow { font-size: 24rpx; color: #94A3B8; }
+.picker-hint { font-size: 22rpx; color: #94A3B8; }
+.form-row { display: flex; gap: 24rpx; }
+.form-col { flex: 1; }
+
+/* 结算方式 */
+.settle-row { display: flex; gap: 16rpx; }
+.settle-item {
+  flex: 1; text-align: center; padding: 16rpx 0;
+  border: 2rpx solid #E2E8F0; border-radius: 24rpx;
+  font-size: 24rpx; color: #64748B;
+}
+.settle-active {
+  border-color: #3B82F6; background-color: #EFF6FF; color: #3B82F6;
+  font-weight: 500;
+}
+
+/* 带单位输入框 */
+.input-with-unit {
+  display: flex; align-items: center;
+  background-color: #F8FAFC; border: 2rpx solid #E2E8F0;
+  border-radius: 16rpx; overflow: hidden;
+}
+.input-with-unit .form-input { border: none; background: transparent; }
+.input-unit {
+  font-size: 22rpx; color: #64748B; padding: 0 16rpx;
+  background-color: #F1F5F9; height: 72rpx; line-height: 72rpx;
+  border-left: 2rpx solid #E2E8F0; flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* 福利标签 */
+.benefit-tags { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.b-tag {
+  font-size: 20rpx; color: #64748B;
+  background-color: #F1F5F9; padding: 8rpx 20rpx;
+  border-radius: 12rpx;
+}
+.b-tag-active {
+  background-color: #EFF6FF; color: #3B82F6;
+}
+
+/* 图片上传 */
+.image-grid { display: flex; flex-wrap: wrap; gap: 16rpx; margin-top: 12rpx; }
+.image-item {
+  width: 128rpx; height: 128rpx; border-radius: 16rpx;
+  overflow: hidden; position: relative;
+}
+.upload-img { width: 100%; height: 100%; }
+.image-delete {
+  position: absolute; top: 4rpx; right: 4rpx;
+  width: 32rpx; height: 32rpx; background-color: rgba(0,0,0,0.5);
+  color: #fff; font-size: 20rpx; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.image-add {
+  width: 128rpx; height: 128rpx;
+  border: 4rpx dashed #CBD5E1; border-radius: 16rpx;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 4rpx;
+}
+.add-icon { font-size: 40rpx; color: #CBD5E1; }
+.add-text { font-size: 18rpx; color: #94A3B8; }
+
+/* 提交 */
+.submit-area { margin: 24rpx 32rpx 0; }
+.submit-hint {
+  display: block; text-align: center;
+  font-size: 20rpx; color: #94A3B8; margin-top: 16rpx;
+}

@@ -1,29 +1,44 @@
 Page({
   data: {
+    swiperCurrent: 0,
     job: {
       id: 'j1',
       title: '电子组装工',
       need: 15,
       salary: '20',
       salaryUnit: '元/小时',
-      salaryType: '计时',
+      salaryType: '按小时计费',
       urgent: true,
       location: '东莞长安',
       distance: '3km',
-      dateRange: '02-10 至 02-17',
-      hours: '08:00-18:00',
-      description: '负责电子产品组装，需要细心耐心，有经验者优先。工厂提供工具和材料，按时计薪。',
+      dateRange: '02-10 至 02-17（共7天）',
+      hours: '08:00 - 18:00',
+      description: '负责电子元器件的组装、焊接和质检工作，需要细心耐心，有经验者优先。',
       applied: 5,
       total: 15,
-      tags: ['包午餐', '有空调', '长期合作'],
+      benefits: [
+        { label: '包午餐', color: 'green' },
+        { label: '有空调', color: 'blue' },
+        { label: '长期合作', color: 'amber' }
+      ],
+      images: [
+        'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=375&h=220&fit=crop',
+        'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=375&h=220&fit=crop',
+        'https://images.unsplash.com/photo-1565043666747-69f6646db940?w=375&h=220&fit=crop'
+      ],
       company: {
         name: '鑫达电子厂',
+        avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
         verified: true,
         creditScore: 92,
         contact: '李主管',
-        phone: '138****5678'
+        phone: '139****5678'
       }
     }
+  },
+
+  onSwiperChange(e) {
+    this.setData({ swiperCurrent: e.detail.current })
   },
 
   onApply() {
@@ -39,10 +54,6 @@ Page({
   },
 
   onCallPhone() {
-    wx.makePhoneCall({ phoneNumber: '13800005678', fail() {} })
-  },
-
-  onShare() {
-    wx.showToast({ title: '分享功能开发中', icon: 'none' })
+    wx.makePhoneCall({ phoneNumber: '13900005678', fail() {} })
   }
 })
