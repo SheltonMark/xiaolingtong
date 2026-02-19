@@ -4,18 +4,15 @@ Page({
   },
   onSelectEnterprise() {
     this.setData({ selected: 'enterprise' })
+    this.confirmRole('enterprise')
   },
   onSelectWorker() {
     this.setData({ selected: 'worker' })
+    this.confirmRole('worker')
   },
-  onConfirm() {
-    const { selected } = this.data
-    if (!selected) {
-      wx.showToast({ title: '请选择身份', icon: 'none' })
-      return
-    }
-    wx.setStorageSync('userRole', selected)
-    getApp().globalData.userRole = selected
+  confirmRole(role) {
+    wx.setStorageSync('userRole', role)
+    getApp().globalData.userRole = role
     getApp().globalData.isLoggedIn = true
     wx.switchTab({ url: '/pages/index/index' })
   }

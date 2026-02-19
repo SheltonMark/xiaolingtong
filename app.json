@@ -1,8 +1,8 @@
 {
   "pages": [
-    "pages/index/index",
     "pages/login/login",
     "pages/identity/identity",
+    "pages/index/index",
     "pages/cert-enterprise/cert-enterprise",
     "pages/cert-worker/cert-worker",
     "pages/mine/mine",
