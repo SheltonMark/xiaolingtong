@@ -1,13 +1,20 @@
 <!--pages/index/index.wxml-->
 <view class="index-page">
-  <!-- 顶部栏 -->
-  <view class="top-bar" style="padding-top: {{statusBarHeight}}px;">
-    <view class="top-bar-inner" style="padding-right: {{menuRight + 8}}px;">
+  <!-- 顶部导航栏（与胶囊按钮同行显示标题） -->
+  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="nav-bar-inner" style="height: {{menuHeight}}px;">
+      <text class="nav-title">{{userRole === 'enterprise' ? '首页' : '找工作'}}</text>
+    </view>
+  </view>
+
+  <!-- 顶部栏（从胶囊下方开始） -->
+  <view class="top-bar" style="top: {{menuTop + menuHeight}}px;">
+    <view class="top-bar-inner">
       <!-- 城市选择 -->
       <view class="city-selector" bindlongpress="onSwitchRole">
         <text class="city-icon">📍</text>
         <text class="city-name">东莞</text>
-        <text class="city-arrow">▾</text>
+        <text class="city-arrow">›</text>
       </view>
       <!-- 搜索框 -->
       <view class="search-bar" bindtap="onSearch">
@@ -22,7 +29,7 @@
     </view>
 
     <!-- 企业端 Tab -->
-    <view class="tab-bar" wx:if="{{userRole === 'enterprise'}}">
+    <view class="tab-bar-ent" wx:if="{{userRole === 'enterprise'}}">
       <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
             wx:for="{{tabs}}" wx:key="index"
             data-index="{{index}}" bindtap="onTabChange">
@@ -35,17 +42,20 @@
     <view class="filter-bar" wx:if="{{userRole === 'worker'}}">
       <view class="filter-item" wx:for="{{filterLabels}}" wx:key="index">
         <text class="filter-text">{{item}}</text>
-        <text class="filter-arrow">▾</text>
+        <text class="filter-arrow">⌄</text>
       </view>
     </view>
   </view>
+
+  <!-- 内容占位（撑开固定定位的顶部） -->
+  <view class="content-spacer" style="height: {{navBarHeight + (userRole === 'enterprise' ? 140 : 110)}}px;"></view>
 
   <!-- ===== 企业端内容 ===== -->
   <view wx:if="{{userRole === 'enterprise'}}">
     <!-- 广告 Banner -->
     <view class="banner-wrap">
       <view class="banner-inner">
-        <image src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=700&h=280&fit=crop"
+        <image src="https://picsum.photos/700/280"
                class="banner-img" mode="aspectFill" />
       </view>
     </view>
@@ -241,7 +251,7 @@
         </view>
       </view>
       <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text> · {{item.title}}<text wx:if="{{item.tagText}}" class="{{item.tagColor}}"> · {{item.tagText}}</text></text>
-      <text class="job-desc">需要{{item.need}}人，工期{{item.dateRange}}，{{item.benefit}}</text>
+      <text class="job-desc">{{item.desc}}</text>
       <!-- 图片网格 -->
       <view class="job-images" wx:if="{{item.images && item.images.length > 0}}">
         <view class="job-img-wrap" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">

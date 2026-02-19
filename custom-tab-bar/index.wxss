@@ -39,7 +39,7 @@
   color: #94A3B8;
 }
 .tab-text-ent-active {
-  color: #3B82F6;
+  color: #F97316;
 }
 .tab-text-worker-active {
   color: #F97316;

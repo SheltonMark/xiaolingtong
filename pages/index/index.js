@@ -64,11 +64,12 @@ Page({
   onLoad() {
     const sysInfo = wx.getSystemInfoSync()
     const menuBtn = wx.getMenuButtonBoundingClientRect()
+    const navBarHeight = menuBtn.top + menuBtn.height
     this.setData({
       statusBarHeight: sysInfo.statusBarHeight,
-      menuRight: sysInfo.screenWidth - menuBtn.left,
       menuHeight: menuBtn.height,
-      menuTop: menuBtn.top
+      menuTop: menuBtn.top,
+      navBarHeight: navBarHeight
     })
   },
 

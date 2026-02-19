@@ -140,7 +140,7 @@ const jobListWorker = [
     companyAvatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
     tagText: '急招',
     tagColor: 'text-rose',
-    benefit: '包午餐，有空调车间，长期合作优先',
+    desc: '需要15人，工期7天，08:00-18:00，包午餐，有空调车间，长期合作优先。',
     images: [
       'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200&h=200&fit=crop',
       'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop',
@@ -161,7 +161,7 @@ const jobListWorker = [
     companyAvatar: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=80&h=80&fit=crop',
     tagText: '长期',
     tagColor: 'text-fresh',
-    benefit: '提供工作餐，月结工资',
+    desc: '需要20人，长期岗位，08:30-17:30，提供工作餐，月结工资。',
     images: []
   },
   {
@@ -178,7 +178,7 @@ const jobListWorker = [
     companyAvatar: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop',
     tagText: '',
     tagColor: '',
-    benefit: '熟手优先，有缝纫经验者优先录用',
+    desc: '需要10人，工期15天，09:00-18:00，熟手优先，有缝纫经验者优先录用。',
     images: []
   }
 ]

@@ -4,10 +4,29 @@
   padding-bottom: 140rpx;
 }
 
-/* ===== 顶部栏 ===== */
-.top-bar {
+/* ===== 导航栏（与胶囊同行） ===== */
+.nav-bar {
   position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background-color: #ffffff;
+}
+.nav-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+/* ===== 顶部栏（胶囊下方） ===== */
+.top-bar {
+  position: fixed;
   left: 0;
   right: 0;
   z-index: 999;
@@ -78,7 +97,7 @@
 }
 
 /* ===== Tab 栏 ===== */
-.tab-bar {
+.tab-bar-ent {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -130,8 +149,10 @@
   color: #1E293B;
 }
 .filter-arrow {
-  font-size: 18rpx;
+  font-size: 24rpx;
   color: #94A3B8;
+  line-height: 1;
+  margin-top: 2rpx;
 }
 
 /* ===== Banner ===== */
@@ -201,7 +222,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 28rpx 0 16rpx;
+  padding: 32rpx 0 16rpx;
 }
 .section-title {
   font-size: 28rpx;
