@@ -61,6 +61,7 @@
   border-radius: 24rpx;
   border: none;
   box-shadow: 0 8rpx 24rpx rgba(244,63,94,0.3);
+  padding: 0;
 }
 .logout-btn::after {
   border: none;

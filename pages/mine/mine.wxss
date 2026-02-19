@@ -17,9 +17,10 @@
 .header-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   margin-bottom: 32rpx;
   min-height: 64rpx;
+  overflow: visible;
 }
 .header-label {
   font-size: 30rpx;
@@ -27,14 +28,22 @@
   color: #1E293B;
 }
 .settings-icon {
-  font-size: 36rpx;
+  font-size: 40rpx;
   color: #64748B;
+  padding: 8rpx;
+  line-height: 1;
+  min-width: 48rpx;
+  min-height: 48rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
 }
 
 /* ===== 用户信息 ===== */
 .user-info {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 24rpx;
 }
 .avatar-img {
