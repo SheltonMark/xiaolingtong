@@ -23,9 +23,7 @@
   <!-- 发布者信息 -->
   <view class="publisher-section">
     <view class="publisher-left">
-      <view class="pub-avatar" style="background-color: {{detail.avatarBg}};">
-        <text style="color: {{detail.avatarColor}};" class="pub-avatar-text">{{detail.avatarText}}</text>
-      </view>
+      <image class="pub-avatar-img" src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop" mode="aspectFill" />
       <view class="pub-info">
         <text class="pub-name">{{detail.location}} · {{detail.certText}}</text>
         <text class="pub-industry">{{detail.industry}}</text>
