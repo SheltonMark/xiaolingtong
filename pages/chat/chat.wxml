@@ -8,28 +8,31 @@
     <!-- 系统提示 -->
     <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
 
-    <!-- 对方消息 -->
-    <view class="msg-row msg-left" wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
-      <block wx:if="{{item.from === 'other'}}">
-        <view class="msg-avatar-wrap"><image class="msg-avatar-img" src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=60&h=60&fit=crop" mode="aspectFill" /></view>
+    <!-- 消息列表 -->
+    <block wx:for="{{messages}}" wx:key="id">
+      <!-- 对方消息 -->
+      <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
+        <image class="msg-avatar-img" src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=60&h=60&fit=crop" mode="aspectFill" />
         <view class="msg-bubble-wrap">
-          <view class="bubble bubble-left">
+          <view class="bubble bubble-left" wx:if="{{item.text}}">
             <text>{{item.text}}</text>
           </view>
           <image wx:if="{{item.image}}" src="{{item.image}}" mode="widthFix" class="msg-image" />
           <text class="msg-time-text">{{item.time}}</text>
         </view>
-      </block>
-      <block wx:if="{{item.from === 'me'}}">
+      </view>
+
+      <!-- 我的消息 -->
+      <view class="msg-row msg-right" wx:if="{{item.from === 'me'}}" id="msg-{{item.id}}">
         <view class="msg-bubble-wrap msg-bubble-right">
-          <view class="bubble bubble-right">
+          <view class="bubble bubble-right" wx:if="{{item.text}}">
             <text>{{item.text}}</text>
           </view>
           <text class="msg-time-text msg-time-right">{{item.time}}</text>
         </view>
-        <view class="msg-avatar-wrap"><image class="msg-avatar-img" src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&fit=crop" mode="aspectFill" /></view>
-      </block>
-    </view>
+        <image class="msg-avatar-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=60&h=60&fit=crop" mode="aspectFill" />
+      </view>
+    </block>
   </scroll-view>
 
   <!-- 底部输入栏 -->
