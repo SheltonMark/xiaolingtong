@@ -5,7 +5,7 @@ const purchaseList = [
   {
     id: 'p1',
     type: 'purchase',
-    avatar: '',
+    avatar: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop',
     avatarText: '日',
     avatarBg: '#DBEAFE',
     avatarColor: '#3B82F6',
@@ -31,7 +31,7 @@ const purchaseList = [
   {
     id: 'p2',
     type: 'purchase',
-    avatar: '',
+    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&h=80&fit=crop',
     avatarText: '电',
     avatarBg: '#D1FAE5',
     avatarColor: '#10B981',
@@ -57,7 +57,7 @@ const stockList = [
   {
     id: 's1',
     type: 'stock',
-    avatar: '',
+    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&h=80&fit=crop',
     avatarText: '电',
     avatarBg: '#D1FAE5',
     avatarColor: '#10B981',
@@ -83,7 +83,7 @@ const processList = [
   {
     id: 'pr1',
     type: 'process',
-    avatar: '',
+    avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
     avatarText: '加',
     avatarBg: '#FEF3C7',
     avatarColor: '#F59E0B',
