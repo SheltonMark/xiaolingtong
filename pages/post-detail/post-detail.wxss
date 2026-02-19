@@ -92,13 +92,14 @@
   display: flex; align-items: center; justify-content: center; gap: 8rpx;
   padding: 16rpx 24rpx; border-radius: 24rpx;
   font-size: 24rpx; font-weight: 600; border: none;
-  white-space: nowrap; flex-shrink: 0;
+  white-space: nowrap;
 }
 .bottom-btn::after { border: none; }
 .bottom-btn-icon { font-size: 28rpx; }
 .btn-share {
   background-color: #fff; color: #1E293B;
   border: 2rpx solid #E2E8F0 !important;
+  flex-shrink: 0;
 }
 .btn-chat {
   background-color: #10B981; color: #fff;
