@@ -26,7 +26,6 @@
 .worker-row { display: flex; align-items: center; justify-content: space-between; padding: 12rpx 0; border-bottom: 1rpx solid #F1F5F9; }
 .worker-row:last-child { border-bottom: none; }
 .worker-left { display: flex; align-items: center; gap: 12rpx; }
-.worker-avatar {
 .worker-avatar-img {
   width: 56rpx; height: 56rpx; border-radius: 50%; flex-shrink: 0;
 }
