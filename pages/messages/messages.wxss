@@ -1,4 +1,4 @@
-.msg-page { min-height: 100vh; background-color: #F8FAFC; }
+.msg-page { min-height: 100vh; background-color: #F8FAFC; padding-bottom: 140rpx; }
 .msg-header { background-color: #fff; padding: 20rpx 32rpx; display: flex; align-items: center; justify-content: space-between; }
 .msg-header-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }
 .msg-read-all { font-size: 20rpx; color: #3B82F6; }
