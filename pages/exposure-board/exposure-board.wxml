@@ -1,19 +1,65 @@
 <!--pages/exposure-board/exposure-board.wxml-->
 <view class="eb-page">
-  <view class="eb-header">
-    <text class="eb-title">曝光榜</text>
-    <text class="eb-sub">维护行业秩序，保障临工权益</text>
+  <!-- 说明横幅 -->
+  <view class="eb-warning">
+    <text class="eb-warning-icon">⚠️</text>
+    <text class="eb-warning-text">以下企业/用户因违规行为被平台核实并曝光，请注意交易风险。信息由平台审核后发布。</text>
   </view>
-  <view class="eb-list">
-    <view class="eb-card" wx:for="{{list}}" wx:key="id">
-      <view class="eb-top">
-        <text class="eb-company">{{item.company}}</text>
-        <text class="eb-count">被曝光 {{item.count}} 次</text>
+
+  <!-- Tab筛选 -->
+  <view class="eb-tab-wrap">
+    <view class="eb-tabs">
+      <view class="eb-tab {{currentTab === index ? 'eb-tab-active' : ''}}"
+            wx:for="{{tabs}}" wx:key="index"
+            data-index="{{index}}" bindtap="onTabChange">
+        <text>{{item}}</text>
       </view>
-      <text class="eb-reason">{{item.reason}}</text>
-      <view class="eb-meta">
-        <text class="eb-meta-item">{{item.location}}</text>
-        <text class="eb-meta-item">最近曝光：{{item.lastTime}}</text>
+    </view>
+  </view>
+
+  <!-- 曝光列表 -->
+  <view class="eb-list-wrap">
+    <view class="eb-card" wx:for="{{list}}" wx:key="id"
+          wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}">
+      <!-- 头部 -->
+      <view class="eb-card-header">
+        <view class="eb-avatar-wrap">
+          <text class="eb-avatar-icon">⚠️</text>
+        </view>
+        <view class="eb-card-info">
+          <view class="eb-name-row">
+            <text class="eb-poster">{{item.poster}}</text>
+            <text class="eb-date">{{item.date}}</text>
+          </view>
+          <text class="eb-type-badge">{{item.type}}</text>
+        </view>
+      </view>
+      <!-- 详情 -->
+      <view class="eb-detail">
+        <view class="eb-detail-row">
+          <text class="eb-dl">对方公司</text>
+          <text class="eb-dv">{{item.company}}</text>
+        </view>
+        <view class="eb-detail-row">
+          <text class="eb-dl">对方姓名</text>
+          <text class="eb-dv">{{item.contact}}</text>
+        </view>
+        <view class="eb-detail-row" wx:if="{{item.amount}}">
+          <text class="eb-dl">欠款金额</text>
+          <text class="eb-dv text-cta font-medium">{{item.amount}}</text>
+        </view>
+      </view>
+      <!-- 描述 -->
+      <text class="eb-desc">{{item.reason}}</text>
+      <!-- 图片 -->
+      <view class="eb-images" wx:if="{{item.images && item.images.length > 0}}">
+        <image class="eb-img" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
+               src="{{img}}" mode="aspectFill" />
+      </view>
+      <!-- 操作 -->
+      <view class="eb-actions">
+        <text class="eb-action">💬 {{item.comments}}</text>
+        <text class="eb-action">↗ 分享</text>
       </view>
     </view>
   </view>
