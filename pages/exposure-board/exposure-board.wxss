@@ -1,4 +1,4 @@
-.eb-page { min-height: 100vh; background-color: #F5F5F5; }
+.eb-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); }
 
 /* 警告横幅 */
 .eb-warning {
@@ -86,7 +86,7 @@
 
 /* 悬浮按钮 */
 .eb-fab {
-  position: fixed; bottom: calc(48rpx + env(safe-area-inset-bottom)); right: 32rpx;
+  position: fixed; bottom: calc(160rpx + env(safe-area-inset-bottom)); right: 32rpx;
   width: 96rpx; height: 96rpx; border-radius: 50%;
   background-color: #F43F5E; color: #fff;
   display: flex; align-items: center; justify-content: center;
