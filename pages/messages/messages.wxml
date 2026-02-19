@@ -26,7 +26,7 @@
   <view class="msg-list" wx:if="{{currentTab === 0}}">
     <view class="msg-card chat-card" wx:for="{{chatMessages}}" wx:key="id" bindtap="onTapChat" data-item="{{item}}">
       <view class="chat-avatar-wrap">
-        <text class="chat-avatar-text">{{item.avatar}}</text>
+        <image class="chat-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
         <view class="chat-badge" wx:if="{{item.unreadCount > 0}}">{{item.unreadCount}}</view>
       </view>
       <view class="msg-body">
