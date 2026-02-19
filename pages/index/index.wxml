@@ -1,33 +1,27 @@
 <!--pages/index/index.wxml-->
 <view class="index-page">
-  <!-- 顶部导航栏（与胶囊按钮同行显示标题） -->
-  <view class="nav-bar" style="padding-top: {{statusBarHeight}}px;">
+  <!-- 固定顶部区域（整体一块，无缝隙） -->
+  <view class="fixed-header" style="padding-top: {{statusBarHeight}}px;">
+    <!-- 标题行（与胶囊同行） -->
     <view class="nav-bar-inner" style="height: {{menuHeight}}px;">
-      <text class="nav-title">{{userRole === 'enterprise' ? '首页' : '找工作'}}</text>
+      <text class="nav-title">{{userRole === 'enterprise' ? '首页' : '临时工'}}</text>
     </view>
-  </view>
-
-  <!-- 顶部栏（从胶囊下方开始） -->
-  <view class="top-bar" style="top: {{menuTop + menuHeight}}px;">
+    <!-- 搜索行 -->
     <view class="top-bar-inner">
-      <!-- 城市选择 -->
       <view class="city-selector" bindlongpress="onSwitchRole">
         <text class="city-icon">📍</text>
         <text class="city-name">东莞</text>
         <text class="city-arrow">›</text>
       </view>
-      <!-- 搜索框 -->
       <view class="search-bar" bindtap="onSearch">
         <text class="search-icon">🔍</text>
         <text class="search-placeholder">{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}</text>
       </view>
-      <!-- 通知 -->
       <view class="notify-btn" bindtap="onNotification">
         <text class="notify-icon">🔔</text>
         <view class="notify-badge">3</view>
       </view>
     </view>
-
     <!-- 企业端 Tab -->
     <view class="tab-bar-ent" wx:if="{{userRole === 'enterprise'}}">
       <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
@@ -37,7 +31,6 @@
         <view class="tab-line" wx:if="{{currentTab === index}}"></view>
       </view>
     </view>
-
     <!-- 临工端筛选 -->
     <view class="filter-bar" wx:if="{{userRole === 'worker'}}">
       <view class="filter-item" wx:for="{{filterLabels}}" wx:key="index">

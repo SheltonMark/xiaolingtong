@@ -4,13 +4,13 @@
   padding-bottom: 140rpx;
 }
 
-/* ===== 导航栏（与胶囊同行） ===== */
-.nav-bar {
+/* ===== 固定顶部（整体一块） ===== */
+.fixed-header {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
+  z-index: 999;
   background-color: #ffffff;
 }
 .nav-bar-inner {
@@ -22,15 +22,6 @@
   font-size: 30rpx;
   font-weight: 600;
   color: #1E293B;
-}
-
-/* ===== 顶部栏（胶囊下方） ===== */
-.top-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  z-index: 999;
-  background-color: #ffffff;
 }
 .top-bar-inner {
   display: flex;
@@ -216,7 +207,7 @@
   padding: 0 32rpx 32rpx;
 }
 .worker-list-wrap {
-  padding: 24rpx 32rpx 32rpx;
+  padding: 0 32rpx 32rpx;
 }
 .section-header {
   display: flex;
