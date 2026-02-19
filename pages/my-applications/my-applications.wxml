@@ -1,50 +1,57 @@
 <!--pages/my-applications/my-applications.wxml-->
 <view class="ma-page">
   <!-- Tab -->
-  <scroll-view scroll-x class="tab-scroll">
-    <view class="tab-bar">
-      <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
-            wx:for="{{tabs}}" wx:key="index"
-            data-index="{{index}}" bindtap="onTabChange">
-        <text>{{item}}</text>
-      </view>
+  <view class="tab-bar">
+    <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+          wx:for="{{tabs}}" wx:key="index"
+          data-index="{{index}}" bindtap="onTabChange">
+      <text>{{item}}</text>
     </view>
-  </scroll-view>
+  </view>
 
   <!-- 列表 -->
   <view class="app-list">
+    <!-- 待确认出勤 -->
     <view class="app-card {{item.status === 'rejected' ? 'card-faded' : ''}}"
-          wx:for="{{list}}" wx:key="id">
+          wx:for="{{list}}" wx:key="id"
+          wx:if="{{currentTab === 0 || item.tabKey === tabs[currentTab]}}">
       <!-- 头部 -->
       <view class="app-header">
         <view class="app-header-left">
           <image class="app-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
           <text class="app-company">{{item.company}}</text>
         </view>
-        <text class="app-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
+        <view class="status-tag status-bg-{{item.statusBg}}">
+          <view class="pulse-dot" wx:if="{{item.status === 'ongoing'}}"></view>
+          <text>{{item.statusText}}</text>
+        </view>
       </view>
       <!-- 岗位+薪资 -->
-      <view class="app-job-row">
-        <text class="app-job-title">{{item.title}}</text>
-        <text class="app-salary text-cta">{{item.salary}}</text>
+      <text class="app-job-line">{{item.title}} · <text class="text-cta">{{item.salary}}</text></text>
+      <!-- 日期 -->
+      <view class="app-date-row">
+        <text class="date-icon">📅</text>
+        <text class="app-date">{{item.date}}</text>
+        <text class="app-date" wx:if="{{item.hours}}"> · {{item.hours}}</text>
       </view>
-      <text class="app-date">{{item.date}}</text>
       <!-- 提醒 -->
       <view class="app-alert" wx:if="{{item.alert}}">
+        <text class="alert-icon">⏱</text>
         <text class="alert-text">{{item.alert}}</text>
       </view>
       <!-- 统计 -->
       <view class="app-stats" wx:if="{{item.stats}}">
         <view class="stat-item" wx:for="{{item.stats}}" wx:for-item="s" wx:key="label">
-          <text class="stat-value">{{s.value}}</text>
+          <text class="stat-value" style="color:{{s.color || '#1E293B'}};">{{s.value}}</text>
           <text class="stat-label">{{s.label}}</text>
         </view>
       </view>
       <!-- 操作 -->
-      <view class="app-actions">
-        <button class="btn btn-cta btn-sm" wx:if="{{item.status === 'confirm'}}"
-                data-id="{{item.id}}" bindtap="onConfirmAttend">确认出勤</button>
-        <text class="action-link" wx:if="{{item.status === 'done'}}" data-id="{{item.id}}" bindtap="onViewDetail">查看详情</text>
+      <button class="confirm-btn" wx:if="{{item.status === 'confirm'}}"
+              data-id="{{item.id}}" bindtap="onConfirmAttend">确认出勤</button>
+      <view class="app-actions" wx:if="{{item.status === 'done'}}">
+        <button class="act-btn act-blue" data-id="{{item.id}}" bindtap="onViewDetail">查看详情</button>
+        <button class="act-btn act-orange" data-id="{{item.id}}" bindtap="onRate">评价企业</button>
       </view>
     </view>
   </view>

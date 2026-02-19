@@ -1,18 +1,19 @@
 <!--pages/checkin/checkin.wxml-->
 <view class="ci-page">
-  <!-- 工作信息 -->
+  <!-- 工单信息卡片 -->
   <view class="ci-card">
     <view class="ci-job-header">
       <image class="ci-avatar-img" src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&fit=crop" mode="aspectFill" />
       <view class="ci-job-info">
-        <text class="ci-company">{{jobInfo.company}}</text>
+        <text class="ci-company">{{jobInfo.company}} · 电子组装工</text>
         <text class="ci-date">{{jobInfo.date}} · {{jobInfo.time}}</text>
       </view>
+      <text class="admin-badge">临时管理员</text>
     </view>
     <view class="ci-stats">
       <view class="ci-stat">
-        <text class="ci-stat-val">{{jobInfo.total}}</text>
-        <text class="ci-stat-label">应到</text>
+        <text class="ci-stat-val text-primary">{{jobInfo.total}}</text>
+        <text class="ci-stat-label">应到人数</text>
       </view>
       <view class="ci-stat">
         <text class="ci-stat-val text-fresh">{{jobInfo.checkedIn}}</text>
@@ -25,33 +26,68 @@
     </view>
   </view>
 
-  <!-- GPS 区域 -->
-  <view class="ci-card">
-    <view class="gps-area">
-      <view class="gps-circle">
-        <text class="gps-icon">📍</text>
-        <text class="gps-dist">{{distance}}m</text>
+  <!-- GPS定位签到 -->
+  <view class="ci-card gps-card">
+    <view class="gps-map">
+      <view class="gps-ring-outer">
+        <view class="gps-ring-inner">
+          <text class="gps-pin">📍</text>
+        </view>
       </view>
-      <text class="gps-hint">距工厂{{distance}}m（需在{{maxDistance}}m范围内）</text>
+      <view class="gps-factory-label">{{jobInfo.company}}</view>
+      <view class="gps-my-label">
+        <text class="my-loc-icon">◎</text>
+        <text>我的位置</text>
+      </view>
     </view>
-    <button class="btn btn-fresh" bindtap="onCheckin">立即签到</button>
+    <view class="gps-info">
+      <view class="gps-icon-wrap">
+        <text class="gps-icon-big">📍</text>
+      </view>
+      <text class="gps-factory">{{jobInfo.company}}</text>
+      <text class="gps-hint">当前位置距离签到点 <text class="text-fresh font-medium">{{distance}}m</text></text>
+      <button class="btn btn-fresh checkin-btn" bindtap="onCheckin">立即签到</button>
+      <text class="refresh-link" bindtap="onRefreshLocation">🔄 刷新位置</text>
+      <text class="gps-range">需在工厂{{maxDistance}}米范围内签到</text>
+    </view>
   </view>
 
-  <!-- 签到列表 -->
+  <!-- 签到名单 -->
+  <view class="ci-section">
+    <view class="section-header">
+      <text class="section-title">签到名单</text>
+      <text class="section-action" bindtap="onCheckAll">全部签到</text>
+    </view>
+    <view class="checkin-list">
+      <view class="checkin-item" wx:for="{{workers}}" wx:key="id">
+        <image class="checkin-avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="checkin-info">
+          <text class="checkin-name">{{item.name}}</text>
+          <text class="checkin-time {{item.status === 'absent' ? 'text-rose' : ''}}">{{item.status === 'absent' ? '未签到' : item.time + ' 签到' + (item.status === 'late' ? '（迟到）' : '')}}</text>
+        </view>
+        <view wx:if="{{item.status === 'ontime'}}" class="check-circle check-green">
+          <text class="check-mark">✓</text>
+        </view>
+        <view wx:elif="{{item.status === 'late'}}" class="check-circle check-amber">
+          <text class="check-mark">✓</text>
+        </view>
+        <button wx:elif="{{item.status === 'absent'}}" class="manual-checkin-btn"
+                data-id="{{item.id}}" bindtap="onManualCheckin">手动签到</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 上传现场照片 -->
   <view class="ci-card">
-    <text class="card-title">签到记录</text>
-    <view class="worker-list">
-      <view class="worker-row" wx:for="{{workers}}" wx:key="id">
-        <view class="worker-left">
-          <image class="worker-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
-          <text class="worker-name">{{item.name}}</text>
-        </view>
-        <view class="worker-right">
-          <text class="worker-time" wx:if="{{item.time}}">{{item.time}}</text>
-          <text class="worker-status status-{{item.status}}">{{item.statusText}}</text>
-          <text class="manual-btn" wx:if="{{item.status === 'absent'}}"
-                data-id="{{item.id}}" bindtap="onManualCheckin">手动签到</text>
-        </view>
+    <text class="card-title">上传现场照片</text>
+    <text class="photo-hint">请拍摄工作现场照片作为签到凭证</text>
+    <view class="photo-grid">
+      <view class="photo-add" bindtap="onTakePhoto">
+        <text class="photo-add-icon">📷</text>
+        <text class="photo-add-text">拍照</text>
+      </view>
+      <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="photo-img" />
       </view>
     </view>
   </view>
