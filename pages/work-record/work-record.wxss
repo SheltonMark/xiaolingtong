@@ -1,49 +1,73 @@
 .wr-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 160rpx; }
 .status-card {
-  margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 32rpx;
-  background: linear-gradient(135deg, #3B82F6, #60A5FA); color: #ffffff;
+  margin: 24rpx 32rpx 0; border-radius: 24rpx; padding: 32rpx;
+  background: linear-gradient(to right, #3B82F6, #60A5FA); color: #fff;
 }
-.sc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24rpx; }
-.sc-company { font-size: 24rpx; opacity: 0.9; }
-.sc-badge { font-size: 20rpx; background-color: rgba(255,255,255,0.2); padding: 4rpx 16rpx; border-radius: 8rpx; }
+.sc-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16rpx; }
+.sc-company { font-size: 24rpx; opacity: 0.8; }
+.sc-badge { font-size: 20rpx; background-color: rgba(255,255,255,0.2); padding: 4rpx 16rpx; border-radius: 9999rpx; }
 .sc-hours { display: flex; align-items: baseline; gap: 8rpx; margin-bottom: 8rpx; }
-.sc-hours-big { font-size: 64rpx; font-weight: 700; }
+.sc-hours-big { font-size: 60rpx; font-weight: 700; }
 .sc-hours-unit { font-size: 28rpx; opacity: 0.8; }
-.sc-sub { font-size: 22rpx; opacity: 0.7; display: block; margin-bottom: 24rpx; }
-.sc-stats { display: flex; background-color: rgba(255,255,255,0.15); border-radius: 16rpx; padding: 20rpx; }
-.sc-stat { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
-.sc-stat-val { font-size: 28rpx; font-weight: 600; }
-.sc-stat-label { font-size: 20rpx; opacity: 0.7; }
-.wr-card { background-color: #ffffff; margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 32rpx; }
-.card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 20rpx; }
-.card-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20rpx; }
-.card-header-row .card-title { margin-bottom: 0; }
-.record-btn { font-size: 22rpx; color: #F43F5E; background-color: #FFF1F2; padding: 8rpx 20rpx; border-radius: 8rpx; }
+.sc-sub { font-size: 20rpx; opacity: 0.7; display: block; margin-bottom: 24rpx; }
+.sc-stats {
+  display: flex; background-color: rgba(255,255,255,0.15);
+  border-radius: 16rpx; padding: 16rpx 20rpx;
+  justify-content: space-between;
+}
+.sc-stat { }
+.sc-stat-val { font-size: 20rpx; }
+
+.wr-card { background-color: #fff; margin: 24rpx 32rpx 0; border-radius: 24rpx; padding: 32rpx; }
+.card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.card-header-row { margin-bottom: 20rpx; }
+
+/* 拍照记录 */
 .photo-list { display: flex; flex-direction: column; gap: 16rpx; }
 .photo-item {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 20rpx; border-radius: 16rpx;
+  display: flex; align-items: center; gap: 20rpx;
+  padding: 16rpx 20rpx; border-radius: 16rpx;
 }
 .photo-done { background-color: #ECFDF5; }
 .photo-pending { background-color: #FFFBEB; }
-.photo-left { display: flex; flex-direction: column; gap: 4rpx; }
-.photo-time { font-size: 26rpx; font-weight: 500; color: #1E293B; }
-.photo-status { font-size: 22rpx; color: #10B981; }
-.photo-status-pending { color: #F59E0B; }
-.photo-right { display: flex; align-items: center; }
+.photo-thumb { width: 80rpx; height: 80rpx; border-radius: 12rpx; flex-shrink: 0; }
+.photo-thumb-placeholder {
+  width: 80rpx; height: 80rpx; border-radius: 12rpx;
+  background-color: #FEF3C7; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+}
+.photo-camera-icon { font-size: 36rpx; }
+.photo-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+.photo-time { font-size: 24rpx; font-weight: 500; color: #1E293B; }
+.photo-status { font-size: 20rpx; }
 .photo-check { font-size: 28rpx; color: #10B981; font-weight: 600; }
-.photo-btn { font-size: 22rpx; color: #3B82F6; background-color: #EFF6FF; padding: 8rpx 24rpx; border-radius: 8rpx; }
-.anomaly-list { display: flex; flex-direction: column; gap: 16rpx; }
-.anomaly-item { padding: 16rpx; background-color: #FFF1F2; border-radius: 12rpx; }
+.photo-btn {
+  font-size: 20rpx; color: #fff; background-color: #3B82F6;
+  padding: 8rpx 24rpx; border-radius: 12rpx; border: none;
+  line-height: 1.4;
+}
+.photo-btn::after { border: none; }
+
+/* 异常记录 */
+.anomaly-list { display: flex; flex-direction: column; gap: 16rpx; margin-bottom: 16rpx; }
+.anomaly-item { padding: 16rpx 20rpx; background-color: #FFF1F2; border-radius: 12rpx; }
 .anomaly-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8rpx; }
 .anomaly-name { font-size: 24rpx; font-weight: 500; color: #1E293B; }
-.anomaly-time { font-size: 22rpx; color: #94A3B8; }
+.anomaly-time { font-size: 20rpx; color: #94A3B8; }
 .anomaly-desc { font-size: 22rpx; color: #64748B; }
-.empty-text { font-size: 24rpx; color: #94A3B8; }
+.record-anomaly-btn {
+  width: 100%; font-size: 24rpx; color: #F43F5E;
+  background-color: #FFF1F2; padding: 16rpx 0;
+  border-radius: 12rpx; border: none; text-align: center;
+  font-weight: 500;
+}
+.record-anomaly-btn::after { border: none; }
+
+/* 底部 */
 .wr-bottom {
   position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx;
-  background-color: #ffffff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
+  background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
   padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
 }
-.btn-rose { background-color: #F43F5E !important; color: #ffffff !important; }
+.btn-rose { background-color: #F43F5E !important; color: #fff !important; box-shadow: 0 8rpx 24rpx rgba(244,63,94,0.3); }
 .wr-hint { display: block; text-align: center; font-size: 20rpx; color: #94A3B8; margin-top: 12rpx; }

@@ -11,15 +11,15 @@
     </view>
     <view class="st-summary">
       <view class="st-sum-item">
-        <text class="st-sum-val">{{job.totalWorkers}}</text>
+        <text class="st-sum-val text-primary">{{job.totalWorkers}}</text>
         <text class="st-sum-label">实到人数</text>
       </view>
       <view class="st-sum-item">
-        <text class="st-sum-val">{{job.totalHours}}h</text>
-        <text class="st-sum-label">总工时</text>
+        <text class="st-sum-val text-cta">{{job.totalHours}}</text>
+        <text class="st-sum-label">总工时(h)</text>
       </view>
       <view class="st-sum-item">
-        <text class="st-sum-val text-primary">¥{{job.factoryTotal}}</text>
+        <text class="st-sum-val text-warm">¥{{job.factoryTotal}}</text>
         <text class="st-sum-label">工厂总支付</text>
       </view>
     </view>
