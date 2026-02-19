@@ -1,14 +1,16 @@
 <!--pages/post-detail/post-detail.wxml-->
 <view class="detail-page">
   <!-- 图片轮播 -->
-  <swiper class="image-swiper" wx:if="{{detail.images.length > 0}}"
-          indicator-dots autoplay circular
-          bindchange="onSwiperChange">
-    <swiper-item wx:for="{{detail.images}}" wx:key="*this">
-      <image src="{{item}}" mode="aspectFill" class="swiper-img" />
-    </swiper-item>
-  </swiper>
-  <view class="swiper-counter" wx:if="{{detail.images.length > 0}}">{{swiperCurrent + 1}}/{{detail.images.length}}</view>
+  <view class="swiper-wrap" wx:if="{{detail.images.length > 0}}">
+    <swiper class="image-swiper"
+            indicator-dots autoplay circular
+            bindchange="onSwiperChange">
+      <swiper-item wx:for="{{detail.images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="swiper-img" />
+      </swiper-item>
+    </swiper>
+    <view class="swiper-counter">{{swiperCurrent + 1}}/{{detail.images.length}}</view>
+  </view>
 
   <!-- 基本信息 -->
   <view class="title-section">
@@ -48,7 +50,7 @@
       <text class="section-label">发布者</text>
     </view>
     <view class="publisher-info">
-      <image class="pub-avatar-img" src="{{detail.avatar || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop'}}" mode="aspectFill" />
+      <view class="text-avatar" style="width:88rpx;height:88rpx;font-size:32rpx;background-color:#3B82F6;">鑫</view>
       <view class="pub-detail">
         <view class="pub-name-row">
           <text class="pub-name">{{detail.location}} · {{detail.certText}}</text>
@@ -97,21 +99,21 @@
 
   <!-- 底部操作 -->
   <view class="bottom-actions">
-    <button class="bottom-btn btn-share" bindtap="onShare">
-      <text class="bottom-btn-icon">↗</text>
-      <text>分享</text>
-    </button>
-    <button class="bottom-btn btn-chat flex-1" bindtap="onChat">
+    <button class="bottom-btn btn-chat" bindtap="onChat">
       <text class="bottom-btn-icon">💬</text>
       <text>在线聊</text>
     </button>
-    <button class="bottom-btn btn-contact flex-1" bindtap="onUnlockContact" wx:if="{{!contactUnlocked}}">
+    <button class="bottom-btn btn-contact" bindtap="onUnlockContact" wx:if="{{!contactUnlocked}}">
       <text class="bottom-btn-icon">🔒</text>
       <text>查看联系方式</text>
     </button>
-    <button class="bottom-btn btn-contact flex-1" bindtap="onCallPhone" wx:else>
+    <button class="bottom-btn btn-contact" bindtap="onCallPhone" wx:else>
       <text class="bottom-btn-icon">📞</text>
       <text>立即联系</text>
+    </button>
+    <button class="bottom-btn btn-share" bindtap="onShare">
+      <text class="bottom-btn-icon">↗</text>
+      <text>分享</text>
     </button>
   </view>
 </view>

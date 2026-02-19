@@ -3,7 +3,8 @@
   background-color: #F5F5F5;
   padding-bottom: 140rpx;
 }
-.image-swiper { width: 100%; height: 384rpx; position: relative; }
+.swiper-wrap { position: relative; }
+.image-swiper { width: 100%; height: 384rpx; }
 .swiper-img { width: 100%; height: 100%; }
 .swiper-counter {
   position: absolute; bottom: 16rpx; right: 24rpx;
@@ -82,7 +83,7 @@
 /* 底部操作 */
 .bottom-actions {
   position: fixed; bottom: 0; left: 0; right: 0;
-  display: flex; align-items: center; gap: 20rpx;
+  display: flex; align-items: center; gap: 16rpx;
   padding: 16rpx 32rpx;
   background-color: #fff;
   box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
@@ -96,17 +97,20 @@
 }
 .bottom-btn::after { border: none; }
 .bottom-btn-icon { font-size: 28rpx; }
-.btn-share {
-  background-color: #fff; color: #1E293B;
-  border: 2rpx solid #E2E8F0 !important;
-  flex-shrink: 0;
-}
 .btn-chat {
+  flex: 1;
   background-color: #10B981; color: #fff;
   box-shadow: 0 8rpx 24rpx rgba(16,185,129,0.3);
 }
 .btn-contact {
+  flex: 1;
   background-color: #3B82F6; color: #fff;
   box-shadow: 0 8rpx 24rpx rgba(59,130,246,0.3);
 }
+.btn-share {
+  background-color: #fff; color: #1E293B;
+  border: 2rpx solid #E2E8F0 !important;
+  padding: 16rpx 24rpx; flex-shrink: 0; flex-grow: 0;
+}
+.btn-share .bottom-btn-icon { display: none; }
 .flex-1 { flex: 1; }
