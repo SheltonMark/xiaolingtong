@@ -1,18 +1,18 @@
 Page({
   data: {
-    selectedIndex: 1,
+    selectedIndex: 0,
     plans: [
-      { id: 1, name: '月度会员', price: '29.9', unit: '/月', features: ['每日5次免费查看', '信息优先展示', '专属客服'] },
-      { id: 2, name: '季度会员', price: '69.9', unit: '/季', tag: '推荐', features: ['每日10次免费查看', '信息优先展示', '专属客服', '数据分析'] },
-      { id: 3, name: '年度会员', price: '199', unit: '/年', tag: '最划算', features: ['无限次免费查看', '信息置顶', '专属客服', '数据分析', '广告折扣'] }
+      { id: 1, name: '月度会员', desc: '适合短期采购需求', price: '99', original: '199', unit: '月', tag: '', tagColor: '' },
+      { id: 2, name: '季度会员', desc: '平均每月仅¥79', price: '238', original: '597', unit: '季', tag: '推荐', tagColor: '#F97316' },
+      { id: 3, name: '年度会员', desc: '平均每月仅¥66，最划算', price: '799', original: '2,388', unit: '年', tag: '省¥1400', tagColor: '#F43F5E' }
     ]
   },
-  onSelect(e) { this.setData({ selectedIndex: e.currentTarget.dataset.index }) },
+  onSelect(e) { this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) }) },
   onPay() {
     const plan = this.data.plans[this.data.selectedIndex]
     wx.showModal({
       title: '开通' + plan.name,
-      content: '支付 ¥' + plan.price + plan.unit,
+      content: '支付 ¥' + plan.price + '/' + plan.unit,
       success: (res) => {
         if (res.confirm) wx.showToast({ title: '开通成功', icon: 'success' })
       }

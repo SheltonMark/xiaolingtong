@@ -3,15 +3,20 @@ Page({
     balance: 128,
     selectedIndex: 1,
     packages: [
-      { id: 1, beans: 50, price: '9.9', tag: '' },
-      { id: 2, beans: 120, price: '19.9', tag: '热门' },
-      { id: 3, beans: 300, price: '39.9', tag: '超值' },
-      { id: 4, beans: 600, price: '68', tag: '' },
-      { id: 5, beans: 1500, price: '158', tag: '最划算' },
-      { id: 6, beans: 3000, price: '298', tag: '' }
+      { id: 1, beans: 50, price: '5', tag: '', tagColor: '', save: '' },
+      { id: 2, beans: 200, price: '18', tag: '热门', tagColor: '#F97316', save: '2' },
+      { id: 3, beans: 500, price: '40', tag: '', tagColor: '', save: '10' },
+      { id: 4, beans: 1000, price: '68', tag: '', tagColor: '', save: '32' },
+      { id: 5, beans: 2000, price: '128', tag: '', tagColor: '', save: '72' },
+      { id: 6, beans: 5000, price: '298', tag: '最划算', tagColor: '#F43F5E', save: '202' }
+    ],
+    records: [
+      { id: 'r1', title: '查看联系方式', desc: '***贸易公司 · 02-07', amount: '-10灵豆', type: 'expense' },
+      { id: 'r2', title: '查看联系方式', desc: '***电子科技 · 02-05', amount: '-10灵豆', type: 'expense' },
+      { id: 'r3', title: '充值200灵豆', desc: '微信支付 · 02-01', amount: '+200灵豆', type: 'income' }
     ]
   },
-  onSelect(e) { this.setData({ selectedIndex: e.currentTarget.dataset.index }) },
+  onSelect(e) { this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) }) },
   onPay() {
     const pkg = this.data.packages[this.data.selectedIndex]
     wx.showModal({

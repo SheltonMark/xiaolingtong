@@ -1,26 +1,60 @@
 <!--pages/bean-recharge/bean-recharge.wxml-->
 <view class="br-page">
+  <!-- 余额卡片 -->
   <view class="balance-card">
-    <text class="bal-label">当前灵豆</text>
-    <text class="bal-value">💎 {{balance}}</text>
+    <view class="bal-bg"></view>
+    <text class="bal-label">当前灵豆余额</text>
+    <view class="bal-row">
+      <text class="bal-value">{{balance}}</text>
+      <text class="bal-unit">灵豆</text>
+    </view>
+    <text class="bal-hint">查看1次联系方式消耗10灵豆 · 会员免费</text>
   </view>
-  <view class="pkg-grid">
-    <view class="pkg-item {{selectedIndex === index ? 'pkg-selected' : ''}}"
-          wx:for="{{packages}}" wx:key="id"
-          data-index="{{index}}" bindtap="onSelect">
-      <text class="pkg-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
-      <text class="pkg-beans">{{item.beans}}</text>
-      <text class="pkg-beans-label">灵豆</text>
-      <text class="pkg-price">¥{{item.price}}</text>
+
+  <!-- 灵豆说明 -->
+  <view class="bean-tip">
+    <text class="tip-icon">ℹ️</text>
+    <view class="tip-content">
+      <text class="tip-title">灵豆用途</text>
+      <text class="tip-text">查看供需信息联系方式时消耗灵豆，已查看过的信息再次查看不重复扣费。开通VIP会员可免费无限查看。</text>
     </view>
   </view>
-  <view class="br-info">
-    <text class="info-title">灵豆说明</text>
-    <text class="info-text">· 灵豆可用于查看联系方式、信息置顶等</text>
-    <text class="info-text">· 充值后不支持退款</text>
-    <text class="info-text">· 灵豆有效期为充值后365天</text>
+
+  <!-- 充值套餐 -->
+  <view class="pkg-section">
+    <text class="section-title">选择充值套餐</text>
+    <view class="pkg-grid">
+      <view class="pkg-item {{selectedIndex === index ? 'pkg-selected' : ''}}"
+            wx:for="{{packages}}" wx:key="id"
+            data-index="{{index}}" bindtap="onSelect">
+        <text class="pkg-tag" wx:if="{{item.tag}}" style="background-color:{{item.tagColor || '#F97316'}};">{{item.tag}}</text>
+        <text class="pkg-beans">{{item.beans}}</text>
+        <text class="pkg-beans-label">灵豆</text>
+        <text class="pkg-price">¥{{item.price}}</text>
+        <text class="pkg-save" wx:if="{{item.save}}">省¥{{item.save}}</text>
+      </view>
+    </view>
   </view>
-  <view class="br-bottom">
-    <button class="btn btn-primary" bindtap="onPay">立即充值 ¥{{packages[selectedIndex].price}}</button>
+
+  <!-- 最近记录 -->
+  <view class="record-section">
+    <view class="record-header">
+      <text class="section-title" style="margin-bottom:0;">最近记录</text>
+      <text class="record-all">查看全部</text>
+    </view>
+    <view class="record-list">
+      <view class="record-item" wx:for="{{records}}" wx:key="id">
+        <view class="record-left">
+          <text class="record-name">{{item.title}}</text>
+          <text class="record-time">{{item.desc}}</text>
+        </view>
+        <text class="record-amount {{item.type === 'income' ? 'text-fresh' : 'text-rose'}}">{{item.amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 充值按钮 -->
+  <view class="br-bottom-area">
+    <button class="br-pay-btn" bindtap="onPay">立即充值 · ¥{{packages[selectedIndex].price}}</button>
   </view>
 </view>
