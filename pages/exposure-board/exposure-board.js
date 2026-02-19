@@ -34,6 +34,9 @@ Page({
     ]
   },
   onTabChange(e) { this.setData({ currentTab: Number(e.currentTarget.dataset.index) }) },
+  onPublishExposure() {
+    wx.navigateTo({ url: '/pages/exposure/exposure' })
+  },
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
