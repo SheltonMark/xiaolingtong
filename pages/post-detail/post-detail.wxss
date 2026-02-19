@@ -92,6 +92,7 @@
   display: flex; align-items: center; justify-content: center; gap: 8rpx;
   padding: 16rpx 24rpx; border-radius: 24rpx;
   font-size: 24rpx; font-weight: 600; border: none;
+  white-space: nowrap; flex-shrink: 0;
 }
 .bottom-btn::after { border: none; }
 .bottom-btn-icon { font-size: 28rpx; }
