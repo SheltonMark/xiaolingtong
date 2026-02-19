@@ -1,18 +1,49 @@
 Page({
   data: {
-    selectedIndex: 0,
-    plans: [
-      { id: 1, name: '首页Banner', desc: '首页顶部轮播位，日均曝光5000+', price: '299', unit: '/天', tag: '热门' },
-      { id: 2, name: '列表置顶', desc: '信息列表前3位展示，精准触达', price: '99', unit: '/天' },
-      { id: 3, name: '搜索推荐', desc: '搜索结果优先展示，按点击计费', price: '0.5', unit: '/次' }
-    ]
+    selectedSlot: 0,
+    linkType: 0,
+    form: { startDate: '2026-02-15', endDate: '2026-02-21' },
+    slots: [
+      { name: '首页Banner广告', price: 200 },
+      { name: '信息流推荐位', price: 100 }
+    ],
+    days: 7,
+    unitPrice: 200,
+    totalPrice: 1400,
+    adImage: ''
   },
-  onSelect(e) { this.setData({ selectedIndex: e.currentTarget.dataset.index }) },
+  onSlotChange(e) {
+    const idx = Number(e.currentTarget.dataset.index)
+    const price = this.data.slots[idx].price
+    this.setData({ selectedSlot: idx, unitPrice: price, totalPrice: price * this.data.days })
+  },
+  onLinkChange(e) { this.setData({ linkType: Number(e.currentTarget.dataset.index) }) },
+  onStartDateChange(e) {
+    this.setData({ 'form.startDate': e.detail.value })
+    this._calcDays()
+  },
+  onEndDateChange(e) {
+    this.setData({ 'form.endDate': e.detail.value })
+    this._calcDays()
+  },
+  _calcDays() {
+    const { startDate, endDate } = this.data.form
+    if (startDate && endDate) {
+      const d = Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000) + 1
+      const days = d > 0 ? d : 0
+      this.setData({ days, totalPrice: days * this.data.unitPrice })
+    }
+  },
+  onUploadAd() {
+    wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
+      this.setData({ adImage: res.tempFiles[0].tempFilePath })
+    }})
+  },
+  onDeleteAd() { this.setData({ adImage: '' }) },
   onPay() {
-    const plan = this.data.plans[this.data.selectedIndex]
     wx.showModal({
-      title: '购买' + plan.name,
-      content: '支付 ¥' + plan.price + plan.unit,
+      title: '确认支付',
+      content: '支付 ¥' + this.data.totalPrice + '，投放' + this.data.days + '天',
       success: (res) => { if (res.confirm) wx.showToast({ title: '购买成功', icon: 'success' }) }
     })
   }

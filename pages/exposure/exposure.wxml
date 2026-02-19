@@ -1,39 +1,57 @@
 <!--pages/exposure/exposure.wxml-->
 <view class="exp-page">
-  <view class="form-wrap">
-    <view class="form-group">
-      <text class="form-label required">被曝光企业</text>
-      <input class="form-input" placeholder="请输入企业名称" data-field="company" bindinput="onInput" />
+  <!-- 对方公司名称 -->
+  <view class="form-card">
+    <text class="form-label required">对方公司名称</text>
+    <input class="form-input" placeholder="请输入对方公司全称" data-field="company" bindinput="onInput" />
+  </view>
+
+  <!-- 对方姓名 -->
+  <view class="form-card">
+    <text class="form-label required">对方姓名</text>
+    <input class="form-input" placeholder="请输入对方联系人姓名" data-field="contact" bindinput="onInput" />
+  </view>
+
+  <!-- 欠款金额 -->
+  <view class="form-card">
+    <text class="form-label required">欠款金额</text>
+    <view class="input-with-prefix">
+      <text class="input-prefix">¥</text>
+      <input class="form-input" style="flex:1;border:none;background:transparent;" type="digit" placeholder="请输入欠款金额" data-field="amount" bindinput="onInput" />
     </view>
-    <view class="form-group">
-      <text class="form-label required">曝光类型</text>
-      <view class="type-tags">
-        <view class="t-tag {{selectedType === item ? 't-tag-active' : ''}}"
-              wx:for="{{types}}" wx:key="*this" data-tag="{{item}}" bindtap="onTypeTap">
-          <text>{{item}}</text>
-        </view>
+  </view>
+
+  <!-- 曝光内容 -->
+  <view class="form-card">
+    <text class="form-label required">曝光内容</text>
+    <textarea class="form-textarea" placeholder="请详细描述事件经过、欠款原因、沟通情况等..." data-field="description" bindinput="onInput" />
+  </view>
+
+  <!-- 上传证据 -->
+  <view class="form-card">
+    <text class="form-label">上传证据 <text class="label-hint">(最多9张)</text></text>
+    <view class="image-grid">
+      <view class="image-item" wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="upload-img" />
+        <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
       </view>
-    </view>
-    <view class="form-group">
-      <text class="form-label required">详细描述</text>
-      <textarea class="form-textarea" placeholder="请详细描述问题，以便平台核实" data-field="description" bindinput="onInput" />
-    </view>
-    <view class="form-group">
-      <text class="form-label">证据图片</text>
-      <view class="image-grid">
-        <view class="image-item" wx:for="{{images}}" wx:key="*this">
-          <image src="{{item}}" mode="aspectFill" class="upload-img" />
-          <view class="image-delete" data-index="{{index}}" catchtap="onDeleteImage">×</view>
-        </view>
-        <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
-          <text class="add-icon">+</text>
-          <text class="add-text">添加</text>
-        </view>
+      <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
+        <text class="add-icon">+</text>
+        <text class="add-text">添加</text>
       </view>
     </view>
   </view>
-  <view class="submit-wrap">
-    <button class="btn btn-rose" bindtap="onSubmit">提交曝光</button>
-    <text class="submit-hint">曝光信息经平台审核后公开展示</text>
+
+  <!-- 协议勾选 -->
+  <view class="agree-row" bindtap="onToggleAgree">
+    <view class="agree-check {{agreed ? 'agree-checked' : ''}}">
+      <text wx:if="{{agreed}}" class="agree-tick">✓</text>
+    </view>
+    <text class="agree-text">我已阅读并同意<text class="text-primary">《曝光发布协议》</text>，承诺所发布内容真实有效，如有不实将承担法律责任。</text>
+  </view>
+
+  <!-- 提交 -->
+  <view class="submit-area">
+    <button class="submit-btn" bindtap="onSubmit">提交曝光</button>
   </view>
 </view>

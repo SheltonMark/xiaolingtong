@@ -1,22 +1,130 @@
 <!--pages/ad-purchase/ad-purchase.wxml-->
 <view class="ad-page">
-  <view class="ad-header">
-    <text class="ad-title">广告投放</text>
-    <text class="ad-sub">精准触达目标客户，提升曝光转化</text>
-  </view>
-  <view class="ad-list">
-    <view class="ad-card {{selectedIndex === index ? 'ad-selected' : ''}}"
-          wx:for="{{plans}}" wx:key="id" data-index="{{index}}" bindtap="onSelect">
-      <text class="ad-tag" wx:if="{{item.tag}}">{{item.tag}}</text>
-      <text class="ad-name">{{item.name}}</text>
-      <text class="ad-desc">{{item.desc}}</text>
-      <view class="ad-price-row">
-        <text class="ad-price">¥{{item.price}}</text>
-        <text class="ad-unit">{{item.unit}}</text>
+  <!-- 广告位选择 -->
+  <view class="ad-section">
+    <text class="section-title required">选择广告位</text>
+    <view class="ad-options">
+      <view class="ad-option {{selectedSlot === 0 ? 'ad-option-active' : ''}}" data-index="{{0}}" bindtap="onSlotChange">
+        <view class="ad-option-top">
+          <view class="ad-option-left">
+            <view class="ad-radio {{selectedSlot === 0 ? 'ad-radio-active' : ''}}">
+              <view class="ad-radio-dot" wx:if="{{selectedSlot === 0}}"></view>
+            </view>
+            <text class="ad-option-name">首页Banner广告</text>
+          </view>
+          <text class="ad-option-price {{selectedSlot === 0 ? 'text-primary' : ''}}">¥200/天</text>
+        </view>
+        <view class="ad-preview" wx:if="{{selectedSlot === 0}}">
+          <text class="ad-preview-text">750 × 300 · 首页轮播位</text>
+        </view>
+        <text class="ad-option-desc">展示在首页顶部轮播区，曝光量最高</text>
+      </view>
+      <view class="ad-option {{selectedSlot === 1 ? 'ad-option-active' : ''}}" data-index="{{1}}" bindtap="onSlotChange">
+        <view class="ad-option-top">
+          <view class="ad-option-left">
+            <view class="ad-radio {{selectedSlot === 1 ? 'ad-radio-active' : ''}}">
+              <view class="ad-radio-dot" wx:if="{{selectedSlot === 1}}"></view>
+            </view>
+            <text class="ad-option-name">信息流推荐位</text>
+          </view>
+          <text class="ad-option-price {{selectedSlot === 1 ? 'text-primary' : ''}}">¥100/天</text>
+        </view>
+        <text class="ad-option-desc">展示在信息列表中，带"广告"标识，自然融入</text>
       </view>
     </view>
   </view>
-  <view class="ad-bottom">
-    <button class="btn btn-primary" bindtap="onPay">立即购买 ¥{{plans[selectedIndex].price}}</button>
+
+  <!-- 投放日期 -->
+  <view class="ad-section">
+    <text class="section-title required">投放日期</text>
+    <view class="date-row">
+      <view class="date-col">
+        <text class="date-label">开始日期</text>
+        <picker mode="date" bindchange="onStartDateChange">
+          <view class="date-picker">
+            <text>{{form.startDate || '选择日期'}}</text>
+            <text class="date-icon">📅</text>
+          </view>
+        </picker>
+      </view>
+      <view class="date-col">
+        <text class="date-label">结束日期</text>
+        <picker mode="date" bindchange="onEndDateChange">
+          <view class="date-picker">
+            <text>{{form.endDate || '选择日期'}}</text>
+            <text class="date-icon">📅</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+    <view class="date-summary" wx:if="{{days > 0}}">
+      <text class="date-summary-text">投放时长：{{days}}天 · 费用：¥{{unitPrice}} × {{days}} = <text class="font-bold">¥{{totalPrice}}</text></text>
+    </view>
+  </view>
+
+  <!-- 广告素材 -->
+  <view class="ad-section">
+    <text class="section-title required">广告素材</text>
+    <text class="ad-hint">建议尺寸 750×300px，JPG/PNG格式，≤5MB</text>
+    <view class="ad-upload" bindtap="onUploadAd" wx:if="{{!adImage}}">
+      <text class="ad-upload-icon">🖼</text>
+      <text class="ad-upload-text">点击上传广告图片</text>
+    </view>
+    <view class="ad-uploaded" wx:if="{{adImage}}">
+      <image src="{{adImage}}" mode="aspectFill" class="ad-uploaded-img" />
+      <view class="ad-uploaded-delete" catchtap="onDeleteAd">×</view>
+    </view>
+  </view>
+
+  <!-- 跳转链接 -->
+  <view class="ad-section">
+    <text class="section-title required">跳转链接</text>
+    <view class="link-options">
+      <view class="link-option" data-index="{{0}}" bindtap="onLinkChange">
+        <view class="ad-radio {{linkType === 0 ? 'ad-radio-active' : ''}}">
+          <view class="ad-radio-dot" wx:if="{{linkType === 0}}"></view>
+        </view>
+        <text class="link-text">跳转到我的发布信息</text>
+      </view>
+      <view class="link-picker" wx:if="{{linkType === 0}}">
+        <text class="link-picker-text">选择已发布的信息</text>
+        <text class="link-picker-arrow">▼</text>
+      </view>
+      <view class="link-option" data-index="{{1}}" bindtap="onLinkChange">
+        <view class="ad-radio {{linkType === 1 ? 'ad-radio-active' : ''}}">
+          <view class="ad-radio-dot" wx:if="{{linkType === 1}}"></view>
+        </view>
+        <text class="link-text">跳转到外部链接</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 费用汇总 -->
+  <view class="ad-section">
+    <text class="section-title">费用汇总</text>
+    <view class="fee-list">
+      <view class="fee-row">
+        <text class="fee-label">广告位</text>
+        <text class="fee-value">{{slots[selectedSlot].name}}</text>
+      </view>
+      <view class="fee-row">
+        <text class="fee-label">投放时长</text>
+        <text class="fee-value">{{days > 0 ? days + '天' : '未选择'}}</text>
+      </view>
+      <view class="fee-row">
+        <text class="fee-label">单价</text>
+        <text class="fee-value">¥{{unitPrice}}/天</text>
+      </view>
+      <view class="fee-divider"></view>
+      <view class="fee-row fee-total">
+        <text class="fee-label">合计</text>
+        <text class="fee-value text-cta">¥{{totalPrice}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交 -->
+  <view class="ad-bottom-area">
+    <button class="btn btn-primary" bindtap="onPay">提交并支付 · ¥{{totalPrice}}</button>
   </view>
 </view>
