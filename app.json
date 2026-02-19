@@ -27,7 +27,8 @@
     "pages/settlement/settlement",
     "pages/ad-purchase/ad-purchase",
     "pages/exposure-detail/exposure-detail",
-    "pages/chat/chat"
+    "pages/chat/chat",
+    "pages/settings/settings"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

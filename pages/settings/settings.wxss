@@ -1,0 +1,67 @@
+.settings-page {
+  min-height: 100vh;
+  background-color: #F8FAFC;
+  padding-bottom: 80rpx;
+}
+
+/* 分组 */
+.section {
+  margin: 24rpx 32rpx 0;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+}
+
+/* 单元格 */
+.cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+}
+.cell-border {
+  border-bottom: 1rpx solid #F1F5F9;
+}
+.cell-label {
+  font-size: 26rpx;
+  color: #1E293B;
+}
+.cell-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.cell-value {
+  font-size: 26rpx;
+  color: #64748B;
+}
+.cell-arrow {
+  font-size: 32rpx;
+  color: #94A3B8;
+}
+.cell-avatar {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+}
+
+/* 退出登录 */
+.logout-wrap {
+  margin: 48rpx 32rpx 0;
+}
+.logout-btn {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  background-color: #F43F5E;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 24rpx;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(244,63,94,0.3);
+}
+.logout-btn::after {
+  border: none;
+}
