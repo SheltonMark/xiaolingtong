@@ -6,7 +6,7 @@ Page({
     statusBarHeight: 0,
     // 企业端
     currentTab: 0,
-    tabs: ['采购需求', '工厂库存', '代加工', '发布招工', '工厂名录'],
+    tabs: ['采购需求', '工厂库存', '代加工', '发布招工'],
     purchaseList: [],
     stockList: [],
     processList: [],

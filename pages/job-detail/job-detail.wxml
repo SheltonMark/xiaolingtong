@@ -1,5 +1,5 @@
 <!--pages/job-detail/job-detail.wxml-->
-<view class="jd-page">
+<view class="jd-page {{userRole === 'worker' ? 'jd-page-with-apply' : ''}}">
   <!-- 现场图片 -->
   <swiper class="jd-swiper" wx:if="{{job.images && job.images.length > 0}}"
           indicator-dots autoplay circular bindchange="onSwiperChange">
@@ -88,8 +88,8 @@
     </view>
   </view>
 
-  <!-- 底部报名 -->
-  <view class="apply-wrap">
+  <!-- 底部报名（仅临工可见） -->
+  <view class="apply-wrap" wx:if="{{userRole === 'worker'}}">
     <button class="btn btn-cta apply-btn" bindtap="onApply">
       <text>✏️</text>
       <text>立即报名</text>

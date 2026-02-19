@@ -1,5 +1,6 @@
 Page({
   data: {
+    userRole: 'worker',
     swiperCurrent: 0,
     job: {
       id: 'j1',
@@ -39,6 +40,11 @@ Page({
 
   onSwiperChange(e) {
     this.setData({ swiperCurrent: e.detail.current })
+  },
+
+  onShow() {
+    const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    this.setData({ userRole })
   },
 
   onApply() {
