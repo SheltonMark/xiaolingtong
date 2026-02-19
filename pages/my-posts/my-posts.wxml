@@ -11,26 +11,32 @@
 
   <!-- 列表 -->
   <view class="post-list">
-    <view class="post-card" wx:for="{{posts}}" wx:key="id"
+    <view class="post-card {{item.status === 'offline' ? 'card-offline' : ''}}"
+          wx:for="{{posts}}" wx:key="id"
           wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}">
       <view class="post-top">
-        <text class="post-type tag tag-blue">{{item.type}}</text>
-        <text class="post-status status-{{item.status}}">{{item.statusText}}</text>
+        <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
+        <view class="status-tag status-bg-{{item.statusColor}}">
+          <text class="status-icon">{{item.statusIcon}}</text>
+          <text>{{item.statusText}}</text>
+        </view>
       </view>
       <text class="post-title">{{item.title}}</text>
+      <!-- 驳回原因 -->
+      <view class="reject-box" wx:if="{{item.rejectReason}}">
+        <text class="reject-text">驳回原因：{{item.rejectReason}}</text>
+      </view>
       <view class="post-meta">
         <text class="meta-item">发布：{{item.publishTime}}</text>
-        <text class="meta-item" wx:if="{{item.expireTime}}">有效期至：{{item.expireTime}}</text>
+        <text class="meta-item" wx:if="{{item.expireTime && !item.expired}}">有效期至：{{item.expireTime}}</text>
+        <text class="meta-item" wx:if="{{item.expired}}">已过期：{{item.expireTime}}</text>
+        <text class="meta-item meta-views" wx:if="{{item.views > 0}}">{{item.views}}次浏览</text>
       </view>
-      <!-- 驳回原因 -->
-      <view class="reject-reason" wx:if="{{item.status === 'rejected'}}">
-        <text class="reject-label">驳回原因：</text>
-        <text class="reject-text">{{item.rejectReason}}</text>
-      </view>
-      <!-- 操作 -->
+      <!-- 操作按钮 -->
       <view class="post-actions">
-        <text class="action-btn" data-id="{{item.id}}" bindtap="onViewPost">查看</text>
-        <text class="action-btn action-delete" data-id="{{item.id}}" bindtap="onDeletePost">删除</text>
+        <button class="act-btn act-blue" data-id="{{item.id}}" bindtap="onViewPost">查看详情</button>
+        <button class="act-btn act-orange" wx:if="{{item.canPromote}}" data-id="{{item.id}}" bindtap="onPromotePost">推广置顶</button>
+        <button class="act-btn act-rose" data-id="{{item.id}}" bindtap="onDeletePost">删除</button>
       </view>
     </view>
   </view>
