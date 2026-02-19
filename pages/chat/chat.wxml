@@ -11,7 +11,7 @@
     <!-- 对方消息 -->
     <view class="msg-row msg-left" wx:for="{{messages}}" wx:key="id" id="msg-{{item.id}}">
       <block wx:if="{{item.from === 'other'}}">
-        <view class="msg-avatar-wrap"><view class="msg-avatar">🏭</view></view>
+        <view class="msg-avatar-wrap"><image class="msg-avatar-img" src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=60&h=60&fit=crop" mode="aspectFill" /></view>
         <view class="msg-bubble-wrap">
           <view class="bubble bubble-left">
             <text>{{item.text}}</text>
@@ -27,7 +27,7 @@
           </view>
           <text class="msg-time-text msg-time-right">{{item.time}}</text>
         </view>
-        <view class="msg-avatar-wrap"><view class="msg-avatar">🏢</view></view>
+        <view class="msg-avatar-wrap"><image class="msg-avatar-img" src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&fit=crop" mode="aspectFill" /></view>
       </block>
     </view>
   </scroll-view>

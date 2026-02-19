@@ -3,7 +3,7 @@
   <!-- 工作信息 -->
   <view class="ci-card">
     <view class="ci-job-header">
-      <view class="ci-avatar">🏭</view>
+      <image class="ci-avatar-img" src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&fit=crop" mode="aspectFill" />
       <view class="ci-job-info">
         <text class="ci-company">{{jobInfo.company}}</text>
         <text class="ci-date">{{jobInfo.date}} · {{jobInfo.time}}</text>
@@ -43,7 +43,7 @@
     <view class="worker-list">
       <view class="worker-row" wx:for="{{workers}}" wx:key="id">
         <view class="worker-left">
-          <view class="worker-avatar">👷</view>
+          <image class="worker-avatar-img" src="{{item.avatar}}" mode="aspectFill" />
           <text class="worker-name">{{item.name}}</text>
         </view>
         <view class="worker-right">
