@@ -4,9 +4,9 @@ Page({
     chatUnreadCount: 4,
     systemUnreadCount: 3,
     chatMessages: [
-      { id: 'c1', avatar: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop', name: '***贸易公司', lastMsg: '3000个的话可以给你12元/个，含logo丝印，交期25天', time: '14:35', unreadCount: 3 },
-      { id: 'c2', avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop', name: '鑫达电子厂', lastMsg: '好的，明天8点准时到厂区门口集合', time: '昨天', unreadCount: 1 },
-      { id: 'c3', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop', name: '张师傅', lastMsg: '收到，我会准时到的', time: '02-15', unreadCount: 0 }
+      { id: 'c1', avatarText: '贸', avatarBg: '#3B82F6', name: '***贸易公司', lastMsg: '3000个的话可以给你12元/个，含logo丝印，交期25天', time: '14:35', unreadCount: 3 },
+      { id: 'c2', avatarText: '鑫', avatarBg: '#10B981', name: '鑫达电子厂', lastMsg: '好的，明天8点准时到厂区门口集合', time: '昨天', unreadCount: 1 },
+      { id: 'c3', avatarText: '张', avatarBg: '#F97316', name: '张师傅', lastMsg: '收到，我会准时到的', time: '02-15', unreadCount: 0 }
     ],
     systemMessages: [
       { id: 's1', icon: '✓', iconBg: '#EFF6FF', borderColor: '#3B82F6', title: '信息审核通过', desc: '您发布的「保温杯3000个采购」已审核通过，现已上架展示。', time: '10分钟前', unread: true },

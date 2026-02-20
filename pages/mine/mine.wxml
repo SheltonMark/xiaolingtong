@@ -5,12 +5,11 @@
     <!-- 头部 -->
     <view class="header header-enterprise" style="padding-top: {{statusBarHeight}}px;">
       <!-- 标题行（与胶囊同行） -->
-      <view class="header-top" style="height: {{menuHeight}}px;">
+      <view class="header-top" style="min-height: {{menuHeight}}px; padding-left: {{menuRight}}px; padding-right: {{menuRight}}px;">
         <text class="header-label">我的</text>
-        <text class="settings-icon" bindtap="onSettings">⚙️</text>
       </view>
       <view class="user-info">
-        <image src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=120&h=120&fit=crop" class="avatar-img" mode="aspectFill" />
+        <view class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;">鑫</view>
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">鑫达贸易公司</text>
@@ -18,10 +17,11 @@
           </view>
           <text class="user-sub">工贸一体 · 日用百货</text>
         </view>
+        <text class="settings-icon" bindtap="onSettings">⚙️</text>
       </view>
       <!-- 数据卡片 -->
       <view class="data-card">
-        <view class="data-item" bindtap="onMembership">
+        <view class="data-item" bindtap="onBeanRecharge">
           <text class="data-value text-cta">128</text>
           <text class="data-label">灵豆</text>
         </view>
@@ -62,12 +62,11 @@
     <!-- 头部 -->
     <view class="header header-worker" style="padding-top: {{statusBarHeight}}px;">
       <!-- 标题行（与胶囊同行） -->
-      <view class="header-top" style="height: {{menuHeight}}px;">
+      <view class="header-top" style="min-height: {{menuHeight}}px; padding-left: {{menuRight}}px; padding-right: {{menuRight}}px;">
         <text class="header-label">我的</text>
-        <text class="settings-icon" bindtap="onSettings">⚙️</text>
       </view>
       <view class="user-info">
-        <image src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=120&h=120&fit=crop" class="avatar-img" mode="aspectFill" />
+        <view class="text-avatar text-avatar-2xl" style="background-color: #F97316;">张</view>
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">张三</text>
@@ -75,6 +74,7 @@
           </view>
           <text class="user-sub">信用分 <text class="text-cta font-semibold">95</text> · 组装工/包装工</text>
         </view>
+        <text class="settings-icon" bindtap="onSettings">⚙️</text>
       </view>
       <!-- 数据卡片 -->
       <view class="data-card data-card-3">

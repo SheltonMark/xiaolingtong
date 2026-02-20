@@ -177,6 +177,18 @@ page {
 .avatar-md { width: 80rpx; height: 80rpx; border-radius: 50%; }
 .avatar-lg { width: 120rpx; height: 120rpx; border-radius: 50%; }
 
+/* 文字头像 */
+.text-avatar {
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; flex-shrink: 0;
+  font-weight: 600; color: #fff;
+}
+.text-avatar-sm { width: 56rpx; height: 56rpx; font-size: 24rpx; }
+.text-avatar-md { width: 64rpx; height: 64rpx; font-size: 26rpx; }
+.text-avatar-lg { width: 80rpx; height: 80rpx; font-size: 28rpx; }
+.text-avatar-xl { width: 88rpx; height: 88rpx; font-size: 32rpx; }
+.text-avatar-2xl { width: 128rpx; height: 128rpx; font-size: 44rpx; }
+
 /* ===== 分割线 ===== */
 .divider {
   height: 1rpx;

@@ -3,7 +3,7 @@
   <!-- 工单信息卡片 -->
   <view class="ci-card">
     <view class="ci-job-header">
-      <image class="ci-avatar-img" src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&fit=crop" mode="aspectFill" />
+      <view class="text-avatar" style="width:60rpx;height:60rpx;font-size:24rpx;background-color:#10B981;">鑫</view>
       <view class="ci-job-info">
         <text class="ci-company">{{jobInfo.company}} · 电子组装工</text>
         <text class="ci-date">{{jobInfo.date}} · {{jobInfo.time}}</text>
@@ -60,7 +60,7 @@
     </view>
     <view class="checkin-list">
       <view class="checkin-item" wx:for="{{workers}}" wx:key="id">
-        <image class="checkin-avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="text-avatar" style="width:64rpx;height:64rpx;font-size:26rpx;background-color:#3B82F6;">{{item.name[0]}}</view>
         <view class="checkin-info">
           <text class="checkin-name">{{item.name}}</text>
           <text class="checkin-time {{item.status === 'absent' ? 'text-rose' : ''}}">{{item.status === 'absent' ? '未签到' : item.time + ' 签到' + (item.status === 'late' ? '（迟到）' : '')}}</text>

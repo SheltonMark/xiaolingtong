@@ -3,13 +3,6 @@
   <!-- 账号信息 -->
   <view class="section">
     <view class="cell cell-border">
-      <text class="cell-label">头像</text>
-      <view class="cell-right">
-        <image src="{{userRole === 'enterprise' ? 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=60&h=60&fit=crop' : 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=60&h=60&fit=crop'}}" class="cell-avatar" mode="aspectFill" />
-        <text class="cell-arrow">›</text>
-      </view>
-    </view>
-    <view class="cell cell-border">
       <text class="cell-label">昵称</text>
       <view class="cell-right">
         <text class="cell-value">{{nickname}}</text>

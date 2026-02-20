@@ -12,7 +12,9 @@
     <block wx:for="{{messages}}" wx:key="id">
       <!-- 对方消息 -->
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
-        <image class="msg-avatar-img" src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=60&h=60&fit=crop" mode="aspectFill" />
+        <view class="msg-avatar-wrap">
+          <view class="text-avatar text-avatar-md" style="background-color: #F97316;">张</view>
+        </view>
         <view class="msg-bubble-wrap">
           <view class="bubble bubble-left" wx:if="{{item.text}}">
             <text>{{item.text}}</text>
@@ -30,7 +32,9 @@
           </view>
           <text class="msg-time-text msg-time-right">{{item.time}}</text>
         </view>
-        <image class="msg-avatar-img" src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=60&h=60&fit=crop" mode="aspectFill" />
+        <view class="msg-avatar-wrap">
+          <view class="text-avatar text-avatar-md" style="background-color: #3B82F6;">鑫</view>
+        </view>
       </view>
     </block>
   </scroll-view>

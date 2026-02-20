@@ -1,13 +1,15 @@
 <!--pages/job-detail/job-detail.wxml-->
 <view class="jd-page {{userRole === 'worker' ? 'jd-page-with-apply' : ''}}">
   <!-- 现场图片 -->
-  <swiper class="jd-swiper" wx:if="{{job.images && job.images.length > 0}}"
-          indicator-dots autoplay circular bindchange="onSwiperChange">
-    <swiper-item wx:for="{{job.images}}" wx:key="*this">
-      <image src="{{item}}" mode="aspectFill" class="jd-swiper-img" />
-    </swiper-item>
-  </swiper>
-  <view class="swiper-counter" wx:if="{{job.images && job.images.length > 0}}">{{swiperCurrent + 1}}/{{job.images.length}}</view>
+  <view style="position:relative;" wx:if="{{job.images && job.images.length > 0}}">
+    <swiper class="jd-swiper"
+            indicator-dots autoplay circular bindchange="onSwiperChange">
+      <swiper-item wx:for="{{job.images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="jd-swiper-img" />
+      </swiper-item>
+    </swiper>
+    <view class="swiper-counter">{{swiperCurrent + 1}}/{{job.images.length}}</view>
+  </view>
 
   <!-- 核心信息 -->
   <view class="salary-section">
@@ -67,7 +69,7 @@
       <text class="card-label">招工企业</text>
     </view>
     <view class="company-row">
-      <image class="comp-avatar-img" src="{{job.company.avatar || 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop'}}" mode="aspectFill" />
+      <view class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#10B981;">{{job.company.name[0]}}</view>
       <view class="comp-info">
         <view class="comp-name-row">
           <text class="comp-name">{{job.company.name}}</text>

@@ -28,7 +28,8 @@ Page({
     const menuBtn = wx.getMenuButtonBoundingClientRect()
     this.setData({
       statusBarHeight: sysInfo.statusBarHeight,
-      menuHeight: menuBtn.height
+      menuHeight: menuBtn.height,
+      menuRight: sysInfo.windowWidth - menuBtn.left
     })
   },
 
@@ -63,5 +64,9 @@ Page({
 
   onWallet() {
     wx.navigateTo({ url: '/pages/wallet/wallet' })
+  },
+
+  onBeanRecharge() {
+    wx.navigateTo({ url: '/pages/bean-detail/bean-detail' })
   }
 })
