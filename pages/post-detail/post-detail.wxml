@@ -92,11 +92,6 @@
     </view>
   </view>
 
-  <!-- 浏览量 -->
-  <view class="view-count">
-    <text class="view-count-text">{{detail.views || 1287}}人浏览 · {{detail.contactViews || 32}}人查看联系方式</text>
-  </view>
-
   <!-- 底部操作 -->
   <view class="bottom-actions">
     <button class="bottom-btn btn-chat" bindtap="onChat">
