@@ -1,34 +1,32 @@
 # 审计问题清单（2026-02-21）
 
-## 1. 硬编码头像文字（9处）
-| 文件 | 行 | 字符 | 说明 |
-|------|-----|------|------|
-| pages/mine/mine.wxml | 12 | 鑫 | 企业用户头像 |
-| pages/mine/mine.wxml | 69 | 张 | 临工用户头像 |
-| pages/chat/chat.wxml | 12 | 张 | 对方消息头像 |
-| pages/chat/chat.wxml | 31 | 鑫 | 我的消息头像 |
-| pages/checkin/checkin.wxml | 6 | 鑫 | 工单头像 ✅ 已修 |
-| pages/exposure-detail/exposure-detail.wxml | 6 | 匿 | 匿名用户头像 |
-| pages/post-detail/post-detail.wxml | 53 | 鑫 | 发布者头像 |
-| pages/settlement/settlement.wxml | 6 | 鑫 | 工单头像 ✅ 已修 |
-| pages/membership/membership.wxml | 8 | 鑫 | 用户头像 ✅ 已修 |
-
-## 2. Toast 占位（1处）
-| 文件 | 行 | 内容 |
-|------|-----|------|
-| pages/mine/mine.js | 56 | "功能开发中" |
-
-## 3. Unsplash URL 残留（7个文件，17处）
-| 文件 | 数量 | 说明 |
+## 1. 硬编码头像文字 — ✅ 全部修复
+| 文件 | 字符 | 状态 |
 |------|------|------|
-| pages/exposure-board/exposure-board.js | 5 | mock头像/图片 |
-| pages/work-record/work-record.js | 3 | 工作记录图片 |
-| pages/chat/chat.js | 1 | 聊天示例图片 |
-| pages/job-detail/job-detail.js | 4 | 招工详情图片+头像 |
-| pages/exposure-detail/exposure-detail.js | 3 | 曝光详情图片 |
-| pages/checkin/checkin.js | 1 | mock头像 |
-| pages/post-detail/post-detail.js | 3 | 信息详情图片 |
+| pages/mine/mine.wxml | 鑫/张 | ✅ |
+| pages/chat/chat.wxml | 张/鑫 | ✅ |
+| pages/checkin/checkin.wxml | 鑫 | ✅ |
+| pages/exposure-detail/exposure-detail.wxml | 匿 | ✅ |
+| pages/post-detail/post-detail.wxml | 鑫 | ✅ |
+| pages/settlement/settlement.wxml | 鑫 | ✅ |
+| pages/membership/membership.wxml | 鑫 | ✅ |
 
-## 状态
-- bindtap/catchtap 处理函数：✅ 全部匹配
-- 页面文件完整性：✅ 36个页面全部齐全
+## 2. Toast 占位 — ✅ 全部修复
+| 文件 | 内容 | 状态 |
+|------|------|------|
+| pages/mine/mine.js | "功能开发中" | ✅ 已移除 |
+
+## 3. Unsplash URL 残留 — ✅ 全部清理
+所有 .js 文件中的 unsplash URL 已清理为空字符串或空数组。
+
+## 4. 其他修复
+- ✅ 首页投诉按钮跳转举报页
+- ✅ 首页微信按钮显示微信号+复制
+- ✅ 曝光详情评论间距加大
+- ✅ 曝光页评论/分享按钮对齐
+- ✅ 结算页头像顶部对齐
+- ✅ 曝光详情发送按钮宽度自适应
+- ✅ 信息详情页去掉浏览量计数
+- ✅ design HTML 新增举报页设计
+
+## 状态：全部完成 ✅
