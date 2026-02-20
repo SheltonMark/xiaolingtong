@@ -59,6 +59,10 @@ Page({
     })
   },
 
+  onGoSettlement() {
+    wx.navigateTo({ url: '/pages/settlement/settlement?jobId=' + this.data.job.id })
+  },
+
   onCallPhone() {
     wx.makePhoneCall({ phoneNumber: '13900005678', fail() {} })
   }

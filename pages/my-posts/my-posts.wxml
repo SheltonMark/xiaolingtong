@@ -35,7 +35,8 @@
       <!-- 操作按钮 -->
       <view class="post-actions">
         <button class="act-btn act-blue" data-id="{{item.id}}" bindtap="onViewPost">查看详情</button>
-        <button class="act-btn act-orange" wx:if="{{item.canPromote}}" data-id="{{item.id}}" bindtap="onPromotePost">推广置顶</button>
+        <button class="act-btn act-orange" wx:if="{{item.canSettle}}" data-id="{{item.jobId}}" bindtap="onGoSettlement">去结算</button>
+        <button class="act-btn act-orange" wx:elif="{{item.canPromote}}" data-id="{{item.id}}" bindtap="onPromotePost">推广置顶</button>
         <button class="act-btn act-rose" data-id="{{item.id}}" bindtap="onDeletePost">删除</button>
       </view>
     </view>

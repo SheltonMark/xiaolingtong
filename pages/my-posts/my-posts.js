@@ -1,7 +1,7 @@
 Page({
   data: {
     currentTab: 0,
-    tabs: ['全部', '采购需求', '工厂库存', '代加工'],
+    tabs: ['全部', '采购需求', '工厂库存', '代加工', '招工'],
     posts: [
       {
         id: 'mp1', type: '采购需求', typeColor: 'blue',
@@ -31,6 +31,20 @@ Page({
         status: 'offline', statusText: '已下架', statusColor: 'gray', statusIcon: '↓',
         publishTime: '01-05', expireTime: '02-04', expired: true,
         views: 0, canPromote: false
+      },
+      {
+        id: 'mp5', type: '招工', typeColor: 'orange',
+        title: '电子组装工15人，20元/小时，包午餐',
+        status: 'pending_settlement', statusText: '待结算', statusColor: 'amber', statusIcon: '💰',
+        publishTime: '02-10', expireTime: '02-17',
+        views: 856, canPromote: false, canSettle: true, jobId: 'j1'
+      },
+      {
+        id: 'mp6', type: '招工', typeColor: 'orange',
+        title: '包装工10人，18元/小时，长安镇',
+        status: 'published', statusText: '招工中', statusColor: 'green', statusIcon: '✓',
+        publishTime: '02-15', expireTime: '02-22',
+        views: 432, canPromote: true
       }
     ]
   },
@@ -53,6 +67,11 @@ Page({
   onPromotePost(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: '/pages/promotion/promotion?id=' + id })
+  },
+
+  onGoSettlement(e) {
+    const jobId = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/settlement/settlement?jobId=' + jobId })
   },
 
   onDeletePost(e) {

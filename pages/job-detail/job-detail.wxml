@@ -1,5 +1,5 @@
 <!--pages/job-detail/job-detail.wxml-->
-<view class="jd-page {{userRole === 'worker' ? 'jd-page-with-apply' : ''}}">
+<view class="jd-page {{(userRole === 'worker' || (userRole === 'enterprise' && job.status === 'pending_settlement')) ? 'jd-page-with-apply' : ''}}">
   <!-- 现场图片 -->
   <view style="position:relative;" wx:if="{{job.images && job.images.length > 0}}">
     <swiper class="jd-swiper"
@@ -97,5 +97,11 @@
       <text>立即报名</text>
     </button>
     <text class="apply-hint">报名后等待平台分配，开工前一天需确认出勤</text>
+  </view>
+
+  <!-- 底部结算（企业用户 + 待结算状态） -->
+  <view class="apply-wrap" wx:if="{{userRole === 'enterprise' && job.status === 'pending_settlement'}}">
+    <button class="btn btn-cta apply-btn" bindtap="onGoSettlement">去结算支付</button>
+    <text class="apply-hint">收工已完成，请尽快完成工资结算</text>
   </view>
 </view>

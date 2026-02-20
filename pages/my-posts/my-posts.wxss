@@ -58,6 +58,7 @@
 .type-blue { background-color: #EFF6FF; color: #3B82F6; }
 .type-green { background-color: #ECFDF5; color: #10B981; }
 .type-amber { background-color: #FFFBEB; color: #F59E0B; }
+.type-orange { background-color: #FFF7ED; color: #F97316; }
 
 /* 状态标签 */
 .status-tag {
