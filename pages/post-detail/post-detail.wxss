@@ -111,6 +111,7 @@
   background-color: #fff; color: #1E293B;
   border: 2rpx solid #E2E8F0 !important;
   padding: 16rpx 24rpx;
+  flex: none; min-width: 0; width: auto;
 }
 .btn-share .bottom-btn-icon { display: none; }
 .flex-1 { flex: 1; }
