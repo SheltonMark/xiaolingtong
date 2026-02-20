@@ -1,0 +1,21 @@
+.wh-page { min-height: 100vh; background-color: #F8FAFC; }
+.wh-stat-card { background-color: #fff; border-radius: 24rpx; margin: 24rpx 32rpx 0; padding: 32rpx; display: flex; }
+.wh-stat-item { flex: 1; text-align: center; }
+.wh-stat-val { font-size: 28rpx; font-weight: 700; display: block; }
+.wh-stat-label { font-size: 20rpx; color: #94A3B8; margin-top: 4rpx; display: block; }
+.wh-card { background-color: #fff; border-radius: 24rpx; margin: 24rpx 32rpx 0; padding: 32rpx; }
+.card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 24rpx; }
+.wh-list { display: flex; flex-direction: column; }
+.wh-item { display: flex; align-items: center; gap: 20rpx; padding: 20rpx 0; border-bottom: 1rpx solid #F8FAFC; }
+.wh-item:last-child { border-bottom: none; }
+.wh-icon-wrap { width: 64rpx; height: 64rpx; border-radius: 16rpx; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.wh-icon { font-size: 28rpx; }
+.wh-icon-success { background-color: #ECFDF5; color: #10B981; }
+.wh-icon-pending { background-color: #FFFBEB; color: #F59E0B; }
+.wh-icon-fail { background-color: #FFF1F2; color: #F43F5E; }
+.wh-info { flex: 1; display: flex; flex-direction: column; }
+.wh-title { font-size: 24rpx; font-weight: 500; color: #1E293B; }
+.wh-time { font-size: 20rpx; color: #94A3B8; margin-top: 4rpx; }
+.wh-amount { font-size: 28rpx; font-weight: 600; color: #1E293B; flex-shrink: 0; }
+.wh-tip { margin: 24rpx 32rpx; background-color: #F8FAFC; border-radius: 16rpx; padding: 20rpx; }
+.wh-tip-text { font-size: 20rpx; color: #94A3B8; text-align: center; display: block; }

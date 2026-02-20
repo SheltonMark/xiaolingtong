@@ -1,0 +1,72 @@
+<view class="an-page">
+  <!-- 选择工人 -->
+  <view class="an-card">
+    <text class="card-title">选择工人</text>
+    <view class="worker-select" bindtap="onSelectWorker">
+      <view class="text-avatar" style="width:64rpx;height:64rpx;font-size:26rpx;background-color:#3B82F6;">{{selectedWorker.name[0]}}</view>
+      <view class="worker-info">
+        <text class="worker-name">{{selectedWorker.name}}</text>
+        <text class="worker-sub">{{selectedWorker.jobType}} · 今日已工作{{selectedWorker.hours}}h</text>
+      </view>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <!-- 异常类型 -->
+  <view class="an-card">
+    <text class="card-title">异常类型</text>
+    <view class="type-grid">
+      <view class="type-item {{item.key === selectedType ? 'type-selected' : ''}}"
+            wx:for="{{types}}" wx:key="key"
+            data-key="{{item.key}}" bindtap="onTypeTap">
+        <text class="type-icon">{{item.icon}}</text>
+        <text class="type-label">{{item.label}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 异常时间 -->
+  <view class="an-card">
+    <text class="card-title">异常时间</text>
+    <view class="time-row">
+      <view class="time-box">
+        <text class="time-label">发生时间</text>
+        <picker mode="time" bindchange="onTimePick">
+          <text class="time-val">{{time}}</text>
+        </picker>
+      </view>
+      <view class="time-box">
+        <text class="time-label">实际工时</text>
+        <text class="time-val text-cta">{{actualHours}}小时</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 情况说明 -->
+  <view class="an-card">
+    <text class="card-title">情况说明</text>
+    <textarea class="an-textarea" placeholder="请描述异常情况..." maxlength="200"
+              bindinput="onDescInput" value="{{desc}}" />
+  </view>
+
+  <!-- 上传凭证 -->
+  <view class="an-card">
+    <text class="card-title">上传凭证</text>
+    <view class="photo-grid">
+      <view class="photo-add" bindtap="onAddPhoto" wx:if="{{photos.length < 3}}">
+        <text class="photo-add-icon">+</text>
+        <text class="photo-add-text">拍照</text>
+      </view>
+      <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="photo-img" />
+      </view>
+    </view>
+    <text class="photo-hint">最多上传3张凭证照片</text>
+  </view>
+
+  <!-- 提交 -->
+  <view class="an-bottom">
+    <button class="btn btn-rose" bindtap="onSubmit">提交异常记录</button>
+    <text class="an-hint">异常记录将影响该工人本次工时结算</text>
+  </view>
+</view>

@@ -33,7 +33,7 @@ Page({
   },
 
   onRecordAnomaly() {
-    wx.showToast({ title: '异常记录功能开发中', icon: 'none' })
+    wx.navigateTo({ url: '/pages/anomaly/anomaly' })
   },
 
   onFinishWork() {

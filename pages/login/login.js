@@ -18,9 +18,9 @@ Page({
     wx.navigateTo({ url: '/pages/identity/identity' })
   },
   onViewAgreement() {
-    wx.showToast({ title: '用户协议', icon: 'none' })
+    wx.navigateTo({ url: '/pages/agreement/agreement' })
   },
   onViewPrivacy() {
-    wx.showToast({ title: '隐私政策', icon: 'none' })
+    wx.navigateTo({ url: '/pages/privacy/privacy' })
   }
 })

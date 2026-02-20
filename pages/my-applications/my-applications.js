@@ -75,6 +75,6 @@ Page({
   },
 
   onRate(e) {
-    wx.showToast({ title: '评价功能开发中', icon: 'none' })
+    wx.navigateTo({ url: '/pages/rate/rate?id=' + e.currentTarget.dataset.id })
   }
 })

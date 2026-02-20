@@ -19,7 +19,7 @@ Page({
     })
   },
   onWithdrawHistory() {
-    wx.showToast({ title: '提现记录开发中', icon: 'none' })
+    wx.navigateTo({ url: '/pages/withdraw-history/withdraw-history' })
   },
   onGoIncome() {
     wx.navigateTo({ url: '/pages/income/income' })

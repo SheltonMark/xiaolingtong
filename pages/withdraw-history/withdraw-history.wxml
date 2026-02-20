@@ -1,0 +1,39 @@
+<view class="wh-page">
+  <!-- 统计卡片 -->
+  <view class="wh-stat-card">
+    <view class="wh-stat-item">
+      <text class="wh-stat-val text-cta">¥{{summary.totalAmount}}</text>
+      <text class="wh-stat-label">累计提现</text>
+    </view>
+    <view class="wh-stat-item">
+      <text class="wh-stat-val text-fresh">{{summary.totalCount}}</text>
+      <text class="wh-stat-label">提现次数</text>
+    </view>
+    <view class="wh-stat-item">
+      <text class="wh-stat-val text-primary">¥{{summary.balance}}</text>
+      <text class="wh-stat-label">当前余额</text>
+    </view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="wh-card">
+    <text class="card-title">全部记录</text>
+    <view class="wh-list">
+      <view class="wh-item" wx:for="{{records}}" wx:key="id">
+        <view class="wh-icon-wrap wh-icon-{{item.statusType}}">
+          <text class="wh-icon">{{item.statusIcon}}</text>
+        </view>
+        <view class="wh-info">
+          <text class="wh-title">提现到微信零钱</text>
+          <text class="wh-time {{item.statusType === 'fail' ? 'text-rose' : (item.statusType === 'pending' ? 'text-warm' : '')}}">{{item.time}} · {{item.statusText}}</text>
+        </view>
+        <text class="wh-amount">-¥{{item.amount}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提示 -->
+  <view class="wh-tip">
+    <text class="wh-tip-text">提现到微信零钱 · 免手续费 · 预计24小时内到账</text>
+  </view>
+</view>

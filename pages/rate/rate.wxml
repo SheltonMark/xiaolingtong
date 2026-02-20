@@ -1,0 +1,49 @@
+<view class="rate-page">
+  <!-- 企业信息 -->
+  <view class="rate-card">
+    <view class="company-row">
+      <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{company.name[0]}}</view>
+      <view class="company-info">
+        <text class="company-name">{{company.name}}</text>
+        <text class="company-sub">{{company.jobType}} · {{company.dateRange}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评分项 -->
+  <view class="rate-card">
+    <text class="card-title">请为本次工作打分</text>
+    <view class="rate-item" wx:for="{{rateItems}}" wx:key="key">
+      <text class="rate-label">{{item.label}}</text>
+      <view class="stars">
+        <text class="star {{starIdx < item.score ? 'star-on' : 'star-off'}}"
+              wx:for="{{5}}" wx:for-index="starIdx" wx:key="starIdx"
+              data-key="{{item.key}}" data-score="{{starIdx + 1}}" bindtap="onStarTap">★</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 标签快选 -->
+  <view class="rate-card">
+    <text class="card-title">选择标签</text>
+    <view class="tag-wrap">
+      <text class="tag-item {{item.selected ? 'tag-selected' : ''}}"
+            wx:for="{{tags}}" wx:key="label"
+            data-index="{{index}}" bindtap="onTagTap">{{item.label}}</text>
+    </view>
+  </view>
+
+  <!-- 文字评价 -->
+  <view class="rate-card">
+    <text class="card-title">详细评价</text>
+    <textarea class="rate-textarea" placeholder="分享您的工作体验..." maxlength="200"
+              bindinput="onInput" value="{{content}}" />
+    <text class="char-count">{{content.length}}/200</text>
+  </view>
+
+  <!-- 提交 -->
+  <view class="rate-bottom">
+    <button class="btn btn-primary" bindtap="onSubmit">提交评价</button>
+    <text class="rate-hint">评价提交后不可修改，请认真填写</text>
+  </view>
+</view>

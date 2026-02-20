@@ -27,11 +27,11 @@ Page({
   },
 
   onAgreement() {
-    wx.showToast({ title: '用户协议', icon: 'none' })
+    wx.navigateTo({ url: '/pages/agreement/agreement' })
   },
 
   onPrivacy() {
-    wx.showToast({ title: '隐私政策', icon: 'none' })
+    wx.navigateTo({ url: '/pages/privacy/privacy' })
   },
 
   onLogout() {

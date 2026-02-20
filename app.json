@@ -30,7 +30,12 @@
     "pages/ad-purchase/ad-purchase",
     "pages/exposure-detail/exposure-detail",
     "pages/chat/chat",
-    "pages/settings/settings"
+    "pages/settings/settings",
+    "pages/rate/rate",
+    "pages/withdraw-history/withdraw-history",
+    "pages/anomaly/anomaly",
+    "pages/agreement/agreement",
+    "pages/privacy/privacy"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

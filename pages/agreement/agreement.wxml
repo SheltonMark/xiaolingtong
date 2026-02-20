@@ -1,0 +1,46 @@
+<view class="doc-page">
+  <view class="doc-card">
+    <text class="doc-main-title">小灵通平台用户服务协议</text>
+    <text class="doc-update">更新日期：2026年1月1日 · 生效日期：2026年1月1日</text>
+
+    <view class="doc-section">
+      <text class="doc-title">一、总则</text>
+      <text class="doc-text">1.1 欢迎您使用小灵通平台（以下简称"本平台"）。本协议是您与小灵通平台运营方之间关于使用本平台服务所订立的协议。</text>
+      <text class="doc-text">1.2 您在使用本平台服务前，应当仔细阅读本协议。如您不同意本协议的任何条款，请勿注册或使用本平台服务。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">二、账号注册与管理</text>
+      <text class="doc-text">2.1 用户需通过微信授权登录注册账号，并选择企业用户或临工用户身份。</text>
+      <text class="doc-text">2.2 用户应提供真实、准确的注册信息，并及时更新。因信息不实导致的后果由用户自行承担。</text>
+      <text class="doc-text">2.3 用户账号仅限本人使用，不得转让、借用或出售。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">三、服务内容</text>
+      <text class="doc-text">3.1 本平台为企业用户提供采购需求发布、工厂库存展示、代加工对接、临工招聘等服务。</text>
+      <text class="doc-text">3.2 本平台为临工用户提供岗位浏览、报名应聘、打卡出勤、工资结算等服务。</text>
+      <text class="doc-text">3.3 平台提供灵豆虚拟货币系统，用于信息查看、推广置顶等增值服务。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">四、用户行为规范</text>
+      <text class="doc-text">4.1 用户不得发布虚假信息、恶意刷单、诱导线下交易等违规行为。</text>
+      <text class="doc-text">4.2 企业用户应按时支付临工工资，不得拖欠或克扣。</text>
+      <text class="doc-text">4.3 临工用户应按时到岗，遵守工作纪律，不得无故旷工。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">五、费用与结算</text>
+      <text class="doc-text">5.1 平台对企业用户收取服务费，具体费率以页面展示为准。</text>
+      <text class="doc-text">5.2 临工工资由企业通过平台支付，平台扣除服务费后发放至临工钱包。</text>
+      <text class="doc-text">5.3 临工可随时将钱包余额提现至微信零钱。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">六、免责声明</text>
+      <text class="doc-text">6.1 本平台仅提供信息对接服务，不对用户间的交易行为承担担保责任。</text>
+      <text class="doc-text">6.2 因不可抗力导致的服务中断，本平台不承担责任。</text>
+    </view>
+  </view>
+</view>
