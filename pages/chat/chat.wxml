@@ -1,14 +1,10 @@
 <!--pages/chat/chat.wxml-->
 <view class="chat-page">
-  <!-- 聊天消息区 -->
-  <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}">
-    <!-- 时间标记 -->
+  <!-- 聊天消息区 - 新增style强制宽度 -->
+  <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}" style="width: 100%;">
+    <!-- 原有内容不变 -->
     <view class="time-mark"><text>今天 14:30</text></view>
-
-    <!-- 系统提示 -->
     <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
-
-    <!-- 消息列表 -->
     <block wx:for="{{messages}}" wx:key="id">
       <!-- 对方消息 -->
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
@@ -23,7 +19,6 @@
           <text class="msg-time-text">{{item.time}}</text>
         </view>
       </view>
-
       <!-- 我的消息 -->
       <view class="msg-row msg-right" wx:if="{{item.from === 'me'}}" id="msg-{{item.id}}">
         <view class="msg-bubble-wrap msg-bubble-right">
@@ -38,8 +33,7 @@
       </view>
     </block>
   </scroll-view>
-
-  <!-- 底部输入栏 -->
+  <!-- 底部输入栏不变 -->
   <view class="chat-bottom">
     <view class="chat-input-row">
       <text class="chat-tool-btn">🎤</text>
