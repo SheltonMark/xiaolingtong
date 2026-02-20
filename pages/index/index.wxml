@@ -73,7 +73,8 @@
                    item="{{item}}"
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
-                   bind:phone="onPhone" />
+                   bind:phone="onPhone"
+                   bind:report="onReport" />
         <empty-state wx:if="{{purchaseList.length === 0}}" text="暂无采购需求" />
       </view>
     </view>
@@ -99,7 +100,8 @@
                    item="{{item}}"
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
-                   bind:phone="onPhone" />
+                   bind:phone="onPhone"
+                   bind:report="onReport" />
         <empty-state wx:if="{{stockList.length === 0}}" text="暂无库存信息" />
       </view>
     </view>
@@ -125,7 +127,8 @@
                    item="{{item}}"
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
-                   bind:phone="onPhone" />
+                   bind:phone="onPhone"
+                   bind:report="onReport" />
         <empty-state wx:if="{{!processList || processList.length === 0}}" text="暂无代加工信息" />
       </view>
     </view>
@@ -158,8 +161,8 @@
               </view>
             </view>
             <view class="contact-btns">
-              <view class="contact-btn btn-wechat" catchtap="onWechat">微信</view>
-              <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
+              <view class="contact-btn btn-wechat" catchtap="onWechat" data-id="{{item.id}}">微信</view>
+              <view class="contact-btn btn-phone" catchtap="onPhone" data-id="{{item.id}}">电话</view>
             </view>
           </view>
           <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}</text> · {{item.title}}<text wx:if="{{item.urgent}}" class="text-rose"> · 急招</text></text>
@@ -171,7 +174,7 @@
                 <text class="action-icon">↗</text>
                 <text class="job-action">分享</text>
               </view>
-              <view class="job-action-item">
+              <view class="job-action-item" catchtap="onReport" data-id="{{item.id}}">
                 <text class="action-icon">⚠</text>
                 <text class="job-action">投诉</text>
               </view>
@@ -237,8 +240,8 @@
           </view>
         </view>
         <view class="contact-btns">
-          <view class="contact-btn btn-wechat" catchtap="onWechat">微信</view>
-          <view class="contact-btn btn-phone" catchtap="onPhone">电话</view>
+          <view class="contact-btn btn-wechat" catchtap="onWechat" data-id="{{item.id}}">微信</view>
+          <view class="contact-btn btn-phone" catchtap="onPhone" data-id="{{item.id}}">电话</view>
         </view>
       </view>
       <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text> · {{item.title}}<text wx:if="{{item.tagText}}" class="{{item.tagColor}}"> · {{item.tagText}}</text></text>
@@ -256,7 +259,7 @@
             <text class="action-icon">↗</text>
             <text class="job-action">分享</text>
           </view>
-          <view class="job-action-item">
+          <view class="job-action-item" catchtap="onReport" data-id="{{item.id}}">
             <text class="action-icon">⚠</text>
             <text class="job-action">投诉</text>
           </view>

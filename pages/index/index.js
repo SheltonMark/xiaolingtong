@@ -129,11 +129,40 @@ Page({
   },
 
   onWechat(e) {
-    wx.showToast({ title: '已复制微信号', icon: 'success' })
+    const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
+    // 从列表中找到对应项的微信号
+    const allItems = [
+      ...(this.data.purchaseList || []),
+      ...(this.data.stockList || []),
+      ...(this.data.processList || []),
+      ...(this.data.jobListEnterprise || []),
+      ...(this.data.jobList || [])
+    ]
+    const item = allItems.find(i => i.id === id)
+    const wechat = item ? item.wechat : ''
+    if (!wechat) {
+      wx.showToast({ title: '暂无微信号', icon: 'none' })
+      return
+    }
+    wx.showModal({
+      title: '微信号',
+      content: wechat,
+      confirmText: '复制',
+      success: (res) => {
+        if (res.confirm) {
+          wx.setClipboardData({ data: wechat })
+        }
+      }
+    })
   },
 
   onPhone(e) {
     wx.makePhoneCall({ phoneNumber: '13800138000', fail() {} })
+  },
+
+  onReport(e) {
+    const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
+    wx.navigateTo({ url: '/pages/report/report?id=' + id })
   },
 
   onPublishJob() {

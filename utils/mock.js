@@ -20,6 +20,7 @@ const purchaseList = [
       { label: '预算', value: '¥10~15/个', highlight: true }
     ],
     desc: '有现货优先，长期合作，量大从优。',
+    wechat: 'riYong_trade2024',
     images: [
       'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop',
       'https://images.unsplash.com/photo-1570554520913-ce2192a74574?w=200&h=200&fit=crop',
@@ -46,6 +47,7 @@ const purchaseList = [
       { label: '预算', value: '¥3~5/条', highlight: true }
     ],
     desc: '需要3C认证，支持OEM。',
+    wechat: 'dianzi_tech888',
     images: [],
     date: '02-06',
     time: '5小时前'
@@ -72,6 +74,7 @@ const stockList = [
       { label: '起订量', value: '100副起' }
     ],
     desc: '可OEM贴牌，量大价优。',
+    wechat: 'gz_dianzi_stock',
     images: [],
     date: '02-05',
     time: '1天前'
@@ -98,6 +101,7 @@ const processList = [
       { label: '交期', value: '15天' }
     ],
     desc: '支持来图定制，丝印能力。',
+    wechat: 'sz_moju_factory',
     images: [
       'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=200&h=200&fit=crop',
       'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=200&h=200&fit=crop'
@@ -117,6 +121,7 @@ const jobListEnterprise = [
     location: '东莞长安',
     title: '电子组装工',
     salary: '20元/小时',
+    wechat: 'xinda_hr_001',
     desc: '需要15人，工期7天，08:00-18:00，包午餐，有空调车间。',
     urgent: true,
     applied: 5,
@@ -140,6 +145,7 @@ const jobListWorker = [
     companyAvatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
     tagText: '急招',
     tagColor: 'text-rose',
+    wechat: 'xinda_hr_001',
     desc: '需要15人，工期7天，08:00-18:00，包午餐，有空调车间，长期合作优先。',
     images: [
       'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200&h=200&fit=crop',
@@ -161,6 +167,7 @@ const jobListWorker = [
     companyAvatar: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=80&h=80&fit=crop',
     tagText: '长期',
     tagColor: 'text-fresh',
+    wechat: 'sf_wuliu_hr',
     desc: '需要20人，长期岗位，08:30-17:30，提供工作餐，月结工资。',
     images: []
   },
@@ -178,6 +185,7 @@ const jobListWorker = [
     companyAvatar: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop',
     tagText: '',
     tagColor: '',
+    wechat: 'meihua_fz_hr',
     desc: '需要10人，工期15天，09:00-18:00，熟手优先，有缝纫经验者优先录用。',
     images: []
   }
