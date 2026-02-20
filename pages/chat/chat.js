@@ -2,6 +2,8 @@ Page({
   data: {
     inputText: '',
     scrollToView: '',
+    otherAvatarText: '张',
+    myAvatarText: '鑫',
     messages: [
       { id: 1, from: 'other', text: '你好，我们这边有现货304不锈钢保温杯，500ml的，请问你需要什么颜色？', time: '14:30' },
       { id: 2, from: 'me', text: '黑色和白色各1500个，能做logo定制吗？', time: '14:31' },

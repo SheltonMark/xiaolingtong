@@ -5,6 +5,7 @@ Page({
       id: 'p1',
       type: 'purchase',
       typeText: '采购需求',
+      avatarText: '鑫',
       title: '保温杯3000个采购，304不锈钢材质，500ml容量',
       location: '东莞',
       certText: '已认证贸易商',

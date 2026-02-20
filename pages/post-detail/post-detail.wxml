@@ -50,7 +50,7 @@
       <text class="section-label">发布者</text>
     </view>
     <view class="publisher-info">
-      <view class="text-avatar" style="width:88rpx;height:88rpx;font-size:32rpx;background-color:#3B82F6;">鑫</view>
+      <view class="text-avatar" style="width:88rpx;height:88rpx;font-size:32rpx;background-color:#3B82F6;">{{detail.avatarText}}</view>
       <view class="pub-detail">
         <view class="pub-name-row">
           <text class="pub-name">{{detail.location}} · {{detail.certText}}</text>

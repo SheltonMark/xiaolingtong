@@ -4,6 +4,8 @@ Page({
     statusBarHeight: 0,
     menuHeight: 0,
     currentTab: 0,
+    enterpriseInfo: { avatarText: '鑫' },
+    workerInfo: { avatarText: '张' },
     // 企业端
     enterpriseTabs: ['我的动态', '浏览记录', '对接记录'],
     enterpriseFuncs: [
@@ -50,11 +52,7 @@ Page({
 
   onFuncTap(e) {
     const { url } = e.currentTarget.dataset
-    if (url) {
-      wx.navigateTo({ url })
-    } else {
-      wx.showToast({ title: '功能开发中', icon: 'none' })
-    }
+    if (url) wx.navigateTo({ url })
   },
 
   onSettings() {

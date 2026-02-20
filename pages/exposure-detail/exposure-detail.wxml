@@ -3,7 +3,7 @@
   <!-- 发布者信息 -->
   <view class="ed-card">
     <view class="ed-author">
-      <view class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:#64748B;">匿</view>
+      <view class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:#64748B;">{{detail.avatarText}}</view>
       <view class="ed-author-info">
         <text class="ed-author-name">匿名用户</text>
         <text class="ed-author-time">2026-02-05 发布</text>

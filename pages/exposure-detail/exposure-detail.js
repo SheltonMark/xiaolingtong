@@ -1,5 +1,8 @@
 Page({
   data: {
+    detail: {
+      avatarText: '匿'
+    },
     images: [
       'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=200&h=200&fit=crop',
       'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=200&h=200&fit=crop',

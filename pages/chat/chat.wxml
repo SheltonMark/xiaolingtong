@@ -9,7 +9,7 @@
       <!-- 对方消息 -->
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
         <view class="msg-avatar-wrap">
-          <view class="text-avatar text-avatar-md" style="background-color: #F97316;">张</view>
+          <view class="text-avatar text-avatar-md" style="background-color: #F97316;">{{otherAvatarText}}</view>
         </view>
         <view class="msg-bubble-wrap">
           <view class="bubble bubble-left" wx:if="{{item.text}}">
@@ -28,7 +28,7 @@
           <text class="msg-time-text msg-time-right">{{item.time}}</text>
         </view>
         <view class="msg-avatar-wrap">
-          <view class="text-avatar text-avatar-md" style="background-color: #3B82F6;">鑫</view>
+          <view class="text-avatar text-avatar-md" style="background-color: #3B82F6;">{{myAvatarText}}</view>
         </view>
       </view>
     </block>
