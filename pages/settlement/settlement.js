@@ -36,6 +36,7 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.showToast({ title: '支付成功', icon: 'success' })
+          setTimeout(() => wx.navigateBack(), 1500)
         }
       }
     })

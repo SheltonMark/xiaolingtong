@@ -72,7 +72,10 @@ Page({
       title: '确认开工',
       content: '确认所有人员已到位，开始工作？',
       success: (res) => {
-        if (res.confirm) wx.showToast({ title: '已确认开工', icon: 'success' })
+        if (res.confirm) {
+          wx.showToast({ title: '已确认开工', icon: 'success' })
+          setTimeout(() => wx.navigateTo({ url: '/pages/work-record/work-record' }), 1500)
+        }
       }
     })
   }

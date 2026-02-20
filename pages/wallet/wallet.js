@@ -23,5 +23,14 @@ Page({
   },
   onGoIncome() {
     wx.navigateTo({ url: '/pages/income/income' })
+  },
+  onGoBeanShop() {
+    wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
+  },
+  onGoSettlement() {
+    wx.navigateTo({ url: '/pages/settlement/settlement' })
+  },
+  onGoHelp() {
+    wx.navigateTo({ url: '/pages/settings/settings' })
   }
 })

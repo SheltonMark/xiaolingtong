@@ -49,6 +49,10 @@
       <!-- 操作 -->
       <button class="confirm-btn" wx:if="{{item.status === 'confirm'}}"
               data-id="{{item.id}}" bindtap="onConfirmAttend">确认出勤</button>
+      <view class="app-actions" wx:if="{{item.status === 'ongoing'}}">
+        <button class="act-btn act-blue" data-id="{{item.id}}" bindtap="onGoCheckin">打卡签到</button>
+        <button class="act-btn act-blue" data-id="{{item.id}}" bindtap="onViewDetail">查看详情</button>
+      </view>
       <view class="app-actions" wx:if="{{item.status === 'done'}}">
         <button class="act-btn act-blue" data-id="{{item.id}}" bindtap="onViewDetail">查看详情</button>
         <button class="act-btn act-orange" data-id="{{item.id}}" bindtap="onRate">评价企业</button>

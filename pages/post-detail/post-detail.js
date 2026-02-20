@@ -71,7 +71,7 @@ Page({
   },
 
   onShare() {
-    wx.showToast({ title: '分享功能开发中', icon: 'none' })
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] })
   },
 
   onReport() {

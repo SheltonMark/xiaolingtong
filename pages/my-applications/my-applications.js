@@ -58,13 +58,20 @@ Page({
       title: '确认出勤',
       content: '确认明天按时到岗？',
       success: (res) => {
-        if (res.confirm) wx.showToast({ title: '已确认', icon: 'success' })
+        if (res.confirm) {
+          wx.showToast({ title: '已确认', icon: 'success' })
+          setTimeout(() => wx.navigateTo({ url: '/pages/checkin/checkin?id=' + e.currentTarget.dataset.id }), 1500)
+        }
       }
     })
   },
 
   onViewDetail(e) {
     wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + e.currentTarget.dataset.id })
+  },
+
+  onGoCheckin(e) {
+    wx.navigateTo({ url: '/pages/checkin/checkin?id=' + e.currentTarget.dataset.id })
   },
 
   onRate(e) {

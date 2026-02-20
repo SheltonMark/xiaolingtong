@@ -25,19 +25,19 @@
         </view>
         <text class="shortcut-text">收入明细</text>
       </view>
-      <view class="shortcut-item">
+      <view class="shortcut-item" bindtap="onGoBeanShop">
         <view class="shortcut-icon shortcut-icon-blue">
           <text>🏷</text>
         </view>
         <text class="shortcut-text">灵豆商城</text>
       </view>
-      <view class="shortcut-item">
+      <view class="shortcut-item" bindtap="onGoSettlement">
         <view class="shortcut-icon shortcut-icon-green">
           <text>📋</text>
         </view>
         <text class="shortcut-text">工资单</text>
       </view>
-      <view class="shortcut-item">
+      <view class="shortcut-item" bindtap="onGoHelp">
         <view class="shortcut-icon shortcut-icon-amber">
           <text>❓</text>
         </view>
