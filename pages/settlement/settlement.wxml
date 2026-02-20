@@ -3,7 +3,7 @@
   <!-- 工作概要 -->
   <view class="st-card">
     <view class="st-job-header">
-      <view class="text-avatar" style="width:60rpx;height:60rpx;font-size:24rpx;background-color:#10B981;">鑫</view>
+      <view class="text-avatar" style="width:60rpx;height:60rpx;font-size:24rpx;background-color:#10B981;">{{job.avatarText}}</view>
       <view class="st-job-info">
         <text class="st-company">{{job.company}} · {{job.jobType}}</text>
         <text class="st-date">{{job.dateRange}}</text>

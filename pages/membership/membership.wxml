@@ -5,7 +5,7 @@
     <view class="mb-card-bg1"></view>
     <view class="mb-card-bg2"></view>
     <view class="mb-user">
-      <view class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#3B82F6;">鑫</view>
+      <view class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#3B82F6;">{{userInfo.avatarText}}</view>
       <view class="mb-user-info">
         <text class="mb-user-name">鑫达贸易公司</text>
         <text class="mb-user-status">当前：未开通会员</text>

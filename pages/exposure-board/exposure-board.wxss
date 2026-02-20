@@ -79,10 +79,10 @@
 
 /* 操作 */
 .eb-actions {
-  display: flex; justify-content: flex-end; gap: 32rpx;
+  display: flex; align-items: center; justify-content: flex-end; gap: 32rpx;
   padding-left: 100rpx;
 }
-.eb-action { font-size: 20rpx; color: #94A3B8; }
+.eb-action { font-size: 20rpx; color: #94A3B8; line-height: 1; display: flex; align-items: center; }
 
 /* 悬浮按钮 */
 .eb-fab {
