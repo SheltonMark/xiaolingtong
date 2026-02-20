@@ -136,6 +136,10 @@ Page({
     wx.makePhoneCall({ phoneNumber: '13800138000', fail() {} })
   },
 
+  onPublishJob() {
+    wx.navigateTo({ url: '/pages/post-job/post-job' })
+  },
+
   // 长按城市切换角色（调试用）
   onSwitchRole() {
     const newRole = this.data.userRole === 'enterprise' ? 'worker' : 'enterprise'

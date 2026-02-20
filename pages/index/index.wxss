@@ -423,3 +423,15 @@
   color: #CBD5E1;
   margin-left: auto;
 }
+
+/* 悬浮发布招工按钮 */
+.fab-publish {
+  position: fixed; bottom: calc(160rpx + env(safe-area-inset-bottom)); right: 32rpx;
+  width: 112rpx; height: 112rpx; border-radius: 50%;
+  background-color: #3B82F6; color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  box-shadow: 0 8rpx 30rpx rgba(59,130,246,0.4);
+  z-index: 50;
+}
+.fab-publish-icon { font-size: 40rpx; font-weight: 300; line-height: 1; }
+.fab-publish-text { font-size: 20rpx; font-weight: 600; margin-top: 2rpx; }

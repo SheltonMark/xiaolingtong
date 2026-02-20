@@ -183,6 +183,11 @@
         </view>
         <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="暂无招工信息" />
       </view>
+      <!-- 悬浮发布招工按钮 -->
+      <view class="fab-publish" bindtap="onPublishJob">
+        <text class="fab-publish-icon">+</text>
+        <text class="fab-publish-text">发布</text>
+      </view>
     </view>
 
     <!-- Tab 4: 工厂名录 -->
