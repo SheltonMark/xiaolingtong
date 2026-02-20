@@ -1,6 +1,6 @@
 .st-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 160rpx; }
 .st-card { background-color: #ffffff; margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 32rpx; }
-.st-job-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
+.st-job-header { display: flex; align-items: flex-start; gap: 16rpx; margin-bottom: 20rpx; }
 .st-avatar-img {
   width: 72rpx; height: 72rpx; border-radius: 50%; flex-shrink: 0;
 }
