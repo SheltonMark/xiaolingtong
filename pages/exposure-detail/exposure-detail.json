@@ -1,4 +1,6 @@
 {
-  "usingComponents": {},
+  "usingComponents": {
+    "empty-state": "/components/empty-state/empty-state"
+  },
   "navigationBarTitleText": "曝光详情"
 }

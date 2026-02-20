@@ -37,6 +37,7 @@
         <text class="msg-desc">{{item.lastMsg}}</text>
       </view>
     </view>
+    <empty-state wx:if="{{chatMessages.length === 0}}" text="暂无业务消息" />
   </view>
 
   <!-- 系统通知 -->
@@ -57,5 +58,6 @@
         <text class="msg-desc {{item.unread ? '' : 'msg-desc-read'}}">{{item.desc}}</text>
       </view>
     </view>
+    <empty-state wx:if="{{systemMessages.length === 0}}" text="暂无系统通知" />
   </view>
 </view>

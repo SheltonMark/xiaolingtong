@@ -46,6 +46,7 @@
           <text class="comment-text">{{item.content}}</text>
         </view>
       </view>
+      <empty-state wx:if="{{comments.length === 0}}" text="暂无评论" />
     </view>
   </view>
 

@@ -14,4 +14,4 @@
 .image-delete { position: absolute; top: 4rpx; right: 4rpx; width: 36rpx; height: 36rpx; background-color: rgba(0,0,0,0.5); color: #fff; font-size: 24rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .image-add { width: 160rpx; height: 160rpx; border: 2rpx dashed #CBD5E1; border-radius: 12rpx; display: flex; align-items: center; justify-content: center; }
 .add-icon { font-size: 40rpx; color: #94A3B8; }
-.submit-wrap { padding: 24rpx 48rpx; position: fixed; bottom: 0; left: 0; right: 0; background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04); }
+.submit-wrap { padding: 24rpx 48rpx; position: fixed; bottom: 0; left: 0; right: 0; background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04); padding-bottom: calc(24rpx + env(safe-area-inset-bottom)); }

@@ -64,9 +64,8 @@
         <text class="income-amount {{item.type === 'income' ? 'text-fresh' : 'text-rose'}}">{{item.amount}}</text>
       </view>
     </view>
+    <empty-state wx:if="{{records.length === 0}}" text="暂无收入记录" />
   </view>
-
-  <!-- 提现说明 -->
   <view class="wl-tip">
     <text class="wl-tip-text">提现到微信零钱 · 免手续费 · 预计24小时内到账</text>
   </view>
