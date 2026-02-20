@@ -151,10 +151,7 @@
               data-id="{{item.id}}" bindtap="onJobTap">
           <view class="job-header">
             <view class="job-header-left">
-              <image wx:if="{{item.companyAvatar}}" src="{{item.companyAvatar}}" class="job-avatar" mode="aspectFill" />
-              <view wx:else class="job-avatar-placeholder">
-                <text>🏭</text>
-              </view>
+              <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
               <view class="job-company-info">
                 <text class="job-company">{{item.companyName}}</text>
                 <text class="job-meta">{{item.time}} · {{item.location}}</text>
@@ -233,10 +230,7 @@
           data-id="{{item.id}}" bindtap="onJobTap">
       <view class="job-header">
         <view class="job-header-left">
-          <image wx:if="{{item.companyAvatar}}" src="{{item.companyAvatar}}" class="job-avatar" mode="aspectFill" />
-          <view wx:else class="job-avatar-placeholder">
-            <text>🏭</text>
-          </view>
+          <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
           <view class="job-company-info">
             <text class="job-company">{{item.companyName}}</text>
             <text class="job-meta">{{item.dateRange}} · {{item.location}} · {{item.distance}}</text>

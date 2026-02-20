@@ -2,9 +2,8 @@
   <!-- 头部：头像 + 信息 + 联系按钮 -->
   <view class="card-header">
     <view class="header-left">
-      <image class="avatar-img" src="{{item.avatar}}" mode="aspectFill" wx:if="{{item.avatar}}" />
-      <view class="avatar-circle" style="background-color: {{item.avatarBg}};" wx:else>
-        <text style="color: {{item.avatarColor}};" class="avatar-text">{{item.avatarText}}</text>
+      <view class="avatar-circle" style="background-color: {{item.avatarBg || '#10B981'}};">
+        <text style="color: {{item.avatarColor || '#ffffff'}};" class="avatar-text">{{item.avatarText}}</text>
       </view>
       <view class="header-info">
         <text class="header-title">{{item.location}} · {{item.certText}}</text>
