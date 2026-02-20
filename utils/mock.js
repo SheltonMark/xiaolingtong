@@ -5,7 +5,7 @@ const purchaseList = [
   {
     id: 'p1',
     type: 'purchase',
-    avatar: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop',
+    avatar: '',
     avatarText: '日',
     avatarBg: '#DBEAFE',
     avatarColor: '#3B82F6',
@@ -21,18 +21,14 @@ const purchaseList = [
     ],
     desc: '有现货优先，长期合作，量大从优。',
     wechat: 'riYong_trade2024',
-    images: [
-      'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1570554520913-ce2192a74574?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1544816155-12df9643f363?w=200&h=200&fit=crop'
-    ],
+    images: [],
     date: '02-07',
     time: '2小时前'
   },
   {
     id: 'p2',
     type: 'purchase',
-    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&h=80&fit=crop',
+    avatar: '',
     avatarText: '电',
     avatarBg: '#D1FAE5',
     avatarColor: '#10B981',
@@ -59,7 +55,7 @@ const stockList = [
   {
     id: 's1',
     type: 'stock',
-    avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=80&h=80&fit=crop',
+    avatar: '',
     avatarText: '电',
     avatarBg: '#D1FAE5',
     avatarColor: '#10B981',
@@ -86,7 +82,7 @@ const processList = [
   {
     id: 'pr1',
     type: 'process',
-    avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
+    avatar: '',
     avatarText: '加',
     avatarBg: '#FEF3C7',
     avatarColor: '#F59E0B',
@@ -102,10 +98,7 @@ const processList = [
     ],
     desc: '支持来图定制，丝印能力。',
     wechat: 'sz_moju_factory',
-    images: [
-      'https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1592899677977-9c10ca588bbd?w=200&h=200&fit=crop'
-    ],
+    images: [],
     date: '02-06',
     time: '1天前'
   }
@@ -116,7 +109,7 @@ const jobListEnterprise = [
   {
     id: 'j1',
     companyName: '鑫达电子厂',
-    companyAvatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
+    companyAvatar: '',
     time: '02-07',
     location: '东莞长安',
     title: '电子组装工',
@@ -142,16 +135,12 @@ const jobListWorker = [
     applied: 5,
     dateRange: '02-07',
     companyName: '鑫达电子厂',
-    companyAvatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
+    companyAvatar: '',
     tagText: '急招',
     tagColor: 'text-rose',
     wechat: 'xinda_hr_001',
     desc: '需要15人，工期7天，08:00-18:00，包午餐，有空调车间，长期合作优先。',
-    images: [
-      'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1565043666747-69f6646db940?w=200&h=200&fit=crop'
-    ]
+    images: []
   },
   {
     id: 'j2',
@@ -164,7 +153,7 @@ const jobListWorker = [
     applied: 12,
     dateRange: '02-06',
     companyName: '顺丰物流仓',
-    companyAvatar: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=80&h=80&fit=crop',
+    companyAvatar: '',
     tagText: '长期',
     tagColor: 'text-fresh',
     wechat: 'sf_wuliu_hr',
@@ -182,7 +171,7 @@ const jobListWorker = [
     applied: 3,
     dateRange: '02-05',
     companyName: '美华服装厂',
-    companyAvatar: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=80&h=80&fit=crop',
+    companyAvatar: '',
     tagText: '',
     tagColor: '',
     wechat: 'meihua_fz_hr',

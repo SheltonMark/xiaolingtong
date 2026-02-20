@@ -2,6 +2,7 @@ Page({
   data: {
     job: {
       company: '鑫达电子厂',
+      avatarText: '鑫',
       jobType: '电子组装工',
       dateRange: '02-10 至 02-17 · 共7天',
       totalWorkers: 12,

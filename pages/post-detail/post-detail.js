@@ -26,11 +26,7 @@ Page({
         { label: '地区', value: '广东 · 东莞' }
       ],
       desc: '有现货优先，长期合作，量大从优。需要带保温盖，包装要求简约风格。',
-      images: [
-        'https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=375&h=280&fit=crop',
-        'https://images.unsplash.com/photo-1570554520913-ce2192a74574?w=375&h=280&fit=crop',
-        'https://images.unsplash.com/photo-1544816155-12df9643f363?w=375&h=280&fit=crop'
-      ]
+      images: []
     },
     contactUnlocked: false,
     contactInfo: {

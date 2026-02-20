@@ -22,14 +22,10 @@ Page({
         { label: '有空调', color: 'blue' },
         { label: '长期合作', color: 'amber' }
       ],
-      images: [
-        'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=375&h=220&fit=crop',
-        'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=375&h=220&fit=crop',
-        'https://images.unsplash.com/photo-1565043666747-69f6646db940?w=375&h=220&fit=crop'
-      ],
+      images: [],
       company: {
         name: '鑫达电子厂',
-        avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop',
+        avatarText: '鑫',
         verified: true,
         creditScore: 92,
         contact: '李主管',

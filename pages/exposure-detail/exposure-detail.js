@@ -3,11 +3,7 @@ Page({
     detail: {
       avatarText: '匿'
     },
-    images: [
-      'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=200&h=200&fit=crop',
-      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=200&h=200&fit=crop'
-    ],
+    images: [],
     comments: [
       { id: 1, name: '张**', time: '2天前', content: '我也被这家坑过，同样的套路，大家注意避坑！' },
       { id: 2, name: '李**', time: '1天前', content: '建议走法律途径，金额超过一万可以报警处理。' },

@@ -1,5 +1,6 @@
 Page({
   data: {
+    userInfo: { avatarText: '鑫' },
     selectedIndex: 0,
     plans: [
       { id: 1, name: '月度会员', desc: '适合短期采购需求', price: '99', original: '199', unit: '月', tag: '', tagColor: '' },

@@ -10,9 +10,9 @@ Page({
       estimateEnd: '18:00'
     },
     photoRecords: [
-      { id: 'pr1', timeRange: '08:00 - 10:00', status: 'done', uploadTime: '10:02', image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=80&h=80&fit=crop' },
-      { id: 'pr2', timeRange: '10:00 - 12:00', status: 'done', uploadTime: '12:05', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=80&h=80&fit=crop' },
-      { id: 'pr3', timeRange: '13:00 - 14:30', status: 'done', uploadTime: '14:32', image: 'https://images.unsplash.com/photo-1565043666747-69f6646db940?w=80&h=80&fit=crop' },
+      { id: 'pr1', timeRange: '08:00 - 10:00', status: 'done', uploadTime: '10:02', image: '' },
+      { id: 'pr2', timeRange: '10:00 - 12:00', status: 'done', uploadTime: '12:05', image: '' },
+      { id: 'pr3', timeRange: '13:00 - 14:30', status: 'done', uploadTime: '14:32', image: '' },
       { id: 'pr4', timeRange: '14:30 - 16:00', status: 'pending', uploadTime: '', image: '' }
     ],
     anomalies: [

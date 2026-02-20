@@ -2,6 +2,7 @@ Page({
   data: {
     jobInfo: {
       company: '鑫达电子厂',
+      avatarText: '鑫',
       date: '02-10',
       time: '08:00-18:00',
       total: 15,
@@ -17,9 +18,7 @@ Page({
       { id: 'w4', name: '赵六', time: '', status: 'absent' },
       { id: 'w5', name: '钱七', time: '', status: 'absent' }
     ],
-    photos: [
-      'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=120&h=120&fit=crop'
-    ]
+    photos: []
   },
 
   onCheckin() {
