@@ -5,7 +5,6 @@ Page({
     list: [
       {
         id: 'a1', company: '鑫达电子厂',
-        avatar: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=60&h=60&fit=crop',
         title: '电子组装工', salary: '20元/时',
         status: 'confirm', statusText: '待确认出勤', statusBg: 'amber',
         tabKey: '待确认',
@@ -15,7 +14,6 @@ Page({
       },
       {
         id: 'a2', company: '顺丰物流仓',
-        avatar: 'https://images.unsplash.com/photo-1553413077-190dd305871c?w=60&h=60&fit=crop',
         title: '包装工', salary: '18元/时',
         status: 'ongoing', statusText: '进行中', statusBg: 'green',
         tabKey: '进行中',
@@ -29,7 +27,6 @@ Page({
       },
       {
         id: 'a3', company: '美华服装厂',
-        avatar: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=60&h=60&fit=crop',
         title: '缝纫工', salary: '计件0.5元/件',
         status: 'done', statusText: '已完成', statusBg: 'gray',
         tabKey: '已完成',
@@ -43,7 +40,6 @@ Page({
       },
       {
         id: 'a4', company: '恒通五金厂',
-        avatar: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=60&h=60&fit=crop',
         title: '焊工', salary: '25元/时',
         status: 'rejected', statusText: '未入选', statusBg: 'rose',
         tabKey: '',

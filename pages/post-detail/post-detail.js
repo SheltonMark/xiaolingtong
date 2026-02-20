@@ -6,7 +6,6 @@ Page({
       type: 'purchase',
       typeText: '采购需求',
       title: '保温杯3000个采购，304不锈钢材质，500ml容量',
-      avatar: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=80&h=80&fit=crop',
       location: '东莞',
       certText: '已认证贸易商',
       industry: '日用百货',

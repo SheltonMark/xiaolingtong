@@ -11,11 +11,11 @@ Page({
     distance: 55,
     maxDistance: 500,
     workers: [
-      { id: 'w1', name: '张三', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=60&h=60&fit=crop', time: '07:55', status: 'ontime' },
-      { id: 'w2', name: '李四', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=60&h=60&fit=crop', time: '07:58', status: 'ontime' },
-      { id: 'w3', name: '王五', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=60&h=60&fit=crop', time: '08:02', status: 'late' },
-      { id: 'w4', name: '赵六', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=60&h=60&fit=crop', time: '', status: 'absent' },
-      { id: 'w5', name: '钱七', avatar: 'https://images.unsplash.com/photo-1463453091185-61582044d556?w=60&h=60&fit=crop', time: '', status: 'absent' }
+      { id: 'w1', name: '张三', time: '07:55', status: 'ontime' },
+      { id: 'w2', name: '李四', time: '07:58', status: 'ontime' },
+      { id: 'w3', name: '王五', time: '08:02', status: 'late' },
+      { id: 'w4', name: '赵六', time: '', status: 'absent' },
+      { id: 'w5', name: '钱七', time: '', status: 'absent' }
     ],
     photos: [
       'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=120&h=120&fit=crop'
