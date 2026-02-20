@@ -26,4 +26,4 @@
 .comment-text { font-size: 24rpx; color: #64748B; line-height: 1.6; }
 .ed-bottom { position: fixed; bottom: 0; left: 0; right: 0; background-color: #fff; border-top: 1rpx solid #F1F5F9; padding: 16rpx 24rpx; display: flex; align-items: center; gap: 16rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); }
 .ed-input { flex: 1; background-color: #F1F5F9; border-radius: 9999rpx; padding: 16rpx 28rpx; font-size: 26rpx; }
-.ed-send-btn { background-color: #F43F5E !important; color: #fff !important; font-size: 24rpx !important; padding: 12rpx 28rpx !important; border-radius: 9999rpx !important; height: auto !important; line-height: normal !important; }
+.ed-send-btn { background-color: #F43F5E !important; color: #fff !important; font-size: 22rpx !important; padding: 8rpx 24rpx !important; border-radius: 9999rpx !important; height: auto !important; line-height: normal !important; min-height: 0 !important; }
