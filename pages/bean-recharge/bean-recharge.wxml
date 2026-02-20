@@ -40,7 +40,7 @@
   <view class="record-section">
     <view class="record-header">
       <text class="section-title" style="margin-bottom:0;">最近记录</text>
-      <text class="record-all">查看全部</text>
+      <text class="record-all" bindtap="onViewAll">查看全部</text>
     </view>
     <view class="record-list">
       <view class="record-item" wx:for="{{records}}" wx:key="id">

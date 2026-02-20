@@ -17,6 +17,9 @@ Page({
     ]
   },
   onSelect(e) { this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) }) },
+  onViewAll() {
+    wx.navigateTo({ url: '/pages/bean-detail/bean-detail' })
+  },
   onPay() {
     const pkg = this.data.packages[this.data.selectedIndex]
     wx.showModal({

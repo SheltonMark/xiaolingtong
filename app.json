@@ -20,6 +20,7 @@
     "pages/report/report",
     "pages/membership/membership",
     "pages/bean-recharge/bean-recharge",
+    "pages/bean-detail/bean-detail",
     "pages/promotion/promotion",
     "pages/wallet/wallet",
     "pages/income/income",

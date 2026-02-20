@@ -1,0 +1,47 @@
+<!--pages/bean-detail/bean-detail.wxml-->
+<view class="bd-page">
+  <!-- 余额概览 -->
+  <view class="bd-card">
+    <view class="bd-card-bg"></view>
+    <text class="bd-label">当前灵豆余额</text>
+    <view class="bd-amount-row">
+      <text class="bd-amount">{{balance}}</text>
+      <text class="bd-unit">灵豆</text>
+    </view>
+    <view class="bd-stats">
+      <text class="bd-stat">累计获得 {{totalIn}}</text>
+      <text class="bd-stat">累计消耗 {{totalOut}}</text>
+    </view>
+  </view>
+
+  <!-- Tab 筛选 -->
+  <view class="bd-tab-wrap">
+    <view class="bd-tab {{currentTab === index ? 'bd-tab-active' : ''}}"
+          wx:for="{{tabs}}" wx:key="index"
+          data-index="{{index}}" bindtap="onTabChange">
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 明细列表 -->
+  <view class="bd-list">
+    <block wx:for="{{groups}}" wx:key="month">
+      <text class="bd-month">{{item.month}}</text>
+      <view class="bd-group">
+        <view class="bd-item {{index < item.items.length - 1 ? 'bd-item-border' : ''}}"
+              wx:for="{{item.items}}" wx:for-item="rec" wx:key="id">
+          <view class="bd-icon-wrap {{rec.type === 'income' ? 'bd-icon-green' : 'bd-icon-rose'}}">
+            <text class="bd-icon">{{rec.type === 'income' ? '+' : '-'}}</text>
+          </view>
+          <view class="bd-info">
+            <text class="bd-name">{{rec.title}}</text>
+            <text class="bd-desc">{{rec.desc}}</text>
+          </view>
+          <text class="bd-amount-text {{rec.type === 'income' ? 'text-fresh' : 'text-rose'}}">{{rec.amount}}</text>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <text class="bd-end">— 没有更多了 —</text>
+</view>
