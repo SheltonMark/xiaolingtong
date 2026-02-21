@@ -18,7 +18,7 @@
     <text class="footer-date">{{item.date}} · {{item.time}}</text>
     <view class="footer-actions">
       <view class="footer-action" catchtap="onTapReport">
-        <text class="action-icon">⚠</text>
+        <text class="action-icon iconfont icon-tishixinxi"></text>
         <text class="action-text">投诉</text>
       </view>
       <view class="footer-action" catchtap="onTapShare">

@@ -263,7 +263,7 @@
             <text class="job-action">分享</text>
           </view>
           <view class="job-action-item" catchtap="onReport" data-id="{{item.id}}">
-            <text class="action-icon">⚠</text>
+            <text class="action-icon iconfont icon-tishixinxi"></text>
             <text class="job-action">投诉</text>
           </view>
         </view>
