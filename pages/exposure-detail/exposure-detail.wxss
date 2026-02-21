@@ -14,7 +14,8 @@
 .ed-img-item { flex: 1; aspect-ratio: 1; border-radius: 12rpx; overflow: hidden; }
 .ed-img { width: 100%; height: 100%; }
 .ed-meta { display: flex; gap: 32rpx; align-items: center; }
-.ed-meta-item { font-size: 22rpx; color: #94A3B8; display: flex; align-items: center; gap: 6rpx; }
+.ed-meta-item { font-size: 22rpx; color: #94A3B8; display: inline-flex; align-items: center; gap: 6rpx; }
+.ed-meta-item .iconfont { font-size: 28rpx; line-height: 1; vertical-align: middle; margin-top: -2rpx; }
 .ed-section-title { font-size: 26rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 24rpx; }
 .comment-list { display: flex; flex-direction: column; gap: 0; }
 .comment-item { display: flex; gap: 16rpx; padding: 24rpx 0; border-bottom: 1rpx solid #F1F5F9; }
