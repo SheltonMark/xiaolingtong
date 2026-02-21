@@ -72,9 +72,12 @@
 .action-icon {
   font-size: 26rpx;
   color: #94A3B8;
+  vertical-align: middle;
+  margin-top: 2rpx;
 }
 .action-icon.icon-fenxiang1 {
   font-size: 22rpx;
+  margin-top: 0;
 }
 .action-text {
   font-size: 20rpx;
