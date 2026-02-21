@@ -81,9 +81,9 @@
   display: flex; align-items: center; justify-content: flex-end; gap: 32rpx;
   padding-left: 100rpx;
 }
-.eb-action { display: flex; align-items: center; gap: 6rpx; }
-.eb-action-icon { font-size: 26rpx; color: #94A3B8; line-height: 1; }
-.eb-action-text { font-size: 22rpx; color: #94A3B8; line-height: 1; }
+.eb-action { display: flex; align-items: center; gap: 6rpx; height: 40rpx; }
+.eb-action-icon { font-size: 26rpx; color: #94A3B8; height: 40rpx; line-height: 40rpx; }
+.eb-action-text { font-size: 22rpx; color: #94A3B8; height: 40rpx; line-height: 40rpx; }
 .eb-action-icon.icon-fenxiang1 { font-size: 24rpx; }
 
 /* 悬浮按钮 */
