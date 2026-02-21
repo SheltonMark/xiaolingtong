@@ -12,7 +12,7 @@
 /* Tab */
 .eb-tab-wrap {
   margin: 24rpx 32rpx 0; background-color: #fff;
-  border-radius: 24rpx 24rpx 0 0;
+  border-radius: 24rpx;
   border-bottom: 1rpx solid #F1F5F9;
 }
 .eb-tabs { display: flex; }
@@ -29,13 +29,12 @@
 
 /* 列表 */
 .eb-list-wrap {
-  margin: 0 32rpx; background-color: #fff;
-  border-radius: 0 0 24rpx 24rpx; overflow: hidden;
+  margin: 0 32rpx; display: flex; flex-direction: column; gap: 24rpx;
+  padding-top: 24rpx;
 }
 .eb-card {
-  padding: 32rpx 24rpx; border-bottom: 1rpx solid #F8FAFC;
+  background-color: #fff; border-radius: 24rpx; padding: 32rpx 24rpx;
 }
-.eb-card:last-child { border-bottom: none; }
 
 /* 头部 */
 .eb-card-header { display: flex; gap: 20rpx; margin-bottom: 16rpx; }
