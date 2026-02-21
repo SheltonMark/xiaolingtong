@@ -149,8 +149,6 @@
   border-top: 10rpx solid #94A3B8;
   margin-left: 4rpx;
 }
-  margin-top: 2rpx;
-}
 
 /* ===== Banner ===== */
 .banner-wrap {
