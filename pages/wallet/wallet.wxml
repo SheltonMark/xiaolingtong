@@ -27,7 +27,7 @@
       </view>
       <view class="shortcut-item" bindtap="onGoBeanShop">
         <view class="shortcut-icon shortcut-icon-blue">
-          <text>🏷</text>
+          <text class="iconfont icon-douzi"></text>
         </view>
         <text class="shortcut-text">灵豆商城</text>
       </view>
@@ -39,7 +39,7 @@
       </view>
       <view class="shortcut-item" bindtap="onGoHelp">
         <view class="shortcut-icon shortcut-icon-amber">
-          <text>❓</text>
+          <text class="iconfont icon-bangzhu"></text>
         </view>
         <text class="shortcut-text">帮助</text>
       </view>

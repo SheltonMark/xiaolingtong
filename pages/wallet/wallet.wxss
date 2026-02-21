@@ -23,8 +23,10 @@
 .wl-total { font-size: 20rpx; opacity: 0.6; display: block; margin-bottom: 32rpx; position: relative; }
 .wl-btn-row { display: flex; gap: 24rpx; position: relative; }
 .wl-btn {
-  flex: 1; height: 72rpx; line-height: 72rpx; text-align: center;
+  flex: 1; height: 72rpx; text-align: center;
   border-radius: 24rpx; font-size: 24rpx; font-weight: 600; border: none;
+  display: flex; align-items: center; justify-content: center;
+  line-height: 1;
 }
 .wl-btn::after { border: none; }
 .wl-btn-primary { background-color: #fff !important; color: #F97316 !important; }
@@ -43,12 +45,12 @@
 .shortcut-icon {
   width: 80rpx; height: 80rpx; border-radius: 20rpx;
   display: flex; align-items: center; justify-content: center;
-  font-size: 36rpx;
+  font-size: 44rpx;
 }
-.shortcut-icon-orange { background-color: rgba(249,115,22,0.1); }
-.shortcut-icon-blue { background-color: #EFF6FF; }
-.shortcut-icon-green { background-color: #ECFDF5; }
-.shortcut-icon-amber { background-color: #FFFBEB; }
+.shortcut-icon-orange { background-color: rgba(249,115,22,0.1); color: #F97316; }
+.shortcut-icon-blue { background-color: #EFF6FF; color: #3B82F6; }
+.shortcut-icon-green { background-color: #ECFDF5; color: #10B981; }
+.shortcut-icon-amber { background-color: #FFFBEB; color: #F59E0B; }
 .shortcut-text { font-size: 20rpx; color: #64748B; }
 
 /* 最近收入 */
