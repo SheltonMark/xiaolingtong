@@ -45,15 +45,19 @@
 }
 .tab-icon-ent-active {
   color: #F97316;
+  font-weight: bold;
 }
 .tab-icon-worker-active {
   color: #3B82F6;
+  font-weight: bold;
 }
 .tab-text-ent-active {
   color: #F97316;
+  font-weight: 600;
 }
 .tab-text-worker-active {
   color: #3B82F6;
+  font-weight: 600;
 }
 .tab-text-publish {
   color: #F97316;

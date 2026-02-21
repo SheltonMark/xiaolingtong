@@ -38,7 +38,7 @@
       <view class="func-item" wx:for="{{enterpriseFuncs}}" wx:key="label"
             data-url="{{item.url}}" bindtap="onFuncTap">
         <view class="func-icon" style="background-color: {{item.bg}};">
-          <text class="func-emoji">{{item.icon}}</text>
+          <text class="func-emoji" style="color: {{item.iconColor}};">{{item.icon}}</text>
         </view>
         <text class="func-label">{{item.label}}</text>
       </view>
@@ -100,7 +100,7 @@
       <view class="func-item" wx:for="{{workerFuncs}}" wx:key="label"
             data-url="{{item.url}}" bindtap="onFuncTap">
         <view class="func-icon" style="background-color: {{item.bg}};">
-          <text class="func-emoji">{{item.icon}}</text>
+          <text class="func-emoji" style="color: {{item.iconColor}};">{{item.icon}}</text>
         </view>
         <text class="func-label">{{item.label}}</text>
       </view>

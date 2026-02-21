@@ -28,8 +28,9 @@
   color: #1E293B;
 }
 .settings-icon {
-  font-size: 40rpx;
-  color: #64748B;
+  font-size: 44rpx;
+  color: #1E293B;
+  font-weight: bold;
   padding: 8rpx;
   line-height: 1;
   min-width: 48rpx;
@@ -148,7 +149,9 @@
   justify-content: center;
 }
 .func-emoji {
+  font-family: "iconfont" !important;
   font-size: 40rpx;
+  color: #64748B;
 }
 .func-label {
   font-size: 20rpx;

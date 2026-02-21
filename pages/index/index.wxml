@@ -9,9 +9,8 @@
     <!-- 搜索行 -->
     <view class="top-bar-inner">
       <view class="city-selector" bindlongpress="onSwitchRole">
-        <text class="city-icon iconfont icon-address"></text>
+        <text class="city-icon iconfont icon-address {{userRole === 'enterprise' ? 'text-cta' : 'text-primary'}}"></text>
         <text class="city-name">东莞</text>
-        <text class="city-arrow">›</text>
       </view>
       <view class="search-bar" bindtap="onSearch">
         <text class="search-icon iconfont icon-chakan"></text>
@@ -174,7 +173,7 @@
             <text class="job-applied">已报名 {{item.applied}}/{{item.total}}人</text>
             <view class="job-actions">
               <view class="job-action-item">
-                <text class="action-icon">↗</text>
+                <text class="action-icon iconfont icon-fenxiang"></text>
                 <text class="job-action">分享</text>
               </view>
               <view class="job-action-item" catchtap="onReport" data-id="{{item.id}}">

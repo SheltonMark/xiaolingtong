@@ -12,40 +12,40 @@ Page({
     processList: [],
     // 分类图标
     catePurchase: [
-      { icon: '\ue625', label: '日用百货', bg: '#FFF7ED' },
-      { icon: '\ue605', label: '电子数码', bg: '#E0F2FE' },
-      { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3' },
-      { icon: '\ue659', label: '五金工具', bg: '#EFF6FF' },
-      { icon: '\ue832', label: '厨房卫浴', bg: '#ECFDF5' },
-      { icon: '\ue626', label: '母婴玩具', bg: '#FFF1F2' }
+      { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
+      { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
+      { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
+      { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
+      { icon: '\ue832', label: '厨房卫浴', bg: '#ECFDF5', iconColor: '#10B981' },
+      { icon: '\ue626', label: '母婴玩具', bg: '#FFF1F2', iconColor: '#F43F5E' }
     ],
     cateStock: [
-      { icon: '\ue605', label: '电子数码', bg: '#E0F2FE' },
-      { icon: '\ue625', label: '日用百货', bg: '#FFF7ED' },
-      { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3' },
-      { icon: '\ue659', label: '五金工具', bg: '#EFF6FF' },
-      { icon: '\ue670', label: '家具家电', bg: '#F3E8FF' }
+      { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
+      { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
+      { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
+      { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
+      { icon: '\ue670', label: '家具家电', bg: '#F3E8FF', iconColor: '#8B5CF6' }
     ],
     cateProcess: [
-      { icon: '\ue6a0', label: '注塑加工', bg: '#FFFBEB' },
-      { icon: '\ue659', label: 'CNC加工', bg: '#EFF6FF' },
-      { icon: '\ue63b', label: '丝印印刷', bg: '#F3E8FF' },
-      { icon: '\ue617', label: '缝纫加工', bg: '#FCE7F3' },
-      { icon: '\ue770', label: '模具制造', bg: '#ECFDF5' }
+      { icon: '\ue6a0', label: '注塑加工', bg: '#FFFBEB', iconColor: '#F59E0B' },
+      { icon: '\ue659', label: 'CNC加工', bg: '#EFF6FF', iconColor: '#6366F1' },
+      { icon: '\ue63b', label: '丝印印刷', bg: '#F3E8FF', iconColor: '#8B5CF6' },
+      { icon: '\ue617', label: '缝纫加工', bg: '#FCE7F3', iconColor: '#EC4899' },
+      { icon: '\ue770', label: '模具制造', bg: '#ECFDF5', iconColor: '#10B981' }
     ],
     cateJob: [
-      { icon: '\ue687', label: '电子组装', bg: '#E0F2FE' },
-      { icon: '\ue670', label: '包装工', bg: '#FFFBEB' },
-      { icon: '\ue617', label: '缝纫工', bg: '#FCE7F3' },
-      { icon: '\ue610', label: '仓储物流', bg: '#ECFDF5' },
-      { icon: '\ue786', label: '质检', bg: '#F3E8FF' }
+      { icon: '\ue687', label: '电子组装', bg: '#E0F2FE', iconColor: '#3B82F6' },
+      { icon: '\ue670', label: '包装工', bg: '#FFFBEB', iconColor: '#F59E0B' },
+      { icon: '\ue617', label: '缝纫工', bg: '#FCE7F3', iconColor: '#EC4899' },
+      { icon: '\ue610', label: '仓储物流', bg: '#ECFDF5', iconColor: '#10B981' },
+      { icon: '\ue786', label: '质检', bg: '#F3E8FF', iconColor: '#8B5CF6' }
     ],
     cateFactory: [
-      { icon: '\ue687', label: '电子组装', bg: '#E0F2FE' },
-      { icon: '\ue770', label: '模具加工', bg: '#FFFBEB' },
-      { icon: '\ue6a0', label: '注塑', bg: '#FFF7ED' },
-      { icon: '\ue8c7', label: '服装纺织', bg: '#FCE7F3' },
-      { icon: '\ue659', label: '五金加工', bg: '#EFF6FF' }
+      { icon: '\ue687', label: '电子组装', bg: '#E0F2FE', iconColor: '#3B82F6' },
+      { icon: '\ue770', label: '模具加工', bg: '#FFFBEB', iconColor: '#F59E0B' },
+      { icon: '\ue6a0', label: '注塑', bg: '#FFF7ED', iconColor: '#F97316' },
+      { icon: '\ue8c7', label: '服装纺织', bg: '#FCE7F3', iconColor: '#EC4899' },
+      { icon: '\ue659', label: '五金加工', bg: '#EFF6FF', iconColor: '#6366F1' }
     ],
     factoryList: [
       { id: 'f1', name: '东莞市鑫达电子科技有限公司', type: '电子组装', location: '东莞长安', scale: '500+员工', scaleBg: '#ECFDF5', scaleColor: '#10B981', years: 3 },

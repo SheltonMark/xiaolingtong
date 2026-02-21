@@ -70,7 +70,9 @@
   padding: 8rpx;
 }
 .notify-icon {
-  font-size: 36rpx;
+  font-size: 40rpx;
+  color: #1E293B;
+  font-weight: bold;
 }
 .notify-badge {
   position: absolute;
