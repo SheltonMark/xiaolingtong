@@ -5,35 +5,13 @@
     <view class="contact-btn btn-phone" catchtap="onTapPhone">电话</view>
     <view class="contact-btn btn-chat" catchtap="onTapChat">在线聊</view>
   </view>
-  <!-- 头部：头像 + 信息 -->
-  <view class="card-header">
-    <view class="header-left">
-      <view class="avatar-circle" style="background-color: {{item.avatarBg || '#10B981'}};">
-        <text style="color: {{item.avatarColor || '#ffffff'}};" class="avatar-text">{{item.avatarText}}</text>
-      </view>
-      <view class="header-info">
-        <text class="header-title">{{item.certText}}</text>
-        <text class="header-sub">{{item.industry}}</text>
-      </view>
-    </view>
-  </view>
-  <!-- 详情字段 -->
-  <view class="card-fields">
-    <view class="field-row" wx:for="{{item.fields}}" wx:key="label">
-      <text class="field-label">{{item.label}}</text>
-      <text class="field-value {{item.bold ? 'font-medium' : ''}} {{item.highlight ? 'text-cta font-medium' : ''}}">{{item.value}}</text>
-    </view>
-  </view>
-  <!-- 描述文字 -->
-  <view class="card-desc" wx:if="{{item.desc}}">
-    <text class="desc-text">{{item.desc}}</text>
-  </view>
+  <!-- 帖子内容 -->
+  <text class="card-content">{{item.content}}</text>
   <!-- 图片网格 -->
   <view class="card-images" wx:if="{{item.images && item.images.length > 0}}">
     <view class="card-img-wrap" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
       <image src="{{img}}" mode="aspectFill" class="card-img" />
     </view>
-    <view class="img-date" wx:if="{{item.date}}">{{item.date}}</view>
   </view>
   <!-- 底部操作 -->
   <view class="card-footer">
