@@ -37,17 +37,7 @@
 }
 
 /* 头部 */
-.eb-card-header { display: flex; gap: 20rpx; margin-bottom: 16rpx; }
-.eb-avatar-wrap {
-  width: 80rpx; height: 80rpx; background-color: #FEE2E2;
-  border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; flex-shrink: 0;
-}
-.eb-avatar-icon { font-size: 36rpx; }
-.eb-card-info { flex: 1; }
-.eb-name-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 8rpx; }
-.eb-poster { font-size: 26rpx; font-weight: 500; color: #1E293B; }
-.eb-date { font-size: 20rpx; color: #94A3B8; }
+.eb-card-header { margin-bottom: 16rpx; }
 .eb-type-badge {
   font-size: 18rpx; color: #fff; background-color: #F43F5E;
   padding: 4rpx 16rpx; border-radius: 6rpx;
@@ -57,7 +47,7 @@
 /* 详情 */
 .eb-detail {
   display: flex; flex-direction: column; gap: 8rpx;
-  margin-bottom: 16rpx; padding-left: 100rpx;
+  margin-bottom: 16rpx;
 }
 .eb-detail-row { display: flex; }
 .eb-dl { width: 120rpx; font-size: 24rpx; color: #64748B; font-weight: 600; flex-shrink: 0; }
@@ -66,20 +56,24 @@
 /* 描述 */
 .eb-desc {
   font-size: 24rpx; color: #64748B; line-height: 1.6;
-  display: block; margin-bottom: 16rpx; padding-left: 100rpx;
+  display: block; margin-bottom: 16rpx;
 }
 
 /* 图片 */
 .eb-images {
   display: flex; gap: 8rpx; margin-bottom: 16rpx;
-  padding-left: 100rpx;
 }
 .eb-img { width: 160rpx; height: 160rpx; border-radius: 12rpx; }
 
+/* 底部 */
+.eb-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.eb-bottom-date { font-size: 20rpx; color: #94A3B8; height: 40rpx; line-height: 40rpx; }
+
 /* 操作 */
 .eb-actions {
-  display: flex; align-items: center; justify-content: flex-end; gap: 32rpx;
-  padding-left: 100rpx;
+  display: flex; align-items: center; gap: 32rpx;
 }
 .eb-action { display: flex; align-items: center; gap: 6rpx; height: 40rpx; }
 .eb-action-icon { font-size: 26rpx; color: #94A3B8; height: 40rpx; line-height: 40rpx; }

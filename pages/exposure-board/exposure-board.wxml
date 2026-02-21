@@ -24,16 +24,7 @@
           data-id="{{item.id}}" bindtap="onTapCard">
       <!-- 头部 -->
       <view class="eb-card-header">
-        <view class="eb-avatar-wrap">
-          <text class="eb-avatar-icon iconfont icon-tishixinxi"></text>
-        </view>
-        <view class="eb-card-info">
-          <view class="eb-name-row">
-            <text class="eb-poster">{{item.poster}}</text>
-            <text class="eb-date">{{item.date}}</text>
-          </view>
-          <text class="eb-type-badge">{{item.type}}</text>
-        </view>
+        <text class="eb-type-badge">{{item.type}}</text>
       </view>
       <!-- 详情 -->
       <view class="eb-detail">
@@ -57,15 +48,18 @@
         <image class="eb-img" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
                src="{{img}}" mode="aspectFill" />
       </view>
-      <!-- 操作 -->
-      <view class="eb-actions">
-        <view class="eb-action">
-          <text class="eb-action-icon iconfont icon-pinglun"></text>
-          <text class="eb-action-text">{{item.comments}}</text>
-        </view>
-        <view class="eb-action">
-          <text class="eb-action-icon iconfont icon-fenxiang1"></text>
-          <text class="eb-action-text">分享</text>
+      <!-- 底部 -->
+      <view class="eb-bottom">
+        <text class="eb-bottom-date">{{item.date}}</text>
+        <view class="eb-actions">
+          <view class="eb-action">
+            <text class="eb-action-icon iconfont icon-pinglun"></text>
+            <text class="eb-action-text">{{item.comments}}</text>
+          </view>
+          <view class="eb-action">
+            <text class="eb-action-icon iconfont icon-fenxiang1"></text>
+            <text class="eb-action-text">分享</text>
+          </view>
         </view>
       </view>
     </view>
