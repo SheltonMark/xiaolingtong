@@ -61,37 +61,6 @@
     </view>
   </view>
 
-  <!-- 联系方式 -->
-  <view class="contact-section">
-    <view class="section-header-row">
-      <text class="section-icon">🔒</text>
-      <text class="section-label">联系方式</text>
-    </view>
-    <!-- 未解锁 -->
-    <view class="contact-locked" wx:if="{{!contactUnlocked}}">
-      <text class="lock-icon">🔒</text>
-      <text class="lock-desc">查看联系方式需消耗灵豆</text>
-      <text class="lock-hint">消耗 <text class="text-cta font-semibold">10灵豆</text> · 会员免费查看</text>
-      <button class="btn btn-primary" style="margin-top:24rpx;padding:16rpx 64rpx;" bindtap="onUnlockContact">立即查看</button>
-    </view>
-    <!-- 已解锁 -->
-    <view class="contact-unlocked" wx:else>
-      <view class="contact-row">
-        <text class="contact-label">联系人</text>
-        <text class="contact-value">{{contactInfo.name}}</text>
-      </view>
-      <view class="contact-row">
-        <text class="contact-label">电话</text>
-        <text class="contact-value text-primary" bindtap="onCallPhone">{{contactInfo.phone}}</text>
-      </view>
-      <view class="contact-row" wx:if="{{contactInfo.wechat}}">
-        <text class="contact-label">微信</text>
-        <text class="contact-value">{{contactInfo.wechat}}</text>
-        <text class="copy-btn" bindtap="onCopyWechat">复制</text>
-      </view>
-    </view>
-  </view>
-
   <!-- 底部操作 -->
   <view class="bottom-actions">
     <button class="bottom-btn btn-chat" bindtap="onChat">
