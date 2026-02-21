@@ -36,9 +36,9 @@
   <!-- 底部输入栏不变 -->
   <view class="chat-bottom">
     <view class="chat-input-row">
-      <text class="chat-tool-btn">🎤</text>
+      <text class="chat-tool-btn"><text class="iconfont icon-yuyin"></text></text>
       <input class="chat-input" placeholder="输入消息..." bindinput="onMsgInput" value="{{inputText}}" confirm-type="send" bindconfirm="onSend" />
-      <text class="chat-tool-btn" bindtap="onChooseImage">🖼</text>
+      <text class="chat-tool-btn" bindtap="onChooseImage"><text class="iconfont icon-tupian"></text></text>
       <view class="chat-send-btn" bindtap="onSend">
         <text class="send-arrow">↑</text>
       </view>

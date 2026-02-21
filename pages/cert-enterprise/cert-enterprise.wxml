@@ -23,7 +23,7 @@
       <view class="upload-area upload-large" bindtap="onUploadLicense">
         <image wx:if="{{licenseImage}}" src="{{licenseImage}}" mode="aspectFill" class="upload-preview" />
         <view wx:else class="upload-placeholder">
-          <text class="upload-icon">🖼</text>
+          <text class="upload-icon iconfont icon-tupian"></text>
           <text class="upload-hint">点击上传营业执照照片</text>
         </view>
       </view>

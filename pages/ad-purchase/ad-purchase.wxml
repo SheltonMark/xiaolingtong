@@ -67,7 +67,7 @@
     <text class="section-title required">广告素材</text>
     <text class="ad-hint">建议尺寸 750×300px，JPG/PNG格式，≤5MB</text>
     <view class="ad-upload" bindtap="onUploadAd" wx:if="{{!adImage}}">
-      <text class="ad-upload-icon">🖼</text>
+      <text class="ad-upload-icon iconfont icon-tupian"></text>
       <text class="ad-upload-text">点击上传广告图片</text>
     </view>
     <view class="ad-uploaded" wx:if="{{adImage}}">
