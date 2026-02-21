@@ -6,13 +6,14 @@
         <text style="color: {{item.avatarColor || '#ffffff'}};" class="avatar-text">{{item.avatarText}}</text>
       </view>
       <view class="header-info">
-        <text class="header-title">{{item.location}} · {{item.certText}}</text>
+        <text class="header-title">{{item.certText}}</text>
         <text class="header-sub">{{item.industry}}</text>
       </view>
     </view>
     <view class="header-btns" wx:if="{{showContact}}">
       <view class="contact-btn btn-wechat" catchtap="onTapWechat">微信</view>
       <view class="contact-btn btn-phone" catchtap="onTapPhone">电话</view>
+      <view class="contact-btn btn-chat" catchtap="onTapChat">在线聊</view>
     </view>
   </view>
   <!-- 详情字段 -->
@@ -36,13 +37,13 @@
   <!-- 底部操作 -->
   <view class="card-footer">
     <view class="footer-actions">
-      <view class="footer-action" catchtap="onTapShare">
-        <text class="action-icon">↗</text>
-        <text class="action-text">分享</text>
-      </view>
       <view class="footer-action" catchtap="onTapReport">
         <text class="action-icon">⚠</text>
         <text class="action-text">投诉</text>
+      </view>
+      <view class="footer-action" catchtap="onTapShare">
+        <text class="action-icon">↗</text>
+        <text class="action-text">分享</text>
       </view>
     </view>
   </view>

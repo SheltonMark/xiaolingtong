@@ -13,6 +13,9 @@ Component({
     onTapPhone() {
       this.triggerEvent('phone', { id: this.data.item.id })
     },
+    onTapChat() {
+      this.triggerEvent('chat', { id: this.data.item.id })
+    },
     onTapShare() {
       this.triggerEvent('share', { id: this.data.item.id })
     },

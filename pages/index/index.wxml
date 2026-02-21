@@ -74,6 +74,7 @@
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
                    bind:phone="onPhone"
+                   bind:chat="onChat"
                    bind:report="onReport" />
         <empty-state wx:if="{{purchaseList.length === 0}}" text="暂无采购需求" />
       </view>
@@ -101,6 +102,7 @@
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
                    bind:phone="onPhone"
+                   bind:chat="onChat"
                    bind:report="onReport" />
         <empty-state wx:if="{{stockList.length === 0}}" text="暂无库存信息" />
       </view>
@@ -128,6 +130,7 @@
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
                    bind:phone="onPhone"
+                   bind:chat="onChat"
                    bind:report="onReport" />
         <empty-state wx:if="{{!processList || processList.length === 0}}" text="暂无代加工信息" />
       </view>

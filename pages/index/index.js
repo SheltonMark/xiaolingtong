@@ -160,6 +160,10 @@ Page({
     wx.makePhoneCall({ phoneNumber: '13800138000', fail() {} })
   },
 
+  onChat(e) {
+    wx.navigateTo({ url: '/pages/chat/chat' })
+  },
+
   onReport(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     wx.navigateTo({ url: '/pages/report/report?id=' + id })
