@@ -73,7 +73,7 @@
   font-size: 26rpx;
   color: #94A3B8;
   vertical-align: middle;
-  margin-top: 2rpx;
+  margin-top: 4rpx;
 }
 .action-icon.icon-fenxiang1 {
   font-size: 22rpx;
