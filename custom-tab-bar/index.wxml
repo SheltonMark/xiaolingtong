@@ -36,10 +36,10 @@
     <text class="tab-icon iconfont icon-shouye {{selected === 0 ? 'tab-icon-worker-active' : ''}}"></text>
     <text class="tab-text {{selected === 0 ? 'tab-text-worker-active' : ''}}">首页</text>
   </view>
-  <!-- 我的报名 -->
-  <view class="tab-bar-item" data-path="/pages/my-applications/my-applications" data-istab="{{false}}" data-index="1" bindtap="switchTab">
-    <text class="tab-icon iconfont icon-baoming {{selected === 1 ? 'tab-icon-worker-active' : ''}}"></text>
-    <text class="tab-text {{selected === 1 ? 'tab-text-worker-active' : ''}}">我的报名</text>
+  <!-- 曝光 -->
+  <view class="tab-bar-item" data-path="/pages/exposure-board/exposure-board" data-istab="{{true}}" data-index="1" bindtap="switchTab">
+    <text class="tab-icon iconfont icon-puguang {{selected === 1 ? 'tab-icon-worker-active' : ''}}"></text>
+    <text class="tab-text {{selected === 1 ? 'tab-text-worker-active' : ''}}">曝光</text>
   </view>
   <!-- 消息 -->
   <view class="tab-bar-item" data-path="/pages/messages/messages" data-istab="{{true}}" data-index="2" bindtap="switchTab">
