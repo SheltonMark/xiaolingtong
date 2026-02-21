@@ -13,7 +13,7 @@ Component({
     // 临工端 4 个 tab
     workerList: [
       { pagePath: '/pages/index/index', text: '首页', isTab: true },
-      { pagePath: '/pages/my-applications/my-applications', text: '我的报名', isTab: false },
+      { pagePath: '/pages/exposure-board/exposure-board', text: '曝光', isTab: true },
       { pagePath: '/pages/messages/messages', text: '消息', isTab: true },
       { pagePath: '/pages/mine/mine', text: '我的', isTab: true }
     ]

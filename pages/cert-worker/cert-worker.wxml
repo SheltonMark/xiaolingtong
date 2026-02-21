@@ -42,14 +42,14 @@
         <view class="upload-area upload-half" bindtap="onUploadFront">
           <image wx:if="{{frontImage}}" src="{{frontImage}}" mode="aspectFill" class="upload-preview" />
           <view wx:else class="upload-placeholder">
-            <text class="upload-icon">🖼</text>
+            <text class="upload-icon iconfont icon-shenfenzheng"></text>
             <text class="upload-hint-sm">人像面</text>
           </view>
         </view>
         <view class="upload-area upload-half" bindtap="onUploadBack">
           <image wx:if="{{backImage}}" src="{{backImage}}" mode="aspectFill" class="upload-preview" />
           <view wx:else class="upload-placeholder">
-            <text class="upload-icon">🖼</text>
+            <text class="upload-icon iconfont icon-shenfenzhengfanmian"></text>
             <text class="upload-hint-sm">国徽面</text>
           </view>
         </view>
