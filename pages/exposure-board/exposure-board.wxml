@@ -59,8 +59,8 @@
       </view>
       <!-- 操作 -->
       <view class="eb-actions">
-        <text class="eb-action"><text class="iconfont icon-xiaoxi"></text> {{item.comments}}</text>
-        <text class="eb-action"><text class="iconfont icon-fenxiang"></text> 分享</text>
+        <text class="eb-action"><text class="iconfont icon-pinglun"></text> {{item.comments}}</text>
+        <text class="eb-action"><text class="iconfont icon-fenxiang1"></text> 分享</text>
       </view>
     </view>
   </view>

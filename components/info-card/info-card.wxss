@@ -70,10 +70,10 @@
   gap: 6rpx;
 }
 .action-icon {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #94A3B8;
 }
 .action-text {
-  font-size: 22rpx;
+  font-size: 24rpx;
   color: #94A3B8;
 }

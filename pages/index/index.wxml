@@ -13,7 +13,7 @@
         <text class="city-name">东莞</text>
       </view>
       <view class="search-bar" bindtap="onSearch">
-        <text class="search-icon iconfont icon-chakan"></text>
+        <text class="search-icon iconfont icon-sousuo"></text>
         <text class="search-placeholder">{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}</text>
       </view>
       <view class="notify-btn" bindtap="onNotification">
@@ -173,7 +173,7 @@
             <text class="job-applied">已报名 {{item.applied}}/{{item.total}}人</text>
             <view class="job-actions">
               <view class="job-action-item">
-                <text class="action-icon iconfont icon-fenxiang"></text>
+                <text class="action-icon iconfont icon-fenxiang1"></text>
                 <text class="job-action">分享</text>
               </view>
               <view class="job-action-item" catchtap="onReport" data-id="{{item.id}}">

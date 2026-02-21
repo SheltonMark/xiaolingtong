@@ -22,7 +22,7 @@
         <text class="action-text">投诉</text>
       </view>
       <view class="footer-action" catchtap="onTapShare">
-        <text class="action-icon iconfont icon-fenxiang"></text>
+        <text class="action-icon iconfont icon-fenxiang1"></text>
         <text class="action-text">分享</text>
       </view>
     </view>
