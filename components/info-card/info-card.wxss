@@ -1,3 +1,5 @@
+@import '/iconfont/iconfont.wxss';
+
 .info-card {
   background-color: #ffffff;
   border-radius: 24rpx;
