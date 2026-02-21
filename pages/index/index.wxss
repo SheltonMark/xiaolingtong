@@ -350,11 +350,11 @@
   gap: 6rpx;
 }
 .action-icon {
-  font-size: 24rpx;
+  font-size: 26rpx;
   color: #94A3B8;
 }
 .job-action {
-  font-size: 22rpx;
+  font-size: 20rpx;
   color: #94A3B8;
 }
 
