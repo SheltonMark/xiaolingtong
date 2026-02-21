@@ -83,7 +83,8 @@
   padding-left: 100rpx;
 }
 .eb-action { font-size: 20rpx; color: #94A3B8; line-height: 1; display: inline-flex; align-items: center; gap: 6rpx; }
-.eb-action .iconfont { font-size: 24rpx; line-height: 1; }
+.eb-action .iconfont { font-size: 26rpx; line-height: 1; }
+.eb-action .icon-pinglun { margin-top: 2rpx; }
 
 /* 悬浮按钮 */
 .eb-fab {
