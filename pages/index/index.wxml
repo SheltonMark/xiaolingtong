@@ -9,16 +9,16 @@
     <!-- 搜索行 -->
     <view class="top-bar-inner">
       <view class="city-selector" bindlongpress="onSwitchRole">
-        <text class="city-icon">📍</text>
+        <text class="city-icon iconfont icon-address"></text>
         <text class="city-name">东莞</text>
         <text class="city-arrow">›</text>
       </view>
       <view class="search-bar" bindtap="onSearch">
-        <text class="search-icon">🔍</text>
+        <text class="search-icon iconfont icon-chakan"></text>
         <text class="search-placeholder">{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}</text>
       </view>
       <view class="notify-btn" bindtap="onNotification">
-        <text class="notify-icon">🔔</text>
+        <text class="notify-icon iconfont icon-tongzhi"></text>
         <view class="notify-badge">3</view>
       </view>
     </view>
@@ -213,7 +213,7 @@
         <view class="factory-card" wx:for="{{factoryList}}" wx:key="id">
           <view class="factory-top">
             <image wx:if="{{item.image}}" src="{{item.image}}" class="factory-logo-img" mode="aspectFill" />
-            <view wx:else class="factory-logo">🏭</view>
+            <view wx:else class="factory-logo iconfont icon-gongchang"></view>
             <view class="factory-info">
               <text class="factory-name">{{item.name}}</text>
               <text class="factory-sub">{{item.type}} · {{item.location}}</text>
