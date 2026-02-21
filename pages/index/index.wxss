@@ -37,6 +37,8 @@
 }
 .city-icon {
   font-size: 28rpx;
+  position: relative;
+  top: 2rpx;
 }
 .city-name {
   font-size: 24rpx;
