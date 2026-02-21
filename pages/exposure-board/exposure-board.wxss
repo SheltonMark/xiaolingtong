@@ -82,9 +82,8 @@
   display: flex; align-items: center; justify-content: flex-end; gap: 32rpx;
   padding-left: 100rpx;
 }
-.eb-action { font-size: 20rpx; color: #94A3B8; line-height: 1; display: inline-flex; align-items: center; gap: 6rpx; }
-.eb-action .iconfont { font-size: 26rpx; line-height: 1; }
-.eb-action .icon-pinglun { margin-top: 4rpx; }
+.eb-action { font-size: 22rpx; color: #94A3B8; display: inline-flex; align-items: center; gap: 6rpx; }
+.eb-action .iconfont { font-size: 28rpx; line-height: 1; vertical-align: middle; margin-top: -2rpx; }
 
 /* 悬浮按钮 */
 .eb-fab {
