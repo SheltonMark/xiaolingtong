@@ -34,7 +34,7 @@
     <view class="filter-bar" wx:if="{{userRole === 'worker'}}">
       <view class="filter-item" wx:for="{{filterLabels}}" wx:key="index">
         <text class="filter-text">{{item}}</text>
-        <text class="filter-arrow">⌄</text>
+        <view class="filter-arrow-triangle"></view>
       </view>
     </view>
   </view>
