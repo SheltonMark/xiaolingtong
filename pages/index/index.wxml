@@ -249,9 +249,9 @@
       <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text> · {{item.title}}<text wx:if="{{item.tagText}}" class="{{item.tagColor}}"> · {{item.tagText}}</text></text>
       <text class="job-desc">{{item.desc}}</text>
       <!-- 图片网格 -->
-      <view class="job-images" wx:if="{{item.images && item.images.length > 0}}">
-        <view class="job-img-wrap" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
-          <image src="{{img}}" mode="aspectFill" class="job-img" />
+      <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">
+        <view class="img-grid-item" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
+          <image src="{{img}}" mode="aspectFill" class="img-grid-img" data-urls="{{item.images}}" data-current="{{img}}" catchtap="onPreviewImage" />
         </view>
       </view>
       <view class="job-footer">

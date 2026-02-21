@@ -20,9 +20,9 @@
     <text class="ed-content">发布虚假库存信息，实际无货源，多名用户投诉。经多次沟通仍拒绝退款，态度恶劣。合同签订后以各种理由拖延发货，最终失联。</text>
 
     <!-- 证据图片 -->
-    <view class="ed-images">
-      <view class="ed-img-item" wx:for="{{images}}" wx:key="*this">
-        <image src="{{item}}" mode="aspectFill" class="ed-img" data-index="{{index}}" bindtap="onPreviewImage" />
+    <view class="img-grid img-count-{{images.length}}">
+      <view class="img-grid-item" wx:for="{{images}}" wx:key="*this">
+        <image src="{{item}}" mode="aspectFill" class="img-grid-img" data-index="{{index}}" bindtap="onPreviewImage" />
       </view>
     </view>
 

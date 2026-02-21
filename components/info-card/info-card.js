@@ -21,6 +21,9 @@ Component({
     },
     onTapReport() {
       this.triggerEvent('report', { id: this.data.item.id })
+    },
+    onPreviewImage(e) {
+      wx.previewImage({ current: e.currentTarget.dataset.current, urls: e.currentTarget.dataset.urls })
     }
   }
 })

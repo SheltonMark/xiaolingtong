@@ -163,6 +163,9 @@ Page({
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     wx.navigateTo({ url: '/pages/report/report?id=' + id })
   },
+  onPreviewImage(e) {
+    wx.previewImage({ current: e.currentTarget.dataset.current, urls: e.currentTarget.dataset.urls })
+  },
 
   onPublishJob() {
     wx.navigateTo({ url: '/pages/post-job/post-job' })

@@ -33,6 +33,9 @@ Page({
   onPublishExposure() {
     wx.navigateTo({ url: '/pages/exposure/exposure' })
   },
+  onPreviewImage(e) {
+    wx.previewImage({ current: e.currentTarget.dataset.current, urls: e.currentTarget.dataset.urls })
+  },
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
