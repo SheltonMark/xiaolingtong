@@ -31,7 +31,7 @@
     <view class="identity-card {{selected === 'worker' ? 'card-active' : ''}}" bindtap="onSelectWorker">
       <view class="card-main">
         <view class="card-icon icon-worker">
-          <text class="icon-emoji">👷</text>
+          <text class="icon-emoji iconfont icon-worker"></text>
         </view>
         <view class="card-info">
           <text class="card-title">临工用户</text>
