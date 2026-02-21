@@ -16,8 +16,8 @@
     </view>
   </view>
 
-  <!-- 快捷入口 -->
-  <view class="wl-shortcuts">
+  <!-- 快捷入口（仅企业端） -->
+  <view class="wl-shortcuts" wx:if="{{userRole === 'enterprise'}}">
     <view class="shortcut-grid">
       <view class="shortcut-item" bindtap="onGoIncome">
         <view class="shortcut-icon shortcut-icon-orange">

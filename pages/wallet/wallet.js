@@ -1,5 +1,6 @@
 Page({
   data: {
+    userRole: 'enterprise',
     balance: '520.00',
     totalIncome: '8,650.00',
     records: [
@@ -32,5 +33,9 @@ Page({
   },
   onGoHelp() {
     wx.navigateTo({ url: '/pages/settings/settings' })
+  },
+  onShow() {
+    const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    this.setData({ userRole })
   }
 })
