@@ -83,6 +83,7 @@
 }
 .eb-action { display: flex; align-items: center; gap: 6rpx; height: 40rpx; }
 .eb-action-icon { font-size: 26rpx; color: #94A3B8; height: 40rpx; line-height: 40rpx; }
+.eb-action-icon.icon-pinglun { position: relative; top: 2rpx; }
 .eb-action-text { font-size: 22rpx; color: #94A3B8; height: 40rpx; line-height: 40rpx; }
 .eb-action-icon.icon-fenxiang1 { font-size: 24rpx; }
 
