@@ -31,7 +31,7 @@
     <view class="gps-map">
       <view class="gps-ring-outer">
         <view class="gps-ring-inner">
-          <text class="gps-pin">📍</text>
+          <text class="gps-pin iconfont icon-address"></text>
         </view>
       </view>
       <view class="gps-factory-label">{{jobInfo.company}}</view>
@@ -42,12 +42,12 @@
     </view>
     <view class="gps-info">
       <view class="gps-icon-wrap">
-        <text class="gps-icon-big">📍</text>
+        <text class="gps-icon-big iconfont icon-address"></text>
       </view>
       <text class="gps-factory">{{jobInfo.company}}</text>
       <text class="gps-hint">当前位置距离签到点 <text class="text-fresh font-medium">{{distance}}m</text></text>
       <button class="btn btn-fresh checkin-btn" bindtap="onCheckin">立即签到</button>
-      <text class="refresh-link" bindtap="onRefreshLocation">🔄 刷新位置</text>
+      <text class="refresh-link" bindtap="onRefreshLocation"><text class="iconfont icon-shuaxin"></text> 刷新位置</text>
       <text class="gps-range">需在工厂{{maxDistance}}米范围内签到</text>
     </view>
   </view>

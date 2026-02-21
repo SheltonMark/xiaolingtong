@@ -21,7 +21,7 @@
     <view class="shortcut-grid">
       <view class="shortcut-item" bindtap="onGoIncome">
         <view class="shortcut-icon shortcut-icon-orange">
-          <text>💰</text>
+          <text class="iconfont icon-qiandai"></text>
         </view>
         <text class="shortcut-text">收入明细</text>
       </view>
@@ -33,7 +33,7 @@
       </view>
       <view class="shortcut-item" bindtap="onGoSettlement">
         <view class="shortcut-icon shortcut-icon-green">
-          <text>📋</text>
+          <text class="iconfont icon-xiangqing"></text>
         </view>
         <text class="shortcut-text">工资单</text>
       </view>

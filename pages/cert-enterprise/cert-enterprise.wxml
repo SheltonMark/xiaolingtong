@@ -2,7 +2,7 @@
 <view class="cert-page">
   <!-- 认证提示 -->
   <view class="tip-banner tip-blue">
-    <text class="tip-icon">ℹ️</text>
+    <text class="tip-icon iconfont icon-tishixinxi"></text>
     <text class="tip-text">完成企业认证后，即可发布供需信息、查看联系方式。请确保信息真实有效。</text>
   </view>
 
@@ -83,7 +83,7 @@
       <text class="form-label">企业地址 <text class="required">*</text></text>
       <view class="form-select" bindtap="onSelectAddress">
         <text class="select-placeholder">请选择省/市/区</text>
-        <text class="select-arrow-loc">📍</text>
+        <text class="select-arrow-loc iconfont icon-address"></text>
       </view>
     </view>
 

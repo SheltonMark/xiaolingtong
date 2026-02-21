@@ -2,12 +2,12 @@ Page({
   data: {
     selectedWorker: { name: '王五', jobType: '电子组装工', hours: '6' },
     types: [
-      { key: 'early', icon: '🚪', label: '早退' },
-      { key: 'late', icon: '⏰', label: '迟到' },
-      { key: 'switch', icon: '🔄', label: '换岗' },
-      { key: 'absent', icon: '🚫', label: '旷工' },
-      { key: 'injury', icon: '🤕', label: '工伤' },
-      { key: 'other', icon: '📝', label: '其他' }
+      { key: 'early', icon: '\ue832', label: '早退' },
+      { key: 'late', icon: '\ue648', label: '迟到' },
+      { key: 'switch', icon: '\ue67c', label: '换岗' },
+      { key: 'absent', icon: '\ue65e', label: '旷工' },
+      { key: 'injury', icon: '\ue601', label: '工伤' },
+      { key: 'other', icon: '\ue620', label: '其他' }
     ],
     selectedType: 'early',
     time: '14:30',

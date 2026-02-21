@@ -2,7 +2,7 @@
 <view class="cert-page">
   <!-- 认证提示 -->
   <view class="tip-banner tip-orange">
-    <text class="tip-icon">ℹ️</text>
+    <text class="tip-icon iconfont icon-tishixinxi"></text>
     <text class="tip-text">完成实名认证后，即可浏览招工信息并报名应聘。您的信息将严格保密。</text>
   </view>
 

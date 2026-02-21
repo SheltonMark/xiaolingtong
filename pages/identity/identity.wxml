@@ -14,7 +14,7 @@
     <view class="identity-card {{selected === 'enterprise' ? 'card-active' : ''}}" bindtap="onSelectEnterprise">
       <view class="card-main">
         <view class="card-icon icon-enterprise">
-          <text class="icon-emoji">🏭</text>
+          <text class="icon-emoji iconfont icon-gongchang"></text>
         </view>
         <view class="card-info">
           <text class="card-title">企业用户</text>

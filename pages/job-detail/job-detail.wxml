@@ -20,7 +20,7 @@
     </view>
     <text class="jd-title">{{job.title}} · 需{{job.need}}人</text>
     <view class="location-row">
-      <text class="loc-icon">📍</text>
+      <text class="loc-icon iconfont icon-address"></text>
       <text class="loc-text">{{job.location}} · 距您{{job.distance}}</text>
     </view>
   </view>
@@ -28,7 +28,7 @@
   <!-- 工作详情 -->
   <view class="detail-card">
     <view class="card-header-row">
-      <text class="card-icon">📋</text>
+      <text class="card-icon iconfont icon-xiangqing"></text>
       <text class="card-label">工作详情</text>
     </view>
     <view class="detail-list">
@@ -65,7 +65,7 @@
   <!-- 招工企业 -->
   <view class="detail-card">
     <view class="card-header-row">
-      <text class="card-icon">🏢</text>
+      <text class="card-icon iconfont icon-gongsi"></text>
       <text class="card-label">招工企业</text>
     </view>
     <view class="company-row">
@@ -93,7 +93,7 @@
   <!-- 底部报名（仅临工可见） -->
   <view class="apply-wrap" wx:if="{{userRole === 'worker'}}">
     <button class="btn btn-cta apply-btn" bindtap="onApply">
-      <text>✏️</text>
+      <text class="iconfont icon-baoming"></text>
       <text>立即报名</text>
     </button>
     <text class="apply-hint">报名后等待平台分配，开工前一天需确认出勤</text>

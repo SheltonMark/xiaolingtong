@@ -5,15 +5,15 @@
     <text class="form-label">信息类型</text>
     <view class="type-grid">
       <view class="type-item {{typeIndex === 0 ? 'type-active' : ''}}" data-index="{{0}}" bindtap="onTypeChange">
-        <text class="type-icon">🛒</text>
+        <text class="type-icon iconfont icon-gouwuche"></text>
         <text class="type-text">采购需求</text>
       </view>
       <view class="type-item {{typeIndex === 1 ? 'type-active' : ''}}" data-index="{{1}}" bindtap="onTypeChange">
-        <text class="type-icon">📦</text>
+        <text class="type-icon iconfont icon-baoguo_shouhuo_o"></text>
         <text class="type-text">工厂库存</text>
       </view>
       <view class="type-item {{typeIndex === 2 ? 'type-active' : ''}}" data-index="{{2}}" bindtap="onTypeChange">
-        <text class="type-icon">⚙</text>
+        <text class="type-icon iconfont icon-shezhi"></text>
         <text class="type-text">代加工</text>
       </view>
     </view>

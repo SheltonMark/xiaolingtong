@@ -6,21 +6,21 @@ Page({
       {
         id: 'mp1', type: '采购需求', typeColor: 'blue',
         title: '保温杯3000个采购，304不锈钢材质，500ml容量',
-        status: 'published', statusText: '已发布', statusColor: 'green', statusIcon: '✓',
+        status: 'published', statusText: '已发布', statusColor: 'green', statusIcon: '\ue786',
         publishTime: '02-07', expireTime: '03-09',
         views: 1287, canPromote: true
       },
       {
         id: 'mp2', type: '工厂库存', typeColor: 'green',
         title: '蓝牙耳机现货5000副，TWS入耳式，支持主动降噪',
-        status: 'reviewing', statusText: '待审核', statusColor: 'amber', statusIcon: '⏱',
+        status: 'reviewing', statusText: '待审核', statusColor: 'amber', statusIcon: '\ue648',
         publishTime: '02-08', expireTime: '03-10',
         views: 0, canPromote: false
       },
       {
         id: 'mp3', type: '代加工', typeColor: 'amber',
         title: '手机壳代加工，TPU材质，500-1000个起订',
-        status: 'rejected', statusText: '已驳回', statusColor: 'rose', statusIcon: '✕',
+        status: 'rejected', statusText: '已驳回', statusColor: 'rose', statusIcon: '\ue65e',
         publishTime: '02-06', expireTime: '',
         rejectReason: '信息描述不够详细，请补充加工工艺说明',
         views: 0, canPromote: false
@@ -35,7 +35,7 @@ Page({
       {
         id: 'mp5', type: '招工', typeColor: 'orange',
         title: '电子组装工15人，20元/小时，包午餐',
-        status: 'pending_settlement', statusText: '待结算', statusColor: 'amber', statusIcon: '💰',
+        status: 'pending_settlement', statusText: '待结算', statusColor: 'amber', statusIcon: '\ue611',
         publishTime: '02-10', expireTime: '02-17',
         views: 856, canPromote: false, canSettle: true, jobId: 'j1'
       },

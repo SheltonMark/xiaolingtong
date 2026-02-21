@@ -56,7 +56,7 @@
   <!-- 异常记录 -->
   <view class="wr-card">
     <view class="card-header-row">
-      <text class="card-title">⚠️ 异常记录</text>
+      <text class="card-title"><text class="iconfont icon-tishixinxi"></text> 异常记录</text>
     </view>
     <view class="anomaly-list" wx:if="{{anomalies.length > 0}}">
       <view class="anomaly-item" wx:for="{{anomalies}}" wx:key="id">

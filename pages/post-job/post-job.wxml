@@ -107,7 +107,7 @@
     <text class="form-label required">工作地点</text>
     <view class="form-picker" bindtap="onChooseLocation">
       <text class="{{form.address ? '' : 'placeholder'}}">{{form.address || '点击选择地址'}}</text>
-      <text class="picker-arrow" style="color:#3B82F6;">📍</text>
+      <text class="picker-arrow iconfont icon-address" style="color:#3B82F6;"></text>
     </view>
   </view>
 

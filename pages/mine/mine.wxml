@@ -17,7 +17,7 @@
           </view>
           <text class="user-sub">工贸一体 · 日用百货</text>
         </view>
-        <text class="settings-icon" bindtap="onSettings">⚙️</text>
+        <text class="settings-icon iconfont icon-shezhi" bindtap="onSettings"></text>
       </view>
       <!-- 数据卡片 -->
       <view class="data-card">
@@ -74,7 +74,7 @@
           </view>
           <text class="user-sub">信用分 <text class="text-cta font-semibold">95</text> · 组装工/包装工</text>
         </view>
-        <text class="settings-icon" bindtap="onSettings">⚙️</text>
+        <text class="settings-icon iconfont icon-shezhi" bindtap="onSettings"></text>
       </view>
       <!-- 数据卡片 -->
       <view class="data-card data-card-3">

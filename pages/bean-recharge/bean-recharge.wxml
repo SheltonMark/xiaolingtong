@@ -13,7 +13,7 @@
 
   <!-- 灵豆说明 -->
   <view class="bean-tip">
-    <text class="tip-icon">ℹ️</text>
+    <text class="tip-icon iconfont icon-tishixinxi"></text>
     <view class="tip-content">
       <text class="tip-title">灵豆用途</text>
       <text class="tip-text">查看供需信息联系方式时消耗灵豆，已查看过的信息再次查看不重复扣费。开通VIP会员可免费无限查看。</text>

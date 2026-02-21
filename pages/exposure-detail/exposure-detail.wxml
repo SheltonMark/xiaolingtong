@@ -27,8 +27,8 @@
     </view>
 
     <view class="ed-meta">
-      <text class="ed-meta-item">👁 326次浏览</text>
-      <text class="ed-meta-item">💬 {{comments.length}}条评论</text>
+      <text class="ed-meta-item"><text class="iconfont icon-chakan"></text> 326次浏览</text>
+      <text class="ed-meta-item"><text class="iconfont icon-xiaoxi"></text> {{comments.length}}条评论</text>
     </view>
   </view>
 

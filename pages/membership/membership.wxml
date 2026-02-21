@@ -23,21 +23,21 @@
     <view class="benefit-grid">
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-amber">
-          <text>👁</text>
+          <text class="iconfont icon-chakan"></text>
         </view>
         <text class="benefit-name">免费查看</text>
         <text class="benefit-desc">联系方式不限次</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-blue">
-          <text>✨</text>
+          <text class="iconfont icon-xingxing"></text>
         </view>
         <text class="benefit-name">置顶优先</text>
         <text class="benefit-desc">发布信息优先展示</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-green">
-          <text>🛡</text>
+          <text class="iconfont icon-anquan"></text>
         </view>
         <text class="benefit-name">专属标识</text>
         <text class="benefit-desc">VIP认证标识</text>

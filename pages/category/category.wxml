@@ -3,7 +3,7 @@
   <!-- 搜索框 -->
   <view class="search-wrap">
     <view class="search-input-wrap">
-      <text class="search-icon">🔍</text>
+      <text class="search-icon iconfont icon-chakan"></text>
       <input class="search-input" placeholder="搜索关键词" value="{{keyword}}" bindinput="onInput" bindconfirm="onSearch" />
     </view>
   </view>

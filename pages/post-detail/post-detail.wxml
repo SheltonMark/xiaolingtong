@@ -28,7 +28,7 @@
   <!-- 详细信息 -->
   <view class="info-section">
     <view class="section-header-row">
-      <text class="section-icon">📋</text>
+      <text class="section-icon iconfont icon-xiangqing"></text>
       <text class="section-label">详细信息</text>
     </view>
     <view class="info-list">
@@ -46,7 +46,7 @@
   <!-- 发布者信息 -->
   <view class="publisher-section">
     <view class="section-header-row">
-      <text class="section-icon">🏢</text>
+      <text class="section-icon iconfont icon-gongsi"></text>
       <text class="section-label">发布者</text>
     </view>
     <view class="publisher-info">
@@ -64,15 +64,15 @@
   <!-- 底部操作 -->
   <view class="bottom-actions">
     <button class="bottom-btn btn-chat" bindtap="onChat">
-      <text class="bottom-btn-icon">💬</text>
+      <text class="bottom-btn-icon iconfont icon-xiaoxi"></text>
       <text>在线聊</text>
     </button>
     <button class="bottom-btn btn-contact" bindtap="onUnlockContact" wx:if="{{!contactUnlocked}}">
-      <text class="bottom-btn-icon">🔒</text>
+      <text class="bottom-btn-icon iconfont icon-jiesuo"></text>
       <text>查看联系方式</text>
     </button>
     <button class="bottom-btn btn-contact" bindtap="onCallPhone" wx:else>
-      <text class="bottom-btn-icon">📞</text>
+      <text class="bottom-btn-icon iconfont icon-shouji"></text>
       <text>立即联系</text>
     </button>
   </view>

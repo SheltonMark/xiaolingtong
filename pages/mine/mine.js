@@ -9,22 +9,22 @@ Page({
     // 企业端
     enterpriseTabs: ['我的动态', '浏览记录', '对接记录'],
     enterpriseFuncs: [
-      { icon: '📋', label: '我的发布', bg: '#EFF6FF', url: '/pages/my-posts/my-posts' },
-      { icon: '💎', label: '灵豆充值', bg: '#FFF7ED', url: '/pages/bean-recharge/bean-recharge' },
-      { icon: '✅', label: '企业认证', bg: '#ECFDF5', url: '/pages/cert-enterprise/cert-enterprise' },
-      { icon: '👷', label: '我要招工', bg: '#FFF1F2', url: '/pages/post-job/post-job' },
-      { icon: '📊', label: '用工管理', bg: '#E0F2FE', url: '/pages/my-posts/my-posts' },
-      { icon: '💰', label: '工资结算', bg: '#FFFBEB', url: '/pages/settlement/settlement' }
+      { icon: '\ue8a0', label: '我的发布', bg: '#EFF6FF', url: '/pages/my-posts/my-posts' },
+      { icon: '\ue624', label: '灵豆充值', bg: '#FFF7ED', url: '/pages/bean-recharge/bean-recharge' },
+      { icon: '\ue786', label: '企业认证', bg: '#ECFDF5', url: '/pages/cert-enterprise/cert-enterprise' },
+      { icon: '\ue619', label: '我要招工', bg: '#FFF1F2', url: '/pages/post-job/post-job' },
+      { icon: '\ue670', label: '用工管理', bg: '#E0F2FE', url: '/pages/my-posts/my-posts' },
+      { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', url: '/pages/settlement/settlement' }
     ],
     // 临工端
     workerTabs: ['接单记录', '浏览记录'],
     workerFuncs: [
-      { icon: '📝', label: '我的报名', bg: '#E0F2FE', url: '/pages/my-applications/my-applications' },
-      { icon: '💰', label: '我的钱包', bg: '#FFF7ED', url: '/pages/wallet/wallet' },
-      { icon: '💎', label: '灵豆商城', bg: '#FFFBEB', url: '/pages/bean-recharge/bean-recharge' },
-      { icon: '📊', label: '收入明细', bg: '#EFF6FF', url: '/pages/income/income' },
-      { icon: '🪪', label: '实名认证', bg: '#ECFDF5', url: '/pages/cert-worker/cert-worker' },
-      { icon: '📋', label: '工作记录', bg: '#FFF1F2', url: '/pages/work-record/work-record' }
+      { icon: '\ue620', label: '我的报名', bg: '#E0F2FE', url: '/pages/my-applications/my-applications' },
+      { icon: '\ue611', label: '我的钱包', bg: '#FFF7ED', url: '/pages/wallet/wallet' },
+      { icon: '\ue624', label: '灵豆商城', bg: '#FFFBEB', url: '/pages/bean-recharge/bean-recharge' },
+      { icon: '\ue670', label: '收入明细', bg: '#EFF6FF', url: '/pages/income/income' },
+      { icon: '\ue614', label: '实名认证', bg: '#ECFDF5', url: '/pages/cert-worker/cert-worker' },
+      { icon: '\ue8a0', label: '工作记录', bg: '#FFF1F2', url: '/pages/work-record/work-record' }
     ]
   },
 
