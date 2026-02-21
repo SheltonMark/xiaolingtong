@@ -355,8 +355,11 @@
   font-size: 26rpx;
   color: #94A3B8;
 }
+.action-icon.icon-fenxiang1 {
+  font-size: 22rpx;
+}
 .job-action {
-  font-size: 20rpx;
+  font-size: 18rpx;
   color: #94A3B8;
 }
 
