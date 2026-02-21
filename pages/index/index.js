@@ -12,7 +12,6 @@ Page({
     processList: [],
     // 分类图标
     catePurchase: [
-      { icon: '\ue604', label: '全部', bg: '#3B82F6', active: true },
       { icon: '\ue625', label: '日用百货', bg: '#FFF7ED' },
       { icon: '\ue605', label: '电子数码', bg: '#E0F2FE' },
       { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3' },
@@ -21,7 +20,6 @@ Page({
       { icon: '\ue626', label: '母婴玩具', bg: '#FFF1F2' }
     ],
     cateStock: [
-      { icon: '\ue604', label: '全部', bg: '#3B82F6', active: true },
       { icon: '\ue605', label: '电子数码', bg: '#E0F2FE' },
       { icon: '\ue625', label: '日用百货', bg: '#FFF7ED' },
       { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3' },
@@ -29,7 +27,6 @@ Page({
       { icon: '\ue670', label: '家具家电', bg: '#F3E8FF' }
     ],
     cateProcess: [
-      { icon: '\ue604', label: '全部', bg: '#3B82F6', active: true },
       { icon: '\ue6a0', label: '注塑加工', bg: '#FFFBEB' },
       { icon: '\ue659', label: 'CNC加工', bg: '#EFF6FF' },
       { icon: '\ue63b', label: '丝印印刷', bg: '#F3E8FF' },
@@ -37,7 +34,6 @@ Page({
       { icon: '\ue770', label: '模具制造', bg: '#ECFDF5' }
     ],
     cateJob: [
-      { icon: '\ue604', label: '全部', bg: '#3B82F6', active: true },
       { icon: '\ue687', label: '电子组装', bg: '#E0F2FE' },
       { icon: '\ue670', label: '包装工', bg: '#FFFBEB' },
       { icon: '\ue617', label: '缝纫工', bg: '#FCE7F3' },
@@ -45,7 +41,6 @@ Page({
       { icon: '\ue786', label: '质检', bg: '#F3E8FF' }
     ],
     cateFactory: [
-      { icon: '\ue604', label: '全部', bg: '#3B82F6', active: true },
       { icon: '\ue687', label: '电子组装', bg: '#E0F2FE' },
       { icon: '\ue770', label: '模具加工', bg: '#FFFBEB' },
       { icon: '\ue6a0', label: '注塑', bg: '#FFF7ED' },

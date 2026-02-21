@@ -189,7 +189,7 @@
 }
 .cate-icon-text {
   font-family: "iconfont" !important;
-  font-size: 36rpx;
+  font-size: 48rpx;
 }
 .cate-icon-text-white {
   color: #ffffff !important;
