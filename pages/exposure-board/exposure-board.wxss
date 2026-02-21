@@ -63,7 +63,7 @@
 .eb-images {
   display: flex; gap: 8rpx; margin-bottom: 16rpx;
 }
-.eb-img { width: 160rpx; height: 160rpx; border-radius: 12rpx; }
+.eb-img { flex: 1; height: 160rpx; border-radius: 12rpx; }
 
 /* 底部 */
 .eb-bottom {

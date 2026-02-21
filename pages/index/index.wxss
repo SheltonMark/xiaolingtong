@@ -320,8 +320,6 @@
 .job-images {
   display: flex;
   gap: 8rpx;
-  border-radius: 16rpx;
-  overflow: hidden;
   margin-bottom: 16rpx;
 }
 .job-img-wrap {
@@ -330,6 +328,7 @@
 .job-img {
   width: 100%;
   height: 200rpx;
+  border-radius: 12rpx;
 }
 
 .job-footer {
