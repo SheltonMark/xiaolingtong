@@ -38,19 +38,16 @@
   font-size: 20rpx;
   color: #94A3B8;
 }
-.tab-emoji {
+.tab-icon {
   font-size: 44rpx;
   line-height: 1;
-  filter: grayscale(100%);
-  opacity: 0.6;
+  color: #94A3B8;
 }
-.tab-emoji-ent-active {
-  filter: none;
-  opacity: 1;
+.tab-icon-ent-active {
+  color: #F97316;
 }
-.tab-emoji-worker-active {
-  filter: none;
-  opacity: 1;
+.tab-icon-worker-active {
+  color: #3B82F6;
 }
 .tab-text-ent-active {
   color: #F97316;
