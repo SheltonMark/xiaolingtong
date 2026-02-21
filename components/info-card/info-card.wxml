@@ -1,5 +1,11 @@
 <view class="info-card" bindtap="onTapCard">
-  <!-- 头部：头像 + 信息 + 联系按钮 -->
+  <!-- 顶部联系按钮 -->
+  <view class="card-contact-bar" wx:if="{{showContact}}">
+    <view class="contact-btn btn-wechat" catchtap="onTapWechat">微信</view>
+    <view class="contact-btn btn-phone" catchtap="onTapPhone">电话</view>
+    <view class="contact-btn btn-chat" catchtap="onTapChat">在线聊</view>
+  </view>
+  <!-- 头部：头像 + 信息 -->
   <view class="card-header">
     <view class="header-left">
       <view class="avatar-circle" style="background-color: {{item.avatarBg || '#10B981'}};">
@@ -9,11 +15,6 @@
         <text class="header-title">{{item.certText}}</text>
         <text class="header-sub">{{item.industry}}</text>
       </view>
-    </view>
-    <view class="header-btns" wx:if="{{showContact}}">
-      <view class="contact-btn btn-wechat" catchtap="onTapWechat">微信</view>
-      <view class="contact-btn btn-phone" catchtap="onTapPhone">电话</view>
-      <view class="contact-btn btn-chat" catchtap="onTapChat">在线聊</view>
     </view>
   </view>
   <!-- 详情字段 -->
@@ -36,6 +37,7 @@
   </view>
   <!-- 底部操作 -->
   <view class="card-footer">
+    <text class="footer-date">{{item.date}} · {{item.time}}</text>
     <view class="footer-actions">
       <view class="footer-action" catchtap="onTapReport">
         <text class="action-icon">⚠</text>
