@@ -59,12 +59,6 @@
   display: block; margin-bottom: 16rpx;
 }
 
-/* 图片 */
-.eb-images {
-  display: flex; gap: 8rpx; margin-bottom: 16rpx;
-}
-.eb-img { flex: 1; height: 160rpx; border-radius: 12rpx; }
-
 /* 底部 */
 .eb-bottom {
   display: flex; align-items: center; justify-content: space-between;

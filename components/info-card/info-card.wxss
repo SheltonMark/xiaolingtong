@@ -33,21 +33,6 @@
   margin-bottom: 24rpx;
 }
 
-/* 图片网格 */
-.card-images {
-  display: flex;
-  gap: 8rpx;
-  margin-bottom: 16rpx;
-}
-.card-img-wrap {
-  flex: 1;
-}
-.card-img {
-  width: 100%;
-  height: 200rpx;
-  border-radius: 12rpx;
-}
-
 /* 底部操作 */
 .card-footer {
   display: flex;
