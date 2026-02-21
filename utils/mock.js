@@ -8,9 +8,9 @@ const purchaseList = [
     content: '采购 保温杯 3000个，需要304不锈钢保温杯，500ml容量，带保温盖，双层真空。预算¥10~15/个，30天内交货，有现货优先，长期合作，量大从优。',
     wechat: 'riYong_trade2024',
     images: [
-      'https://img.zcool.cn/community/01a7f75d6e0760a80120695c7b67dd.jpg',
-      'https://img.zcool.cn/community/016a2256fb63006ac7257948f83349.jpg',
-      'https://img.zcool.cn/community/01233056fb62fd6ac72579485285e0.jpg'
+      'https://picsum.photos/400/400?random=1',
+      'https://picsum.photos/400/400?random=2',
+      'https://picsum.photos/400/400?random=3'
     ],
     date: '02-07',
     time: '2小时前'
@@ -21,8 +21,8 @@ const purchaseList = [
     content: '采购 Type-C数据线 10000条，1米/2米，PD快充60W，需要3C认证，支持OEM。预算¥3~5/条，15天内交货。',
     wechat: 'dianzi_tech888',
     images: [
-      'https://img.zcool.cn/community/01c6615d6e0760a80120695c457d5c.jpg',
-      'https://img.zcool.cn/community/01fd2d5d6e0761a80120695c0b3e96.jpg'
+      'https://picsum.photos/400/400?random=4',
+      'https://picsum.photos/400/400?random=5'
     ],
     date: '02-06',
     time: '5小时前'
@@ -37,8 +37,8 @@ const stockList = [
     content: '库存 蓝牙耳机 5000副，TWS蓝牙耳机，入耳式，主动降噪，续航6小时。100副起订，单价面议，可OEM贴牌，量大价优。',
     wechat: 'gz_dianzi_stock',
     images: [
-      'https://img.zcool.cn/community/01a9b75d6e0761a80120695c8e3a0c.jpg',
-      'https://img.zcool.cn/community/0172d35d6e0760a80120695c5e8b2e.jpg'
+      'https://picsum.photos/400/400?random=6',
+      'https://picsum.photos/400/400?random=7'
     ],
     date: '02-05',
     time: '1天前'
@@ -53,8 +53,8 @@ const processList = [
     content: '代加工 手机壳 500个起，注塑加工，TPU材质，单价面议，交期15天。支持来图定制，丝印能力。',
     wechat: 'sz_moju_factory',
     images: [
-      'https://img.zcool.cn/community/013d9a5d6e0761a80120695c2b8f5a.jpg',
-      'https://img.zcool.cn/community/01b5ea5d6e0760a80120695c9a7e3b.jpg'
+      'https://picsum.photos/400/400?random=8',
+      'https://picsum.photos/400/400?random=9'
     ],
     date: '02-06',
     time: '1天前'
