@@ -86,7 +86,7 @@
   box-sizing: border-box;
 }
 .chat-input-row { display: flex; align-items: center; gap: 16rpx; }
-.chat-tool-btn { font-size: 36rpx; flex-shrink: 0; }
+.chat-tool-btn { font-size: 48rpx; flex-shrink: 0; color: #64748B; }
 .chat-input { 
   flex: 1; 
   background-color: #F1F5F9; 
