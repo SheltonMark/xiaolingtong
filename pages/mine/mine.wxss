@@ -208,3 +208,24 @@
   background-color: #3B82F6;
   border-radius: 4rpx;
 }
+
+/* 我的动态卡片 */
+.dynamic-card {
+  padding: 24rpx 24rpx; border-bottom: 1rpx solid #F1F5F9;
+}
+.dynamic-card:last-child { border-bottom: none; }
+.dynamic-top {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8rpx;
+}
+.dynamic-type {
+  font-size: 20rpx; padding: 2rpx 12rpx; border-radius: 6rpx; font-weight: 500;
+}
+.type-blue { color: #3B82F6; background-color: #EFF6FF; }
+.type-orange { color: #F97316; background-color: #FFF7ED; }
+.type-green { color: #10B981; background-color: #ECFDF5; }
+.type-amber { color: #F59E0B; background-color: #FFFBEB; }
+.dynamic-date { font-size: 20rpx; color: #94A3B8; }
+.dynamic-title { font-size: 26rpx; color: #1E293B; font-weight: 500; display: block; margin-bottom: 8rpx; }
+.dynamic-meta { display: flex; align-items: center; justify-content: space-between; }
+.dynamic-meta-text { font-size: 20rpx; color: #94A3B8; }
+.dynamic-status { font-size: 20rpx; font-weight: 500; }

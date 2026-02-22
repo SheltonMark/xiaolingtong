@@ -53,7 +53,24 @@
           <text>{{item}}</text>
         </view>
       </view>
-      <empty-state text="暂无数据" subText="快去发布动态吧~" />
+      <!-- 我的动态 -->
+      <view wx:if="{{currentTab === 0}}">
+        <view class="dynamic-card" wx:for="{{myPosts}}" wx:key="id" data-id="{{item.id}}" bindtap="onTapPost">
+          <view class="dynamic-top">
+            <text class="dynamic-type type-{{item.typeColor}}">{{item.type}}</text>
+            <text class="dynamic-date">{{item.date}}</text>
+          </view>
+          <text class="dynamic-title">{{item.title}}</text>
+          <view class="dynamic-meta">
+            <text class="dynamic-meta-text">{{item.views}}次浏览</text>
+            <text class="dynamic-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
+          </view>
+        </view>
+      </view>
+      <!-- 我的收藏 -->
+      <view wx:if="{{currentTab === 1}}">
+        <empty-state text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
+      </view>
     </view>
   </view>
 

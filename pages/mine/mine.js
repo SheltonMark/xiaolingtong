@@ -15,6 +15,11 @@ Page({
       { icon: '\ue619', label: '我要招工', bg: '#FFF1F2', iconColor: '#F43F5E', url: '/pages/post-job/post-job' },
       { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' }
     ],
+    myPosts: [
+      { id: 'mp1', type: '采购需求', typeColor: 'blue', title: '保温杯3000个采购，304不锈钢材质', date: '02-07', views: 1287, statusText: '已发布', statusColor: '#10B981' },
+      { id: 'mp5', type: '招工', typeColor: 'orange', title: '电子组装工15人，20元/小时，包午餐', date: '02-10', views: 856, statusText: '待结算', statusColor: '#F59E0B' },
+      { id: 'mp6', type: '招工', typeColor: 'orange', title: '包装工10人，18元/小时，长安镇', date: '02-15', views: 432, statusText: '招工中', statusColor: '#10B981' }
+    ],
     // 临工端
     workerTabs: ['接单记录', '我的收藏'],
     workerFuncs: [
@@ -51,6 +56,10 @@ Page({
   onFuncTap(e) {
     const { url } = e.currentTarget.dataset
     if (url) wx.navigateTo({ url })
+  },
+
+  onTapPost(e) {
+    wx.navigateTo({ url: '/pages/post-detail/post-detail?id=' + e.currentTarget.dataset.id })
   },
 
   onSettings() {
