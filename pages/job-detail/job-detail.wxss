@@ -95,7 +95,6 @@
   padding: 16rpx 24rpx;
   padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   background: #fff;
-  margin-top: 8rpx;
 }
 .bar-left {
   display: flex; align-items: center; gap: 24rpx;
