@@ -18,6 +18,11 @@
   align-items: center;
   justify-content: space-between;
   padding: 28rpx 32rpx;
+  min-height: 0;
+}
+.cell switch {
+  transform: scale(0.8);
+  transform-origin: right center;
 }
 .cell-border {
   border-bottom: 1rpx solid #F1F5F9;

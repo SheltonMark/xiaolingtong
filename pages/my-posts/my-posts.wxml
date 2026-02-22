@@ -17,7 +17,6 @@
       <view class="post-top">
         <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
         <view class="status-tag status-bg-{{item.statusColor}}">
-          <text class="status-icon">{{item.statusIcon}}</text>
           <text>{{item.statusText}}</text>
         </view>
       </view>
