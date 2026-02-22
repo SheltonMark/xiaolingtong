@@ -1,7 +1,7 @@
 Page({
   data: {
     viewOnly: false,
-    role: 'manager', // manager | enterprise
+    role: 'enterprise', // manager | enterprise
     job: {
       company: '鑫达电子厂',
       avatarText: '鑫',
