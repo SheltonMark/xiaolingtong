@@ -103,13 +103,13 @@
         </view>
         <view class="data-divider"></view>
         <view class="data-item">
-          <text class="data-value text-warm">86</text>
-          <text class="data-label">灵豆</text>
+          <text class="data-value text-primary">50</text>
+          <text class="data-label">累计接单</text>
         </view>
         <view class="data-divider"></view>
         <view class="data-item">
-          <text class="data-value text-primary">50</text>
-          <text class="data-label">累计接单</text>
+          <text class="data-value text-warm">95</text>
+          <text class="data-label">信用分</text>
         </view>
       </view>
     </view>
