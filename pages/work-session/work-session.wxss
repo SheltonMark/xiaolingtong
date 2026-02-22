@@ -1,4 +1,4 @@
-.ws-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: calc(200rpx + env(safe-area-inset-bottom)); }
+.ws-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 40rpx; }
 
 /* 状态卡片 */
 .status-card {
@@ -90,8 +90,7 @@
 
 /* 底部 */
 .ws-bottom {
-  position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx;
-  background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  margin: 24rpx 32rpx; padding: 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
 }
 .ws-hint { display: block; text-align: center; font-size: 20rpx; color: #94A3B8; margin-top: 12rpx; }

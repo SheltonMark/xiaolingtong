@@ -1,4 +1,4 @@
-.ci-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); }
+.ci-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 40rpx; }
 .ci-card { background-color: #fff; margin: 24rpx 32rpx 0; border-radius: 24rpx; padding: 32rpx; }
 .ci-job-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
 .ci-avatar-img { width: 80rpx; height: 80rpx; border-radius: 50%; flex-shrink: 0; }
@@ -107,7 +107,6 @@
 
 /* 底部 */
 .ci-bottom {
-  position: fixed; bottom: 0; left: 0; right: 0; padding: 20rpx 48rpx;
-  background-color: #fff; box-shadow: 0 -4rpx 12rpx rgba(0,0,0,0.04);
-  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  margin: 24rpx 32rpx; padding: 32rpx;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
 }

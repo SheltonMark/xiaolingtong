@@ -92,7 +92,7 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.showToast({ title: '已确认收工', icon: 'success' })
-          setTimeout(() => wx.navigateTo({ url: '/pages/settlement/settlement?orderId=' + this.data.orderId }), 1500)
+          setTimeout(() => wx.navigateTo({ url: '/pages/settlement/settlement?orderId=' + this.data.orderId + '&role=manager' }), 1500)
         }
       }
     })

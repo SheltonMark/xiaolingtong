@@ -88,9 +88,11 @@
     </view>
   </view>
 
-  <!-- 底部支付 -->
+  <!-- 底部操作 -->
   <view class="st-bottom" wx:if="{{!viewOnly}}">
-    <button class="btn btn-primary" bindtap="onPay">确认支付 ¥{{job.factoryTotal}}</button>
-    <text class="st-hint">支付后工资将自动发放至临工钱包</text>
+    <button class="btn btn-primary" wx:if="{{role === 'enterprise'}}" bindtap="onPay">确认支付 ¥{{job.factoryTotal}}</button>
+    <button class="btn btn-cta" wx:if="{{role === 'manager'}}" bindtap="onSubmitSettlement">提交结算单</button>
+    <text class="st-hint" wx:if="{{role === 'enterprise'}}">支付后工资将自动发放至临工钱包</text>
+    <text class="st-hint" wx:if="{{role === 'manager'}}">提交后将通知临工确认工时</text>
   </view>
 </view>

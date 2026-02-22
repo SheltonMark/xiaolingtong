@@ -1,6 +1,7 @@
 Page({
   data: {
     viewOnly: false,
+    role: 'manager', // manager | enterprise
     job: {
       company: '鑫达电子厂',
       avatarText: '鑫',
@@ -35,6 +36,22 @@ Page({
     if (options.viewOnly === '1') {
       this.setData({ viewOnly: true })
     }
+    if (options.role) {
+      this.setData({ role: options.role })
+    }
+  },
+
+  onSubmitSettlement() {
+    wx.showModal({
+      title: '提交结算单',
+      content: '提交后将通知临工确认工时，超时将自动确认',
+      success: (res) => {
+        if (res.confirm) {
+          wx.showToast({ title: '已提交', icon: 'success' })
+          setTimeout(() => wx.navigateBack(), 1500)
+        }
+      }
+    })
   },
 
   onPay() {
