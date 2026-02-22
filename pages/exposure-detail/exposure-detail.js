@@ -1,5 +1,6 @@
 Page({
   data: {
+    isFav: false,
     detail: {
       avatarText: '匿'
     },
@@ -19,5 +20,9 @@ Page({
     if (!this.data.commentText.trim()) return
     wx.showToast({ title: '评论已发送', icon: 'success' })
     this.setData({ commentText: '' })
+  },
+  onToggleFav() {
+    this.setData({ isFav: !this.data.isFav })
+    wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
   }
 })

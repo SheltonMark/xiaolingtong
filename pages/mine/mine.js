@@ -7,7 +7,7 @@ Page({
     enterpriseInfo: { avatarText: '鑫' },
     workerInfo: { avatarText: '张' },
     // 企业端
-    enterpriseTabs: ['我的动态', '浏览记录', '对接记录'],
+    enterpriseTabs: ['我的动态', '我的收藏'],
     enterpriseFuncs: [
       { icon: '\ue8a0', label: '我的发布', bg: '#EFF6FF', iconColor: '#3B82F6', url: '/pages/my-posts/my-posts' },
       { icon: '\ue624', label: '灵豆充值', bg: '#FFF7ED', iconColor: '#F97316', url: '/pages/bean-recharge/bean-recharge' },
@@ -16,7 +16,7 @@ Page({
       { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' }
     ],
     // 临工端
-    workerTabs: ['接单记录', '浏览记录'],
+    workerTabs: ['接单记录', '我的收藏'],
     workerFuncs: [
       { icon: '\ue620', label: '我的报名', bg: '#E0F2FE', iconColor: '#3B82F6', url: '/pages/my-applications/my-applications' },
       { icon: '\ue611', label: '我的钱包', bg: '#FFF7ED', iconColor: '#F97316', url: '/pages/wallet/wallet' },

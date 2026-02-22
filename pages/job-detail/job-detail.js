@@ -2,6 +2,7 @@ Page({
   data: {
     userRole: 'worker',
     swiperCurrent: 0,
+    isFav: false,
     job: {
       id: 'j1',
       title: '电子组装工',
@@ -61,5 +62,9 @@ Page({
 
   onCallPhone() {
     wx.makePhoneCall({ phoneNumber: '13900005678', fail() {} })
+  },
+  onToggleFav() {
+    this.setData({ isFav: !this.data.isFav })
+    wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
   }
 })

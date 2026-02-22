@@ -90,6 +90,11 @@
     </view>
   </view>
 
+  <!-- 收藏按钮 -->
+  <view class="fav-float" bindtap="onToggleFav">
+    <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
+  </view>
+
   <!-- 底部报名（仅临工可见） -->
   <view class="apply-wrap" wx:if="{{userRole === 'worker'}}">
     <button class="btn btn-cta apply-btn" bindtap="onApply">

@@ -63,6 +63,9 @@
 
   <!-- 底部操作 -->
   <view class="bottom-actions">
+    <view class="fav-btn" bindtap="onToggleFav">
+      <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
+    </view>
     <button class="bottom-btn btn-chat" bindtap="onChat">
       <text class="bottom-btn-icon iconfont icon-xiaoxi"></text>
       <text>在线聊</text>

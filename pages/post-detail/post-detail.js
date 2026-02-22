@@ -1,6 +1,7 @@
 Page({
   data: {
     swiperCurrent: 0,
+    isFav: false,
     detail: {
       id: 'p1',
       type: 'purchase',
@@ -77,5 +78,9 @@ Page({
 
   onReport() {
     wx.navigateTo({ url: '/pages/report/report?id=' + this.data.detail.id })
+  },
+  onToggleFav() {
+    this.setData({ isFav: !this.data.isFav })
+    wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
   }
 })
