@@ -1,5 +1,12 @@
 <!--pages/exposure-board/exposure-board.wxml-->
 <view class="eb-page">
+  <!-- 自定义导航栏 -->
+  <view class="eb-nav" style="padding-top: {{statusBarHeight}}px;">
+    <view class="eb-nav-inner" style="height: {{menuHeight}}px;">
+      <text class="eb-nav-title">曝光榜</text>
+    </view>
+  </view>
+
   <!-- 说明横幅 -->
   <view class="eb-warning">
     <text class="eb-warning-icon iconfont icon-tishixinxi"></text>

@@ -23,7 +23,11 @@ Page({
         { label: '有空调', color: 'blue' },
         { label: '长期合作', color: 'amber' }
       ],
-      images: [],
+      images: [
+        'https://picsum.photos/seed/job1a/600/400',
+        'https://picsum.photos/seed/job1b/600/400',
+        'https://picsum.photos/seed/job1c/600/400'
+      ],
       company: {
         name: '鑫达电子厂',
         avatarText: '鑫',

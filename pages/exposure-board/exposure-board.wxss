@@ -1,5 +1,10 @@
 .eb-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); }
 
+/* 自定义导航栏 */
+.eb-nav { background-color: #fff; }
+.eb-nav-inner { display: flex; align-items: center; justify-content: center; }
+.eb-nav-title { font-size: 30rpx; font-weight: 600; color: #1E293B; }
+
 /* 警告横幅 */
 .eb-warning {
   margin: 24rpx 32rpx 0; background-color: #FFF1F2;

@@ -1,4 +1,4 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "曝光榜"
+  "navigationStyle": "custom"
 }

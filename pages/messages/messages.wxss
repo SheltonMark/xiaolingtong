@@ -1,6 +1,6 @@
 .msg-page { min-height: 100vh; background-color: #F8FAFC; padding-bottom: 140rpx; }
 .msg-header { background-color: #fff; padding: 20rpx 32rpx; display: flex; align-items: center; justify-content: space-between; }
-.msg-header-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }
+.msg-header-title { font-size: 30rpx; font-weight: 600; color: #1E293B; }
 .msg-read-all { font-size: 20rpx; color: #3B82F6; }
 .tab-bar { display: flex; background-color: #fff; border-bottom: 1rpx solid #F1F5F9; }
 .tab-item { flex: 1; text-align: center; padding: 20rpx 0; font-size: 24rpx; color: #64748B; position: relative; }
