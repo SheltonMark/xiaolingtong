@@ -13,7 +13,6 @@
   <!-- 底部登录区域 -->
   <view class="login-bottom">
     <button class="wx-login-btn" bindtap="onWxLogin">
-      <text class="wx-icon iconfont icon-xiaoxi"></text>
       <text>微信一键登录</text>
     </button>
     <view class="terms">
