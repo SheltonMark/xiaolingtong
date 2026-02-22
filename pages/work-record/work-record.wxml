@@ -1,80 +1,37 @@
 <!--pages/work-record/work-record.wxml-->
 <view class="wr-page">
-  <!-- 当前状态卡片 -->
-  <view class="status-card">
-    <view class="sc-top">
-      <text class="sc-company">{{status.company}} · {{status.jobType}}</text>
-      <text class="sc-badge">进行中</text>
-    </view>
-    <view class="sc-hours">
-      <text class="sc-hours-big">{{status.hoursToday}}</text>
-      <text class="sc-hours-unit">小时</text>
-    </view>
-    <text class="sc-sub">今日已工作时长 · {{status.startTime}} 开始</text>
-    <view class="sc-stats">
-      <view class="sc-stat">
-        <text class="sc-stat-val">今日出勤：{{status.todayAttend}}人</text>
+  <!-- 顶部提示 -->
+  <view class="wr-tip">
+    <text class="iconfont icon-anquan wr-tip-icon"></text>
+    <text class="wr-tip-text">您已被指定为临时管理员，请按时完成各项监管任务</text>
+  </view>
+
+  <!-- 订单列表 -->
+  <view class="wr-list">
+    <view class="order-card" wx:for="{{orders}}" wx:key="id"
+          data-id="{{item.id}}" data-stage="{{item.stage}}" data-mode="{{item.mode}}"
+          bindtap="onOrderTap">
+      <view class="order-top">
+        <view class="text-avatar text-avatar-sm" style="background-color: {{item.avatarColor}};">{{item.avatarText}}</view>
+        <view class="order-info">
+          <text class="order-company">{{item.company}}</text>
+          <text class="order-meta">{{item.jobType}} · {{item.salary}}</text>
+        </view>
+        <view class="order-stage" style="color: {{item.stageColor}}; background-color: {{item.stageBg}};">
+          {{item.stageText}}
+        </view>
       </view>
-      <view class="sc-stat">
-        <text class="sc-stat-val">异常：{{status.todayAnomaly}}人</text>
-      </view>
-      <view class="sc-stat">
-        <text class="sc-stat-val">预计收工：{{status.estimateEnd}}</text>
+      <view class="order-bottom">
+        <text class="order-detail"><text class="iconfont icon-riqixuanze"></text> {{item.dateRange}}</text>
+        <text class="order-detail"><text class="iconfont icon-worker"></text> {{item.workerCount}}人</text>
+        <text class="order-detail">{{item.mode === 'hourly' ? '计时' : '计件'}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 现场拍照 -->
-  <view class="wr-card">
-    <view class="card-header-row">
-      <text class="card-title">📷 现场拍照（每2小时）</text>
-    </view>
-    <view class="photo-list">
-      <!-- 已上传 -->
-      <view class="photo-item photo-done" wx:for="{{photoRecords}}" wx:key="id" wx:if="{{item.status === 'done'}}">
-        <image class="photo-thumb" src="{{item.image}}" mode="aspectFill" />
-        <view class="photo-info">
-          <text class="photo-time">{{item.timeRange}}</text>
-          <text class="photo-status text-fresh">已上传 · {{item.uploadTime}}</text>
-        </view>
-        <text class="photo-check">✓</text>
-      </view>
-      <!-- 待上传 -->
-      <view class="photo-item photo-pending" wx:for="{{photoRecords}}" wx:key="id" wx:if="{{item.status === 'pending'}}">
-        <view class="photo-thumb-placeholder">
-          <text class="photo-camera-icon">📷</text>
-        </view>
-        <view class="photo-info">
-          <text class="photo-time">{{item.timeRange}}</text>
-          <text class="photo-status text-warm">待上传</text>
-        </view>
-        <button class="photo-btn" data-id="{{item.id}}" bindtap="onTakePhoto">拍照</button>
-      </view>
-    </view>
-  </view>
-
-  <!-- 异常记录 -->
-  <view class="wr-card">
-    <view class="card-header-row">
-      <text class="card-title"><text class="iconfont icon-tishixinxi"></text> 异常记录</text>
-    </view>
-    <view class="anomaly-list" wx:if="{{anomalies.length > 0}}">
-      <view class="anomaly-item" wx:for="{{anomalies}}" wx:key="id">
-        <view class="anomaly-top">
-          <text class="anomaly-name">{{item.name}} · {{item.type}}</text>
-          <text class="anomaly-time">{{item.time}}</text>
-        </view>
-        <text class="anomaly-desc">{{item.desc}}</text>
-      </view>
-    </view>
-    <button class="record-anomaly-btn" bindtap="onRecordAnomaly">
-      <text>+ 记录异常</text>
-    </button>
-  </view>
-
-  <!-- 底部 -->
-  <view class="wr-bottom">
-    <button class="btn btn-rose" bindtap="onFinishWork">确认收工</button>
-    <text class="wr-hint">收工后将生成结算单，请确保所有工时记录准确</text>
+  <!-- 空状态 -->
+  <view class="wr-empty" wx:if="{{orders.length === 0}}">
+    <text class="iconfont icon-kongkong wr-empty-icon"></text>
+    <text class="wr-empty-text">暂无管理任务</text>
   </view>
 </view>

@@ -1,5 +1,6 @@
 Page({
   data: {
+    viewOnly: false,
     job: {
       company: '鑫达电子厂',
       avatarText: '鑫',
@@ -28,6 +29,12 @@ Page({
 
   onViewAll() {
     wx.showToast({ title: '查看全部明细', icon: 'none' })
+  },
+
+  onLoad(options) {
+    if (options.viewOnly === '1') {
+      this.setData({ viewOnly: true })
+    }
   },
 
   onPay() {

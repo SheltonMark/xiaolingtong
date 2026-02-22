@@ -1,5 +1,8 @@
 Page({
   data: {
+    orderId: '',
+    mode: 'hourly',
+    isManagerFlow: false,
     jobInfo: {
       company: '鑫达电子厂',
       avatarText: '鑫',
@@ -19,6 +22,12 @@ Page({
       { id: 'w5', name: '钱七', time: '', status: 'absent' }
     ],
     photos: []
+  },
+
+  onLoad(options) {
+    if (options.orderId) {
+      this.setData({ orderId: options.orderId, mode: options.mode || 'hourly', isManagerFlow: true })
+    }
   },
 
   onCheckin() {
@@ -73,7 +82,13 @@ Page({
       success: (res) => {
         if (res.confirm) {
           wx.showToast({ title: '已确认开工', icon: 'success' })
-          setTimeout(() => wx.navigateTo({ url: '/pages/work-record/work-record' }), 1500)
+          if (this.data.isManagerFlow) {
+            setTimeout(() => wx.redirectTo({
+              url: '/pages/work-session/work-session?orderId=' + this.data.orderId + '&mode=' + this.data.mode
+            }), 1500)
+          } else {
+            setTimeout(() => wx.navigateBack(), 1500)
+          }
         }
       }
     })

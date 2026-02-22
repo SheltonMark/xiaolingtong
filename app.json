@@ -26,6 +26,7 @@
     "pages/income/income",
     "pages/checkin/checkin",
     "pages/work-record/work-record",
+    "pages/work-session/work-session",
     "pages/settlement/settlement",
     "pages/ad-purchase/ad-purchase",
     "pages/exposure-detail/exposure-detail",

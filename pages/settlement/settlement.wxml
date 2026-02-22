@@ -89,7 +89,7 @@
   </view>
 
   <!-- 底部支付 -->
-  <view class="st-bottom">
+  <view class="st-bottom" wx:if="{{!viewOnly}}">
     <button class="btn btn-primary" bindtap="onPay">确认支付 ¥{{job.factoryTotal}}</button>
     <text class="st-hint">支付后工资将自动发放至临工钱包</text>
   </view>
