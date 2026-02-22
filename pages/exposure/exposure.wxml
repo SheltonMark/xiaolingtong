@@ -2,13 +2,13 @@
 <view class="exp-page">
   <!-- 对方公司名称 -->
   <view class="form-card">
-    <text class="form-label required">对方公司名称</text>
+    <text class="form-label">对方公司名称 <text class="label-hint">(至少填一项)</text></text>
     <input class="form-input" placeholder="请输入对方公司全称" data-field="company" bindinput="onInput" />
   </view>
 
   <!-- 对方姓名 -->
   <view class="form-card">
-    <text class="form-label required">对方姓名</text>
+    <text class="form-label">对方姓名 <text class="label-hint">(至少填一项)</text></text>
     <input class="form-input" placeholder="请输入对方联系人姓名" data-field="contact" bindinput="onInput" />
   </view>
 

@@ -37,11 +37,13 @@
 }
 
 /* 头部 */
-.eb-card-header { margin-bottom: 16rpx; }
+.eb-card-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 16rpx; }
+.eb-header-info { flex: 1; display: flex; flex-direction: column; gap: 6rpx; }
+.eb-target { font-size: 26rpx; font-weight: 600; color: #1E293B; }
 .eb-type-badge {
   font-size: 18rpx; color: #fff; background-color: #F43F5E;
   padding: 4rpx 16rpx; border-radius: 6rpx;
-  display: inline-block;
+  display: inline-block; align-self: flex-start;
 }
 
 /* 详情 */

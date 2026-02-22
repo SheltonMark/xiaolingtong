@@ -24,18 +24,14 @@
           data-id="{{item.id}}" bindtap="onTapCard">
       <!-- 头部 -->
       <view class="eb-card-header">
-        <text class="eb-type-badge">{{item.type}}</text>
+        <view class="text-avatar text-avatar-sm" style="background-color: {{item.avatarColor}};">{{item.avatarText}}</view>
+        <view class="eb-header-info">
+          <text class="eb-target">{{item.company}}{{item.company && item.contact ? ' / ' : ''}}{{item.contact}}</text>
+          <text class="eb-type-badge">{{item.type}}</text>
+        </view>
       </view>
       <!-- 详情 -->
       <view class="eb-detail">
-        <view class="eb-detail-row">
-          <text class="eb-dl">对方公司</text>
-          <text class="eb-dv">{{item.company}}</text>
-        </view>
-        <view class="eb-detail-row">
-          <text class="eb-dl">对方姓名</text>
-          <text class="eb-dv">{{item.contact}}</text>
-        </view>
         <view class="eb-detail-row" wx:if="{{item.amount}}">
           <text class="eb-dl">欠款金额</text>
           <text class="eb-dv text-cta font-medium">{{item.amount}}</text>

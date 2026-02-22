@@ -15,8 +15,7 @@ Page({
   onDeleteImage(e) { this.setData({ images: this.data.images.filter((_, i) => i !== e.currentTarget.dataset.index) }) },
   onSubmit() {
     const { form, agreed } = this.data
-    if (!form.company) { wx.showToast({ title: '请输入公司名称', icon: 'none' }); return }
-    if (!form.contact) { wx.showToast({ title: '请输入对方姓名', icon: 'none' }); return }
+    if (!form.company && !form.contact) { wx.showToast({ title: '请至少填写公司或姓名', icon: 'none' }); return }
     if (!form.description) { wx.showToast({ title: '请输入曝光内容', icon: 'none' }); return }
     if (!agreed) { wx.showToast({ title: '请同意曝光发布协议', icon: 'none' }); return }
     wx.showToast({ title: '提交成功', icon: 'success' })
