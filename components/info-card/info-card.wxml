@@ -3,7 +3,7 @@
   <view class="card-header">
     <view class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:{{item.avatarColor || '#3B82F6'}};">{{item.avatarText || item.content[0]}}</view>
     <view class="card-author">
-      <text class="author-name">{{item.companyName || '未知公司'}}</text>
+      <text class="author-name">{{displayName || '未知公司'}}</text>
       <text class="author-meta">{{item.companyMeta || ''}} · {{item.time}}</text>
     </view>
     <view class="header-btns">
