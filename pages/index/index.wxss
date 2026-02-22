@@ -1,7 +1,7 @@
 .index-page {
   background-color: #F8FAFC;
   min-height: 100vh;
-  padding-bottom: 140rpx;
+  padding-bottom: 180rpx;
 }
 
 /* ===== 固定顶部（整体一块） ===== */
