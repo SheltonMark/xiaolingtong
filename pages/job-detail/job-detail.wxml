@@ -1,5 +1,5 @@
 <!--pages/job-detail/job-detail.wxml-->
-<view class="jd-page {{(userRole === 'worker' || (userRole === 'enterprise' && job.status === 'pending_settlement')) ? 'jd-page-with-apply' : ''}}">
+<view class="jd-page">
   <!-- 现场图片 -->
   <view style="position:relative;" wx:if="{{job.images && job.images.length > 0}}">
     <swiper class="jd-swiper"
