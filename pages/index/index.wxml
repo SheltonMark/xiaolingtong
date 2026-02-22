@@ -259,6 +259,10 @@
       </view>
       <!-- 标题 -->
       <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.tagText}}" class="urgent-tag">{{item.tagText}}</text></text>
+      <!-- 福利标签 -->
+      <view class="job-tags" wx:if="{{item.tags && item.tags.length > 0}}">
+        <text class="job-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
+      </view>
       <!-- 描述 -->
       <text class="job-desc">{{item.desc}}</text>
       <!-- 图片网格 -->
@@ -279,9 +283,7 @@
       </view>
       <!-- 底部：分享 + 报名 -->
       <view class="job-bottom">
-        <view class="job-share-btn" catchtap="onShare" data-id="{{item.id}}">
-          <text class="iconfont icon-fenxiang1"></text>
-        </view>
+        <view class="job-outline-btn" catchtap="onShare" data-id="{{item.id}}">分享</view>
         <view class="job-apply-btn" catchtap="onApply" data-id="{{item.id}}">立即报名</view>
       </view>
     </view>

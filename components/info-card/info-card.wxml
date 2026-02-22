@@ -25,16 +25,16 @@
   </view>
   <!-- 底部三按钮 -->
   <view class="card-actions" wx:if="{{showContact}}">
-    <view class="action-btn btn-wechat" catchtap="onTapWechat">
-      <text class="iconfont icon-xiaoxi"></text>
+    <view class="action-btn action-wechat" catchtap="onTapWechat">
+      <text class="iconfont icon-xiaoxi action-icon-align"></text>
       <text>微信</text>
     </view>
-    <view class="action-btn btn-phone" catchtap="onTapPhone">
-      <text class="iconfont icon-shouji"></text>
+    <view class="action-btn action-phone" catchtap="onTapPhone">
+      <text class="iconfont icon-shouji action-icon-align"></text>
       <text>电话</text>
     </view>
-    <view class="action-btn btn-chat" catchtap="onTapChat">
-      <text class="iconfont icon-pinglun"></text>
+    <view class="action-btn action-chat" catchtap="onTapChat">
+      <text class="iconfont icon-pinglun action-icon-align"></text>
       <text>在线聊</text>
     </view>
   </view>

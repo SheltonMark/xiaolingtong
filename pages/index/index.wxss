@@ -291,6 +291,13 @@
   font-weight: 500;
 }
 
+/* 福利标签 */
+.job-tags { display: flex; flex-wrap: wrap; gap: 10rpx; margin-bottom: 12rpx; }
+.job-tag {
+  font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 8rpx;
+  white-space: nowrap;
+}
+
 /* 薪资行（企业端招工tab用） */
 .job-salary-line {
   font-size: 26rpx;
@@ -337,6 +344,12 @@
   flex-shrink: 0;
 }
 .job-share-btn .iconfont { font-size: 28rpx; color: #94A3B8; }
+.job-outline-btn {
+  flex: 1; height: 72rpx; border-radius: 16rpx;
+  background: #F1F5F9; color: #64748B;
+  font-size: 26rpx; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+}
 .job-apply-btn {
   flex: 1; height: 72rpx; border-radius: 16rpx;
   background: #F97316; color: #fff;

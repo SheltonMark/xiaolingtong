@@ -42,6 +42,7 @@
 }
 .action-btn:not(:last-child) { border-right: 1rpx solid #F1F5F9; }
 .action-btn .iconfont { font-size: 28rpx; }
-.btn-wechat { color: #10B981; }
-.btn-phone { color: #3B82F6; }
-.btn-chat { color: #F97316; }
+.action-icon-align { position: relative; top: 2rpx; }
+.action-wechat { color: #10B981; }
+.action-phone { color: #3B82F6; }
+.action-chat { color: #F97316; }

@@ -101,7 +101,7 @@ const jobListWorker = [
     id: 'j1',
     title: '电子组装工',
     salary: '20',
-    salaryUnit: '元/小时',
+    salaryUnit: '元/时',
     distance: '3km',
     location: '东莞长安',
     need: 15,
@@ -113,13 +113,18 @@ const jobListWorker = [
     tagColor: 'text-rose',
     wechat: 'xinda_hr_001',
     desc: '需要15人，工期7天，08:00-18:00，包午餐，有空调车间，长期合作优先。',
+    tags: [
+      { label: '包午餐', bg: '#ECFDF5', color: '#10B981' },
+      { label: '有空调', bg: '#EFF6FF', color: '#3B82F6' },
+      { label: '08:00-18:00', bg: '#FFF7ED', color: '#F97316' }
+    ],
     images: []
   },
   {
     id: 'j2',
     title: '包装工',
     salary: '18',
-    salaryUnit: '元/小时',
+    salaryUnit: '元/时',
     distance: '5km',
     location: '深圳宝安',
     need: 20,
@@ -131,12 +136,17 @@ const jobListWorker = [
     tagColor: 'text-fresh',
     wechat: 'sf_wuliu_hr',
     desc: '需要20人，长期岗位，08:30-17:30，提供工作餐，月结工资。',
+    tags: [
+      { label: '有空调', bg: '#ECFDF5', color: '#10B981' },
+      { label: '新手友好', bg: '#EFF6FF', color: '#3B82F6' },
+      { label: '08:30-17:30', bg: '#FFF7ED', color: '#F97316' }
+    ],
     images: []
   },
   {
     id: 'j3',
     title: '缝纫工',
-    salary: '计件 0.5',
+    salary: '0.5',
     salaryUnit: '元/件',
     distance: '8km',
     location: '广州番禺',
@@ -149,6 +159,11 @@ const jobListWorker = [
     tagColor: '',
     wechat: 'meihua_fz_hr',
     desc: '需要10人，工期15天，09:00-18:00，熟手优先，有缝纫经验者优先录用。',
+    tags: [
+      { label: '包吃住', bg: '#ECFDF5', color: '#10B981' },
+      { label: '需有经验', bg: '#EFF6FF', color: '#3B82F6' },
+      { label: '09:00-18:00', bg: '#FFF7ED', color: '#F97316' }
+    ],
     images: []
   }
 ]
