@@ -43,7 +43,8 @@ Page({
 
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-    this.setData({ userRole, currentTab: 0 })
+    const avatarUrl = getApp().globalData.avatarUrl || wx.getStorageSync('avatarUrl') || ''
+    this.setData({ userRole, currentTab: 0, avatarUrl })
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: userRole === 'enterprise' ? 4 : 3, userRole })
     }

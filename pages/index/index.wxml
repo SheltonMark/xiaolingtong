@@ -233,20 +233,23 @@
   <view wx:if="{{userRole === 'worker'}}" class="worker-list-wrap">
     <view class="job-card" wx:for="{{jobList}}" wx:key="id"
           data-id="{{item.id}}" bindtap="onJobTap">
+      <!-- 头部：公司+工资 -->
       <view class="job-header">
         <view class="job-header-left">
           <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
           <view class="job-company-info">
             <text class="job-company">{{item.companyName}}</text>
-            <text class="job-meta">{{item.dateRange}} · {{item.location}} · {{item.distance}}</text>
+            <text class="job-meta">{{item.location}} · {{item.distance}} · {{item.dateRange}}</text>
           </view>
         </view>
-        <view class="contact-btns">
-          <view class="contact-btn btn-wechat" catchtap="onWechat" data-id="{{item.id}}">微信</view>
-          <view class="contact-btn btn-phone" catchtap="onPhone" data-id="{{item.id}}">电话</view>
+        <view class="job-pay">
+          <text class="job-salary-big">{{item.salary}}</text>
+          <text class="job-salary-unit">{{item.salaryUnit}}</text>
         </view>
       </view>
-      <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text> · {{item.title}}<text wx:if="{{item.tagText}}" class="{{item.tagColor}}"> · {{item.tagText}}</text></text>
+      <!-- 标题 -->
+      <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.tagText}}" class="urgent-tag">{{item.tagText}}</text></text>
+      <!-- 描述 -->
       <text class="job-desc">{{item.desc}}</text>
       <!-- 图片网格 -->
       <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">
@@ -254,18 +257,22 @@
           <image src="{{img}}" mode="aspectFill" class="img-grid-img" data-urls="{{item.images}}" data-current="{{img}}" catchtap="onPreviewImage" />
         </view>
       </view>
-      <view class="job-footer">
-        <text class="job-applied">已报名 {{item.applied}}/{{item.need}}人</text>
-        <view class="job-actions">
-          <view class="job-action-item">
-            <text class="action-icon iconfont icon-fenxiang1"></text>
-            <text class="job-action">分享</text>
-          </view>
-          <view class="job-action-item" catchtap="onReport" data-id="{{item.id}}">
-            <text class="action-icon iconfont icon-tishixinxi"></text>
-            <text class="job-action">投诉</text>
-          </view>
+      <!-- 报名进度 -->
+      <view class="job-progress">
+        <view class="progress-header">
+          <text class="progress-text">已报名 <text class="progress-bold">{{item.applied}}</text>/{{item.need}}人</text>
+          <text class="progress-text">剩余{{item.need - item.applied}}个名额</text>
         </view>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{item.applied / item.need * 100}}%;"></view>
+        </view>
+      </view>
+      <!-- 底部：分享 + 报名 -->
+      <view class="job-bottom">
+        <view class="job-share-btn" catchtap="onShare" data-id="{{item.id}}">
+          <text class="iconfont icon-fenxiang1"></text>
+        </view>
+        <view class="job-apply-btn" catchtap="onApply" data-id="{{item.id}}">立即报名</view>
       </view>
     </view>
     <empty-state wx:if="{{jobList.length === 0}}" text="暂无招工信息" subText="附近暂时没有招工需求" />

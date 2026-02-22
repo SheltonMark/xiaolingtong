@@ -93,6 +93,9 @@
   align-items: center;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
 }
+.user-avatar-img {
+  width: 96rpx; height: 96rpx; border-radius: 50%; flex-shrink: 0;
+}
 .data-card-3 .data-item {
   flex: 1;
 }

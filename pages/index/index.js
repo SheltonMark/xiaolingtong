@@ -163,6 +163,16 @@ Page({
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     wx.navigateTo({ url: '/pages/report/report?id=' + id })
   },
+
+  onShare(e) {
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] })
+  },
+
+  onApply(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
+  },
+
   onPreviewImage(e) {
     wx.previewImage({ current: e.currentTarget.dataset.current, urls: e.currentTarget.dataset.urls })
   },

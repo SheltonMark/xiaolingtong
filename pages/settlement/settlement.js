@@ -38,6 +38,12 @@ Page({
     }
     if (options.role) {
       this.setData({ role: options.role })
+    } else {
+      const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+      // 临工进来看到的是只读视图
+      if (userRole === 'worker') {
+        this.setData({ role: 'worker', viewOnly: true })
+      }
     }
   },
 

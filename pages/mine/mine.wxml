@@ -9,7 +9,8 @@
         <text class="header-label">我的</text>
       </view>
       <view class="user-info">
-        <view class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;">{{enterpriseInfo.avatarText}}</view>
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="user-avatar-img" mode="aspectFill" bindtap="onSettings" />
+        <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;" bindtap="onSettings">{{enterpriseInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">鑫达贸易公司</text>
@@ -83,7 +84,8 @@
         <text class="header-label">我的</text>
       </view>
       <view class="user-info">
-        <view class="text-avatar text-avatar-2xl" style="background-color: #F97316;">{{workerInfo.avatarText}}</view>
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="user-avatar-img" mode="aspectFill" bindtap="onSettings" />
+        <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #F97316;" bindtap="onSettings">{{workerInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">张三</text>

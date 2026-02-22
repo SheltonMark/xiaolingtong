@@ -5,6 +5,10 @@ const purchaseList = [
   {
     id: 'p1',
     type: 'purchase',
+    avatarText: '鑫',
+    avatarColor: '#3B82F6',
+    companyName: '鑫达贸易公司',
+    companyMeta: '东莞 · 已认证',
     content: '采购 保温杯 3000个，需要304不锈钢保温杯，500ml容量，带保温盖，双层真空。预算¥10~15/个，30天内交货，有现货优先，长期合作，量大从优。',
     wechat: 'riYong_trade2024',
     images: [
@@ -18,6 +22,10 @@ const purchaseList = [
   {
     id: 'p2',
     type: 'purchase',
+    avatarText: '广',
+    avatarColor: '#10B981',
+    companyName: '广州数码科技',
+    companyMeta: '广州 · 已认证',
     content: '采购 Type-C数据线 10000条，1米/2米，PD快充60W，需要3C认证，支持OEM。预算¥3~5/条，15天内交货。',
     wechat: 'dianzi_tech888',
     images: [
@@ -34,6 +42,10 @@ const stockList = [
   {
     id: 's1',
     type: 'stock',
+    avatarText: '深',
+    avatarColor: '#F97316',
+    companyName: '深圳蓝牙科技',
+    companyMeta: '深圳 · 已认证',
     content: '库存 蓝牙耳机 5000副，TWS蓝牙耳机，入耳式，主动降噪，续航6小时。100副起订，单价面议，可OEM贴牌，量大价优。',
     wechat: 'gz_dianzi_stock',
     images: [
@@ -50,6 +62,10 @@ const processList = [
   {
     id: 'pr1',
     type: 'process',
+    avatarText: '华',
+    avatarColor: '#F97316',
+    companyName: '华强注塑加工厂',
+    companyMeta: '东莞 · 已认证',
     content: '代加工 手机壳 500个起，注塑加工，TPU材质，单价面议，交期15天。支持来图定制，丝印能力。',
     wechat: 'sz_moju_factory',
     images: [

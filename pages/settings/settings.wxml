@@ -1,5 +1,17 @@
 <!--pages/settings/settings.wxml-->
 <view class="settings-page">
+  <!-- 头像设置 -->
+  <view class="section">
+    <view class="cell" bindtap="onChooseAvatar">
+      <text class="cell-label">头像</text>
+      <view class="cell-right">
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="cell-avatar" mode="aspectFill" />
+        <view wx:else class="text-avatar text-avatar-sm" style="background-color:{{avatarColor}};">{{avatarText}}</view>
+        <text class="cell-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
   <!-- 账号信息 -->
   <view class="section">
     <view class="cell cell-border">

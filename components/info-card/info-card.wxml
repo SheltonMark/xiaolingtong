@@ -1,11 +1,21 @@
 <view class="info-card" bindtap="onTapCard">
-  <!-- 顶部联系按钮 -->
-  <view class="card-contact-bar" wx:if="{{showContact}}">
-    <view class="contact-btn btn-wechat" catchtap="onTapWechat">微信</view>
-    <view class="contact-btn btn-phone" catchtap="onTapPhone">电话</view>
-    <view class="contact-btn btn-chat" catchtap="onTapChat">在线聊</view>
+  <!-- 头部：头像 + 公司名 + 投诉/分享 -->
+  <view class="card-header">
+    <view class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:{{item.avatarColor || '#3B82F6'}};">{{item.avatarText || item.content[0]}}</view>
+    <view class="card-author">
+      <text class="author-name">{{item.companyName || '未知公司'}}</text>
+      <text class="author-meta">{{item.companyMeta || ''}} · {{item.time}}</text>
+    </view>
+    <view class="header-btns">
+      <view class="icon-btn" catchtap="onTapReport">
+        <text class="iconfont icon-tishixinxi"></text>
+      </view>
+      <view class="icon-btn" catchtap="onTapShare">
+        <text class="iconfont icon-fenxiang1"></text>
+      </view>
+    </view>
   </view>
-  <!-- 帖子内容 -->
+  <!-- 文字内容 -->
   <text class="card-content">{{item.content}}</text>
   <!-- 图片网格 -->
   <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">
@@ -13,18 +23,19 @@
       <image src="{{img}}" mode="aspectFill" class="img-grid-img" data-urls="{{item.images}}" data-current="{{img}}" catchtap="onPreviewImage" />
     </view>
   </view>
-  <!-- 底部操作 -->
-  <view class="card-footer">
-    <text class="footer-date">{{item.date}} · {{item.time}}</text>
-    <view class="footer-actions">
-      <view class="footer-action" catchtap="onTapReport">
-        <text class="action-icon iconfont icon-tishixinxi"></text>
-        <text class="action-text">投诉</text>
-      </view>
-      <view class="footer-action" catchtap="onTapShare">
-        <text class="action-icon iconfont icon-fenxiang1"></text>
-        <text class="action-text">分享</text>
-      </view>
+  <!-- 底部三按钮 -->
+  <view class="card-actions" wx:if="{{showContact}}">
+    <view class="action-btn btn-wechat" catchtap="onTapWechat">
+      <text class="iconfont icon-xiaoxi"></text>
+      <text>微信</text>
+    </view>
+    <view class="action-btn btn-phone" catchtap="onTapPhone">
+      <text class="iconfont icon-shouji"></text>
+      <text>电话</text>
+    </view>
+    <view class="action-btn btn-chat" catchtap="onTapChat">
+      <text class="iconfont icon-pinglun"></text>
+      <text>在线聊</text>
     </view>
   </view>
 </view>

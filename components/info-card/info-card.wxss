@@ -3,67 +3,45 @@
 .info-card {
   background-color: #ffffff;
   border-radius: 24rpx;
-  padding: 32rpx;
+  overflow: hidden;
   margin-bottom: 24rpx;
 }
-/* 顶部联系按钮栏 */
-.card-contact-bar {
-  display: flex;
-  gap: 12rpx;
-  margin-bottom: 20rpx;
-}
-.contact-btn {
-  flex: 1;
-  font-size: 22rpx;
-  color: #ffffff;
-  padding: 12rpx 0;
-  border-radius: 8rpx;
-  text-align: center;
-}
-.btn-wechat { background-color: #10B981; }
-.btn-phone { background-color: #3B82F6; }
-.btn-chat { background-color: #F97316; }
 
-/* 帖子内容 */
+/* 头部 */
+.card-header {
+  display: flex; align-items: center; gap: 16rpx;
+  padding: 24rpx 24rpx 0;
+}
+.card-author { flex: 1; min-width: 0; }
+.author-name {
+  font-size: 26rpx; font-weight: 600; color: #1E293B;
+  display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.author-meta { font-size: 20rpx; color: #94A3B8; }
+.header-btns { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
+.icon-btn {
+  width: 52rpx; height: 52rpx; border-radius: 50%;
+  background: #F1F5F9; display: flex; align-items: center; justify-content: center;
+}
+.icon-btn .iconfont { font-size: 24rpx; color: #94A3B8; }
+
+/* 文字内容 */
 .card-content {
-  font-size: 24rpx;
-  color: #1E293B;
-  line-height: 1.7;
-  display: block;
-  margin-bottom: 24rpx;
+  font-size: 26rpx; color: #1E293B; line-height: 1.7;
+  display: block; padding: 16rpx 24rpx;
 }
 
-/* 底部操作 */
-.card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+/* 底部三按钮 */
+.card-actions {
+  display: flex; border-top: 1rpx solid #F1F5F9;
 }
-.footer-date {
-  font-size: 20rpx;
-  color: #94A3B8;
+.action-btn {
+  flex: 1; height: 80rpx;
+  display: flex; align-items: center; justify-content: center; gap: 8rpx;
+  font-size: 22rpx; font-weight: 500;
 }
-.footer-actions {
-  display: flex;
-  align-items: center;
-  gap: 24rpx;
-}
-.footer-action {
-  display: flex;
-  align-items: center;
-  gap: 6rpx;
-}
-.action-icon {
-  font-size: 26rpx;
-  color: #94A3B8;
-  vertical-align: middle;
-  margin-top: 4rpx;
-}
-.action-icon.icon-fenxiang1 {
-  font-size: 22rpx;
-  margin-top: 0;
-}
-.action-text {
-  font-size: 20rpx;
-  color: #94A3B8;
-}
+.action-btn:not(:last-child) { border-right: 1rpx solid #F1F5F9; }
+.action-btn .iconfont { font-size: 28rpx; }
+.btn-wechat { color: #10B981; }
+.btn-phone { color: #3B82F6; }
+.btn-chat { color: #F97316; }
