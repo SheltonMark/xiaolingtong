@@ -1,4 +1,4 @@
-.ws-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 160rpx; }
+.ws-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: calc(200rpx + env(safe-area-inset-bottom)); }
 
 /* 状态卡片 */
 .status-card {

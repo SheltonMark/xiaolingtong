@@ -4,7 +4,7 @@
   padding-bottom: 40rpx;
 }
 .jd-page-with-apply {
-  padding-bottom: 260rpx;
+  padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
 .jd-swiper { width: 100%; height: 352rpx; position: relative; }
 .jd-swiper-img { width: 100%; height: 100%; }

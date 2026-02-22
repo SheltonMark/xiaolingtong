@@ -1,4 +1,4 @@
-.ci-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 140rpx; }
+.ci-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); }
 .ci-card { background-color: #fff; margin: 24rpx 32rpx 0; border-radius: 24rpx; padding: 32rpx; }
 .ci-job-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
 .ci-avatar-img { width: 80rpx; height: 80rpx; border-radius: 50%; flex-shrink: 0; }
