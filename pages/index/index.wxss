@@ -409,20 +409,7 @@
 .btn-wechat-ent { background: #ECFDF5; color: #10B981; }
 .btn-phone-ent { background: #EFF6FF; color: #3B82F6; }
 
-.contact-btns {
-  display: flex;
-  gap: 12rpx;
-  flex-shrink: 0;
-  margin-left: 16rpx;
-}
-.contact-btn {
-  font-size: 22rpx;
-  color: #ffffff;
-  padding: 8rpx 20rpx;
-  border-radius: 8rpx;
-}
-.btn-wechat { background-color: #10B981; }
-.btn-phone { background-color: #3B82F6; }
+/* (removed old contact-btn styles to avoid leaking into info-card) */
 
 /* ===== 工厂名录卡片 ===== */
 .factory-card {
