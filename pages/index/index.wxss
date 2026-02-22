@@ -378,6 +378,24 @@
 }
 
 /* 企业端招工tab联系按钮 */
+.header-btns { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
+.icon-btn {
+  width: 52rpx; height: 52rpx; border-radius: 50%;
+  background: #F1F5F9; display: flex; align-items: center; justify-content: center;
+}
+.icon-btn .iconfont { font-size: 24rpx; color: #94A3B8; }
+.card-actions-ent {
+  display: flex; gap: 12rpx; margin-top: 16rpx;
+}
+.action-btn-ent {
+  flex: 1; height: 68rpx; border-radius: 12rpx;
+  display: flex; align-items: center; justify-content: center; gap: 8rpx;
+  font-size: 22rpx; font-weight: 500;
+}
+.action-btn-ent .iconfont { font-size: 26rpx; }
+.btn-wechat-ent { background: #ECFDF5; color: #10B981; }
+.btn-phone-ent { background: #EFF6FF; color: #3B82F6; }
+
 .contact-btns {
   display: flex;
   gap: 12rpx;
