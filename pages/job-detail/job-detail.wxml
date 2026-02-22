@@ -103,10 +103,7 @@
       </view>
     </view>
     <view class="bar-right">
-      <view class="bar-btn-phone" bindtap="onCallPhone">
-        <text class="iconfont icon-shouji"></text>
-        <text>电话</text>
-      </view>
+      <view class="bar-btn-phone" bindtap="onCallPhone">电话</view>
       <view class="bar-btn-apply" bindtap="onApply">立即报名</view>
     </view>
   </view>

@@ -117,12 +117,11 @@
   display: flex; align-items: center; gap: 12rpx;
 }
 .bar-btn-phone {
-  display: flex; align-items: center; justify-content: center; gap: 6rpx;
-  height: 72rpx; padding: 0 28rpx; border-radius: 16rpx;
-  background: #EFF6FF; color: #3B82F6;
-  font-size: 24rpx; font-weight: 500;
+  display: flex; align-items: center; justify-content: center;
+  height: 72rpx; padding: 0 40rpx; border-radius: 16rpx;
+  background: #3B82F6; color: #fff;
+  font-size: 26rpx; font-weight: 600;
 }
-.bar-btn-phone .iconfont { font-size: 28rpx; }
 .bar-btn-apply {
   height: 72rpx; padding: 0 40rpx; border-radius: 16rpx;
   background: #F97316; color: #fff;
