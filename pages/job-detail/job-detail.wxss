@@ -4,7 +4,7 @@
   padding-bottom: 40rpx;
 }
 .jd-page-with-apply {
-  padding-bottom: 40rpx;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
 }
 .jd-swiper { width: 100%; height: 352rpx; position: relative; }
 .jd-swiper-img { width: 100%; height: 100%; }
@@ -90,26 +90,42 @@
 .contact-label { font-size: 24rpx; color: #64748B; }
 .contact-value { font-size: 24rpx; color: #1E293B; }
 
-/* 收藏按钮 */
-.fav-float {
-  display: flex; align-items: center; justify-content: center;
-  width: 72rpx; height: 72rpx; border-radius: 50%;
-  background-color: #fff; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);
-  position: absolute; right: 32rpx; top: -36rpx; z-index: 10;
-}
-.fav-float .iconfont { font-size: 36rpx; }
+/* 收藏 */
 .fav-active { color: #F59E0B; }
 .fav-inactive { color: #CBD5E1; }
 
-/* 底部报名 */
-.apply-wrap {
-  margin: 24rpx 32rpx; padding: 32rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-top: 1rpx solid #F1F5F9;
+  z-index: 100;
 }
-.apply-btn {
-  display: flex; align-items: center; justify-content: center; gap: 12rpx;
+.bar-left {
+  display: flex; align-items: center; gap: 24rpx;
 }
-.apply-hint {
-  display: block; text-align: center;
-  font-size: 20rpx; color: #94A3B8; margin-top: 12rpx;
+.bar-icon-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 2rpx;
+}
+.bar-icon-btn .iconfont { font-size: 36rpx; }
+.bar-icon-gray { color: #94A3B8; }
+.bar-icon-label { font-size: 18rpx; color: #94A3B8; }
+.bar-right {
+  display: flex; align-items: center; gap: 12rpx;
+}
+.bar-btn-phone {
+  display: flex; align-items: center; justify-content: center; gap: 6rpx;
+  height: 72rpx; padding: 0 28rpx; border-radius: 16rpx;
+  background: #EFF6FF; color: #3B82F6;
+  font-size: 24rpx; font-weight: 500;
+}
+.bar-btn-phone .iconfont { font-size: 28rpx; }
+.bar-btn-apply {
+  height: 72rpx; padding: 0 40rpx; border-radius: 16rpx;
+  background: #F97316; color: #fff;
+  font-size: 26rpx; font-weight: 600;
+  display: flex; align-items: center; justify-content: center;
 }

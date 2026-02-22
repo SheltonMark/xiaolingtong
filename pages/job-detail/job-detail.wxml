@@ -90,23 +90,41 @@
     </view>
   </view>
 
-  <!-- 收藏按钮 -->
-  <view class="fav-float" bindtap="onToggleFav">
-    <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
+  <!-- 底部操作栏（仅临工可见） -->
+  <view class="bottom-bar" wx:if="{{userRole === 'worker'}}">
+    <view class="bar-left">
+      <view class="bar-icon-btn" bindtap="onToggleFav">
+        <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
+        <text class="bar-icon-label">收藏</text>
+      </view>
+      <view class="bar-icon-btn" bindtap="onShareJob">
+        <text class="iconfont icon-fenxiang1 bar-icon-gray"></text>
+        <text class="bar-icon-label">分享</text>
+      </view>
+    </view>
+    <view class="bar-right">
+      <view class="bar-btn-phone" bindtap="onCallPhone">
+        <text class="iconfont icon-shouji"></text>
+        <text>电话</text>
+      </view>
+      <view class="bar-btn-apply" bindtap="onApply">立即报名</view>
+    </view>
   </view>
 
-  <!-- 底部报名（仅临工可见） -->
-  <view class="apply-wrap" wx:if="{{userRole === 'worker'}}">
-    <button class="btn btn-cta apply-btn" bindtap="onApply">
-      <text class="iconfont icon-baoming"></text>
-      <text>立即报名</text>
-    </button>
-    <text class="apply-hint">报名后等待平台分配，开工前一天需确认出勤</text>
-  </view>
-
-  <!-- 底部结算（企业用户 + 待结算状态） -->
-  <view class="apply-wrap" wx:if="{{userRole === 'enterprise' && job.status === 'pending_settlement'}}">
-    <button class="btn btn-cta apply-btn" bindtap="onGoSettlement">去结算支付</button>
-    <text class="apply-hint">收工已完成，请尽快完成工资结算</text>
+  <!-- 底部操作栏（企业用户 + 待结算状态） -->
+  <view class="bottom-bar" wx:if="{{userRole === 'enterprise' && job.status === 'pending_settlement'}}">
+    <view class="bar-left">
+      <view class="bar-icon-btn" bindtap="onToggleFav">
+        <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
+        <text class="bar-icon-label">收藏</text>
+      </view>
+      <view class="bar-icon-btn" bindtap="onShareJob">
+        <text class="iconfont icon-fenxiang1 bar-icon-gray"></text>
+        <text class="bar-icon-label">分享</text>
+      </view>
+    </view>
+    <view class="bar-right">
+      <view class="bar-btn-apply" bindtap="onGoSettlement">去结算支付</view>
+    </view>
   </view>
 </view>

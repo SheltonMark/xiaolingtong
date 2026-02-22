@@ -66,5 +66,9 @@ Page({
   onToggleFav() {
     this.setData({ isFav: !this.data.isFav })
     wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+  },
+
+  onShareJob() {
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] })
   }
 })
