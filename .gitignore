@@ -2,3 +2,4 @@ server/node_modules/
 server/dist/
 server/uploads/
 server/.env
+.DS_Store
