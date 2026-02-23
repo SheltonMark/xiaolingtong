@@ -1,0 +1,31 @@
+import { Controller, Get, Post, Put, Param, Query, Body } from '@nestjs/common';
+import { JobService } from './job.service';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
+
+@Controller('jobs')
+export class JobController {
+  constructor(private jobService: JobService) {}
+
+  @Get()
+  list(@Query() query: any) {
+    return this.jobService.list(query);
+  }
+
+  @Get(':id')
+  detail(@Param('id') id: number) {
+    return this.jobService.detail(id);
+  }
+
+  @Post()
+  @Roles('enterprise')
+  create(@CurrentUser('sub') userId: number, @Body() dto: any) {
+    return this.jobService.create(userId, dto);
+  }
+
+  @Put(':id')
+  @Roles('enterprise')
+  update(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
+    return this.jobService.update(id, userId, dto);
+  }
+}
