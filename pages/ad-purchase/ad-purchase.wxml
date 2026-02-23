@@ -1,5 +1,6 @@
 <!--pages/ad-purchase/ad-purchase.wxml-->
 <view class="ad-page">
+  <nav-bar title="广告投放" />
   <!-- 广告位选择 -->
   <view class="ad-section">
     <text class="section-title required">选择广告位</text>

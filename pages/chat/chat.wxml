@@ -1,5 +1,6 @@
 <!--pages/chat/chat.wxml-->
 <view class="chat-page">
+  <nav-bar title="在线聊天" />
   <!-- 聊天消息区 - 新增style强制宽度 -->
   <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}" style="width: 100%;">
     <!-- 原有内容不变 -->

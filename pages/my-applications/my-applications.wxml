@@ -1,5 +1,6 @@
 <!--pages/my-applications/my-applications.wxml-->
 <view class="ma-page">
+  <nav-bar title="我的报名" />
   <!-- Tab -->
   <view class="tab-bar">
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"

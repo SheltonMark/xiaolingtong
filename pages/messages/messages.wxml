@@ -1,10 +1,6 @@
 <!--pages/messages/messages.wxml-->
 <view class="msg-page">
-  <!-- 顶部 -->
-  <view class="msg-header">
-    <text class="msg-header-title">消息</text>
-    <text class="msg-read-all" bindtap="onReadAll">全部已读</text>
-  </view>
+  <nav-bar title="消息中心" showBack="{{false}}" />
 
   <!-- Tab筛选：业务消息（左）+ 系统通知（右），带未读badge -->
   <view class="tab-bar">

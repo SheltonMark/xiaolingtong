@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "灵豆明细"
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "nav-bar": "/components/nav-bar/nav-bar"
+  }
 }

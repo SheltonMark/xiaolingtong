@@ -1,5 +1,6 @@
 <!--pages/wallet/wallet.wxml-->
 <view class="wl-page">
+  <nav-bar title="我的钱包" />
   <!-- 余额卡片 -->
   <view class="wl-card">
     <view class="wl-card-bg1"></view>

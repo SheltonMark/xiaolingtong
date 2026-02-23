@@ -1,5 +1,6 @@
 <!--pages/promotion/promotion.wxml-->
 <view class="pm-page">
+  <nav-bar title="信息推广" />
   <!-- 推广信息预览 -->
   <view class="pm-section">
     <text class="pm-hint">推广信息</text>

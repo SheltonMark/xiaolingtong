@@ -1,4 +1,5 @@
 <view class="doc-page">
+  <nav-bar title="用户协议" />
   <view class="doc-card">
     <text class="doc-main-title">小灵通平台用户服务协议</text>
     <text class="doc-update">更新日期：2026年1月1日 · 生效日期：2026年1月1日</text>

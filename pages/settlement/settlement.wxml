@@ -1,5 +1,6 @@
 <!--pages/settlement/settlement.wxml-->
 <view class="st-page">
+  <nav-bar title="结算" />
   <!-- 工作概要 -->
   <view class="st-card">
     <view class="st-job-header">

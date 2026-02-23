@@ -1,5 +1,6 @@
 <!--pages/publish/publish.wxml-->
 <view class="publish-page">
+  <nav-bar title="发布信息" />
   <!-- 信息类型选择 -->
   <view class="type-card">
     <text class="form-label">信息类型</text>

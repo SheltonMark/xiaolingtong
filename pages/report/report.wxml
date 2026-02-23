@@ -1,5 +1,6 @@
 <!--pages/report/report.wxml-->
 <view class="rp-page">
+  <nav-bar title="举报" />
   <view class="form-wrap">
     <view class="form-group">
       <text class="form-label required">举报类型</text>

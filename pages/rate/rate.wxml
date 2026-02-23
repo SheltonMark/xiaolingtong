@@ -1,4 +1,5 @@
 <view class="rate-page">
+  <nav-bar title="评价企业" />
   <!-- 企业信息 -->
   <view class="rate-card">
     <view class="company-row">

@@ -1,5 +1,6 @@
 <!--pages/exposure-detail/exposure-detail.wxml-->
 <view class="ed-page">
+  <nav-bar title="曝光详情" />
   <!-- 发布者信息 -->
   <view class="ed-card">
     <view class="ed-author">

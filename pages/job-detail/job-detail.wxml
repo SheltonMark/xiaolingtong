@@ -1,5 +1,6 @@
 <!--pages/job-detail/job-detail.wxml-->
 <view class="jd-page">
+  <nav-bar title="招工详情" />
   <!-- 现场图片 -->
   <view style="position:relative;" wx:if="{{job.images && job.images.length > 0}}">
     <swiper class="jd-swiper"

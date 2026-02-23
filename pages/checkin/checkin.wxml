@@ -1,5 +1,6 @@
 <!--pages/checkin/checkin.wxml-->
 <view class="ci-page">
+  <nav-bar title="签到管理" />
   <!-- 工单信息卡片 -->
   <view class="ci-card">
     <view class="ci-job-header">

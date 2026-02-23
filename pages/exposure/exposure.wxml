@@ -1,5 +1,6 @@
 <!--pages/exposure/exposure.wxml-->
 <view class="exp-page">
+  <nav-bar title="发布曝光" />
   <!-- 对方公司名称 -->
   <view class="form-card">
     <text class="form-label">对方公司名称 <text class="label-hint">(至少填一项)</text></text>

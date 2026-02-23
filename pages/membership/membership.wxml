@@ -1,5 +1,6 @@
 <!--pages/membership/membership.wxml-->
 <view class="mb-page">
+  <nav-bar title="会员中心" />
   <!-- 会员卡片 -->
   <view class="mb-card">
     <view class="mb-card-bg1"></view>

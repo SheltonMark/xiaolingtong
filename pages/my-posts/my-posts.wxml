@@ -1,5 +1,6 @@
 <!--pages/my-posts/my-posts.wxml-->
 <view class="my-posts-page">
+  <nav-bar title="我的发布" />
   <!-- Tab -->
   <view class="tab-bar">
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"

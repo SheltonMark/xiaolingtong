@@ -1,5 +1,6 @@
 <!--pages/cert-enterprise/cert-enterprise.wxml-->
 <view class="cert-page">
+  <nav-bar title="企业认证" />
   <!-- 认证提示 -->
   <view class="tip-banner tip-blue">
     <text class="tip-icon iconfont icon-tishixinxi"></text>

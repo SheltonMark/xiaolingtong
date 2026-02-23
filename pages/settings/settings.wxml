@@ -1,5 +1,6 @@
 <!--pages/settings/settings.wxml-->
 <view class="settings-page">
+  <nav-bar title="设置" />
   <!-- 头像设置 -->
   <view class="section">
     <view class="cell" bindtap="onChooseAvatar">

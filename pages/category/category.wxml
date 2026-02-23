@@ -1,5 +1,6 @@
 <!--pages/category/category.wxml-->
 <view class="category-page">
+  <nav-bar title="筛选" />
   <!-- 搜索框 -->
   <view class="search-wrap">
     <view class="search-input-wrap">

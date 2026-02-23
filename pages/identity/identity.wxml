@@ -1,5 +1,6 @@
 <!--pages/identity/identity.wxml-->
 <view class="identity-page">
+  <nav-bar title="选择身份" />
   <!-- 标题 -->
   <view class="header">
     <text class="title">选择您的身份</text>

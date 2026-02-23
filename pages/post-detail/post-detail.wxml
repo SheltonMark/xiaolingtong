@@ -1,5 +1,6 @@
 <!--pages/post-detail/post-detail.wxml-->
 <view class="detail-page">
+  <nav-bar title="信息详情" />
   <!-- 图片轮播 -->
   <view class="swiper-wrap" wx:if="{{detail.images.length > 0}}">
     <swiper class="image-swiper"

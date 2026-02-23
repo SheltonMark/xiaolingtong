@@ -2,5 +2,5 @@
   "usingComponents": {
     "nav-bar": "/components/nav-bar/nav-bar"
   },
-  "navigationBarTitleText": "发布信息"
+  "navigationStyle": "custom"
 }

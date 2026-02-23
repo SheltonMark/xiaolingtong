@@ -1,5 +1,6 @@
 <!--pages/bean-detail/bean-detail.wxml-->
 <view class="bd-page">
+  <nav-bar title="灵豆明细" />
   <!-- 余额概览 -->
   <view class="bd-card">
     <view class="bd-card-bg"></view>

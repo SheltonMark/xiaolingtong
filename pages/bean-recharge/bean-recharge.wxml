@@ -1,5 +1,6 @@
 <!--pages/bean-recharge/bean-recharge.wxml-->
 <view class="br-page">
+  <nav-bar title="灵豆充值" />
   <!-- 余额卡片 -->
   <view class="balance-card">
     <view class="bal-bg"></view>

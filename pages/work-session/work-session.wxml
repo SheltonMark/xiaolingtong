@@ -1,5 +1,6 @@
 <!--pages/work-session/work-session.wxml-->
 <view class="ws-page">
+  <nav-bar title="工作记录" />
   <!-- 计时模式 -->
   <block wx:if="{{mode === 'hourly'}}">
     <view class="status-card">

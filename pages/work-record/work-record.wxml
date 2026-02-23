@@ -1,5 +1,6 @@
 <!--pages/work-record/work-record.wxml-->
 <view class="wr-page">
+  <nav-bar title="临工管理" />
   <!-- 顶部提示 -->
   <view class="wr-tip">
     <text class="iconfont icon-anquan wr-tip-icon"></text>

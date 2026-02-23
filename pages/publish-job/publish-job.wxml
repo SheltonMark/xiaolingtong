@@ -1,5 +1,6 @@
 <!--pages/publish-job/publish-job.wxml-->
 <view class="pj-page">
+  <nav-bar title="发布招工" />
   <view class="form-wrap">
     <!-- 岗位名称 -->
     <view class="form-group">

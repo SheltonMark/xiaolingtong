@@ -1,5 +1,6 @@
 <!--pages/cert-worker/cert-worker.wxml-->
 <view class="cert-page">
+  <nav-bar title="实名认证" />
   <!-- 认证提示 -->
   <view class="tip-banner tip-orange">
     <text class="tip-icon iconfont icon-tishixinxi"></text>

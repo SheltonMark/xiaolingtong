@@ -1,5 +1,6 @@
 <!--pages/income/income.wxml-->
 <view class="inc-page">
+  <nav-bar title="收入明细" />
   <!-- 月度统计 -->
   <view class="inc-month-card">
     <view class="month-nav">
