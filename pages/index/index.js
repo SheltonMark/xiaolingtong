@@ -91,22 +91,31 @@ Page({
   loadData() {
     if (this.data.userRole === 'enterprise') {
       get('/posts', { type: 'purchase' }).then(res => {
-        this.setData({ purchaseList: res.data || [] })
+        this.setData({ purchaseList: this._mapPosts(res.data.list || res.data || []) })
       }).catch(() => {})
       get('/posts', { type: 'stock' }).then(res => {
-        this.setData({ stockList: res.data || [] })
+        this.setData({ stockList: this._mapPosts(res.data.list || res.data || []) })
       }).catch(() => {})
       get('/posts', { type: 'process' }).then(res => {
-        this.setData({ processList: res.data || [] })
+        this.setData({ processList: this._mapPosts(res.data.list || res.data || []) })
       }).catch(() => {})
       get('/jobs').then(res => {
-        this.setData({ jobListEnterprise: res.data || [] })
+        this.setData({ jobListEnterprise: res.data.list || res.data || [] })
       }).catch(() => {})
     } else {
       get('/jobs').then(res => {
-        this.setData({ jobList: res.data || [] })
+        this.setData({ jobList: res.data.list || res.data || [] })
       }).catch(() => {})
     }
+  },
+
+  _mapPosts(list) {
+    return (Array.isArray(list) ? list : []).map(item => ({
+      ...item,
+      companyName: (item.user && item.user.nickname) || item.title || '',
+      avatarText: item.user && item.user.nickname ? item.user.nickname[0] : '',
+      time: item.createdAt ? item.createdAt.substring(0, 10) : ''
+    }))
   },
 
   onTabChange(e) {
