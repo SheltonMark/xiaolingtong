@@ -1,3 +1,5 @@
+const { get } = require('../../utils/request')
+
 Page({
   data: {
     userRole: 'enterprise',
@@ -45,8 +47,32 @@ Page({
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     const avatarUrl = getApp().globalData.avatarUrl || wx.getStorageSync('avatarUrl') || ''
     this.setData({ userRole, currentTab: 0, avatarUrl })
+    this.loadProfile()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: userRole === 'enterprise' ? 4 : 3, userRole })
+    }
+  },
+
+  loadProfile() {
+    get('/auth/profile').then(res => {
+      const user = res.data
+      const app = getApp()
+      app.globalData.userInfo = user
+      app.globalData.beanBalance = user.beanBalance || 0
+      app.globalData.isMember = user.isMember || false
+      this.setData({
+        nickname: user.nickname || '',
+        avatarUrl: user.avatarUrl || '',
+        beanBalance: user.beanBalance || 0,
+        isMember: user.isMember || false,
+        creditScore: user.creditScore || 100
+      })
+    }).catch(() => {})
+    // 加载我的发布
+    if (this.data.userRole === 'enterprise') {
+      get('/posts/mine').then(res => {
+        this.setData({ myPosts: res.data || [] })
+      }).catch(() => {})
     }
   },
 

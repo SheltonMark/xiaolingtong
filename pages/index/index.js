@@ -1,4 +1,4 @@
-const mock = require('../../utils/mock')
+const { get } = require('../../utils/request')
 
 Page({
   data: {
@@ -90,14 +90,22 @@ Page({
 
   loadData() {
     if (this.data.userRole === 'enterprise') {
-      this.setData({
-        purchaseList: mock.purchaseList,
-        stockList: mock.stockList,
-        processList: mock.processList || [],
-        jobListEnterprise: mock.jobListEnterprise
-      })
+      get('/posts', { type: 'purchase' }).then(res => {
+        this.setData({ purchaseList: res.data || [] })
+      }).catch(() => {})
+      get('/posts', { type: 'stock' }).then(res => {
+        this.setData({ stockList: res.data || [] })
+      }).catch(() => {})
+      get('/posts', { type: 'process' }).then(res => {
+        this.setData({ processList: res.data || [] })
+      }).catch(() => {})
+      get('/jobs').then(res => {
+        this.setData({ jobListEnterprise: res.data || [] })
+      }).catch(() => {})
     } else {
-      this.setData({ jobList: mock.jobListWorker })
+      get('/jobs').then(res => {
+        this.setData({ jobList: res.data || [] })
+      }).catch(() => {})
     }
   },
 

@@ -1,47 +1,29 @@
+const { get, post } = require('../../utils/request')
+
 Page({
   data: {
     swiperCurrent: 0,
     isFav: false,
-    detail: {
-      id: 'p1',
-      type: 'purchase',
-      typeText: '采购需求',
-      avatarText: '鑫',
-      title: '保温杯3000个采购，304不锈钢材质，500ml容量',
-      location: '东莞',
-      certText: '已认证贸易商',
-      industry: '日用百货',
-      publishTime: '2026-02-07',
-      expireTime: '2026-03-09',
-      postCount: 12,
-      views: 1287,
-      contactViews: 32,
-      fields: [
-        { label: '物品名称', value: '304不锈钢保温杯' },
-        { label: '品类', value: '日用百货' },
-        { label: '规格参数', value: '500ml容量，带保温盖，双层真空' },
-        { label: '采购数量', value: '3000 个', bold: true },
-        { label: '预算范围', value: '¥10 ~ ¥15 / 个', highlight: true },
-        { label: '交货周期', value: '30天内' },
-        { label: '质量要求', value: '需通过FDA认证，无毒无味，保温效果6小时以上' },
-        { label: '地区', value: '广东 · 东莞' }
-      ],
-      desc: '有现货优先，长期合作，量大从优。需要带保温盖，包装要求简约风格。',
-      images: [
-        'https://picsum.photos/400/400?random=1',
-        'https://picsum.photos/400/400?random=2',
-        'https://picsum.photos/400/400?random=3'
-      ]
-    },
+    detail: {},
     contactUnlocked: false,
-    contactInfo: {
-      name: '王经理',
-      phone: '138****1234',
-      wechat: 'wang_trade_2024'
+    contactInfo: {}
+  },
+
+  onLoad(options) {
+    if (options.id) {
+      this.loadDetail(options.id)
     }
   },
 
-  onLoad(options) {},
+  loadDetail(id) {
+    get('/posts/' + id).then(res => {
+      const detail = res.data
+      this.setData({ detail, contactUnlocked: detail.contactUnlocked || false })
+      if (detail.contactUnlocked) {
+        this.setData({ contactInfo: detail.contactInfo || {} })
+      }
+    }).catch(() => {})
+  },
 
   onSwiperChange(e) {
     this.setData({ swiperCurrent: e.detail.current })
@@ -53,8 +35,10 @@ Page({
       content: '消耗10灵豆查看联系方式，确认？',
       success: (res) => {
         if (res.confirm) {
-          this.setData({ contactUnlocked: true })
-          wx.showToast({ title: '解锁成功', icon: 'success' })
+          post('/posts/' + this.data.detail.id + '/unlock').then(r => {
+            this.setData({ contactUnlocked: true, contactInfo: r.data || {} })
+            wx.showToast({ title: '解锁成功', icon: 'success' })
+          }).catch(() => {})
         }
       }
     })
@@ -80,7 +64,10 @@ Page({
     wx.navigateTo({ url: '/pages/report/report?id=' + this.data.detail.id })
   },
   onToggleFav() {
-    this.setData({ isFav: !this.data.isFav })
-    wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+    const id = this.data.detail.id
+    post('/favorites/toggle', { targetType: 'post', targetId: id }).then(() => {
+      this.setData({ isFav: !this.data.isFav })
+      wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+    }).catch(() => {})
   }
 })

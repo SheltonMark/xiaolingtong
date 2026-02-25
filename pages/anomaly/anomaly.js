@@ -1,6 +1,8 @@
+const { post, upload } = require('../../utils/request')
+
 Page({
   data: {
-    selectedWorker: { name: '王五', jobType: '电子组装工', hours: '6' },
+    selectedWorker: { name: '', jobType: '', hours: '' },
     types: [
       { key: 'early', icon: '\ue832', label: '早退' },
       { key: 'late', icon: '\ue648', label: '迟到' },
@@ -14,6 +16,12 @@ Page({
     actualHours: 6,
     desc: '',
     photos: []
+  },
+
+  onLoad(options) {
+    if (options.workerName) {
+      this.setData({ 'selectedWorker.name': options.workerName })
+    }
   },
 
   onSelectWorker() {
@@ -39,7 +47,13 @@ Page({
       sourceType: ['camera'],
       success: (res) => {
         const newPhotos = res.tempFiles.map(f => f.tempFilePath)
-        this.setData({ photos: [...this.data.photos, ...newPhotos] })
+        const uploads = newPhotos.map(path => upload(path))
+        Promise.all(uploads).then(results => {
+          const urls = results.map(r => r.data.url || r.data)
+          this.setData({ photos: [...this.data.photos, ...urls] })
+        }).catch(() => {
+          this.setData({ photos: [...this.data.photos, ...newPhotos] })
+        })
       }
     })
   },
@@ -55,8 +69,19 @@ Page({
       confirmColor: '#F43F5E',
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '提交成功', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
+          wx.showLoading({ title: '提交中...' })
+          post('/work/anomaly', {
+            workerName: this.data.selectedWorker.name,
+            type: this.data.selectedType,
+            time: this.data.time,
+            actualHours: this.data.actualHours,
+            notes: this.data.desc,
+            photos: this.data.photos
+          }).then(() => {
+            wx.hideLoading()
+            wx.showToast({ title: '提交成功', icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 1500)
+          }).catch(() => { wx.hideLoading() })
         }
       }
     })

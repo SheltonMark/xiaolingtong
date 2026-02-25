@@ -1,6 +1,10 @@
+const { post } = require('../../utils/request')
+const auth = require('../../utils/auth')
+
 Page({
   data: {
-    selected: ''
+    selected: '',
+    loading: false
   },
   onSelectEnterprise() {
     this.setData({ selected: 'enterprise' })
@@ -11,9 +15,18 @@ Page({
     this.confirmRole('worker')
   },
   confirmRole(role) {
-    wx.setStorageSync('userRole', role)
-    getApp().globalData.userRole = role
-    getApp().globalData.isLoggedIn = true
-    wx.switchTab({ url: '/pages/index/index' })
+    if (this.data.loading) return
+    this.setData({ loading: true })
+    post('/auth/choose-role', { role }).then(res => {
+      const { token } = res.data
+      if (token) auth.setToken(token)
+      wx.setStorageSync('userRole', role)
+      const app = getApp()
+      app.globalData.userRole = role
+      app.globalData.isLoggedIn = true
+      wx.switchTab({ url: '/pages/index/index' })
+    }).catch(() => {}).finally(() => {
+      this.setData({ loading: false })
+    })
   }
 })

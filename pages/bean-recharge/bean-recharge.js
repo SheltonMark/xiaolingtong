@@ -1,6 +1,8 @@
+const { get, post } = require('../../utils/request')
+
 Page({
   data: {
-    balance: 128,
+    balance: 0,
     selectedIndex: 1,
     packages: [
       { id: 1, beans: 50, price: '5', tag: '', tagColor: '', save: '' },
@@ -10,11 +12,15 @@ Page({
       { id: 5, beans: 2000, price: '128', tag: '', tagColor: '', save: '72' },
       { id: 6, beans: 5000, price: '298', tag: '最划算', tagColor: '#F43F5E', save: '202' }
     ],
-    records: [
-      { id: 'r1', title: '查看联系方式', desc: '***贸易公司 · 02-07', amount: '-10灵豆', type: 'expense' },
-      { id: 'r2', title: '查看联系方式', desc: '***电子科技 · 02-05', amount: '-10灵豆', type: 'expense' },
-      { id: 'r3', title: '充值200灵豆', desc: '微信支付 · 02-01', amount: '+200灵豆', type: 'income' }
-    ]
+    records: []
+  },
+  onShow() {
+    get('/beans/balance').then(res => {
+      this.setData({ balance: res.data.balance || 0 })
+    }).catch(() => {})
+    get('/beans/transactions').then(res => {
+      this.setData({ records: res.data || [] })
+    }).catch(() => {})
   },
   onSelect(e) { this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) }) },
   onViewAll() {
@@ -26,7 +32,12 @@ Page({
       title: '确认支付',
       content: '支付 ¥' + pkg.price + ' 获得 ' + pkg.beans + ' 灵豆',
       success: (res) => {
-        if (res.confirm) wx.showToast({ title: '充值成功', icon: 'success' })
+        if (res.confirm) {
+          post('/beans/recharge', { packageId: pkg.id, beans: pkg.beans, amount: Number(pkg.price) }).then(() => {
+            wx.showToast({ title: '充值成功', icon: 'success' })
+            this.onShow()
+          }).catch(() => {})
+        }
       }
     })
   }

@@ -1,3 +1,5 @@
+const { post, upload } = require('../../utils/request')
+
 Page({
   data: {
     form: {
@@ -63,7 +65,13 @@ Page({
       mediaType: ['image'],
       success: (res) => {
         const newImages = res.tempFiles.map(f => f.tempFilePath)
-        this.setData({ images: [...this.data.images, ...newImages] })
+        const uploads = newImages.map(path => upload(path))
+        Promise.all(uploads).then(results => {
+          const urls = results.map(r => r.data.url || r.data)
+          this.setData({ images: [...this.data.images, ...urls] })
+        }).catch(() => {
+          this.setData({ images: [...this.data.images, ...newImages] })
+        })
       }
     })
   },
@@ -75,12 +83,33 @@ Page({
   },
 
   onSubmit() {
-    const { form } = this.data
+    const { form, salaryMode, salaryModes, selectedBenefits, images } = this.data
     if (!form.title || !form.salary || !form.need) {
       wx.showToast({ title: '请填写必填项', icon: 'none' })
       return
     }
-    wx.showToast({ title: '发布成功', icon: 'success' })
-    setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
+    const data = {
+      title: form.title,
+      jobType: form.jobType,
+      salary: Number(form.salary),
+      salaryMode: salaryModes[salaryMode],
+      headcount: Number(form.need),
+      description: form.description,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      startTime: form.startTime,
+      endTime: form.endTime,
+      location: form.location,
+      benefits: selectedBenefits,
+      images
+    }
+    wx.showLoading({ title: '发布中...' })
+    post('/jobs', data).then(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '发布成功', icon: 'success' })
+      setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
+    }).catch(() => {
+      wx.hideLoading()
+    })
   }
 })

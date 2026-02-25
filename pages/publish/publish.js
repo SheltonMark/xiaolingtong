@@ -1,3 +1,5 @@
+const { post, upload } = require('../../utils/request')
+
 Page({
   data: {
     typeIndex: 0,
@@ -70,7 +72,15 @@ Page({
       mediaType: ['image'],
       success: (res) => {
         const newImages = res.tempFiles.map(f => f.tempFilePath)
-        this.setData({ images: [...this.data.images, ...newImages] })
+        // 上传图片
+        const uploads = newImages.map(path => upload(path))
+        Promise.all(uploads).then(results => {
+          const urls = results.map(r => r.data.url || r.data)
+          this.setData({ images: [...this.data.images, ...urls] })
+        }).catch(() => {
+          // 上传失败时用本地路径占位
+          this.setData({ images: [...this.data.images, ...newImages] })
+        })
       }
     })
   },
@@ -82,12 +92,13 @@ Page({
   },
 
   onSubmit() {
-    const { form, phoneChecked, wechatChecked } = this.data
-    if (!form.productName && this.data.typeIndex !== 2) {
+    const { form, phoneChecked, wechatChecked, images, typeIndex } = this.data
+    const types = ['purchase', 'stock', 'process']
+    if (!form.productName && typeIndex !== 2) {
       wx.showToast({ title: '请输入物品名称', icon: 'none' })
       return
     }
-    if (this.data.typeIndex === 2 && !form.processType) {
+    if (typeIndex === 2 && !form.processType) {
       wx.showToast({ title: '请输入加工类型', icon: 'none' })
       return
     }
@@ -95,8 +106,32 @@ Page({
       wx.showToast({ title: '请至少选择一种联系方式', icon: 'none' })
       return
     }
-    wx.showToast({ title: '发布成功', icon: 'success' })
-    setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
+    const data = {
+      type: types[typeIndex],
+      title: typeIndex === 2 ? form.processType : form.productName,
+      category: form.category,
+      spec: form.spec,
+      quantity: form.quantity ? Number(form.quantity) : undefined,
+      priceMin: form.priceMin ? Number(form.priceMin) : undefined,
+      priceMax: form.priceMax ? Number(form.priceMax) : undefined,
+      quality: form.quality,
+      deliveryDays: form.deliveryDays,
+      description: form.description || form.processDesc,
+      minOrder: form.minOrder ? Number(form.minOrder) : undefined,
+      capacity: form.capacity,
+      images,
+      showPhone: phoneChecked,
+      showWechat: wechatChecked,
+      validityDays: Number(this.data.validityOptions[this.data.validityIndex].replace('天', ''))
+    }
+    wx.showLoading({ title: '发布中...' })
+    post('/posts', data).then(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '发布成功', icon: 'success' })
+      setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
+    }).catch(() => {
+      wx.hideLoading()
+    })
   },
 
   onShow() {

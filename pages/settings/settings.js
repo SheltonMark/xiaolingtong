@@ -1,22 +1,32 @@
+const { put, upload } = require('../../utils/request')
+const auth = require('../../utils/auth')
+
 Page({
   data: {
     userRole: 'enterprise',
-    nickname: '鑫达贸易公司',
-    phone: '138****8888',
-    cacheSize: '12.3 MB',
+    nickname: '',
+    phone: '',
+    cacheSize: '0 MB',
     version: 'v1.0.0',
     avatarUrl: '',
-    avatarText: '鑫',
+    avatarText: '',
     avatarColor: '#3B82F6'
   },
 
   onShow() {
-    const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-    const nickname = userRole === 'enterprise' ? '鑫达贸易公司' : '张三'
-    const avatarUrl = getApp().globalData.avatarUrl || wx.getStorageSync('avatarUrl') || ''
-    const avatarText = nickname[0]
-    const avatarColor = userRole === 'enterprise' ? '#3B82F6' : '#F97316'
-    this.setData({ userRole, nickname, avatarUrl, avatarText, avatarColor })
+    const app = getApp()
+    const userRole = app.globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    const userInfo = app.globalData.userInfo || {}
+    const nickname = userInfo.nickname || ''
+    const avatarUrl = app.globalData.avatarUrl || wx.getStorageSync('avatarUrl') || ''
+    this.setData({
+      userRole,
+      nickname,
+      phone: userInfo.phone || '',
+      avatarUrl,
+      avatarText: nickname ? nickname[0] : '',
+      avatarColor: userRole === 'enterprise' ? '#3B82F6' : '#F97316'
+    })
   },
 
   onChooseAvatar() {
@@ -25,10 +35,20 @@ Page({
       mediaType: ['image'],
       success: (res) => {
         const tempPath = res.tempFiles[0].tempFilePath
-        getApp().globalData.avatarUrl = tempPath
-        wx.setStorageSync('avatarUrl', tempPath)
-        this.setData({ avatarUrl: tempPath })
-        wx.showToast({ title: '头像已更新', icon: 'success' })
+        upload(tempPath).then(r => {
+          const url = r.data.url || r.data
+          return put('/settings/avatar', { avatarUrl: url }).then(() => {
+            getApp().globalData.avatarUrl = url
+            wx.setStorageSync('avatarUrl', url)
+            this.setData({ avatarUrl: url })
+            wx.showToast({ title: '头像已更新', icon: 'success' })
+          })
+        }).catch(() => {
+          // fallback 本地
+          getApp().globalData.avatarUrl = tempPath
+          wx.setStorageSync('avatarUrl', tempPath)
+          this.setData({ avatarUrl: tempPath })
+        })
       }
     })
   },

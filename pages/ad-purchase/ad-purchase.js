@@ -1,8 +1,10 @@
+const { post, upload } = require('../../utils/request')
+
 Page({
   data: {
     selectedSlot: 0,
     linkType: 0,
-    form: { startDate: '2026-02-15', endDate: '2026-02-21' },
+    form: { startDate: '', endDate: '' },
     slots: [
       { name: '首页Banner广告', price: 200 },
       { name: '信息流推荐位', price: 100 }
@@ -36,7 +38,9 @@ Page({
   },
   onUploadAd() {
     wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
-      this.setData({ adImage: res.tempFiles[0].tempFilePath })
+      const path = res.tempFiles[0].tempFilePath
+      upload(path).then(r => this.setData({ adImage: r.data.url || r.data }))
+        .catch(() => this.setData({ adImage: path }))
     }})
   },
   onDeleteAd() { this.setData({ adImage: '' }) },
@@ -44,7 +48,20 @@ Page({
     wx.showModal({
       title: '确认支付',
       content: '支付 ¥' + this.data.totalPrice + '，投放' + this.data.days + '天',
-      success: (res) => { if (res.confirm) wx.showToast({ title: '购买成功', icon: 'success' }) }
+      success: (res) => {
+        if (res.confirm) {
+          post('/ads/purchase', {
+            slot: this.data.slots[this.data.selectedSlot].name,
+            startDate: this.data.form.startDate,
+            endDate: this.data.form.endDate,
+            days: this.data.days,
+            amount: this.data.totalPrice,
+            adImage: this.data.adImage
+          }).then(() => {
+            wx.showToast({ title: '购买成功', icon: 'success' })
+          }).catch(() => {})
+        }
+      }
     })
   }
 })

@@ -1,26 +1,14 @@
+const { post, upload } = require('../../utils/request')
+
 Page({
   data: {
     orderId: '',
     mode: 'hourly',
     isManagerFlow: false,
-    jobInfo: {
-      company: '鑫达电子厂',
-      avatarText: '鑫',
-      date: '02-10',
-      time: '08:00-18:00',
-      total: 15,
-      checkedIn: 12,
-      notCheckedIn: 3
-    },
-    distance: 55,
+    jobInfo: {},
+    distance: 0,
     maxDistance: 500,
-    workers: [
-      { id: 'w1', name: '张三', time: '07:55', status: 'ontime' },
-      { id: 'w2', name: '李四', time: '07:58', status: 'ontime' },
-      { id: 'w3', name: '王五', time: '08:02', status: 'late' },
-      { id: 'w4', name: '赵六', time: '', status: 'absent' },
-      { id: 'w5', name: '钱七', time: '', status: 'absent' }
-    ],
+    workers: [],
     photos: []
   },
 
@@ -28,6 +16,17 @@ Page({
     if (options.orderId) {
       this.setData({ orderId: options.orderId, mode: options.mode || 'hourly', isManagerFlow: true })
     }
+    this.getLocation()
+  },
+
+  getLocation() {
+    wx.getLocation({
+      type: 'gcj02',
+      success: (res) => {
+        this.setData({ latitude: res.latitude, longitude: res.longitude })
+      },
+      fail: () => {}
+    })
   },
 
   onCheckin() {
@@ -35,10 +34,16 @@ Page({
       wx.showToast({ title: '超出签到范围', icon: 'none' })
       return
     }
-    wx.showToast({ title: '签到成功', icon: 'success' })
+    post('/work/checkin', {
+      latitude: this.data.latitude,
+      longitude: this.data.longitude
+    }).then(() => {
+      wx.showToast({ title: '签到成功', icon: 'success' })
+    }).catch(() => {})
   },
 
   onRefreshLocation() {
+    this.getLocation()
     wx.showToast({ title: '位置已刷新', icon: 'none' })
   },
 
@@ -48,7 +53,11 @@ Page({
       title: '手动签到',
       content: '确认为该工人手动签到？',
       success: (res) => {
-        if (res.confirm) wx.showToast({ title: '已签到', icon: 'success' })
+        if (res.confirm) {
+          post('/work/checkin', { workerId: id, manual: true }).then(() => {
+            wx.showToast({ title: '已签到', icon: 'success' })
+          }).catch(() => {})
+        }
       }
     })
   },
@@ -58,7 +67,11 @@ Page({
       title: '全部签到',
       content: '确认为所有未签到人员手动签到？',
       success: (res) => {
-        if (res.confirm) wx.showToast({ title: '已全部签到', icon: 'success' })
+        if (res.confirm) {
+          post('/work/checkin', { checkAll: true }).then(() => {
+            wx.showToast({ title: '已全部签到', icon: 'success' })
+          }).catch(() => {})
+        }
       }
     })
   },
@@ -70,7 +83,13 @@ Page({
       sourceType: ['camera'],
       success: (res) => {
         const newPhotos = res.tempFiles.map(f => f.tempFilePath)
-        this.setData({ photos: [...this.data.photos, ...newPhotos] })
+        const uploads = newPhotos.map(path => upload(path))
+        Promise.all(uploads).then(results => {
+          const urls = results.map(r => r.data.url || r.data)
+          this.setData({ photos: [...this.data.photos, ...urls] })
+        }).catch(() => {
+          this.setData({ photos: [...this.data.photos, ...newPhotos] })
+        })
       }
     })
   },

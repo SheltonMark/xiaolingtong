@@ -1,10 +1,9 @@
+const { post } = require('../../utils/request')
+
 Page({
   data: {
-    company: {
-      name: '美华服装厂',
-      jobType: '缝纫工',
-      dateRange: '01-15 至 01-30 · 共15天'
-    },
+    jobId: '',
+    company: {},
     rateItems: [
       { key: 'overall', label: '综合评分', score: 4 },
       { key: 'environment', label: '工作环境', score: 5 },
@@ -12,16 +11,20 @@ Page({
       { key: 'management', label: '管理态度', score: 3 }
     ],
     tags: [
-      { label: '环境整洁', selected: true },
-      { label: '准时发薪', selected: true },
+      { label: '环境整洁', selected: false },
+      { label: '准时发薪', selected: false },
       { label: '管理规范', selected: false },
       { label: '福利好', selected: false },
-      { label: '交通方便', selected: true },
+      { label: '交通方便', selected: false },
       { label: '伙食不错', selected: false },
       { label: '加班较多', selected: false },
       { label: '管理严格', selected: false }
     ],
     content: ''
+  },
+
+  onLoad(options) {
+    if (options.jobId) this.setData({ jobId: options.jobId })
   },
 
   onStarTap(e) {
@@ -48,8 +51,18 @@ Page({
       content: '评价提交后不可修改，确认提交？',
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '评价成功', icon: 'success' })
-          setTimeout(() => wx.navigateBack(), 1500)
+          const scores = {}
+          this.data.rateItems.forEach(item => { scores[item.key] = item.score })
+          const selectedTags = this.data.tags.filter(t => t.selected).map(t => t.label)
+          post('/ratings', {
+            jobId: this.data.jobId,
+            scores,
+            tags: selectedTags,
+            content: this.data.content
+          }).then(() => {
+            wx.showToast({ title: '评价成功', icon: 'success' })
+            setTimeout(() => wx.navigateBack(), 1500)
+          }).catch(() => {})
         }
       }
     })

@@ -1,6 +1,8 @@
+const { post } = require('../../utils/request')
+
 Page({
   data: {
-    userInfo: { avatarText: '鑫' },
+    userInfo: {},
     selectedIndex: 0,
     plans: [
       { id: 1, name: '月度会员', desc: '适合短期采购需求', price: '99', original: '199', unit: '月', tag: '', tagColor: '' },
@@ -15,7 +17,12 @@ Page({
       title: '开通' + plan.name,
       content: '支付 ¥' + plan.price + '/' + plan.unit,
       success: (res) => {
-        if (res.confirm) wx.showToast({ title: '开通成功', icon: 'success' })
+        if (res.confirm) {
+          post('/membership/subscribe', { planId: plan.id, planName: plan.name, amount: Number(plan.price.replace(',', '')) }).then(() => {
+            wx.showToast({ title: '开通成功', icon: 'success' })
+            getApp().globalData.isMember = true
+          }).catch(() => {})
+        }
       }
     })
   }

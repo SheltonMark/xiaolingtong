@@ -1,3 +1,5 @@
+const { post, upload } = require('../../utils/request')
+
 Page({
   data: {
     form: { name: '', idCard: '', phone: '', smsCode: '' },
@@ -22,20 +24,36 @@ Page({
   },
   onUploadFront() {
     wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
-      this.setData({ frontImage: res.tempFiles[0].tempFilePath })
+      const path = res.tempFiles[0].tempFilePath
+      upload(path).then(r => this.setData({ frontImage: r.data.url || r.data }))
+        .catch(() => this.setData({ frontImage: path }))
     }})
   },
   onUploadBack() {
     wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
-      this.setData({ backImage: res.tempFiles[0].tempFilePath })
+      const path = res.tempFiles[0].tempFilePath
+      upload(path).then(r => this.setData({ backImage: r.data.url || r.data }))
+        .catch(() => this.setData({ backImage: path }))
     }})
   },
   onSubmit() {
-    const { form, frontImage, backImage } = this.data
+    const { form, frontImage, backImage, selectedSkills } = this.data
     if (!form.name || !form.idCard || !form.phone || !frontImage || !backImage) {
       wx.showToast({ title: '请填写必填项', icon: 'none' }); return
     }
-    wx.showToast({ title: '提交成功，等待审核', icon: 'success' })
-    setTimeout(() => wx.navigateBack(), 1500)
+    wx.showLoading({ title: '提交中...' })
+    post('/cert/worker', {
+      realName: form.name,
+      idCard: form.idCard,
+      phone: form.phone,
+      smsCode: form.smsCode,
+      idFrontImage: frontImage,
+      idBackImage: backImage,
+      skills: selectedSkills
+    }).then(() => {
+      wx.hideLoading()
+      wx.showToast({ title: '提交成功，等待审核', icon: 'success' })
+      setTimeout(() => wx.navigateBack(), 1500)
+    }).catch(() => { wx.hideLoading() })
   }
 })

@@ -1,16 +1,27 @@
+const { get, post } = require('../../utils/request')
+
 Page({
   data: {
     isFav: false,
-    detail: {
-      avatarText: '匿'
-    },
+    detail: {},
     images: [],
-    comments: [
-      { id: 1, name: '张**', time: '2天前', content: '我也被这家坑过，同样的套路，大家注意避坑！' },
-      { id: 2, name: '李**', time: '1天前', content: '建议走法律途径，金额超过一万可以报警处理。' },
-      { id: 3, name: '王**', time: '12小时前', content: '这种人就应该曝光，支持楼主维权！' }
-    ],
+    comments: [],
     commentText: ''
+  },
+  onLoad(options) {
+    if (options.id) {
+      this.loadDetail(options.id)
+    }
+  },
+  loadDetail(id) {
+    get('/exposures/' + id).then(res => {
+      const d = res.data || {}
+      this.setData({
+        detail: d,
+        images: d.images || [],
+        comments: d.comments || []
+      })
+    }).catch(() => {})
   },
   onPreviewImage(e) {
     wx.previewImage({ current: this.data.images[e.currentTarget.dataset.index], urls: this.data.images })
@@ -18,11 +29,16 @@ Page({
   onCommentInput(e) { this.setData({ commentText: e.detail.value }) },
   onSendComment() {
     if (!this.data.commentText.trim()) return
-    wx.showToast({ title: '评论已发送', icon: 'success' })
-    this.setData({ commentText: '' })
+    post('/exposures/' + this.data.detail.id + '/comment', { content: this.data.commentText }).then(res => {
+      wx.showToast({ title: '评论已发送', icon: 'success' })
+      this.setData({ commentText: '' })
+      this.loadDetail(this.data.detail.id)
+    }).catch(() => {})
   },
   onToggleFav() {
-    this.setData({ isFav: !this.data.isFav })
-    wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+    post('/favorites/toggle', { targetType: 'exposure', targetId: this.data.detail.id }).then(() => {
+      this.setData({ isFav: !this.data.isFav })
+      wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+    }).catch(() => {})
   }
 })

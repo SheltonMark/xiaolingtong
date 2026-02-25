@@ -1,21 +1,40 @@
+const { get, post } = require('../../utils/request')
+
 Page({
   data: {
     userRole: 'enterprise',
-    balance: '520.00',
-    totalIncome: '8,650.00',
-    records: [
-      { id: 'r1', title: '工资结算 · 顺丰物流仓', desc: '包装工 · 02-08', amount: '+¥1,152', type: 'income' },
-      { id: 'r2', title: '提现到微信', desc: '02-06 · 已到账', amount: '-¥800', type: 'withdraw' },
-      { id: 'r3', title: '工资结算 · 美华服装厂', desc: '缝纫工 · 01-30', amount: '+¥1,600', type: 'income' },
-      { id: 'r4', title: '工资结算 · 鑫达电子厂', desc: '组装工 · 01-25', amount: '+¥1,400', type: 'income' }
-    ]
+    balance: '0.00',
+    totalIncome: '0.00',
+    records: []
+  },
+  onShow() {
+    const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    this.setData({ userRole })
+    this.loadWallet()
+  },
+  loadWallet() {
+    get('/wallet').then(res => {
+      const d = res.data || {}
+      this.setData({
+        balance: (d.balance || 0).toFixed(2),
+        totalIncome: (d.totalIncome || 0).toFixed(2)
+      })
+    }).catch(() => {})
+    get('/wallet/transactions').then(res => {
+      this.setData({ records: res.data || [] })
+    }).catch(() => {})
   },
   onWithdraw() {
     wx.showModal({
       title: '提现',
       content: '将余额提现到微信零钱？',
       success: (res) => {
-        if (res.confirm) wx.showToast({ title: '提现申请已提交', icon: 'success' })
+        if (res.confirm) {
+          post('/wallet/withdraw', { amount: Number(this.data.balance) }).then(() => {
+            wx.showToast({ title: '提现申请已提交', icon: 'success' })
+            this.loadWallet()
+          }).catch(() => {})
+        }
       }
     })
   },

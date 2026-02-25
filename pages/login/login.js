@@ -1,21 +1,55 @@
+const { post } = require('../../utils/request')
+const auth = require('../../utils/auth')
+
 Page({
-  data: {},
+  data: {
+    loading: false
+  },
   onLoad() {
-    // 已登录且已选身份，直接跳首页
     const token = wx.getStorageSync('token')
     const userRole = wx.getStorageSync('userRole')
     if (token && userRole) {
       wx.switchTab({ url: '/pages/index/index' })
       return
     }
-    // 已登录但未选身份，跳身份选择
     if (token && !userRole) {
       wx.redirectTo({ url: '/pages/identity/identity' })
     }
   },
   onWxLogin() {
-    wx.setStorageSync('token', 'mock_token_123')
-    wx.navigateTo({ url: '/pages/identity/identity' })
+    if (this.data.loading) return
+    this.setData({ loading: true })
+    wx.login({
+      success: (loginRes) => {
+        if (!loginRes.code) {
+          wx.showToast({ title: '微信登录失败', icon: 'none' })
+          this.setData({ loading: false })
+          return
+        }
+        post('/auth/wx-login', { code: loginRes.code }).then(res => {
+          const { token, user } = res.data
+          auth.setToken(token)
+          const app = getApp()
+          app.globalData.isLoggedIn = true
+          app.globalData.userInfo = user
+          if (user.role) {
+            wx.setStorageSync('userRole', user.role)
+            app.globalData.userRole = user.role
+            app.globalData.beanBalance = user.beanBalance || 0
+            app.globalData.isMember = user.isMember || false
+            wx.switchTab({ url: '/pages/index/index' })
+          } else {
+            wx.redirectTo({ url: '/pages/identity/identity' })
+          }
+        }).catch(() => {}).finally(() => {
+          this.setData({ loading: false })
+        })
+      },
+      fail: () => {
+        wx.showToast({ title: '微信登录失败', icon: 'none' })
+        this.setData({ loading: false })
+      }
+    })
   },
   onViewAgreement() {
     wx.navigateTo({ url: '/pages/agreement/agreement' })

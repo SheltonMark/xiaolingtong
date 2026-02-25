@@ -1,42 +1,23 @@
+const { get, post } = require('../../utils/request')
+
 Page({
   data: {
     userRole: 'worker',
     swiperCurrent: 0,
     isFav: false,
-    job: {
-      id: 'j1',
-      title: '电子组装工',
-      need: 15,
-      salary: '20',
-      salaryUnit: '元/小时',
-      salaryType: '按小时计费',
-      urgent: true,
-      location: '东莞长安',
-      distance: '3km',
-      dateRange: '02-10 至 02-17（共7天）',
-      hours: '08:00 - 18:00',
-      description: '负责电子元器件的组装、焊接和质检工作，需要细心耐心，有经验者优先。',
-      applied: 5,
-      total: 15,
-      benefits: [
-        { label: '包午餐', color: 'green' },
-        { label: '有空调', color: 'blue' },
-        { label: '长期合作', color: 'amber' }
-      ],
-      images: [
-        'https://picsum.photos/seed/job1a/600/400',
-        'https://picsum.photos/seed/job1b/600/400',
-        'https://picsum.photos/seed/job1c/600/400'
-      ],
-      company: {
-        name: '鑫达电子厂',
-        avatarText: '鑫',
-        verified: true,
-        creditScore: 92,
-        contact: '李主管',
-        phone: '139****5678'
-      }
+    job: {}
+  },
+
+  onLoad(options) {
+    if (options.id) {
+      this.loadJob(options.id)
     }
+  },
+
+  loadJob(id) {
+    get('/jobs/' + id).then(res => {
+      this.setData({ job: res.data || {} })
+    }).catch(() => {})
   },
 
   onSwiperChange(e) {
@@ -54,7 +35,9 @@ Page({
       content: '报名后等待平台分配，开工前一天需确认出勤',
       success: (res) => {
         if (res.confirm) {
-          wx.showToast({ title: '报名成功', icon: 'success' })
+          post('/jobs/' + this.data.job.id + '/apply').then(() => {
+            wx.showToast({ title: '报名成功', icon: 'success' })
+          }).catch(() => {})
         }
       }
     })
@@ -68,8 +51,11 @@ Page({
     wx.makePhoneCall({ phoneNumber: '13900005678', fail() {} })
   },
   onToggleFav() {
-    this.setData({ isFav: !this.data.isFav })
-    wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+    const id = this.data.job.id
+    post('/favorites/toggle', { targetType: 'job', targetId: id }).then(() => {
+      this.setData({ isFav: !this.data.isFav })
+      wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+    }).catch(() => {})
   },
 
   onShareJob() {
