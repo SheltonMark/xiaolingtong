@@ -18,9 +18,10 @@ export class PostController {
     return this.postService.myPosts(userId, query);
   }
 
+  @Public()
   @Get(':id')
   detail(@Param('id') id: number, @CurrentUser('sub') userId: number) {
-    return this.postService.detail(id, userId);
+    return this.postService.detail(id, userId || 0);
   }
 
   @HttpPost()
