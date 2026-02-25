@@ -2,16 +2,19 @@ import { Controller, Get, Post, Put, Param, Query, Body } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('jobs')
 export class JobController {
   constructor(private jobService: JobService) {}
 
+  @Public()
   @Get()
   list(@Query() query: any) {
     return this.jobService.list(query);
   }
 
+  @Public()
   @Get(':id')
   detail(@Param('id') id: number) {
     return this.jobService.detail(id);

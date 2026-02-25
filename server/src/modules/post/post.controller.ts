@@ -1,11 +1,13 @@
 import { Controller, Get, Post as HttpPost, Put, Delete, Param, Query, Body } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('posts')
 export class PostController {
   constructor(private postService: PostService) {}
 
+  @Public()
   @Get()
   list(@Query() query: any) {
     return this.postService.list(query);
