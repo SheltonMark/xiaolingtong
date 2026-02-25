@@ -43,13 +43,12 @@
 
   <!-- ===== 企业端内容 ===== -->
   <view wx:if="{{userRole === 'enterprise'}}">
-    <!-- 广告 Banner -->
-    <view class="banner-wrap">
+    <!-- 广告 Banner（后续从API获取） -->
+    <!-- <view class="banner-wrap">
       <view class="banner-inner">
-        <image src="/images/banner-default.png"
-               class="banner-img" mode="aspectFill" />
+        <image src="" class="banner-img" mode="aspectFill" />
       </view>
-    </view>
+    </view> -->
 
     <!-- Tab 0: 采购需求 -->
     <view wx:if="{{currentTab === 0}}">
