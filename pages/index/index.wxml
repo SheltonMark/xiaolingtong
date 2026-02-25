@@ -46,7 +46,7 @@
     <!-- 广告 Banner -->
     <view class="banner-wrap">
       <view class="banner-inner">
-        <image src="https://picsum.photos/700/280"
+        <image src="/images/banner-default.png"
                class="banner-img" mode="aspectFill" />
       </view>
     </view>
