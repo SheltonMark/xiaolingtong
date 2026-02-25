@@ -19,12 +19,12 @@ Page({
 
   loadMessages() {
     get('/conversations').then(res => {
-      const list = res.data || []
+      const list = res.data.list || res.data || []
       const unread = list.reduce((sum, m) => sum + (m.unreadCount || 0), 0)
       this.setData({ chatMessages: list, chatUnreadCount: unread })
     }).catch(() => {})
     get('/notifications').then(res => {
-      const list = res.data || []
+      const list = res.data.list || res.data || []
       const unread = list.filter(m => m.unread).length
       this.setData({ systemMessages: list, systemUnreadCount: unread })
     }).catch(() => {})

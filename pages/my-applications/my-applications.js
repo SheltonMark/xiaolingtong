@@ -13,7 +13,7 @@ Page({
 
   loadApplications() {
     get('/applications').then(res => {
-      this.setData({ list: res.data || [] })
+      this.setData({ list: res.data.list || res.data || [] })
     }).catch(() => {})
   },
 

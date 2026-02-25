@@ -20,7 +20,7 @@ Page({
   },
   loadList() {
     get('/exposures').then(res => {
-      this.setData({ list: res.data || [] })
+      this.setData({ list: res.data.list || res.data || [] })
     }).catch(() => {})
   },
   onTapCard(e) {

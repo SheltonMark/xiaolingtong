@@ -13,7 +13,7 @@ Page({
 
   loadPosts() {
     get('/posts/mine').then(res => {
-      this.setData({ posts: res.data || [] })
+      this.setData({ posts: res.data.list || res.data || [] })
     }).catch(() => {})
   },
 

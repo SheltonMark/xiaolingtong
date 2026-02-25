@@ -71,7 +71,7 @@ Page({
     // 加载我的发布
     if (this.data.userRole === 'enterprise') {
       get('/posts/mine').then(res => {
-        this.setData({ myPosts: res.data || [] })
+        this.setData({ myPosts: res.data.list || res.data || [] })
       }).catch(() => {})
     }
   },

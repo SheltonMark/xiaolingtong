@@ -21,7 +21,7 @@ Page({
       })
     }).catch(() => {})
     get('/wallet/transactions').then(res => {
-      this.setData({ records: res.data || [] })
+      this.setData({ records: res.data.list || res.data || [] })
     }).catch(() => {})
   },
   onWithdraw() {
