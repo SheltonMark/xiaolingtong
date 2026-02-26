@@ -203,7 +203,7 @@ function switchPage(name,el){
 }
 
 async function loadDashboard(){
-  const d=await api('/dashboard');if(\!d)return;
+  const d=await api('/dashboard');if(!d)return;
   const I={u:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>',e:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>',w:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>',p:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>',j:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>',x:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'};
   document.getElementById('statCards').innerHTML='<div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">总用户数</span><div class="sc-icon">'+I.u+'</div></div><div class="sc-value">'+(d.userCount||0)+'</div></div><div class="stat-card sc-green"><div class="sc-top"><span class="sc-label">企业用户</span><div class="sc-icon">'+I.e+'</div></div><div class="sc-value">'+(d.enterpriseCount||0)+'</div></div><div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">临工用户</span><div class="sc-icon">'+I.w+'</div></div><div class="sc-value">'+(d.workerCount||0)+'</div></div><div class="stat-card sc-cyan"><div class="sc-top"><span class="sc-label">发布信息</span><div class="sc-icon">'+I.p+'</div></div><div class="sc-value">'+(d.postCount||0)+'</div></div><div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">招工信息</span><div class="sc-icon">'+I.j+'</div></div><div class="sc-value">'+(d.jobCount||0)+'</div></div><div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">曝光信息</span><div class="sc-icon">'+I.x+'</div></div><div class="sc-value">'+(d.exposureCount||0)+'</div></div>';
 }
@@ -214,13 +214,13 @@ async function loadUsers(page){
   const role=document.getElementById('userRoleFilter').value;
   const keyword=document.getElementById('userKeyword').value;
   const d=await api('/users?page='+userPage+'&role='+role+'&keyword='+keyword);
-  if(\!d)return;const list=d.list||[];
+  if(!d)return;const list=d.list||[];
   document.getElementById('userTable').innerHTML=list.length?list.map(u=>'<tr><td>'+u.id+'</td><td>'+(u.nickname||'-')+'</td><td><span class="badge '+(u.role==='enterprise'?'badge-blue':'badge-orange')+'">'+(u.role==='enterprise'?'企业':u.role==='worker'?'临工':'未选择')+'</span></td><td>'+(u.phone||'-')+'</td><td>'+(u.beanBalance||0)+'</td><td>'+(u.creditScore||0)+'</td><td><span class="badge '+(u.status==='active'?'badge-green':'badge-red')+'">'+(u.status==='active'?'正常':'封禁')+'</span></td><td>'+(u.createdAt||'').substring(0,10)+'</td><td>'+(u.status==='active'?'<button class="btn btn-danger" onclick="banUser('+u.id+')">封禁</button>':'<button class="btn btn-success" onclick="unbanUser('+u.id+')">解封</button>')+'<button class="btn btn-primary" onclick="promptCredit('+u.id+','+(u.creditScore||0)+')">信用分</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
   renderPagination('userPagination',d.total,userPage,d.pageSize,'loadUsers');
 }
 async function banUser(id){if(confirm('确认封禁？')){await api('/users/'+id+'/ban',{method:'PUT'});loadUsers();}}
 async function unbanUser(id){if(confirm('确认解封？')){await api('/users/'+id+'/unban',{method:'PUT'});loadUsers();}}
-function promptCredit(id,current){var v=prompt('调整信用分（当前：'+current+'）',current);if(v\!==null&&v\!==''){api('/users/'+id+'/credit',{method:'PUT',body:{creditScore:+v}}).then(()=>loadUsers());}}
+function promptCredit(id,current){var v=prompt('调整信用分（当前：'+current+'）',current);if(v!==null&&v!==''){api('/users/'+id+'/credit',{method:'PUT',body:{creditScore:+v}}).then(()=>loadUsers());}}
 
 let postPage=1;
 async function loadPosts(page){
@@ -228,10 +228,10 @@ async function loadPosts(page){
   const type=document.getElementById('postTypeFilter').value;
   const status=document.getElementById('postStatusFilter').value;
   const d=await api('/posts?page='+postPage+'&type='+type+'&status='+status);
-  if(\!d)return;const list=d.list||[];
+  if(!d)return;const list=d.list||[];
   const typeMap={purchase:'采购需求',stock:'工厂库存',process:'代加工'};
   const statusMap={active:['已发布','badge-green'],pending:['待审核','badge-orange'],deleted:['已删除','badge-gray'],expired:['已过期','badge-gray']};
-  document.getElementById('postTable').innerHTML=list.length?list.map(p=>{const st=statusMap[p.status]||['未知','badge-gray'];return '<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(typeMap[p.type]||p.type)+'</span></td><td>'+((p.title||p.content||'').substring(0,30))+'</td><td>'+(p.user?p.user.nickname||'ID:'+p.userId:p.userId)+'</td><td>'+(p.viewCount||0)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(p.createdAt||'').substring(0,10)+'</td><td>'+(p.status\!=='active'?'<button class="btn btn-success" onclick="auditPost('+p.id+','approve')">通过</button>':'')+(p.status\!=='deleted'?'<button class="btn btn-danger" onclick="auditPost('+p.id+','reject')">驳回</button>':'')+'</td></tr>';}).join(''):'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+  document.getElementById('postTable').innerHTML=list.length?list.map(p=>{const st=statusMap[p.status]||['未知','badge-gray'];return '<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(typeMap[p.type]||p.type)+'</span></td><td>'+((p.title||p.content||'').substring(0,30))+'</td><td>'+(p.user?p.user.nickname||'ID:'+p.userId:p.userId)+'</td><td>'+(p.viewCount||0)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(p.createdAt||'').substring(0,10)+'</td><td>'+(p.status!=='active'?'<button class="btn btn-success" onclick="auditPost('+p.id+','approve')">通过</button>':'')+(p.status!=='deleted'?'<button class="btn btn-danger" onclick="auditPost('+p.id+','reject')">驳回</button>':'')+'</td></tr>';}).join(''):'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('postPagination',d.total,postPage,d.pageSize,'loadPosts');
 }
 async function auditPost(id,action){if(confirm(action==='approve'?'确认通过？':'确认驳回？')){await api('/posts/'+id+'/audit',{method:'PUT',body:{action}});loadPosts();}}
@@ -242,7 +242,7 @@ async function loadCerts(page){
   const type=document.getElementById('certTypeFilter').value;
   const status=document.getElementById('certStatusFilter').value;
   const d=await api('/certs?page='+certPage+'&type='+type+'&status='+status);
-  if(\!d)return;const list=d.list||[];
+  if(!d)return;const list=d.list||[];
   if(type==='enterprise'){
     document.getElementById('certHeader').innerHTML='<th>ID</th><th>企业名称</th><th>信用代码</th><th>联系人</th><th>电话</th><th>状态</th><th>提交时间</th><th>操作</th>';
     document.getElementById('certTable').innerHTML=list.length?list.map(c=>'<tr><td>'+c.id+'</td><td>'+c.companyName+'</td><td>'+c.creditCode+'</td><td>'+(c.contactName||'-')+'</td><td>'+(c.contactPhone||'-')+'</td><td><span class="badge '+(c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red')+'">'+(c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回')+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+(c.status==='pending'?'<button class="btn btn-success" onclick="auditCert('enterprise','+c.id+','approve')">通过</button><button class="btn btn-danger" onclick="rejectCert('enterprise','+c.id+')">驳回</button>':'-')+'</td></tr>').join(''):'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
@@ -259,7 +259,7 @@ let reportPage=1;
 async function loadReports(page){
   if(page)reportPage=page;
   const d=await api('/reports?page='+reportPage);
-  if(\!d)return;const list=d.list||[];
+  if(!d)return;const list=d.list||[];
   const statusMap={pending:['待处理','badge-orange'],handled:['已处理','badge-green'],dismissed:['已驳回','badge-gray']};
   document.getElementById('reportTable').innerHTML=list.length?list.map(r=>{const st=statusMap[r.status]||['未知','badge-gray'];return '<tr><td>'+r.id+'</td><td>'+r.targetType+'</td><td>'+r.targetId+'</td><td>'+r.reason+'</td><td>'+((r.description||'').substring(0,30))+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(r.createdAt||'').substring(0,10)+'</td><td>'+(r.status==='pending'?'<button class="btn btn-success" onclick="handleReport('+r.id+','resolve')">处理</button><button class="btn btn-danger" onclick="handleReport('+r.id+','dismiss')">驳回</button>':'-')+'</td></tr>';}).join(''):'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('reportPagination',d.total,reportPage,d.pageSize,'loadReports');
@@ -270,7 +270,7 @@ let jobPage=1;
 async function loadJobs(page){
   if(page)jobPage=page;
   const d=await api('/jobs?page='+jobPage);
-  if(\!d)return;const list=d.list||[];
+  if(!d)return;const list=d.list||[];
   document.getElementById('jobTable').innerHTML=list.length?list.map(j=>'<tr><td>'+j.id+'</td><td>'+(j.title||'-')+'</td><td>'+(j.user?j.user.nickname||'ID:'+j.userId:j.userId)+'</td><td>'+(j.salary||'-')+'元/'+(j.salaryMode||'时')+'</td><td>'+(j.headcount||'-')+'</td><td><span class="badge badge-green">招工中</span></td><td>'+(j.createdAt||'').substring(0,10)+'</td></tr>').join(''):'<tr><td colspan="7" class="empty">暂无数据</td></tr>';
   renderPagination('jobPagination',d.total,jobPage,d.pageSize,'loadJobs');
 }
@@ -279,7 +279,7 @@ let exposurePage=1;
 async function loadExposures(page){
   if(page)exposurePage=page;
   const d=await api('/exposures?page='+exposurePage);
-  if(\!d)return;const list=d.list||[];
+  if(!d)return;const list=d.list||[];
   document.getElementById('exposureTable').innerHTML=list.length?list.map(e=>'<tr><td>'+e.id+'</td><td>'+(e.company||e.contact||'-')+'</td><td>'+(e.amount||'-')+'</td><td>'+((e.description||'').substring(0,40))+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-danger" onclick="deleteExposure('+e.id+')">删除</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
   renderPagination('exposurePagination',d.total,exposurePage,d.pageSize,'loadExposures');
 }
