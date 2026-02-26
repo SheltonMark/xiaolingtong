@@ -1,5 +1,6 @@
 import { Controller, Post, Req, Res, HttpCode } from '@nestjs/common';
 import { PaymentService } from './payment.service';
+import { Public } from '../../common/decorators/public.decorator';
 import type { Request, Response } from 'express';
 
 @Controller('payment')
@@ -7,6 +8,7 @@ export class PaymentController {
   constructor(private paymentService: PaymentService) {}
 
   /** 微信支付回调通知 */
+  @Public()
   @Post('notify')
   @HttpCode(200)
   async notify(@Req() req: Request, @Res() res: Response) {
