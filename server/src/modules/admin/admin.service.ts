@@ -377,12 +377,23 @@ export class AdminService {
       { key: 'member_yearly_price', value: '298', label: '年会员价格(元)', group: 'price' },
       { key: 'view_contact_price', value: '5', label: '查看联系方式价格(灵豆)', group: 'price' },
       { key: 'top_price_per_day', value: '10', label: '置顶价格(灵豆/天)', group: 'price' },
+      { key: 'banner_ad_price', value: '100', label: 'Banner广告价格(元/天)', group: 'price' },
+      { key: 'feed_ad_price', value: '50', label: '信息流广告价格(元/天)', group: 'price' },
       { key: 'default_commission_rate', value: '20', label: '默认用工抽成比例(%)', group: 'work' },
       { key: 'platform_fee_rate', value: '5', label: '平台服务费比例(%)', group: 'work' },
+      { key: 'manager_service_fee', value: '5', label: '管理员服务费(元/人/时)', group: 'work' },
+      { key: 'over_apply_rate', value: '50', label: '超额报名比例(%)', group: 'work' },
+      { key: 'attendance_remind_hours', value: '2', label: '出勤确认提醒(开工前N小时)', group: 'work' },
+      { key: 'attendance_deadline_hours', value: '1', label: '出勤确认截止(开工前N小时)', group: 'work' },
       { key: 'new_user_free_views', value: '3', label: '新用户免费查看次数', group: 'user' },
+      { key: 'view_expire_days', value: '30', label: '查看机会有效期(天)', group: 'user' },
       { key: 'initial_credit_score', value: '100', label: '初始信用分', group: 'user' },
+      { key: 'manager_min_orders', value: '20', label: '管理员资格-最低接单数', group: 'user' },
+      { key: 'manager_min_credit', value: '90', label: '管理员资格-最低信用分', group: 'user' },
       { key: 'post_expire_days', value: '30', label: '信息默认有效期(天)', group: 'info' },
       { key: 'audit_mode', value: 'manual', label: '审核模式(auto/manual)', group: 'info' },
+      { key: 'member_expire_remind_days', value: '7', label: '会员到期提醒(提前N天)', group: 'other' },
+      { key: 'view_expire_remind_days', value: '3', label: '查看机会过期提醒(提前N天)', group: 'other' },
     ];
     for (const d of defaults) {
       const exists = await this.configRepo.findOne({ where: { key: d.key } });
