@@ -19,6 +19,7 @@ import { RatingModule } from './modules/rating/rating.module';
 import { MembershipModule } from './modules/membership/membership.module';
 import { PromotionModule } from './modules/promotion/promotion.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { UploadModule } from './modules/upload/upload.module';
     MembershipModule,
     PromotionModule,
     UploadModule,
+    AdminModule,
   ],
 })
 export class AppModule {}
