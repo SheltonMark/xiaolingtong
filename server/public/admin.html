@@ -69,9 +69,9 @@ input,select,button,textarea { font-family:inherit; }
 .panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
 .panel-header h4 { font-size:15px; font-weight:600; }
 .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-.toolbar input,.toolbar select { height:36px; padding:0 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; box-sizing:border-box; }
+.toolbar input,.toolbar select { height:36px; line-height:34px; padding:0 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; box-sizing:border-box; vertical-align:middle; }
 .toolbar select option { background:var(--bg-card); }
-.toolbar .search-btn,.toolbar .add-btn { height:36px; padding:0 16px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; box-sizing:border-box; }
+.toolbar .search-btn,.toolbar .add-btn { height:36px; line-height:34px; padding:0 16px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; box-sizing:border-box; vertical-align:middle; }
 .toolbar .search-btn:hover,.toolbar .add-btn:hover { background:var(--accent-h); }
 table { width:100%; border-collapse:collapse; font-size:13px; }
 th { padding:12px 10px; text-align:left; color:var(--text-muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); }
@@ -99,8 +99,8 @@ tr:hover td { background:rgba(35,39,54,.5); }
 .config-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
 .config-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--bg); border-radius:8px; border:1px solid var(--border); }
 .config-item label { flex:1; font-size:13px; color:var(--text-sec); }
-.config-item input { width:120px; padding:6px 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; text-align:right; outline:none; }
-.config-item .save-cfg { padding:4px 10px; background:var(--accent); color:#fff; border:none; border-radius:4px; cursor:pointer; font-size:12px; }
+.config-item input { width:120px; height:32px; line-height:30px; padding:0 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; text-align:right; outline:none; box-sizing:border-box; }
+.config-item .save-cfg { height:32px; line-height:30px; padding:0 12px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:12px; box-sizing:border-box; }
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:100; justify-content:center; align-items:center; }
 .modal-overlay.show { display:flex; }
 .modal { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:28px; width:480px; max-height:80vh; overflow-y:auto; }
@@ -109,6 +109,53 @@ tr:hover td { background:rgba(35,39,54,.5); }
 .modal-actions button { padding:8px 20px; border-radius:6px; border:none; cursor:pointer; font-size:13px; font-weight:500; }
 .modal-actions .cancel { background:var(--bg-hover); color:var(--text-sec); }
 .modal-actions .confirm { background:var(--accent); color:#fff; }
+
+@media(max-width:768px){
+  .mobile-nav { display:block !important; }
+  .sidebar { display:none; }
+  .main { margin-left:0; padding:16px; }
+  .stat-cards { grid-template-columns:repeat(2,1fr); gap:10px; }
+  .panel { padding:16px; }
+  .panel-header { flex-direction:column; gap:12px; align-items:flex-start; }
+  .toolbar { width:100%; }
+  .toolbar input,.toolbar select { flex:1; min-width:0; }
+  table { display:block; overflow-x:auto; white-space:nowrap; }
+  .config-grid { grid-template-columns:1fr; }
+  .modal { width:calc(100vw - 32px); margin:16px; }
+  .login-card { width:calc(100vw - 32px); padding:32px 24px; }
+  .layout { display:block !important; }
+  .page-header { margin-bottom:16px; }
+  .page-header h3 { font-size:18px; }
+}
+@media(max-width:480px){
+  .stat-cards { grid-template-columns:1fr; }
+  .stat-card .sc-value { font-size:24px; }
+}
+
+.toast-container { position:fixed; top:20px; right:20px; z-index:200; display:flex; flex-direction:column; gap:8px; }
+.toast { padding:12px 20px; border-radius:8px; font-size:13px; color:#fff; animation:toastIn .3s ease; box-shadow:0 4px 12px rgba(0,0,0,.3); max-width:320px; }
+.toast-success { background:var(--green); }
+.toast-error { background:var(--red); }
+.toast-info { background:var(--accent); }
+@keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+.confirm-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:150; justify-content:center; align-items:center; }
+.confirm-overlay.show { display:flex; }
+.confirm-box { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:28px; width:380px; text-align:center; }
+.confirm-box p { font-size:14px; margin-bottom:20px; line-height:1.6; }
+.confirm-box .confirm-btns { display:flex; gap:10px; justify-content:center; }
+.confirm-box .confirm-btns button { flex:1; padding:10px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:500; }
+.confirm-box .cb-cancel { background:var(--bg-hover); color:var(--text-sec); }
+.confirm-box .cb-ok { background:var(--accent); color:#fff; }
+.prompt-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:150; justify-content:center; align-items:center; }
+.prompt-overlay.show { display:flex; }
+.prompt-box { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:28px; width:380px; }
+.prompt-box p { font-size:14px; margin-bottom:16px; }
+.prompt-box input { width:100%; padding:10px 14px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; outline:none; box-sizing:border-box; margin-bottom:16px; }
+.prompt-box input:focus { border-color:var(--accent); }
+.prompt-box .prompt-btns { display:flex; gap:10px; }
+.prompt-box .prompt-btns button { flex:1; padding:10px; border-radius:8px; border:none; cursor:pointer; font-size:13px; font-weight:500; }
+.prompt-box .pb-cancel { background:var(--bg-hover); color:var(--text-sec); }
+.prompt-box .pb-ok { background:var(--accent); color:#fff; }
 </style>
 </head>
 <body>
@@ -150,6 +197,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     </div>
     <div class="sidebar-footer"><span class="admin-info" id="adminName"></span><button class="logout-btn" onclick="doLogout()">退出登录</button></div>
   </div>
+  <div class="mobile-nav" style="display:none;background:var(--bg-sidebar);padding:12px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">小灵通管理</span><button onclick="toggleMobileMenu()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer">☰</button></div><div id="mobileMenu" style="display:none;padding-top:12px;max-height:60vh;overflow-y:auto"></div></div>
   <div class="main">
     <div class="page-header"><h3 id="pageTitle">数据概览</h3><p id="pageDesc">平台运营数据总览</p></div>
     <div class="page-section active" id="page-dashboard"><div class="stat-cards" id="statCards"></div></div>
@@ -170,9 +218,61 @@ tr:hover td { background:rgba(35,39,54,.5); }
 </div>
 <div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">发布公告</h4><div class="form-group"><label>标题</label><input type="text" id="noticeTitle" placeholder="公告标题"></div><div class="form-group"><label>内容</label><textarea id="noticeContent" rows="4" placeholder="公告内容" style="resize:vertical"></textarea></div><div class="form-group"><label>展示位置</label><select id="noticePosition"><option value="message">消息中心</option><option value="popup">首页弹窗</option></select></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">取消</button><button class="confirm" onclick="saveNotice()">确认</button></div></div></div>
 
+<div id="toastContainer" class="toast-container"></div>
+<div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
+<div class="prompt-overlay" id="promptOverlay"><div class="prompt-box"><p id="promptMsg"></p><input type="text" id="promptInput"><div class="prompt-btns"><button class="pb-cancel" onclick="promptResolve(null)">取消</button><button class="pb-ok" onclick="promptResolve(document.getElementById('promptInput').value)">确认</button></div></div></div>
 </body>
 </html>
 <script>
+
+function toast(msg,type){
+  type=type||'info';
+  var el=document.createElement('div');
+  el.className='toast toast-'+type;
+  el.textContent=msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(function(){el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(function(){el.remove();},300);},2500);
+}
+
+var _confirmCb=null;
+function xconfirm(msg){
+  return new Promise(function(resolve){
+    _confirmCb=resolve;
+    document.getElementById('confirmMsg').textContent=msg;
+    document.getElementById('confirmOverlay').classList.add('show');
+  });
+}
+function confirmResolve(val){
+  document.getElementById('confirmOverlay').classList.remove('show');
+  if(_confirmCb){_confirmCb(val);_confirmCb=null;}
+}
+
+var _promptCb=null;
+function xprompt(msg,defaultVal){
+  return new Promise(function(resolve){
+    _promptCb=resolve;
+    document.getElementById('promptMsg').textContent=msg;
+    document.getElementById('promptInput').value=defaultVal||'';
+    document.getElementById('promptOverlay').classList.add('show');
+    setTimeout(function(){document.getElementById('promptInput').focus();},100);
+  });
+}
+function promptResolve(val){
+  document.getElementById('promptOverlay').classList.remove('show');
+  if(_promptCb){_promptCb(val);_promptCb=null;}
+}
+
+function toggleMobileMenu(){
+  var m=document.getElementById('mobileMenu');
+  if(m.style.display==='none'){
+    var items=document.querySelectorAll('.sidebar-nav .menu-item');
+    var h='';
+    items.forEach(function(it){h+='<div style="padding:10px 12px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--text-sec)" onclick="'+it.getAttribute('onclick')+';document.getElementById(\'mobileMenu\').style.display=\'none\'">'+it.textContent+'</div>';});
+    m.innerHTML=h;
+    m.style.display='block';
+  }else{m.style.display='none';}
+}
+
 const API='/api/admin';
 let token=localStorage.getItem('admin_token')||'';
 let currentAdmin=null;
@@ -254,9 +354,9 @@ async function loadUsers(page){
   document.getElementById('userTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
   renderPagination('userPagination',d.total,userPage,d.pageSize,'loadUsers');
 }
-async function banUser(id){if(confirm('确认封禁？')){await api('/users/'+id+'/ban',{method:'PUT'});loadUsers();}}
-async function unbanUser(id){if(confirm('确认解封？')){await api('/users/'+id+'/unban',{method:'PUT'});loadUsers();}}
-function promptCredit(id,cur){var v=prompt('调整信用分（当前：'+cur+'）',cur);if(v!==null&&v!==''){api('/users/'+id+'/credit',{method:'PUT',body:{creditScore:+v}}).then(function(){loadUsers();});}}
+async function banUser(id){var ok=await xconfirm('确认封禁该用户？');if(ok){await api('/users/'+id+'/ban',{method:'PUT'});toast('已封禁','success');loadUsers();}}
+async function unbanUser(id){var ok=await xconfirm('确认解封该用户？');if(ok){await api('/users/'+id+'/unban',{method:'PUT'});toast('已解封','success');loadUsers();}}
+async function promptCredit(id,cur){var v=await xprompt('调整信用分（当前：'+cur+'）',cur);if(v!==null&&v!==''){await api('/users/'+id+'/credit',{method:'PUT',body:{creditScore:+v}});toast('信用分已更新','success');loadUsers();}}
 
 var postPage=1;
 async function loadPosts(page){
@@ -308,7 +408,7 @@ async function loadCerts(page){
   renderPagination('certPagination',d.total,certPage,d.pageSize,'loadCerts');
 }
 async function auditCert(type,id,action){await api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:action}});loadCerts();}
-function rejectCert(type,id){var r=prompt('请输入驳回原因');if(r){api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:'reject',rejectReason:r}}).then(function(){loadCerts();});}}
+async function rejectCert(type,id){var r=await xprompt('请输入驳回原因');if(r){await api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:'reject',rejectReason:r}});toast('已驳回','success');loadCerts();}}
 
 var reportPage=1;
 async function loadReports(page){
@@ -351,7 +451,7 @@ async function loadExposures(page){
   document.getElementById('exposureTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
   renderPagination('exposurePagination',d.total,exposurePage,d.pageSize,'loadExposures');
 }
-async function deleteExposure(id){if(confirm('确认删除？')){await api('/exposures/'+id,{method:'DELETE'});loadExposures();}}
+async function deleteExposure(id){var ok=await xconfirm('确认删除该曝光信息？');if(ok){await api('/exposures/'+id,{method:'DELETE'});toast('已删除','success');loadExposures();}}
 
 async function loadKeywords(){
   var list=await api('/keywords');if(!list)return;
@@ -361,8 +461,8 @@ async function loadKeywords(){
   }
   document.getElementById('keywordTable').innerHTML=h||'<tr><td colspan="4" class="empty">暂无关键词</td></tr>';
 }
-async function addKeyword(){var w=document.getElementById('newKeyword').value.trim();if(!w){alert('请输入关键词');return;}await api('/keywords',{method:'POST',body:{word:w}});document.getElementById('newKeyword').value='';loadKeywords();}
-async function deleteKeyword(id){if(confirm('确认删除？')){await api('/keywords/'+id,{method:'DELETE'});loadKeywords();}}
+async function addKeyword(){var w=document.getElementById('newKeyword').value.trim();if(!w){toast('请输入关键词','error');return;}await api('/keywords',{method:'POST',body:{word:w}});document.getElementById('newKeyword').value='';loadKeywords();}
+async function deleteKeyword(id){var ok=await xconfirm('确认删除该关键词？');if(ok){await api('/keywords/'+id,{method:'DELETE'});toast('已删除','success');loadKeywords();}}
 
 async function loadNotices(){
   var list=await api('/notices');if(!list)return;
@@ -377,9 +477,9 @@ async function loadNotices(){
 }
 function showNoticeModal(){document.getElementById('noticeModal').classList.add('show');document.getElementById('noticeTitle').value='';document.getElementById('noticeContent').value='';}
 function hideNoticeModal(){document.getElementById('noticeModal').classList.remove('show');}
-async function saveNotice(){var t=document.getElementById('noticeTitle').value.trim();var c=document.getElementById('noticeContent').value.trim();var p=document.getElementById('noticePosition').value;if(!t||!c){alert('请填写标题和内容');return;}await api('/notices',{method:'POST',body:{title:t,content:c,position:p}});hideNoticeModal();loadNotices();}
+async function saveNotice(){var t=document.getElementById('noticeTitle').value.trim();var c=document.getElementById('noticeContent').value.trim();var p=document.getElementById('noticePosition').value;if(!t||!c){toast('请填写标题和内容','error');return;}await api('/notices',{method:'POST',body:{title:t,content:c,position:p}});hideNoticeModal();toast('公告已发布','success');loadNotices();}
 async function toggleNotice(id,cur){await api('/notices/'+id,{method:'PUT',body:{isActive:cur?0:1}});loadNotices();}
-async function deleteNotice(id){if(confirm('确认删除？')){await api('/notices/'+id,{method:'DELETE'});loadNotices();}}
+async function deleteNotice(id){var ok=await xconfirm('确认删除该公告？');if(ok){await api('/notices/'+id,{method:'DELETE'});toast('已删除','success');loadNotices();}}
 
 async function loadConfigs(){
   var list=await api('/configs');if(!list||!list.length){document.getElementById('configGrid').innerHTML='<div class="empty">暂无配置</div>';return;}
@@ -389,7 +489,7 @@ async function loadConfigs(){
   }
   document.getElementById('configGrid').innerHTML=h;
 }
-async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});alert('已保存');}
+async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});toast('已保存','success');}
 
 
 async function loadJobTypes(){
@@ -405,7 +505,7 @@ async function loadJobTypes(){
 }
 async function addJobType(){
   var n=document.getElementById('newJobType').value.trim();
-  if(!n){alert('请输入工种名称');return;}
+  if(!n){toast('请输入工种名称','error');return;}
   var s=document.getElementById('newJobTypeSettle').value;
   await api('/job-types',{method:'POST',body:{name:n,defaultSettlement:s}});
   document.getElementById('newJobType').value='';
@@ -426,7 +526,7 @@ async function loadCities(){
 }
 async function addCity(){
   var n=document.getElementById('newCity').value.trim();
-  if(!n){alert('请输入城市名称');return;}
+  if(!n){toast('请输入城市名称','error');return;}
   await api('/cities',{method:'POST',body:{name:n}});
   document.getElementById('newCity').value='';
   loadCities();
@@ -456,12 +556,12 @@ async function saveAdmin(){
   var n=document.getElementById('adminNickname').value.trim();
   var r=document.getElementById('adminRole').value;
   var p=document.getElementById('adminPassword').value;
-  if(!u){alert('请输入用户名');return;}
+  if(!u){toast('请输入用户名','error');return;}
   await api('/admins',{method:'POST',body:{username:u,nickname:n||u,role:r,password:p||'123456'}});
-  hideAdminModal();loadAdmins();
+  hideAdminModal();toast('管理员已创建','success');loadAdmins();
 }
 async function toggleAdmin(id){await api('/admins/'+id+'/toggle',{method:'PUT'});loadAdmins();}
-async function resetAdminPwd(id){if(confirm('确认重置密码为123456？')){await api('/admins/'+id+'/reset-pwd',{method:'PUT'});alert('已重置');}}
+async function resetAdminPwd(id){var ok=await xconfirm('确认重置密码为123456？');if(ok){await api('/admins/'+id+'/reset-pwd',{method:'PUT'});toast('密码已重置为123456','success');}}
 
 async function loadStats(){
   var d=await api('/stats/overview');if(!d)return;
@@ -512,5 +612,8 @@ function renderPagination(elId,total,page,pageSize,fn){
 if(token){api('/dashboard').then(function(d){if(d){currentAdmin={nickname:'管理员'};showLayout();}else{doLogout();}});}
 else{document.getElementById('loginPage').style.display='flex';}
 </script>
+<div id="toastContainer" class="toast-container"></div>
+<div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
+<div class="prompt-overlay" id="promptOverlay"><div class="prompt-box"><p id="promptMsg"></p><input type="text" id="promptInput"><div class="prompt-btns"><button class="pb-cancel" onclick="promptResolve(null)">取消</button><button class="pb-ok" onclick="promptResolve(document.getElementById('promptInput').value)">确认</button></div></div></div>
 </body>
 </html>
