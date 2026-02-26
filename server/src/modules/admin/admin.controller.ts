@@ -66,4 +66,69 @@ export class AdminController {
   handleReport(@Param('id') id: number, @Body('action') action: string) {
     return this.adminService.handleReport(id, action);
   }
+
+  // 认证审核
+  @Get('certs')
+  certList(@Query() query: any) {
+    return this.adminService.certList(query);
+  }
+
+  @Put('certs/:type/:id/audit')
+  auditCert(@Param('type') type: string, @Param('id') id: number, @Body() body: { action: string; rejectReason?: string }) {
+    return this.adminService.auditCert(type, id, body.action, body.rejectReason);
+  }
+
+  // 用户信用分
+  @Put('users/:id/credit')
+  updateUserCredit(@Param('id') id: number, @Body('creditScore') creditScore: number) {
+    return this.adminService.updateUserCredit(id, creditScore);
+  }
+
+  // 关键词黑名单
+  @Get('keywords')
+  keywordList() {
+    return this.adminService.keywordList();
+  }
+
+  @Post('keywords')
+  addKeyword(@Body('word') word: string) {
+    return this.adminService.addKeyword(word);
+  }
+
+  @Delete('keywords/:id')
+  deleteKeyword(@Param('id') id: number) {
+    return this.adminService.deleteKeyword(id);
+  }
+
+  // 公告管理
+  @Get('notices')
+  noticeList() {
+    return this.adminService.noticeList();
+  }
+
+  @Post('notices')
+  createNotice(@Body() dto: any) {
+    return this.adminService.createNotice(dto);
+  }
+
+  @Put('notices/:id')
+  updateNotice(@Param('id') id: number, @Body() dto: any) {
+    return this.adminService.updateNotice(id, dto);
+  }
+
+  @Delete('notices/:id')
+  deleteNotice(@Param('id') id: number) {
+    return this.adminService.deleteNotice(id);
+  }
+
+  // 系统配置
+  @Get('configs')
+  configList() {
+    return this.adminService.configList();
+  }
+
+  @Put('configs')
+  updateConfig(@Body() body: { key: string; value: string }) {
+    return this.adminService.updateConfig(body.key, body.value);
+  }
 }

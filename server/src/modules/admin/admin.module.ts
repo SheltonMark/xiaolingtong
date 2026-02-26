@@ -10,10 +10,15 @@ import { Post } from '../../entities/post.entity';
 import { Job } from '../../entities/job.entity';
 import { Exposure } from '../../entities/exposure.entity';
 import { Report } from '../../entities/report.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
+import { Keyword } from '../../entities/keyword.entity';
+import { Notice } from '../../entities/notice.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure, Report]),
+    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure, Report, EnterpriseCert, WorkerCert, Keyword, Notice, SysConfig]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -30,5 +35,6 @@ export class AdminModule implements OnModuleInit {
 
   async onModuleInit() {
     await this.adminService.initSuperAdmin();
+    await this.adminService.initDefaultConfigs();
   }
 }
