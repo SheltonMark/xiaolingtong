@@ -3,12 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
+import { User } from '../../entities/user.entity';
+import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
 export class WalletService {
   constructor(
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
     @InjectRepository(WalletTransaction) private txRepo: Repository<WalletTransaction>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    private paymentService: PaymentService,
   ) {}
 
   async getBalance(userId: number) {
@@ -49,6 +53,9 @@ export class WalletService {
     const wallet = await this.walletRepo.findOne({ where: { userId } });
     if (!wallet || +wallet.balance < amount) throw new BadRequestException('余额不足');
 
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new BadRequestException('用户不存在');
+
     wallet.balance = +wallet.balance - amount;
     wallet.totalWithdraw = +wallet.totalWithdraw + amount;
     await this.walletRepo.save(wallet);
@@ -59,9 +66,27 @@ export class WalletService {
     });
     await this.txRepo.save(tx);
 
-    // TODO: 调用微信企业付款到零钱接口
-    tx.status = 'success';
-    await this.txRepo.save(tx);
+    try {
+      const outBatchNo = this.paymentService.generateOutTradeNo('WD', tx.id);
+      const outDetailNo = `WDD_${tx.id}_${Date.now()}`;
+      await this.paymentService.transferToWallet({
+        outBatchNo, outDetailNo,
+        openid: user.openid,
+        amount: Math.round(amount * 100),
+        remark: '临工提现',
+      });
+      tx.status = 'success';
+      await this.txRepo.save(tx);
+    } catch (e) {
+      // 转账失败，回滚余额
+      tx.status = 'failed';
+      tx.remark = `提现失败: ${e.message}`;
+      await this.txRepo.save(tx);
+      wallet.balance = +wallet.balance + amount;
+      wallet.totalWithdraw = +wallet.totalWithdraw - amount;
+      await this.walletRepo.save(wallet);
+      throw new BadRequestException('提现失败，请稍后重试');
+    }
 
     return { message: '提现成功', balance: wallet.balance };
   }

@@ -20,6 +20,7 @@ import { MembershipModule } from './modules/membership/membership.module';
 import { PromotionModule } from './modules/promotion/promotion.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AdminModule } from './modules/admin/admin.module';
     PromotionModule,
     UploadModule,
     AdminModule,
+    PaymentModule,
   ],
 })
 export class AppModule {}
