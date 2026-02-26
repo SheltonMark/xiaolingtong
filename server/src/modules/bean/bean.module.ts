@@ -4,9 +4,10 @@ import { BeanController } from './bean.controller';
 import { BeanService } from './bean.service';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, BeanTransaction])],
+  imports: [TypeOrmModule.forFeature([User, BeanTransaction]), PaymentModule],
   controllers: [BeanController],
   providers: [BeanService],
 })

@@ -12,8 +12,8 @@ export class BeanController {
   }
 
   @Post('recharge')
-  recharge(@CurrentUser('sub') userId: number, @Body('amount') amount: number) {
-    return this.beanService.recharge(userId, amount);
+  recharge(@CurrentUser('sub') userId: number, @Body() dto: { amount: number; price: number }) {
+    return this.beanService.recharge(userId, dto);
   }
 
   @Get('transactions')
