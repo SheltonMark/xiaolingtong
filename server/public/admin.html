@@ -161,24 +161,30 @@ tr:hover td { background:rgba(35,39,54,.5); }
   </div>
 </div>
 <div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">发布公告</h4><div class="form-group"><label>标题</label><input type="text" id="noticeTitle" placeholder="公告标题"></div><div class="form-group"><label>内容</label><textarea id="noticeContent" rows="4" placeholder="公告内容" style="resize:vertical"></textarea></div><div class="form-group"><label>展示位置</label><select id="noticePosition"><option value="message">消息中心</option><option value="popup">首页弹窗</option></select></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">取消</button><button class="confirm" onclick="saveNotice()">确认</button></div></div></div>
+
+</body>
+</html>
 <script>
 const API='/api/admin';
 let token=localStorage.getItem('admin_token')||'';
 let currentAdmin=null;
 
-async function api(url,opts={}){
-  const res=await fetch(API+url,{method:opts.method||'GET',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:opts.body?JSON.stringify(opts.body):undefined});
-  const data=await res.json();
+async function api(url,opts){
+  opts=opts||{};
+  var h={'Content-Type':'application/json'};
+  if(token)h['Authorization']='Bearer '+token;
+  var res=await fetch(API+url,{method:opts.method||'GET',headers:h,body:opts.body?JSON.stringify(opts.body):undefined});
+  var data=await res.json();
   if(data.code===401){doLogout();return null;}
   return data.data||data;
 }
 
 async function doLogin(){
-  const username=document.getElementById('loginUser').value;
-  const password=document.getElementById('loginPwd').value;
+  var username=document.getElementById('loginUser').value;
+  var password=document.getElementById('loginPwd').value;
   try{
-    const res=await fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password})});
-    const data=await res.json();
+    var res=await fetch(API+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:username,password:password})});
+    var data=await res.json();
     if(data.code===200&&data.data){token=data.data.token;currentAdmin=data.data.admin;localStorage.setItem('admin_token',token);showLayout();}
     else{document.getElementById('loginErr').textContent=data.message||'登录失败';}
   }catch(e){document.getElementById('loginErr').textContent='网络错误';}
@@ -188,153 +194,201 @@ function doLogout(){token='';currentAdmin=null;localStorage.removeItem('admin_to
 
 function showLayout(){document.getElementById('loginPage').style.display='none';document.getElementById('layoutPage').style.display='block';document.getElementById('adminName').textContent=currentAdmin?currentAdmin.nickname:'管理员';loadDashboard();}
 
-const pageHeaders={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置']};
+var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置']};
 
 function switchPage(name,el){
-  document.querySelectorAll('.page-section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  document.querySelectorAll('.page-section').forEach(function(s){s.classList.remove('active');});
+  document.querySelectorAll('.menu-item').forEach(function(m){m.classList.remove('active');});
   document.getElementById('page-'+name).classList.add('active');
   if(el)el.classList.add('active');
-  const h=pageHeaders[name]||['',''];
+  var h=PH[name]||['',''];
   document.getElementById('pageTitle').textContent=h[0];
   document.getElementById('pageDesc').textContent=h[1];
-  const loaders={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs};
-  if(loaders[name])loaders[name]();
+  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs};
+  if(L[name])L[name]();
 }
+
+function svg(d){return '<svg viewBox="0 0 24 24" fill="currentColor"><path d="'+d+'"/></svg>';}
+var IC={
+  u:'M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z',
+  e:'M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z',
+  w:'M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z',
+  p:'M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z',
+  x:'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'
+};
 
 async function loadDashboard(){
-  const d=await api('/dashboard');if(!d)return;
-  const I={u:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>',e:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>',w:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>',p:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>',j:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>',x:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'};
-  document.getElementById('statCards').innerHTML='<div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">总用户数</span><div class="sc-icon">'+I.u+'</div></div><div class="sc-value">'+(d.userCount||0)+'</div></div><div class="stat-card sc-green"><div class="sc-top"><span class="sc-label">企业用户</span><div class="sc-icon">'+I.e+'</div></div><div class="sc-value">'+(d.enterpriseCount||0)+'</div></div><div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">临工用户</span><div class="sc-icon">'+I.w+'</div></div><div class="sc-value">'+(d.workerCount||0)+'</div></div><div class="stat-card sc-cyan"><div class="sc-top"><span class="sc-label">发布信息</span><div class="sc-icon">'+I.p+'</div></div><div class="sc-value">'+(d.postCount||0)+'</div></div><div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">招工信息</span><div class="sc-icon">'+I.j+'</div></div><div class="sc-value">'+(d.jobCount||0)+'</div></div><div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">曝光信息</span><div class="sc-icon">'+I.x+'</div></div><div class="sc-value">'+(d.exposureCount||0)+'</div></div>';
+  var d=await api('/dashboard');if(!d)return;
+  var h='';
+  var items=[['总用户数','sc-blue','u','userCount'],['企业用户','sc-green','e','enterpriseCount'],['临工用户','sc-orange','w','workerCount'],['发布信息','sc-cyan','p','postCount'],['招工信息','sc-blue','w','jobCount'],['曝光信息','sc-red','x','exposureCount']];
+  for(var i=0;i<items.length;i++){var it=items[i];h+='<div class="stat-card '+it[1]+'"><div class="sc-top"><span class="sc-label">'+it[0]+'</span><div class="sc-icon">'+svg(IC[it[2]])+'</div></div><div class="sc-value">'+(d[it[3]]||0)+'</div></div>';}
+  document.getElementById('statCards').innerHTML=h;
 }
 
-let userPage=1;
+var userPage=1;
 async function loadUsers(page){
   if(page)userPage=page;
-  const role=document.getElementById('userRoleFilter').value;
-  const keyword=document.getElementById('userKeyword').value;
-  const d=await api('/users?page='+userPage+'&role='+role+'&keyword='+keyword);
-  if(!d)return;const list=d.list||[];
-  document.getElementById('userTable').innerHTML=list.length?list.map(u=>'<tr><td>'+u.id+'</td><td>'+(u.nickname||'-')+'</td><td><span class="badge '+(u.role==='enterprise'?'badge-blue':'badge-orange')+'">'+(u.role==='enterprise'?'企业':u.role==='worker'?'临工':'未选择')+'</span></td><td>'+(u.phone||'-')+'</td><td>'+(u.beanBalance||0)+'</td><td>'+(u.creditScore||0)+'</td><td><span class="badge '+(u.status==='active'?'badge-green':'badge-red')+'">'+(u.status==='active'?'正常':'封禁')+'</span></td><td>'+(u.createdAt||'').substring(0,10)+'</td><td>'+(u.status==='active'?'<button class="btn btn-danger" onclick="banUser('+u.id+')">封禁</button>':'<button class="btn btn-success" onclick="unbanUser('+u.id+')">解封</button>')+'<button class="btn btn-primary" onclick="promptCredit('+u.id+','+(u.creditScore||0)+')">信用分</button></td></tr>').join(''):'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
+  var role=document.getElementById('userRoleFilter').value;
+  var kw=document.getElementById('userKeyword').value;
+  var d=await api('/users?page='+userPage+'&role='+role+'&keyword='+kw);
+  if(!d)return;var list=d.list||[];
+  var h='';
+  for(var i=0;i<list.length;i++){var u=list[i];
+    var roleB=u.role==='enterprise'?'badge-blue':'badge-orange';
+    var roleT=u.role==='enterprise'?'企业':u.role==='worker'?'临工':'未选择';
+    var stB=u.status==='active'?'badge-green':'badge-red';
+    var stT=u.status==='active'?'正常':'封禁';
+    var ops=u.status==='active'?'<button class="btn btn-danger" onclick="banUser('+u.id+')">封禁</button>':'<button class="btn btn-success" onclick="unbanUser('+u.id+')">解封</button>';
+    ops+='<button class="btn btn-primary" onclick="promptCredit('+u.id+','+(u.creditScore||0)+')">信用分</button>';
+    h+='<tr><td>'+u.id+'</td><td>'+(u.nickname||'-')+'</td><td><span class="badge '+roleB+'">'+roleT+'</span></td><td>'+(u.phone||'-')+'</td><td>'+(u.beanBalance||0)+'</td><td>'+(u.creditScore||0)+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(u.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+  }
+  document.getElementById('userTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
   renderPagination('userPagination',d.total,userPage,d.pageSize,'loadUsers');
 }
 async function banUser(id){if(confirm('确认封禁？')){await api('/users/'+id+'/ban',{method:'PUT'});loadUsers();}}
 async function unbanUser(id){if(confirm('确认解封？')){await api('/users/'+id+'/unban',{method:'PUT'});loadUsers();}}
-function promptCredit(id,current){var v=prompt('调整信用分（当前：'+current+'）',current);if(v!==null&&v!==''){api('/users/'+id+'/credit',{method:'PUT',body:{creditScore:+v}}).then(()=>loadUsers());}}
+function promptCredit(id,cur){var v=prompt('调整信用分（当前：'+cur+'）',cur);if(v!==null&&v!==''){api('/users/'+id+'/credit',{method:'PUT',body:{creditScore:+v}}).then(function(){loadUsers();});}}
 
-let postPage=1;
+var postPage=1;
 async function loadPosts(page){
   if(page)postPage=page;
-  const type=document.getElementById('postTypeFilter').value;
-  const status=document.getElementById('postStatusFilter').value;
-  const d=await api('/posts?page='+postPage+'&type='+type+'&status='+status);
-  if(!d)return;const list=d.list||[];
-  const typeMap={purchase:'采购需求',stock:'工厂库存',process:'代加工'};
-  const statusMap={active:['已发布','badge-green'],pending:['待审核','badge-orange'],deleted:['已删除','badge-gray'],expired:['已过期','badge-gray']};
-  document.getElementById('postTable').innerHTML=list.length?list.map(p=>{const st=statusMap[p.status]||['未知','badge-gray'];return '<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(typeMap[p.type]||p.type)+'</span></td><td>'+((p.title||p.content||'').substring(0,30))+'</td><td>'+(p.user?p.user.nickname||'ID:'+p.userId:p.userId)+'</td><td>'+(p.viewCount||0)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(p.createdAt||'').substring(0,10)+'</td><td>'+(p.status!=='active'?'<button class="btn btn-success" onclick="auditPost('+p.id+','approve')">通过</button>':'')+(p.status!=='deleted'?'<button class="btn btn-danger" onclick="auditPost('+p.id+','reject')">驳回</button>':'')+'</td></tr>';}).join(''):'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+  var type=document.getElementById('postTypeFilter').value;
+  var status=document.getElementById('postStatusFilter').value;
+  var d=await api('/posts?page='+postPage+'&type='+type+'&status='+status);
+  if(!d)return;var list=d.list||[];
+  var tm={purchase:'采购需求',stock:'工厂库存',process:'代加工'};
+  var sm={active:['已发布','badge-green'],pending:['待审核','badge-orange'],deleted:['已删除','badge-gray'],expired:['已过期','badge-gray']};
+  var h='';
+  for(var i=0;i<list.length;i++){var p=list[i];var st=sm[p.status]||['未知','badge-gray'];
+    var ops='';
+    if(p.status!=='active')ops+='<button class="btn btn-success" onclick="auditPost('+p.id+',\x27approve\x27)">通过</button>';
+    if(p.status!=='deleted')ops+='<button class="btn btn-danger" onclick="auditPost('+p.id+',\x27reject\x27)">驳回</button>';
+    h+='<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(tm[p.type]||p.type)+'</span></td><td>'+((p.title||p.content||'').substring(0,30))+'</td><td>'+(p.user?p.user.nickname||'ID:'+p.userId:p.userId)+'</td><td>'+(p.viewCount||0)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(p.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+  }
+  document.getElementById('postTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('postPagination',d.total,postPage,d.pageSize,'loadPosts');
 }
-async function auditPost(id,action){if(confirm(action==='approve'?'确认通过？':'确认驳回？')){await api('/posts/'+id+'/audit',{method:'PUT',body:{action}});loadPosts();}}
+async function auditPost(id,action){if(confirm(action==='approve'?'确认通过？':'确认驳回？')){await api('/posts/'+id+'/audit',{method:'PUT',body:{action:action}});loadPosts();}}
 
-let certPage=1;
+var certPage=1;
 async function loadCerts(page){
   if(page)certPage=page;
-  const type=document.getElementById('certTypeFilter').value;
-  const status=document.getElementById('certStatusFilter').value;
-  const d=await api('/certs?page='+certPage+'&type='+type+'&status='+status);
-  if(!d)return;const list=d.list||[];
+  var type=document.getElementById('certTypeFilter').value;
+  var status=document.getElementById('certStatusFilter').value;
+  var d=await api('/certs?page='+certPage+'&type='+type+'&status='+status);
+  if(!d)return;var list=d.list||[];
+  var h='';
   if(type==='enterprise'){
     document.getElementById('certHeader').innerHTML='<th>ID</th><th>企业名称</th><th>信用代码</th><th>联系人</th><th>电话</th><th>状态</th><th>提交时间</th><th>操作</th>';
-    document.getElementById('certTable').innerHTML=list.length?list.map(c=>'<tr><td>'+c.id+'</td><td>'+c.companyName+'</td><td>'+c.creditCode+'</td><td>'+(c.contactName||'-')+'</td><td>'+(c.contactPhone||'-')+'</td><td><span class="badge '+(c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red')+'">'+(c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回')+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+(c.status==='pending'?'<button class="btn btn-success" onclick="auditCert('enterprise','+c.id+','approve')">通过</button><button class="btn btn-danger" onclick="rejectCert('enterprise','+c.id+')">驳回</button>':'-')+'</td></tr>').join(''):'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+    for(var i=0;i<list.length;i++){var c=list[i];
+      var sb=c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red';
+      var st=c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回';
+      var ops=c.status==='pending'?'<button class="btn btn-success" onclick="auditCert(\x27enterprise\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27enterprise\x27,'+c.id+')">驳回</button>':'-';
+      h+='<tr><td>'+c.id+'</td><td>'+c.companyName+'</td><td>'+c.creditCode+'</td><td>'+(c.contactName||'-')+'</td><td>'+(c.contactPhone||'-')+'</td><td><span class="badge '+sb+'">'+st+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    }
   }else{
     document.getElementById('certHeader').innerHTML='<th>ID</th><th>姓名</th><th>身份证号</th><th>技能</th><th>状态</th><th>提交时间</th><th>操作</th>';
-    document.getElementById('certTable').innerHTML=list.length?list.map(c=>'<tr><td>'+c.id+'</td><td>'+c.realName+'</td><td>'+c.idNo+'</td><td>'+(c.skills?c.skills.join(','):'-')+'</td><td><span class="badge '+(c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red')+'">'+(c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回')+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+(c.status==='pending'?'<button class="btn btn-success" onclick="auditCert('worker','+c.id+','approve')">通过</button><button class="btn btn-danger" onclick="rejectCert('worker','+c.id+')">驳回</button>':'-')+'</td></tr>').join(''):'<tr><td colspan="7" class="empty">暂无数据</td></tr>';
+    for(var i=0;i<list.length;i++){var c=list[i];
+      var sb=c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red';
+      var st=c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回';
+      var ops=c.status==='pending'?'<button class="btn btn-success" onclick="auditCert(\x27worker\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27worker\x27,'+c.id+')">驳回</button>':'-';
+      h+='<tr><td>'+c.id+'</td><td>'+c.realName+'</td><td>'+c.idNo+'</td><td>'+(c.skills?c.skills.join(','):'-')+'</td><td><span class="badge '+sb+'">'+st+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    }
   }
+  document.getElementById('certTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('certPagination',d.total,certPage,d.pageSize,'loadCerts');
 }
-async function auditCert(type,id,action){await api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action}});loadCerts();}
-function rejectCert(type,id){var r=prompt('请输入驳回原因');if(r){api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:'reject',rejectReason:r}}).then(()=>loadCerts());}}
+async function auditCert(type,id,action){await api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:action}});loadCerts();}
+function rejectCert(type,id){var r=prompt('请输入驳回原因');if(r){api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:'reject',rejectReason:r}}).then(function(){loadCerts();});}}
 
-let reportPage=1;
+var reportPage=1;
 async function loadReports(page){
   if(page)reportPage=page;
-  const d=await api('/reports?page='+reportPage);
-  if(!d)return;const list=d.list||[];
-  const statusMap={pending:['待处理','badge-orange'],handled:['已处理','badge-green'],dismissed:['已驳回','badge-gray']};
-  document.getElementById('reportTable').innerHTML=list.length?list.map(r=>{const st=statusMap[r.status]||['未知','badge-gray'];return '<tr><td>'+r.id+'</td><td>'+r.targetType+'</td><td>'+r.targetId+'</td><td>'+r.reason+'</td><td>'+((r.description||'').substring(0,30))+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(r.createdAt||'').substring(0,10)+'</td><td>'+(r.status==='pending'?'<button class="btn btn-success" onclick="handleReport('+r.id+','resolve')">处理</button><button class="btn btn-danger" onclick="handleReport('+r.id+','dismiss')">驳回</button>':'-')+'</td></tr>';}).join(''):'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+  var d=await api('/reports?page='+reportPage);
+  if(!d)return;var list=d.list||[];
+  var sm={pending:['待处理','badge-orange'],handled:['已处理','badge-green'],dismissed:['已驳回','badge-gray']};
+  var h='';
+  for(var i=0;i<list.length;i++){var r=list[i];var st=sm[r.status]||['未知','badge-gray'];
+    var ops=r.status==='pending'?'<button class="btn btn-success" onclick="handleReport('+r.id+',\x27resolve\x27)">处理</button><button class="btn btn-danger" onclick="handleReport('+r.id+',\x27dismiss\x27)">驳回</button>':'-';
+    h+='<tr><td>'+r.id+'</td><td>'+r.targetType+'</td><td>'+r.targetId+'</td><td>'+r.reason+'</td><td>'+((r.description||'').substring(0,30))+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(r.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+  }
+  document.getElementById('reportTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('reportPagination',d.total,reportPage,d.pageSize,'loadReports');
 }
-async function handleReport(id,action){await api('/reports/'+id+'/handle',{method:'PUT',body:{action}});loadReports();}
+async function handleReport(id,action){await api('/reports/'+id+'/handle',{method:'PUT',body:{action:action}});loadReports();}
 
-let jobPage=1;
+var jobPage=1;
 async function loadJobs(page){
   if(page)jobPage=page;
-  const d=await api('/jobs?page='+jobPage);
-  if(!d)return;const list=d.list||[];
-  document.getElementById('jobTable').innerHTML=list.length?list.map(j=>'<tr><td>'+j.id+'</td><td>'+(j.title||'-')+'</td><td>'+(j.user?j.user.nickname||'ID:'+j.userId:j.userId)+'</td><td>'+(j.salary||'-')+'元/'+(j.salaryMode||'时')+'</td><td>'+(j.headcount||'-')+'</td><td><span class="badge badge-green">招工中</span></td><td>'+(j.createdAt||'').substring(0,10)+'</td></tr>').join(''):'<tr><td colspan="7" class="empty">暂无数据</td></tr>';
+  var d=await api('/jobs?page='+jobPage);
+  if(!d)return;var list=d.list||[];
+  var h='';
+  for(var i=0;i<list.length;i++){var j=list[i];
+    h+='<tr><td>'+j.id+'</td><td>'+(j.title||'-')+'</td><td>'+(j.user?j.user.nickname||'ID:'+j.userId:j.userId)+'</td><td>'+(j.salary||'-')+'元/'+(j.salaryMode||'时')+'</td><td>'+(j.headcount||'-')+'</td><td><span class="badge badge-green">招工中</span></td><td>'+(j.createdAt||'').substring(0,10)+'</td></tr>';
+  }
+  document.getElementById('jobTable').innerHTML=h||'<tr><td colspan="7" class="empty">暂无数据</td></tr>';
   renderPagination('jobPagination',d.total,jobPage,d.pageSize,'loadJobs');
 }
 
-let exposurePage=1;
+var exposurePage=1;
 async function loadExposures(page){
   if(page)exposurePage=page;
-  const d=await api('/exposures?page='+exposurePage);
-  if(!d)return;const list=d.list||[];
-  document.getElementById('exposureTable').innerHTML=list.length?list.map(e=>'<tr><td>'+e.id+'</td><td>'+(e.company||e.contact||'-')+'</td><td>'+(e.amount||'-')+'</td><td>'+((e.description||'').substring(0,40))+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-danger" onclick="deleteExposure('+e.id+')">删除</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
+  var d=await api('/exposures?page='+exposurePage);
+  if(!d)return;var list=d.list||[];
+  var h='';
+  for(var i=0;i<list.length;i++){var e=list[i];
+    h+='<tr><td>'+e.id+'</td><td>'+(e.company||e.contact||'-')+'</td><td>'+(e.amount||'-')+'</td><td>'+((e.description||'').substring(0,40))+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-danger" onclick="deleteExposure('+e.id+')">删除</button></td></tr>';
+  }
+  document.getElementById('exposureTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
   renderPagination('exposurePagination',d.total,exposurePage,d.pageSize,'loadExposures');
 }
 async function deleteExposure(id){if(confirm('确认删除？')){await api('/exposures/'+id,{method:'DELETE'});loadExposures();}}
 
 async function loadKeywords(){
-  const list=await api('/keywords');
-  if(!list)return;
-  document.getElementById('keywordTable').innerHTML=list.length?list.map(k=>'<tr><td>'+k.id+'</td><td>'+k.word+'</td><td>'+(k.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-danger" onclick="deleteKeyword('+k.id+')">删除</button></td></tr>').join(''):'<tr><td colspan="4" class="empty">暂无关键词</td></tr>';
+  var list=await api('/keywords');if(!list)return;
+  var h='';
+  for(var i=0;i<list.length;i++){var k=list[i];
+    h+='<tr><td>'+k.id+'</td><td>'+k.word+'</td><td>'+(k.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-danger" onclick="deleteKeyword('+k.id+')">删除</button></td></tr>';
+  }
+  document.getElementById('keywordTable').innerHTML=h||'<tr><td colspan="4" class="empty">暂无关键词</td></tr>';
 }
-async function addKeyword(){
-  const w=document.getElementById('newKeyword').value.trim();
-  if(!w){alert('请输入关键词');return;}
-  await api('/keywords',{method:'POST',body:{word:w}});
-  document.getElementById('newKeyword').value='';
-  loadKeywords();
-}
+async function addKeyword(){var w=document.getElementById('newKeyword').value.trim();if(!w){alert('请输入关键词');return;}await api('/keywords',{method:'POST',body:{word:w}});document.getElementById('newKeyword').value='';loadKeywords();}
 async function deleteKeyword(id){if(confirm('确认删除？')){await api('/keywords/'+id,{method:'DELETE'});loadKeywords();}}
 
 async function loadNotices(){
-  const list=await api('/notices');
-  if(!list)return;
-  document.getElementById('noticeTable').innerHTML=list.length?list.map(n=>'<tr><td>'+n.id+'</td><td>'+n.title+'</td><td>'+(n.position==='popup'?'首页弹窗':'消息中心')+'</td><td><span class="badge '+(n.isActive?'badge-green':'badge-gray')+'">'+(n.isActive?'启用':'禁用')+'</span></td><td>'+(n.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-warning" onclick="toggleNotice('+n.id+','+n.isActive+')">'+(!n.isActive?'启用':'禁用')+'</button><button class="btn btn-danger" onclick="deleteNotice('+n.id+')">删除</button></td></tr>').join(''):'<tr><td colspan="6" class="empty">暂无公告</td></tr>';
+  var list=await api('/notices');if(!list)return;
+  var h='';
+  for(var i=0;i<list.length;i++){var n=list[i];
+    var stB=n.isActive?'badge-green':'badge-gray';
+    var stT=n.isActive?'启用':'禁用';
+    var togT=n.isActive?'禁用':'启用';
+    h+='<tr><td>'+n.id+'</td><td>'+n.title+'</td><td>'+(n.position==='popup'?'首页弹窗':'消息中心')+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(n.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-warning" onclick="toggleNotice('+n.id+','+n.isActive+')">'+togT+'</button><button class="btn btn-danger" onclick="deleteNotice('+n.id+')">删除</button></td></tr>';
+  }
+  document.getElementById('noticeTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无公告</td></tr>';
 }
 function showNoticeModal(){document.getElementById('noticeModal').classList.add('show');document.getElementById('noticeTitle').value='';document.getElementById('noticeContent').value='';}
 function hideNoticeModal(){document.getElementById('noticeModal').classList.remove('show');}
-async function saveNotice(){
-  const title=document.getElementById('noticeTitle').value.trim();
-  const content=document.getElementById('noticeContent').value.trim();
-  const position=document.getElementById('noticePosition').value;
-  if(!title||!content){alert('请填写标题和内容');return;}
-  await api('/notices',{method:'POST',body:{title,content,position}});
-  hideNoticeModal();loadNotices();
-}
-async function toggleNotice(id,current){await api('/notices/'+id,{method:'PUT',body:{isActive:current?0:1}});loadNotices();}
+async function saveNotice(){var t=document.getElementById('noticeTitle').value.trim();var c=document.getElementById('noticeContent').value.trim();var p=document.getElementById('noticePosition').value;if(!t||!c){alert('请填写标题和内容');return;}await api('/notices',{method:'POST',body:{title:t,content:c,position:p}});hideNoticeModal();loadNotices();}
+async function toggleNotice(id,cur){await api('/notices/'+id,{method:'PUT',body:{isActive:cur?0:1}});loadNotices();}
 async function deleteNotice(id){if(confirm('确认删除？')){await api('/notices/'+id,{method:'DELETE'});loadNotices();}}
 
 async function loadConfigs(){
-  const list=await api('/configs');
-  if(!list||!list.length){document.getElementById('configGrid').innerHTML='<div class="empty">暂无配置</div>';return;}
-  document.getElementById('configGrid').innerHTML=list.map(c=>'<div class="config-item"><label>'+(c.label||c.key)+'</label><input id="cfg_'+c.key+'" value="'+c.value+'"><button class="save-cfg" onclick="saveConfig(''+c.key+'')">保存</button></div>').join('');
+  var list=await api('/configs');if(!list||!list.length){document.getElementById('configGrid').innerHTML='<div class="empty">暂无配置</div>';return;}
+  var h='';
+  for(var i=0;i<list.length;i++){var c=list[i];
+    h+='<div class="config-item"><label>'+(c.label||c.key)+'</label><input id="cfg_'+c.key+'" value="'+c.value+'"><button class="save-cfg" onclick="saveConfig(\x27'+c.key+'\x27)">保存</button></div>';
+  }
+  document.getElementById('configGrid').innerHTML=h;
 }
-async function saveConfig(key){
-  const v=document.getElementById('cfg_'+key).value;
-  await api('/configs',{method:'PUT',body:{key,value:v}});
-  alert('已保存');
-}
+async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});alert('已保存');}
 
 function renderPagination(elId,total,page,pageSize,fn){
-  const tp=Math.ceil(total/(pageSize||20));
+  var tp=Math.ceil(total/(pageSize||20));
   if(tp<=1){document.getElementById(elId).innerHTML='';return;}
   document.getElementById(elId).innerHTML='<span>共 '+total+' 条</span><button '+(page<=1?'disabled':'')+' onclick="'+fn+'('+(page-1)+')">上一页</button><span>'+page+' / '+tp+'</span><button '+(page>=tp?'disabled':'')+' onclick="'+fn+'('+(page+1)+')">下一页</button>';
 }
 
-if(token){api('/dashboard').then(d=>{if(d){currentAdmin={nickname:'管理员'};showLayout();}else doLogout();});}
+if(token){api('/dashboard').then(function(d){if(d){currentAdmin={nickname:'管理员'};showLayout();}else{doLogout();}});}
 else{document.getElementById('loginPage').style.display='flex';}
 </script>
 </body>
