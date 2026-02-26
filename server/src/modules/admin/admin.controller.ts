@@ -223,4 +223,15 @@ export class AdminController {
   toggleCategory(@Param('id') id: number) {
     return this.adminService.toggleCategory(id);
   }
+
+  // 财务管理
+  @Get('finance')
+  financeOverview() {
+    return this.adminService.financeOverview();
+  }
+
+  @Get('transactions')
+  transactionList(@Query() query: any) {
+    return this.adminService.transactionList(query);
+  }
 }

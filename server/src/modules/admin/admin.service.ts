@@ -17,6 +17,11 @@ import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { Category } from '../../entities/category.entity';
+import { MemberOrder } from '../../entities/member-order.entity';
+import { Settlement } from '../../entities/settlement.entity';
+import { Wallet } from '../../entities/wallet.entity';
+import { WalletTransaction } from '../../entities/wallet-transaction.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -41,6 +46,11 @@ export class AdminService {
     @InjectRepository(JobType) private jobTypeRepo: Repository<JobType>,
     @InjectRepository(AdOrder) private adRepo: Repository<AdOrder>,
     @InjectRepository(Category) private categoryRepo: Repository<Category>,
+    @InjectRepository(MemberOrder) private memberOrderRepo: Repository<MemberOrder>,
+    @InjectRepository(Settlement) private settlementRepo: Repository<Settlement>,
+    @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
+    @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
+    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     private jwt: JwtService,
   ) {}
 
@@ -395,6 +405,41 @@ export class AdminService {
     if (!c) return { message: '不存在' };
     await this.categoryRepo.update(id, { isActive: c.isActive ? 0 : 1 });
     return { message: c.isActive ? '已禁用' : '已启用' };
+  }
+
+  // 财务管理
+  async financeOverview() {
+    const [memberIncome, adIncome, beanIncome, settlementCount, withdrawTotal] = await Promise.all([
+      this.memberOrderRepo.createQueryBuilder('o').select('COALESCE(SUM(o.price),0)', 'total').where('o.payStatus = :s', { s: 'paid' }).getRawOne(),
+      this.adRepo.createQueryBuilder('a').select('COALESCE(SUM(a.price),0)', 'total').where('a.status != :s', { s: 'pending' }).getRawOne(),
+      this.beanTxRepo.createQueryBuilder('b').select('COALESCE(SUM(b.amount),0)', 'total').where('b.type = :t', { t: 'recharge' }).getRawOne(),
+      this.settlementRepo.createQueryBuilder('s').select('COALESCE(SUM(s.platformFee),0)', 'total').where('s.status IN (:...st)', { st: ['paid', 'distributed', 'completed'] }).getRawOne(),
+      this.walletTxRepo.createQueryBuilder('w').select('COALESCE(SUM(w.amount),0)', 'total').where('w.type = :t AND w.status = :s', { t: 'withdraw', s: 'success' }).getRawOne(),
+    ]);
+    return {
+      income: {
+        member: +memberIncome.total,
+        ad: +adIncome.total,
+        bean: +beanIncome.total,
+        commission: +settlementCount.total,
+        total: +memberIncome.total + +adIncome.total + +beanIncome.total + +settlementCount.total,
+      },
+      expense: {
+        withdraw: +withdrawTotal.total,
+        total: +withdrawTotal.total,
+      },
+    };
+  }
+
+  async transactionList(query: any) {
+    const { type, page = 1, pageSize = 20 } = query;
+    const qb = this.walletTxRepo.createQueryBuilder('t')
+      .leftJoinAndSelect('t.user', 'u')
+      .orderBy('t.createdAt', 'DESC');
+    if (type) qb.andWhere('t.type = :type', { type });
+    qb.skip((page - 1) * pageSize).take(pageSize);
+    const [list, total] = await qb.getManyAndCount();
+    return { list, total, page: +page, pageSize: +pageSize };
   }
 
   async initDefaultConfigs() {

@@ -19,10 +19,15 @@ import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { Category } from '../../entities/category.entity';
+import { MemberOrder } from '../../entities/member-order.entity';
+import { Settlement } from '../../entities/settlement.entity';
+import { Wallet } from '../../entities/wallet.entity';
+import { WalletTransaction } from '../../entities/wallet-transaction.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure, Report, EnterpriseCert, WorkerCert, Keyword, Notice, SysConfig, OpenCity, JobType, AdOrder, Category]),
+    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure, Report, EnterpriseCert, WorkerCert, Keyword, Notice, SysConfig, OpenCity, JobType, AdOrder, Category, MemberOrder, Settlement, Wallet, WalletTransaction, BeanTransaction]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
