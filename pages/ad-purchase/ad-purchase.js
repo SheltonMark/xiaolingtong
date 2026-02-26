@@ -52,13 +52,22 @@ Page({
         if (res.confirm) {
           post('/ads/purchase', {
             slot: this.data.slots[this.data.selectedSlot].name,
-            startDate: this.data.form.startDate,
-            endDate: this.data.form.endDate,
-            days: this.data.days,
-            amount: this.data.totalPrice,
-            adImage: this.data.adImage
-          }).then(() => {
-            wx.showToast({ title: '购买成功', icon: 'success' })
+            title: this.data.slots[this.data.selectedSlot].name,
+            imageUrl: this.data.adImage,
+            durationDays: this.data.days,
+            price: this.data.totalPrice
+          }).then((data) => {
+            if (data.prepay_id) {
+              wx.requestPayment({
+                timeStamp: data.timeStamp,
+                nonceStr: data.nonceStr,
+                package: data.package,
+                signType: data.signType || 'RSA',
+                paySign: data.paySign,
+                success() { wx.showToast({ title: '购买成功', icon: 'success' }) },
+                fail() { wx.showToast({ title: '支付取消', icon: 'none' }) }
+              })
+            }
           }).catch(() => {})
         }
       }

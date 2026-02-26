@@ -33,9 +33,21 @@ Page({
       content: '支付 ¥' + pkg.price + ' 获得 ' + pkg.beans + ' 灵豆',
       success: (res) => {
         if (res.confirm) {
-          post('/beans/recharge', { packageId: pkg.id, beans: pkg.beans, amount: Number(pkg.price) }).then(() => {
-            wx.showToast({ title: '充值成功', icon: 'success' })
-            this.onShow()
+          post('/beans/recharge', { amount: pkg.beans, price: Number(pkg.price) }).then((data) => {
+            if (data.prepay_id) {
+              wx.requestPayment({
+                timeStamp: data.timeStamp,
+                nonceStr: data.nonceStr,
+                package: data.package,
+                signType: data.signType || 'RSA',
+                paySign: data.paySign,
+                success: () => {
+                  wx.showToast({ title: '充值成功', icon: 'success' })
+                  this.onShow()
+                },
+                fail() { wx.showToast({ title: '支付取消', icon: 'none' }) }
+              })
+            }
           }).catch(() => {})
         }
       }
