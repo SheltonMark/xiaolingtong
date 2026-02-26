@@ -230,6 +230,53 @@ export class AdminService {
     return { message: '已更新' };
   }
 
+  // 用户详情
+  async userDetail(id: number) {
+    const user = await this.userRepo.findOneBy({ id });
+    if (!user) return null;
+    const posts = await this.postRepo.count({ where: { userId: id } });
+    const jobs = await this.jobRepo.count({ where: { userId: id } });
+    const entCert = await this.entCertRepo.findOneBy({ userId: id });
+    const workerCert = await this.workerCertRepo.findOneBy({ userId: id });
+    return { user, postCount: posts, jobCount: jobs, entCert, workerCert };
+  }
+
+  // 数据统计
+  async statsOverview() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const week = new Date(today.getTime() - 7 * 86400000);
+    const month = new Date(today.getTime() - 30 * 86400000);
+
+    const [totalUsers, todayUsers, weekUsers, monthUsers] = await Promise.all([
+      this.userRepo.count(),
+      this.userRepo.createQueryBuilder('u').where('u.createdAt >= :d', { d: today }).getCount(),
+      this.userRepo.createQueryBuilder('u').where('u.createdAt >= :d', { d: week }).getCount(),
+      this.userRepo.createQueryBuilder('u').where('u.createdAt >= :d', { d: month }).getCount(),
+    ]);
+
+    const [totalPosts, pendingPosts, totalJobs, totalExposures, totalReports, pendingReports] = await Promise.all([
+      this.postRepo.count(),
+      this.postRepo.count({ where: { status: 'pending' as any } }),
+      this.jobRepo.count(),
+      this.exposureRepo.count(),
+      this.reportRepo.count(),
+      this.reportRepo.count({ where: { status: 'pending' as any } }),
+    ]);
+
+    const pendingEntCerts = await this.entCertRepo.count({ where: { status: 'pending' as any } });
+    const pendingWorkerCerts = await this.workerCertRepo.count({ where: { status: 'pending' as any } });
+
+    return {
+      users: { total: totalUsers, today: todayUsers, week: weekUsers, month: monthUsers },
+      posts: { total: totalPosts, pending: pendingPosts },
+      jobs: { total: totalJobs },
+      exposures: { total: totalExposures },
+      reports: { total: totalReports, pending: pendingReports },
+      certs: { pendingEnterprise: pendingEntCerts, pendingWorker: pendingWorkerCerts },
+    };
+  }
+
   async initDefaultConfigs() {
     const defaults = [
       { key: 'member_monthly_price', value: '30', label: '月会员价格(元)', group: 'price' },

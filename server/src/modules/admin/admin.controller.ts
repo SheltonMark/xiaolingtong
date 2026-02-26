@@ -131,4 +131,16 @@ export class AdminController {
   updateConfig(@Body() body: { key: string; value: string }) {
     return this.adminService.updateConfig(body.key, body.value);
   }
+
+  // 用户详情
+  @Get('users/:id/detail')
+  userDetail(@Param('id') id: number) {
+    return this.adminService.userDetail(id);
+  }
+
+  // 数据统计
+  @Get('stats/overview')
+  statsOverview() {
+    return this.adminService.statsOverview();
+  }
 }
