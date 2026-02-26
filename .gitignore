@@ -85,3 +85,6 @@ GitHub_Desktop使用指南.md
 
 # 敏感配置
 Docs/ma/项目配置信息.md
+
+# 微信支付证书（绝对不能传到git）
+cert/

@@ -18,10 +18,11 @@ import { SysConfig } from '../../entities/sys-config.entity';
 import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
+import { Category } from '../../entities/category.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure, Report, EnterpriseCert, WorkerCert, Keyword, Notice, SysConfig, OpenCity, JobType, AdOrder]),
+    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure, Report, EnterpriseCert, WorkerCert, Keyword, Notice, SysConfig, OpenCity, JobType, AdOrder, Category]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

@@ -16,6 +16,7 @@ import { SysConfig } from '../../entities/sys-config.entity';
 import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
+import { Category } from '../../entities/category.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -39,6 +40,7 @@ export class AdminService {
     @InjectRepository(OpenCity) private cityRepo: Repository<OpenCity>,
     @InjectRepository(JobType) private jobTypeRepo: Repository<JobType>,
     @InjectRepository(AdOrder) private adRepo: Repository<AdOrder>,
+    @InjectRepository(Category) private categoryRepo: Repository<Category>,
     private jwt: JwtService,
   ) {}
 
@@ -369,6 +371,30 @@ export class AdminService {
       await this.adRepo.update(id, { status: 'expired' });
     }
     return { message: action === 'approve' ? '已通过' : '已驳回' };
+  }
+
+  // 品类标签管理
+  async categoryList() {
+    const all = await this.categoryRepo.find({ order: { level: 'ASC', sort: 'ASC', id: 'ASC' } });
+    const top = all.filter(c => c.level === 1);
+    return top.map(t => ({
+      ...t,
+      children: all.filter(c => c.parentId === t.id),
+    }));
+  }
+
+  async addCategory(name: string, parentId: number, level: number) {
+    const exists = await this.categoryRepo.findOne({ where: { name, parentId } });
+    if (exists) return { message: '分类已存在' };
+    await this.categoryRepo.save(this.categoryRepo.create({ name, parentId: parentId || 0, level: level || 1 }));
+    return { message: '已添加' };
+  }
+
+  async toggleCategory(id: number) {
+    const c = await this.categoryRepo.findOneBy({ id });
+    if (!c) return { message: '不存在' };
+    await this.categoryRepo.update(id, { isActive: c.isActive ? 0 : 1 });
+    return { message: c.isActive ? '已禁用' : '已启用' };
   }
 
   async initDefaultConfigs() {

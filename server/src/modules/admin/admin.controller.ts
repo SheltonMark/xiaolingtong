@@ -207,4 +207,20 @@ export class AdminController {
   auditAd(@Param('id') id: number, @Body('action') action: string) {
     return this.adminService.auditAd(id, action);
   }
+
+  // 品类标签管理
+  @Get('categories')
+  categoryList() {
+    return this.adminService.categoryList();
+  }
+
+  @Post('categories')
+  addCategory(@Body() body: { name: string; parentId?: number; level?: number }) {
+    return this.adminService.addCategory(body.name, body.parentId || 0, body.level || 1);
+  }
+
+  @Put('categories/:id/toggle')
+  toggleCategory(@Param('id') id: number) {
+    return this.adminService.toggleCategory(id);
+  }
 }

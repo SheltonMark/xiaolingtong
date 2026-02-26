@@ -195,6 +195,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
       <div class="menu-item" onclick="switchPage('ads',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-4-4h-4v-2h4v-4h2v4h-2v2z"/></svg>广告管理</div>
       <div class="menu-item" onclick="switchPage('jobtypes',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z"/></svg>工种管理</div>
       <div class="menu-item" onclick="switchPage('cities',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>开放城市</div>
+      <div class="menu-item" onclick="switchPage('categories',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l-5.5 9h11L12 2zm0 3.84L13.93 9h-3.87L12 5.84zM17.5 13c-2.49 0-4.5 2.01-4.5 4.5s2.01 4.5 4.5 4.5 4.5-2.01 4.5-4.5-2.01-4.5-4.5-4.5zm0 7a2.5 2.5 0 010-5 2.5 2.5 0 010 5zM3 21.5h8v-8H3v8zm2-6h4v4H5v-4z"/></svg>品类标签</div>
       <div class="menu-item" onclick="switchPage('admins',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>管理员</div>
     </div>
     <div class="sidebar-footer"><span class="admin-info" id="adminName"></span><button class="logout-btn" onclick="doLogout()">退出登录</button></div>
@@ -215,6 +216,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-cities"><div class="panel"><div class="panel-header"><h4>开放城市</h4><div class="toolbar"><input type="text" id="newCity" placeholder="城市名称"><button class="add-btn" onclick="addCity()">添加</button></div></div><table><thead><tr><th>ID</th><th>城市名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="cityTable"></tbody></table></div></div>
     <div class="page-section" id="page-ads"><div class="panel"><div class="panel-header"><h4>广告管理</h4><div class="toolbar"><select id="adStatusFilter" onchange="loadAds()"><option value="">全部状态</option><option value="pending">待审核</option><option value="active">投放中</option><option value="expired">已过期</option></select><button class="search-btn" onclick="loadAds()">刷新</button></div></div><table><thead><tr><th>ID</th><th>广告主</th><th>位置</th><th>标题</th><th>天数</th><th>价格</th><th>状态</th><th>投放时间</th><th>操作</th></tr></thead><tbody id="adTable"></tbody></table><div class="pagination" id="adPagination"></div></div></div>
     <div class="page-section" id="page-admins"><div class="panel"><div class="panel-header"><h4>管理员账号</h4><div class="toolbar"><button class="add-btn" onclick="showAdminModal()">添加管理员</button></div></div><table><thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="adminTable"></tbody></table></div></div>
+    <div class="page-section" id="page-categories"><div class="panel"><div class="panel-header"><h4>品类标签管理</h4><div class="toolbar"><input type="text" id="newCatName" placeholder="分类名称"><select id="newCatParent"><option value="0">一级分类</option></select><button class="add-btn" onclick="addCategory()">添加</button></div></div><div id="categoryContent"></div></div></div>
     <div class="page-section" id="page-stats"><div class="panel"><div class="panel-header"><h4>数据统计</h4></div><div id="statsContent"></div></div></div>
     <div class="page-section" id="page-configs"><div class="panel"><div class="panel-header"><h4>系统配置</h4></div><div class="config-grid" id="configGrid"></div></div></div>
   </div>
@@ -305,7 +307,7 @@ function doLogout(){token='';currentAdmin=null;localStorage.removeItem('admin_to
 
 function showLayout(){document.getElementById('loginPage').style.display='none';document.getElementById('layoutPage').style.display='block';document.getElementById('adminName').textContent=currentAdmin?currentAdmin.nickname:'管理员';loadDashboard();}
 
-var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],stats:['数据统计','平台运营数据分析'],admins:['管理员','管理后台账号'],jobtypes:['工种管理','管理招工工种分类'],cities:['开放城市','管理平台开放城市'],ads:['广告管理','管理广告投放']};
+var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],stats:['数据统计','平台运营数据分析'],admins:['管理员','管理后台账号'],jobtypes:['工种管理','管理招工工种分类'],cities:['开放城市','管理平台开放城市'],ads:['广告管理','管理广告投放'],categories:['品类标签','管理行业品类分类标签']};
 
 function switchPage(name,el){
   document.querySelectorAll('.page-section').forEach(function(s){s.classList.remove('active');});
@@ -315,7 +317,7 @@ function switchPage(name,el){
   var h=PH[name]||['',''];
   document.getElementById('pageTitle').textContent=h[0];
   document.getElementById('pageDesc').textContent=h[1];
-  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,stats:loadStats,admins:loadAdmins,jobtypes:loadJobTypes,cities:loadCities,ads:loadAds};
+  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,stats:loadStats,admins:loadAdmins,jobtypes:loadJobTypes,cities:loadCities,ads:loadAds,categories:loadCategories};
   if(L[name])L[name]();
 }
 
@@ -535,6 +537,35 @@ async function addCity(){
   loadCities();
 }
 async function toggleCity(id){await api('/cities/'+id+'/toggle',{method:'PUT'});loadCities();}
+
+async function loadCategories(){
+  var list=await api('/categories');if(!list)return;
+  var sel=document.getElementById('newCatParent');
+  sel.innerHTML='<option value="0">一级分类</option>';
+  for(var i=0;i<list.length;i++){sel.innerHTML+='<option value="'+list[i].id+'">└ '+list[i].name+'的子分类</option>';}
+  var h='';
+  for(var i=0;i<list.length;i++){var c=list[i];
+    var stB=c.isActive?'badge-green':'badge-red';var stT=c.isActive?'启用':'禁用';var togT=c.isActive?'禁用':'启用';
+    h+='<table style="width:100%;margin-bottom:16px"><thead><tr><th colspan="5" style="font-size:14px;color:var(--text);text-transform:none;letter-spacing:0">'+c.name+' <span class="badge '+stB+'" style="margin-left:8px">'+stT+'</span><button class="btn '+(c.isActive?'btn-danger':'btn-success')+'" style="margin-left:8px" onclick="toggleCategory('+c.id+')">'+togT+'</button></th></tr><tr><th>ID</th><th>名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+    var ch=c.children||[];
+    if(ch.length===0){h+='<tr><td colspan="5" class="empty">暂无子分类</td></tr>';}
+    for(var j=0;j<ch.length;j++){var s=ch[j];
+      var sB=s.isActive?'badge-green':'badge-red';var sT=s.isActive?'启用':'禁用';var tT=s.isActive?'禁用':'启用';
+      h+='<tr><td>'+s.id+'</td><td>'+s.name+'</td><td><span class="badge '+sB+'">'+sT+'</span></td><td>'+(s.createdAt||'').substring(0,10)+'</td><td><button class="btn '+(s.isActive?'btn-danger':'btn-success')+'" onclick="toggleCategory('+s.id+')">'+tT+'</button></td></tr>';
+    }
+    h+='</tbody></table>';
+  }
+  document.getElementById('categoryContent').innerHTML=h||'<div class="empty">暂无品类分类</div>';
+}
+async function addCategory(){
+  var n=document.getElementById('newCatName').value.trim();
+  if(!n){toast('请输入分类名称','error');return;}
+  var p=parseInt(document.getElementById('newCatParent').value);
+  await api('/categories',{method:'POST',body:{name:n,parentId:p,level:p===0?1:2}});
+  document.getElementById('newCatName').value='';
+  loadCategories();
+}
+async function toggleCategory(id){await api('/categories/'+id+'/toggle',{method:'PUT'});loadCategories();}
 
 var adPage=1;
 async function loadAds(page){
