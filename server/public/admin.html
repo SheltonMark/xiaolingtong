@@ -38,7 +38,8 @@ input,select,button,textarea { font-family:inherit; }
 .sidebar-brand .brand-dot { width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .sidebar-brand .brand-dot svg { width:16px; height:16px; fill:#fff; }
 .sidebar-brand span { font-size:16px; font-weight:600; }
-.sidebar-nav { flex:1; padding:12px 10px; overflow-y:auto; }
+.sidebar-nav { flex:1; padding:12px 10px; overflow-y:auto; scrollbar-width:none; -ms-overflow-style:none; }
+.sidebar-nav::-webkit-scrollbar { display:none; }
 .menu-group { font-size:11px; color:var(--text-muted); padding:16px 14px 6px; text-transform:uppercase; letter-spacing:1px; }
 .menu-item { padding:10px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; color:var(--text-sec); transition:all .15s; display:flex; align-items:center; gap:10px; margin-bottom:2px; }
 .menu-item svg { width:18px; height:18px; opacity:.6; flex-shrink:0; }
@@ -68,10 +69,10 @@ input,select,button,textarea { font-family:inherit; }
 .panel { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); padding:24px; margin-bottom:20px; }
 .panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
 .panel-header h4 { font-size:15px; font-weight:600; }
-.toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-.toolbar input,.toolbar select { height:36px; line-height:34px; padding:0 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; box-sizing:border-box; vertical-align:middle; }
+.toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:stretch; }
+.toolbar input,.toolbar select { height:36px; padding:0 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; box-sizing:border-box; }
 .toolbar select option { background:var(--bg-card); }
-.toolbar .search-btn,.toolbar .add-btn { height:36px; line-height:34px; padding:0 16px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; box-sizing:border-box; vertical-align:middle; }
+.toolbar .search-btn,.toolbar .add-btn { height:36px; padding:0 16px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; box-sizing:border-box; white-space:nowrap; }
 .toolbar .search-btn:hover,.toolbar .add-btn:hover { background:var(--accent-h); }
 table { width:100%; border-collapse:collapse; font-size:13px; }
 th { padding:12px 10px; text-align:left; color:var(--text-muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); }
