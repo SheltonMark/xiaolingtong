@@ -2,12 +2,23 @@ import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/com
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
+import { Keyword } from '../../entities/keyword.entity';
 
 @Injectable()
 export class JobService {
   constructor(
     @InjectRepository(Job) private jobRepo: Repository<Job>,
+    @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
   ) {}
+
+  private async checkKeywords(text: string) {
+    const keywords = await this.keywordRepo.find();
+    for (const kw of keywords) {
+      if (text.includes(kw.word)) {
+        throw new BadRequestException(`内容包含违禁词: ${kw.word}`);
+      }
+    }
+  }
 
   async list(query: any) {
     const { keyword, salaryType, minSalary, maxSalary, page = 1, pageSize = 20 } = query;
@@ -36,6 +47,7 @@ export class JobService {
   }
 
   async create(userId: number, dto: any) {
+    await this.checkKeywords((dto.title || '') + (dto.description || ''));
     const job = this.jobRepo.create({ ...dto, userId });
     return this.jobRepo.save(job);
   }
@@ -43,6 +55,7 @@ export class JobService {
   async update(id: number, userId: number, dto: any) {
     const job = await this.jobRepo.findOne({ where: { id } });
     if (!job || job.userId !== userId) throw new ForbiddenException('无权操作');
+    await this.checkKeywords((dto.title || '') + (dto.description || ''));
     Object.assign(job, dto);
     return this.jobRepo.save(job);
   }

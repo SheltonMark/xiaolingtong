@@ -50,8 +50,9 @@ export class WalletService {
   }
 
   async withdraw(userId: number, amount: number) {
+    if (!amount || amount <= 0) throw new BadRequestException('提现金额必须大于0');
     const wallet = await this.walletRepo.findOne({ where: { userId } });
-    if (!wallet || +wallet.balance < amount) throw new BadRequestException('余额不足');
+    if (!wallet || +wallet.balance <= 0 || +wallet.balance < amount) throw new BadRequestException('余额不足');
 
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');

@@ -5,6 +5,7 @@ import { Post } from '../../entities/post.entity';
 import { ContactUnlock } from '../../entities/contact-unlock.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { Keyword } from '../../entities/keyword.entity';
 
 const UNLOCK_COST = 10;
 
@@ -15,7 +16,17 @@ export class PostService {
     @InjectRepository(ContactUnlock) private unlockRepo: Repository<ContactUnlock>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
   ) {}
+
+  private async checkKeywords(text: string) {
+    const keywords = await this.keywordRepo.find();
+    for (const kw of keywords) {
+      if (text.includes(kw.word)) {
+        throw new BadRequestException(`内容包含违禁词: ${kw.word}`);
+      }
+    }
+  }
 
   async list(query: any) {
     const { type, industry, keyword, page = 1, pageSize = 20 } = query;
@@ -63,6 +74,7 @@ export class PostService {
   }
 
   async create(userId: number, dto: any) {
+    await this.checkKeywords((dto.content || '') + (dto.title || ''));
     const post = this.postRepo.create({ ...dto, userId });
     return this.postRepo.save(post);
   }
@@ -70,6 +82,7 @@ export class PostService {
   async update(id: number, userId: number, dto: any) {
     const post = await this.postRepo.findOne({ where: { id } });
     if (!post || post.userId !== userId) throw new ForbiddenException('无权操作');
+    await this.checkKeywords((dto.content || '') + (dto.title || ''));
     Object.assign(post, dto);
     return this.postRepo.save(post);
   }
