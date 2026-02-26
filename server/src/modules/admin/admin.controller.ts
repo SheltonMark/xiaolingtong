@@ -56,4 +56,14 @@ export class AdminController {
   deleteExposure(@Param('id') id: number) {
     return this.adminService.deleteExposure(id);
   }
+
+  @Get('reports')
+  reportList(@Query() query: any) {
+    return this.adminService.reportList(query);
+  }
+
+  @Put('reports/:id/handle')
+  handleReport(@Param('id') id: number, @Body('action') action: string) {
+    return this.adminService.handleReport(id, action);
+  }
 }

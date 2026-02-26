@@ -9,10 +9,11 @@ import { User } from '../../entities/user.entity';
 import { Post } from '../../entities/post.entity';
 import { Job } from '../../entities/job.entity';
 import { Exposure } from '../../entities/exposure.entity';
+import { Report } from '../../entities/report.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure]),
+    TypeOrmModule.forFeature([Admin, User, Post, Job, Exposure, Report]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

@@ -44,4 +44,13 @@ export class UserService {
     await this.userRepo.update(userId, { avatarUrl });
     return { avatarUrl };
   }
+
+  async updateProfile(userId: number, dto: any) {
+    const allowed: any = {};
+    if (dto.nickname) allowed.nickname = dto.nickname;
+    if (dto.phone) allowed.phone = dto.phone;
+    if (Object.keys(allowed).length === 0) return { message: '无更新' };
+    await this.userRepo.update(userId, allowed);
+    return { message: '已更新', ...allowed };
+  }
 }

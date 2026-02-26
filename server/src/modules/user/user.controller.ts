@@ -25,4 +25,9 @@ export class UserController {
   updateAvatar(@CurrentUser('sub') userId: number, @Body('avatarUrl') avatarUrl: string) {
     return this.userService.updateAvatar(userId, avatarUrl);
   }
+
+  @Put('settings/profile')
+  updateProfile(@CurrentUser('sub') userId: number, @Body() dto: any) {
+    return this.userService.updateProfile(userId, dto);
+  }
 }

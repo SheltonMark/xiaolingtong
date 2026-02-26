@@ -7,6 +7,7 @@ import { User } from '../../entities/user.entity';
 import { Post } from '../../entities/post.entity';
 import { Job } from '../../entities/job.entity';
 import { Exposure } from '../../entities/exposure.entity';
+import { Report } from '../../entities/report.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -21,6 +22,7 @@ export class AdminService {
     @InjectRepository(Post) private postRepo: Repository<Post>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Exposure) private exposureRepo: Repository<Exposure>,
+    @InjectRepository(Report) private reportRepo: Repository<Report>,
     private jwt: JwtService,
   ) {}
 
@@ -116,5 +118,23 @@ export class AdminService {
   async deleteExposure(id: number) {
     await this.exposureRepo.delete(id);
     return { message: '已删除' };
+  }
+
+  // 举报管理
+  async reportList(query: any) {
+    const { page = 1, pageSize = 20 } = query;
+    const qb = this.reportRepo.createQueryBuilder('r');
+    qb.orderBy('r.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize);
+    const [list, total] = await qb.getManyAndCount();
+    return { list, total, page: +page, pageSize: +pageSize };
+  }
+
+  async handleReport(id: number, action: string) {
+    if (action === 'resolve') {
+      await this.reportRepo.update(id, { status: 'handled' });
+    } else if (action === 'dismiss') {
+      await this.reportRepo.update(id, { status: 'dismissed' });
+    }
+    return { message: action === 'resolve' ? '已处理' : '已驳回' };
   }
 }
