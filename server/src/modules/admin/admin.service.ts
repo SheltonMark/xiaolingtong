@@ -13,6 +13,8 @@ import { WorkerCert } from '../../entities/worker-cert.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { Notice } from '../../entities/notice.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { OpenCity } from '../../entities/open-city.entity';
+import { JobType } from '../../entities/job-type.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -33,6 +35,8 @@ export class AdminService {
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(Notice) private noticeRepo: Repository<Notice>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
+    @InjectRepository(OpenCity) private cityRepo: Repository<OpenCity>,
+    @InjectRepository(JobType) private jobTypeRepo: Repository<JobType>,
     private jwt: JwtService,
   ) {}
 
@@ -302,6 +306,44 @@ export class AdminService {
   async resetAdminPwd(id: number) {
     await this.adminRepo.update(id, { password: hashPwd('123456') });
     return { message: '密码已重置为123456' };
+  }
+
+  // 工种管理
+  async jobTypeList() {
+    return this.jobTypeRepo.find({ order: { createdAt: 'DESC' } });
+  }
+
+  async addJobType(name: string, defaultSettlement?: string) {
+    const exists = await this.jobTypeRepo.findOne({ where: { name } });
+    if (exists) return { message: '工种已存在' };
+    await this.jobTypeRepo.save(this.jobTypeRepo.create({ name, defaultSettlement: defaultSettlement || 'hourly' }));
+    return { message: '已添加' };
+  }
+
+  async toggleJobType(id: number) {
+    const jt = await this.jobTypeRepo.findOneBy({ id });
+    if (!jt) return { message: '不存在' };
+    await this.jobTypeRepo.update(id, { isActive: jt.isActive ? 0 : 1 });
+    return { message: jt.isActive ? '已禁用' : '已启用' };
+  }
+
+  // 开放城市管理
+  async cityList() {
+    return this.cityRepo.find({ order: { createdAt: 'DESC' } });
+  }
+
+  async addCity(name: string) {
+    const exists = await this.cityRepo.findOne({ where: { name } });
+    if (exists) return { message: '城市已存在' };
+    await this.cityRepo.save(this.cityRepo.create({ name }));
+    return { message: '已添加' };
+  }
+
+  async toggleCity(id: number) {
+    const c = await this.cityRepo.findOneBy({ id });
+    if (!c) return { message: '不存在' };
+    await this.cityRepo.update(id, { isActive: c.isActive ? 0 : 1 });
+    return { message: c.isActive ? '已禁用' : '已启用' };
   }
 
   async initDefaultConfigs() {

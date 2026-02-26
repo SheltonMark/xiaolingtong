@@ -164,4 +164,36 @@ export class AdminController {
   resetAdminPwd(@Param('id') id: number) {
     return this.adminService.resetAdminPwd(id);
   }
+
+  // 工种管理
+  @Get('job-types')
+  jobTypeList() {
+    return this.adminService.jobTypeList();
+  }
+
+  @Post('job-types')
+  addJobType(@Body() body: { name: string; defaultSettlement?: string }) {
+    return this.adminService.addJobType(body.name, body.defaultSettlement);
+  }
+
+  @Put('job-types/:id/toggle')
+  toggleJobType(@Param('id') id: number) {
+    return this.adminService.toggleJobType(id);
+  }
+
+  // 开放城市管理
+  @Get('cities')
+  cityList() {
+    return this.adminService.cityList();
+  }
+
+  @Post('cities')
+  addCity(@Body('name') name: string) {
+    return this.adminService.addCity(name);
+  }
+
+  @Put('cities/:id/toggle')
+  toggleCity(@Param('id') id: number) {
+    return this.adminService.toggleCity(id);
+  }
 }

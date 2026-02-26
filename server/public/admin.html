@@ -144,6 +144,8 @@ tr:hover td { background:rgba(35,39,54,.5); }
       <div class="menu-item" onclick="switchPage('notices',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>公告管理</div>
       <div class="menu-item" onclick="switchPage('configs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>系统配置</div>
       <div class="menu-item" onclick="switchPage('stats',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>数据统计</div>
+      <div class="menu-item" onclick="switchPage('jobtypes',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z"/></svg>工种管理</div>
+      <div class="menu-item" onclick="switchPage('cities',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>开放城市</div>
       <div class="menu-item" onclick="switchPage('admins',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>管理员</div>
     </div>
     <div class="sidebar-footer"><span class="admin-info" id="adminName"></span><button class="logout-btn" onclick="doLogout()">退出登录</button></div>
@@ -159,6 +161,8 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
     <div class="page-section" id="page-keywords"><div class="panel"><div class="panel-header"><h4>关键词黑名单</h4><div class="toolbar"><input type="text" id="newKeyword" placeholder="输入关键词"><button class="add-btn" onclick="addKeyword()">添加</button></div></div><table><thead><tr><th>ID</th><th>关键词</th><th>添加时间</th><th>操作</th></tr></thead><tbody id="keywordTable"></tbody></table></div></div>
     <div class="page-section" id="page-notices"><div class="panel"><div class="panel-header"><h4>公告管理</h4><div class="toolbar"><button class="add-btn" onclick="showNoticeModal()">发布公告</button></div></div><table><thead><tr><th>ID</th><th>标题</th><th>位置</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="noticeTable"></tbody></table></div></div>
+    <div class="page-section" id="page-jobtypes"><div class="panel"><div class="panel-header"><h4>工种管理</h4><div class="toolbar"><input type="text" id="newJobType" placeholder="工种名称"><select id="newJobTypeSettle"><option value="hourly">计时</option><option value="piece">计件</option></select><button class="add-btn" onclick="addJobType()">添加</button></div></div><table><thead><tr><th>ID</th><th>工种名称</th><th>默认结算</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="jobTypeTable"></tbody></table></div></div>
+    <div class="page-section" id="page-cities"><div class="panel"><div class="panel-header"><h4>开放城市</h4><div class="toolbar"><input type="text" id="newCity" placeholder="城市名称"><button class="add-btn" onclick="addCity()">添加</button></div></div><table><thead><tr><th>ID</th><th>城市名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="cityTable"></tbody></table></div></div>
     <div class="page-section" id="page-admins"><div class="panel"><div class="panel-header"><h4>管理员账号</h4><div class="toolbar"><button class="add-btn" onclick="showAdminModal()">添加管理员</button></div></div><table><thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="adminTable"></tbody></table></div></div>
     <div class="page-section" id="page-stats"><div class="panel"><div class="panel-header"><h4>数据统计</h4></div><div id="statsContent"></div></div></div>
     <div class="page-section" id="page-configs"><div class="panel"><div class="panel-header"><h4>系统配置</h4></div><div class="config-grid" id="configGrid"></div></div></div>
@@ -198,7 +202,7 @@ function doLogout(){token='';currentAdmin=null;localStorage.removeItem('admin_to
 
 function showLayout(){document.getElementById('loginPage').style.display='none';document.getElementById('layoutPage').style.display='block';document.getElementById('adminName').textContent=currentAdmin?currentAdmin.nickname:'管理员';loadDashboard();}
 
-var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],stats:['数据统计','平台运营数据分析'],admins:['管理员','管理后台账号']};
+var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],stats:['数据统计','平台运营数据分析'],admins:['管理员','管理后台账号'],jobtypes:['工种管理','管理招工工种分类'],cities:['开放城市','管理平台开放城市']};
 
 function switchPage(name,el){
   document.querySelectorAll('.page-section').forEach(function(s){s.classList.remove('active');});
@@ -208,7 +212,7 @@ function switchPage(name,el){
   var h=PH[name]||['',''];
   document.getElementById('pageTitle').textContent=h[0];
   document.getElementById('pageDesc').textContent=h[1];
-  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,stats:loadStats,admins:loadAdmins};
+  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,stats:loadStats,admins:loadAdmins,jobtypes:loadJobTypes,cities:loadCities};
   if(L[name])L[name]();
 }
 
@@ -387,6 +391,47 @@ async function loadConfigs(){
 }
 async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});alert('已保存');}
 
+
+async function loadJobTypes(){
+  var list=await api('/job-types');if(!list)return;
+  var h='';
+  for(var i=0;i<list.length;i++){var j=list[i];
+    var stB=j.isActive?'badge-green':'badge-red';
+    var stT=j.isActive?'启用':'禁用';
+    var togT=j.isActive?'禁用':'启用';
+    h+='<tr><td>'+j.id+'</td><td>'+j.name+'</td><td>'+(j.defaultSettlement==='hourly'?'计时':'计件')+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(j.createdAt||'').substring(0,10)+'</td><td><button class="btn '+(j.isActive?'btn-danger':'btn-success')+'" onclick="toggleJobType('+j.id+')">'+togT+'</button></td></tr>';
+  }
+  document.getElementById('jobTypeTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无工种</td></tr>';
+}
+async function addJobType(){
+  var n=document.getElementById('newJobType').value.trim();
+  if(!n){alert('请输入工种名称');return;}
+  var s=document.getElementById('newJobTypeSettle').value;
+  await api('/job-types',{method:'POST',body:{name:n,defaultSettlement:s}});
+  document.getElementById('newJobType').value='';
+  loadJobTypes();
+}
+async function toggleJobType(id){await api('/job-types/'+id+'/toggle',{method:'PUT'});loadJobTypes();}
+
+async function loadCities(){
+  var list=await api('/cities');if(!list)return;
+  var h='';
+  for(var i=0;i<list.length;i++){var c=list[i];
+    var stB=c.isActive?'badge-green':'badge-red';
+    var stT=c.isActive?'启用':'禁用';
+    var togT=c.isActive?'禁用':'启用';
+    h+='<tr><td>'+c.id+'</td><td>'+c.name+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td><button class="btn '+(c.isActive?'btn-danger':'btn-success')+'" onclick="toggleCity('+c.id+')">'+togT+'</button></td></tr>';
+  }
+  document.getElementById('cityTable').innerHTML=h||'<tr><td colspan="5" class="empty">暂无城市</td></tr>';
+}
+async function addCity(){
+  var n=document.getElementById('newCity').value.trim();
+  if(!n){alert('请输入城市名称');return;}
+  await api('/cities',{method:'POST',body:{name:n}});
+  document.getElementById('newCity').value='';
+  loadCities();
+}
+async function toggleCity(id){await api('/cities/'+id+'/toggle',{method:'PUT'});loadCities();}
 
 async function loadAdmins(){
   var list=await api('/admins');if(!list)return;
