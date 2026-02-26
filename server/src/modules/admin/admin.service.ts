@@ -15,6 +15,7 @@ import { Notice } from '../../entities/notice.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
+import { AdOrder } from '../../entities/ad-order.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -37,6 +38,7 @@ export class AdminService {
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
     @InjectRepository(OpenCity) private cityRepo: Repository<OpenCity>,
     @InjectRepository(JobType) private jobTypeRepo: Repository<JobType>,
+    @InjectRepository(AdOrder) private adRepo: Repository<AdOrder>,
     private jwt: JwtService,
   ) {}
 
@@ -344,6 +346,29 @@ export class AdminService {
     if (!c) return { message: '不存在' };
     await this.cityRepo.update(id, { isActive: c.isActive ? 0 : 1 });
     return { message: c.isActive ? '已禁用' : '已启用' };
+  }
+
+  // 广告管理
+  async adList(query: any) {
+    const { status, page = 1, pageSize = 20 } = query;
+    const qb = this.adRepo.createQueryBuilder('a').leftJoinAndSelect('a.user', 'u');
+    if (status) qb.andWhere('a.status = :status', { status });
+    qb.orderBy('a.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize);
+    const [list, total] = await qb.getManyAndCount();
+    return { list, total, page: +page, pageSize: +pageSize };
+  }
+
+  async auditAd(id: number, action: string) {
+    if (action === 'approve') {
+      const ad = await this.adRepo.findOneBy({ id });
+      if (!ad) return { message: '不存在' };
+      const now = new Date();
+      const end = new Date(now.getTime() + ad.durationDays * 86400000);
+      await this.adRepo.update(id, { status: 'active', startAt: now, endAt: end });
+    } else {
+      await this.adRepo.update(id, { status: 'expired' });
+    }
+    return { message: action === 'approve' ? '已通过' : '已驳回' };
   }
 
   async initDefaultConfigs() {

@@ -196,4 +196,15 @@ export class AdminController {
   toggleCity(@Param('id') id: number) {
     return this.adminService.toggleCity(id);
   }
+
+  // 广告管理
+  @Get('ads')
+  adList(@Query() query: any) {
+    return this.adminService.adList(query);
+  }
+
+  @Put('ads/:id/audit')
+  auditAd(@Param('id') id: number, @Body('action') action: string) {
+    return this.adminService.auditAd(id, action);
+  }
 }

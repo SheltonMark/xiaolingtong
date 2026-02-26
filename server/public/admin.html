@@ -191,6 +191,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
       <div class="menu-item" onclick="switchPage('notices',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>公告管理</div>
       <div class="menu-item" onclick="switchPage('configs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>系统配置</div>
       <div class="menu-item" onclick="switchPage('stats',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>数据统计</div>
+      <div class="menu-item" onclick="switchPage('ads',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-4-4h-4v-2h4v-4h2v4h-2v2z"/></svg>广告管理</div>
       <div class="menu-item" onclick="switchPage('jobtypes',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 6V4h-4v2h4zM4 8v11h16V8H4zm16-2c1.11 0 2 .89 2 2v11c0 1.11-.89 2-2 2H4c-1.11 0-2-.89-2-2l.01-11c0-1.11.88-2 1.99-2h4V4c0-1.11.89-2 2-2h4c1.11 0 2 .89 2 2v2h4z"/></svg>工种管理</div>
       <div class="menu-item" onclick="switchPage('cities',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>开放城市</div>
       <div class="menu-item" onclick="switchPage('admins',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>管理员</div>
@@ -211,6 +212,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-notices"><div class="panel"><div class="panel-header"><h4>公告管理</h4><div class="toolbar"><button class="add-btn" onclick="showNoticeModal()">发布公告</button></div></div><table><thead><tr><th>ID</th><th>标题</th><th>位置</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="noticeTable"></tbody></table></div></div>
     <div class="page-section" id="page-jobtypes"><div class="panel"><div class="panel-header"><h4>工种管理</h4><div class="toolbar"><input type="text" id="newJobType" placeholder="工种名称"><select id="newJobTypeSettle"><option value="hourly">计时</option><option value="piece">计件</option></select><button class="add-btn" onclick="addJobType()">添加</button></div></div><table><thead><tr><th>ID</th><th>工种名称</th><th>默认结算</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="jobTypeTable"></tbody></table></div></div>
     <div class="page-section" id="page-cities"><div class="panel"><div class="panel-header"><h4>开放城市</h4><div class="toolbar"><input type="text" id="newCity" placeholder="城市名称"><button class="add-btn" onclick="addCity()">添加</button></div></div><table><thead><tr><th>ID</th><th>城市名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="cityTable"></tbody></table></div></div>
+    <div class="page-section" id="page-ads"><div class="panel"><div class="panel-header"><h4>广告管理</h4><div class="toolbar"><select id="adStatusFilter" onchange="loadAds()"><option value="">全部状态</option><option value="pending">待审核</option><option value="active">投放中</option><option value="expired">已过期</option></select><button class="search-btn" onclick="loadAds()">刷新</button></div></div><table><thead><tr><th>ID</th><th>广告主</th><th>位置</th><th>标题</th><th>天数</th><th>价格</th><th>状态</th><th>投放时间</th><th>操作</th></tr></thead><tbody id="adTable"></tbody></table><div class="pagination" id="adPagination"></div></div></div>
     <div class="page-section" id="page-admins"><div class="panel"><div class="panel-header"><h4>管理员账号</h4><div class="toolbar"><button class="add-btn" onclick="showAdminModal()">添加管理员</button></div></div><table><thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="adminTable"></tbody></table></div></div>
     <div class="page-section" id="page-stats"><div class="panel"><div class="panel-header"><h4>数据统计</h4></div><div id="statsContent"></div></div></div>
     <div class="page-section" id="page-configs"><div class="panel"><div class="panel-header"><h4>系统配置</h4></div><div class="config-grid" id="configGrid"></div></div></div>
@@ -302,7 +304,7 @@ function doLogout(){token='';currentAdmin=null;localStorage.removeItem('admin_to
 
 function showLayout(){document.getElementById('loginPage').style.display='none';document.getElementById('layoutPage').style.display='block';document.getElementById('adminName').textContent=currentAdmin?currentAdmin.nickname:'管理员';loadDashboard();}
 
-var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],stats:['数据统计','平台运营数据分析'],admins:['管理员','管理后台账号'],jobtypes:['工种管理','管理招工工种分类'],cities:['开放城市','管理平台开放城市']};
+var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],stats:['数据统计','平台运营数据分析'],admins:['管理员','管理后台账号'],jobtypes:['工种管理','管理招工工种分类'],cities:['开放城市','管理平台开放城市'],ads:['广告管理','管理广告投放']};
 
 function switchPage(name,el){
   document.querySelectorAll('.page-section').forEach(function(s){s.classList.remove('active');});
@@ -312,7 +314,7 @@ function switchPage(name,el){
   var h=PH[name]||['',''];
   document.getElementById('pageTitle').textContent=h[0];
   document.getElementById('pageDesc').textContent=h[1];
-  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,stats:loadStats,admins:loadAdmins,jobtypes:loadJobTypes,cities:loadCities};
+  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,stats:loadStats,admins:loadAdmins,jobtypes:loadJobTypes,cities:loadCities,ads:loadAds};
   if(L[name])L[name]();
 }
 
@@ -532,6 +534,31 @@ async function addCity(){
   loadCities();
 }
 async function toggleCity(id){await api('/cities/'+id+'/toggle',{method:'PUT'});loadCities();}
+
+var adPage=1;
+async function loadAds(page){
+  if(page)adPage=page;
+  var status=document.getElementById('adStatusFilter').value;
+  var d=await api('/ads?page='+adPage+'&status='+status);
+  if(!d)return;var list=d.list||[];
+  var sm={pending:['待审核','badge-orange'],active:['投放中','badge-green'],expired:['已过期','badge-gray']};
+  var h='';
+  for(var i=0;i<list.length;i++){var a=list[i];var st=sm[a.status]||['未知','badge-gray'];
+    var ops='';
+    if(a.status==='pending'){
+      ops+='<button class="btn btn-success" onclick="auditAd('+a.id+',\x27approve\x27)">通过</button>';
+      ops+='<button class="btn btn-danger" onclick="auditAd('+a.id+',\x27reject\x27)">驳回</button>';
+    }
+    var timeRange=a.startAt?(a.startAt||'').substring(0,10)+' ~ '+(a.endAt||'').substring(0,10):'-';
+    h+='<tr><td>'+a.id+'</td><td>'+(a.user?a.user.nickname||'ID:'+a.userId:a.userId)+'</td><td>'+(a.slot==='banner'?'横幅':'信息流')+'</td><td>'+a.title+'</td><td>'+a.durationDays+'</td><td>'+a.price+'元</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+timeRange+'</td><td>'+ops+'</td></tr>';
+  }
+  document.getElementById('adTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无广告</td></tr>';
+  renderPagination('adPagination',d.total,adPage,d.pageSize,'loadAds');
+}
+async function auditAd(id,action){
+  var ok=await xconfirm(action==='approve'?'确认通过该广告？':'确认驳回该广告？');
+  if(ok){await api('/ads/'+id+'/audit',{method:'PUT',body:{action:action}});toast(action==='approve'?'已通过':'已驳回','success');loadAds();}
+}
 
 async function loadAdmins(){
   var list=await api('/admins');if(!list)return;
