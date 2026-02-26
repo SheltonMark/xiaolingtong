@@ -277,6 +277,33 @@ export class AdminService {
     };
   }
 
+  // 管理员账号管理
+  async adminList() {
+    return this.adminRepo.find({ order: { createdAt: 'DESC' }, select: ['id', 'username', 'nickname', 'role', 'isActive', 'createdAt'] });
+  }
+
+  async createAdmin(dto: any) {
+    const exists = await this.adminRepo.findOne({ where: { username: dto.username } });
+    if (exists) return { message: '用户名已存在' };
+    await this.adminRepo.save(this.adminRepo.create({
+      username: dto.username, password: hashPwd(dto.password || '123456'), nickname: dto.nickname || dto.username, role: dto.role || 'admin',
+    }));
+    return { message: '已创建' };
+  }
+
+  async toggleAdmin(id: number) {
+    const admin = await this.adminRepo.findOneBy({ id });
+    if (!admin) return { message: '不存在' };
+    if (admin.role === 'super') return { message: '不能禁用超级管理员' };
+    await this.adminRepo.update(id, { isActive: admin.isActive ? 0 : 1 });
+    return { message: admin.isActive ? '已禁用' : '已启用' };
+  }
+
+  async resetAdminPwd(id: number) {
+    await this.adminRepo.update(id, { password: hashPwd('123456') });
+    return { message: '密码已重置为123456' };
+  }
+
   async initDefaultConfigs() {
     const defaults = [
       { key: 'member_monthly_price', value: '30', label: '月会员价格(元)', group: 'price' },

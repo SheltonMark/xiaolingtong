@@ -143,4 +143,25 @@ export class AdminController {
   statsOverview() {
     return this.adminService.statsOverview();
   }
+
+  // 管理员账号管理
+  @Get('admins')
+  adminList() {
+    return this.adminService.adminList();
+  }
+
+  @Post('admins')
+  createAdmin(@Body() dto: any) {
+    return this.adminService.createAdmin(dto);
+  }
+
+  @Put('admins/:id/toggle')
+  toggleAdmin(@Param('id') id: number) {
+    return this.adminService.toggleAdmin(id);
+  }
+
+  @Put('admins/:id/reset-pwd')
+  resetAdminPwd(@Param('id') id: number) {
+    return this.adminService.resetAdminPwd(id);
+  }
 }
