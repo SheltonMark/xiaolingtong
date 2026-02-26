@@ -21,6 +21,7 @@ import { PromotionModule } from './modules/promotion/promotion.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 
 @Module({
   imports: [
@@ -59,6 +60,7 @@ import { PaymentModule } from './modules/payment/payment.module';
     UploadModule,
     AdminModule,
     PaymentModule,
+    TasksModule,
   ],
 })
 export class AppModule {}
