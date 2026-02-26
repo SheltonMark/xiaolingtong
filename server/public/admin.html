@@ -4,374 +4,158 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>小灵通 - 后台管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
-/* 登录 */
-.login-wrap { display: flex; justify-content: center; align-items: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.login-box { background: #fff; padding: 40px; border-radius: 12px; width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.15); }
-.login-box h2 { text-align: center; margin-bottom: 30px; color: #333; }
-.login-box input { width: 100%; padding: 12px 16px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 16px; font-size: 14px; outline: none; }
-.login-box input:focus { border-color: #667eea; }
-.login-box button { width: 100%; padding: 12px; background: #667eea; color: #fff; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-.login-box button:hover { background: #5a6fd6; }
-/* 布局 */
-.layout { display: none; }
-.sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background: #001529; color: #fff; padding-top: 20px; }
-.sidebar h3 { text-align: center; padding: 10px 0 30px; font-size: 18px; border-bottom: 1px solid #0d2137; }
-.sidebar .menu-item { padding: 14px 24px; cursor: pointer; font-size: 14px; transition: all .2s; display: flex; align-items: center; gap: 8px; }
-.sidebar .menu-item:hover, .sidebar .menu-item.active { background: #1890ff; }
-.main { margin-left: 220px; padding: 20px; }
-.header { background: #fff; padding: 16px 24px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
-.header .user-info { font-size: 14px; color: #666; }
-.header .logout { cursor: pointer; color: #ff4d4f; font-size: 14px; }
-/* 统计卡片 */
-.stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
-.stat-card { background: #fff; padding: 20px; border-radius: 8px; }
-.stat-card .label { font-size: 13px; color: #999; margin-bottom: 8px; }
-.stat-card .value { font-size: 28px; font-weight: 600; color: #333; }
-.stat-card.blue .value { color: #1890ff; }
-.stat-card.green .value { color: #52c41a; }
-.stat-card.orange .value { color: #fa8c16; }
-.stat-card.red .value { color: #f5222d; }
-/* 表格 */
-.panel { background: #fff; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-.panel h4 { margin-bottom: 16px; font-size: 16px; }
-.toolbar { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-.toolbar input, .toolbar select { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; outline: none; }
-.toolbar button { padding: 8px 16px; background: #1890ff; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { background: #fafafa; padding: 12px 8px; text-align: left; border-bottom: 1px solid #eee; font-weight: 500; color: #666; }
-td { padding: 12px 8px; border-bottom: 1px solid #f0f0f0; }
-tr:hover td { background: #fafafa; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-.badge-green { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
-.badge-red { background: #fff2f0; color: #ff4d4f; border: 1px solid #ffccc7; }
-.badge-blue { background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff; }
-.badge-orange { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; }
-.badge-gray { background: #f5f5f5; color: #999; border: 1px solid #d9d9d9; }
-.btn { padding: 4px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; margin-right: 4px; }
-.btn-primary { background: #1890ff; color: #fff; }
-.btn-success { background: #52c41a; color: #fff; }
-.btn-danger { background: #ff4d4f; color: #fff; }
-.btn-warning { background: #fa8c16; color: #fff; }
-.pagination { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 16px; font-size: 13px; }
-.pagination button { padding: 6px 12px; border: 1px solid #ddd; background: #fff; border-radius: 4px; cursor: pointer; }
-.pagination button:disabled { opacity: .5; cursor: not-allowed; }
-.page-section { display: none; }
-.page-section.active { display: block; }
-.empty { text-align: center; padding: 40px; color: #999; }
+:root {
+  --bg: #0f1117; --bg-card: #1a1d27; --bg-sidebar: #141620; --bg-hover: #232736;
+  --border: #2a2d3a; --border-light: #333648;
+  --text: #e4e6ed; --text-sec: #8b8fa3; --text-muted: #5c6078;
+  --accent: #3b82f6; --accent-h: #2563eb;
+  --green: #22c55e; --red: #ef4444; --orange: #f59e0b; --cyan: #06b6d4;
+  --r: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: Inter,-apple-system,sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
+input,select,button { font-family:inherit; }
+.login-wrap { display:flex; justify-content:center; align-items:center; height:100vh; background:var(--bg); background-image:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(6,182,212,.06) 0%,transparent 50%); }
+.login-card { width:400px; background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:48px 40px; box-shadow:0 8px 32px rgba(0,0,0,.4); }
+.login-logo { text-align:center; margin-bottom:36px; }
+.login-logo .logo-icon { width:48px; height:48px; background:var(--accent); border-radius:12px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px; }
+.login-logo .logo-icon svg { width:24px; height:24px; fill:#fff; }
+.login-logo h2 { font-size:22px; font-weight:600; letter-spacing:-.3px; }
+.login-logo p { font-size:13px; color:var(--text-muted); margin-top:6px; }
+.form-group { margin-bottom:18px; }
+.form-group label { display:block; font-size:13px; font-weight:500; color:var(--text-sec); margin-bottom:6px; }
+.form-group input { width:100%; padding:11px 14px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:14px; outline:none; transition:border-color .2s; }
+.form-group input:focus { border-color:var(--accent); }
+.form-group input::placeholder { color:var(--text-muted); }
+.login-btn { width:100%; padding:12px; background:var(--accent); color:#fff; border:none; border-radius:8px; font-size:15px; font-weight:600; cursor:pointer; transition:background .2s; margin-top:6px; }
+.login-btn:hover { background:var(--accent-h); }
+.login-err { color:var(--red); text-align:center; margin-top:14px; font-size:13px; min-height:20px; }
+.layout { display:none; min-height:100vh; }
+.sidebar { position:fixed; left:0; top:0; bottom:0; width:240px; background:var(--bg-sidebar); border-right:1px solid var(--border); display:flex; flex-direction:column; z-index:10; }
+.sidebar-brand { padding:24px 20px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--border); }
+.sidebar-brand .brand-dot { width:32px; height:32px; background:var(--accent); border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.sidebar-brand .brand-dot svg { width:16px; height:16px; fill:#fff; }
+.sidebar-brand span { font-size:16px; font-weight:600; }
+.sidebar-nav { flex:1; padding:12px 10px; overflow-y:auto; }
+.menu-item { padding:10px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; color:var(--text-sec); transition:all .15s; display:flex; align-items:center; gap:10px; margin-bottom:2px; }
+.menu-item svg { width:18px; height:18px; opacity:.6; transition:opacity .15s; flex-shrink:0; }
+.menu-item:hover { background:var(--bg-hover); color:var(--text); }
+.menu-item:hover svg { opacity:.9; }
+.menu-item.active { background:rgba(59,130,246,.12); color:var(--accent); }
+.menu-item.active svg { opacity:1; }
+.sidebar-footer { padding:16px 20px; border-top:1px solid var(--border); }
+.sidebar-footer .admin-info { font-size:12px; color:var(--text-muted); margin-bottom:8px; display:block; }
+.sidebar-footer .logout-btn { font-size:12px; color:var(--red); cursor:pointer; background:none; border:none; padding:0; font-weight:500; }
+.main { margin-left:240px; padding:28px 32px; min-height:100vh; }
+.page-header { margin-bottom:28px; }
+.page-header h3 { font-size:20px; font-weight:600; }
+.page-header p { font-size:13px; color:var(--text-muted); margin-top:4px; }
+.stat-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:28px; }
+.stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); padding:22px 20px; transition:border-color .2s; }
+.stat-card:hover { border-color:var(--border-light); }
+.stat-card .sc-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.stat-card .sc-label { font-size:13px; color:var(--text-sec); font-weight:500; }
+.stat-card .sc-icon { width:36px; height:36px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+.stat-card .sc-icon svg { width:18px; height:18px; }
+.stat-card .sc-value { font-size:30px; font-weight:700; letter-spacing:-.5px; }
+.sc-blue .sc-icon { background:rgba(59,130,246,.12); } .sc-blue .sc-icon svg { fill:var(--accent); } .sc-blue .sc-value { color:var(--accent); }
+.sc-green .sc-icon { background:rgba(34,197,94,.12); } .sc-green .sc-icon svg { fill:var(--green); } .sc-green .sc-value { color:var(--green); }
+.sc-orange .sc-icon { background:rgba(245,158,11,.12); } .sc-orange .sc-icon svg { fill:var(--orange); } .sc-orange .sc-value { color:var(--orange); }
+.sc-cyan .sc-icon { background:rgba(6,182,212,.12); } .sc-cyan .sc-icon svg { fill:var(--cyan); } .sc-cyan .sc-value { color:var(--cyan); }
+.sc-red .sc-icon { background:rgba(239,68,68,.12); } .sc-red .sc-icon svg { fill:var(--red); } .sc-red .sc-value { color:var(--red); }
+.panel { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); padding:24px; margin-bottom:20px; }
+.panel-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+.panel-header h4 { font-size:15px; font-weight:600; }
+.toolbar { display:flex; gap:8px; flex-wrap:wrap; }
+.toolbar input,.toolbar select { padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; transition:border-color .2s; }
+.toolbar input:focus,.toolbar select:focus { border-color:var(--accent); }
+.toolbar select option { background:var(--bg-card); }
+.toolbar .search-btn { padding:8px 16px; background:var(--accent); color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; transition:background .2s; }
+.toolbar .search-btn:hover { background:var(--accent-h); }
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { padding:12px 10px; text-align:left; color:var(--text-muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid var(--border); }
+td { padding:13px 10px; border-bottom:1px solid rgba(42,45,58,.6); color:var(--text-sec); }
+tr:hover td { background:rgba(35,39,54,.5); }
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:500; }
+.badge-green { background:rgba(34,197,94,.12); color:var(--green); }
+.badge-red { background:rgba(239,68,68,.12); color:var(--red); }
+.badge-blue { background:rgba(59,130,246,.12); color:var(--accent); }
+.badge-orange { background:rgba(245,158,11,.12); color:var(--orange); }
+.badge-gray { background:rgba(92,96,120,.15); color:var(--text-muted); }
+.btn { padding:5px 14px; border:none; border-radius:6px; cursor:pointer; font-size:12px; font-weight:500; margin-right:4px; transition:opacity .2s; }
+.btn:hover { opacity:.85; }
+.btn-success { background:rgba(34,197,94,.15); color:var(--green); }
+.btn-danger { background:rgba(239,68,68,.15); color:var(--red); }
+.pagination { display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:16px; font-size:13px; color:var(--text-muted); }
+.pagination button { padding:6px 14px; border:1px solid var(--border); background:var(--bg); color:var(--text-sec); border-radius:6px; cursor:pointer; font-size:12px; transition:all .2s; }
+.pagination button:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
+.pagination button:disabled { opacity:.3; cursor:not-allowed; }
+.page-section { display:none; }
+.page-section.active { display:block; }
+.empty { text-align:center; padding:48px; color:var(--text-muted); font-size:13px; }
 </style>
 </head>
 <body>
-
-<!-- 登录页 -->
 <div class="login-wrap" id="loginPage">
-  <div class="login-box">
-    <h2>小灵通后台管理</h2>
-    <input type="text" id="loginUser" placeholder="用户名" value="admin">
-    <input type="password" id="loginPwd" placeholder="密码">
-    <button onclick="doLogin()">登 录</button>
-    <p id="loginErr" style="color:#ff4d4f;text-align:center;margin-top:12px;font-size:13px;"></p>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
+      <h2>小灵通</h2>
+      <p>后台管理系统</p>
+    </div>
+    <div class="form-group"><label>账号</label><input type="text" id="loginUser" placeholder="请输入用户名" value="admin"></div>
+    <div class="form-group"><label>密码</label><input type="password" id="loginPwd" placeholder="请输入密码"></div>
+    <button class="login-btn" onclick="doLogin()">登 录</button>
+    <p class="login-err" id="loginErr"></p>
   </div>
 </div>
-
-<!-- 主布局 -->
 <div class="layout" id="layoutPage">
   <div class="sidebar">
-    <h3>小灵通管理</h3>
-    <div class="menu-item active" onclick="switchPage('dashboard',this)">📊 数据概览</div>
-    <div class="menu-item" onclick="switchPage('users',this)">👥 用户管理</div>
-    <div class="menu-item" onclick="switchPage('posts',this)">📋 信息审核</div>
-    <div class="menu-item" onclick="switchPage('jobs',this)">💼 招工管理</div>
-    <div class="menu-item" onclick="switchPage('exposures',this)">🔔 曝光管理</div>
+    <div class="sidebar-brand"><div class="brand-dot"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div><span>小灵通管理</span></div>
+    <div class="sidebar-nav">
+      <div class="menu-item active" onclick="switchPage('dashboard',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>数据概览</div>
+      <div class="menu-item" onclick="switchPage('users',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>用户管理</div>
+      <div class="menu-item" onclick="switchPage('posts',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>信息审核</div>
+      <div class="menu-item" onclick="switchPage('jobs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>招工管理</div>
+      <div class="menu-item" onclick="switchPage('exposures',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>曝光管理</div>
+    </div>
+    <div class="sidebar-footer"><span class="admin-info" id="adminName"></span><button class="logout-btn" onclick="doLogout()">退出登录</button></div>
   </div>
   <div class="main">
-    <div class="header">
-      <div>后台管理系统</div>
-      <div style="display:flex;align-items:center;gap:16px;">
-        <span class="user-info" id="adminName"></span>
-        <span class="logout" onclick="doLogout()">退出登录</span>
-      </div>
-    </div>
-
-    <!-- 数据概览 -->
-    <div class="page-section active" id="page-dashboard">
-      <div class="stat-cards" id="statCards"></div>
-    </div>
-
-    <!-- 用户管理 -->
-    <div class="page-section" id="page-users">
-      <div class="panel">
-        <h4>用户管理</h4>
-        <div class="toolbar">
-          <select id="userRoleFilter" onchange="loadUsers()">
-            <option value="">全部角色</option>
-            <option value="enterprise">企业</option>
-            <option value="worker">临工</option>
-          </select>
-          <input type="text" id="userKeyword" placeholder="搜索昵称/手机号">
-          <button onclick="loadUsers()">搜索</button>
-        </div>
-        <table>
-          <thead><tr><th>ID</th><th>昵称</th><th>角色</th><th>手机</th><th>灵豆</th><th>信用分</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead>
-          <tbody id="userTable"></tbody>
-        </table>
-        <div class="pagination" id="userPagination"></div>
-      </div>
-    </div>
-
-    <!-- 信息审核 -->
-    <div class="page-section" id="page-posts">
-      <div class="panel">
-        <h4>信息审核</h4>
-        <div class="toolbar">
-          <select id="postTypeFilter" onchange="loadPosts()">
-            <option value="">全部类型</option>
-            <option value="purchase">采购需求</option>
-            <option value="stock">工厂库存</option>
-            <option value="process">代加工</option>
-          </select>
-          <select id="postStatusFilter" onchange="loadPosts()">
-            <option value="">全部状态</option>
-            <option value="active">已发布</option>
-            <option value="pending">待审核</option>
-            <option value="deleted">已删除</option>
-          </select>
-          <button onclick="loadPosts()">刷新</button>
-        </div>
-        <table>
-          <thead><tr><th>ID</th><th>类型</th><th>标题</th><th>发布者</th><th>浏览</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead>
-          <tbody id="postTable"></tbody>
-        </table>
-        <div class="pagination" id="postPagination"></div>
-      </div>
-    </div>
-
-    <!-- 招工管理 -->
-    <div class="page-section" id="page-jobs">
-      <div class="panel">
-        <h4>招工管理</h4>
-        <table>
-          <thead><tr><th>ID</th><th>标题</th><th>发布者</th><th>薪资</th><th>人数</th><th>状态</th><th>发布时间</th></tr></thead>
-          <tbody id="jobTable"></tbody>
-        </table>
-        <div class="pagination" id="jobPagination"></div>
-      </div>
-    </div>
-
-    <!-- 曝光管理 -->
-    <div class="page-section" id="page-exposures">
-      <div class="panel">
-        <h4>曝光管理</h4>
-        <table>
-          <thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>发布时间</th><th>操作</th></tr></thead>
-          <tbody id="exposureTable"></tbody>
-        </table>
-        <div class="pagination" id="exposurePagination"></div>
-      </div>
-    </div>
+    <div class="page-header"><h3 id="pageTitle">数据概览</h3><p id="pageDesc">平台运营数据总览</p></div>
+    <div class="page-section active" id="page-dashboard"><div class="stat-cards" id="statCards"></div></div>
+    <div class="page-section" id="page-users"><div class="panel"><div class="panel-header"><h4>用户管理</h4><div class="toolbar"><select id="userRoleFilter" onchange="loadUsers()"><option value="">全部角色</option><option value="enterprise">企业</option><option value="worker">临工</option></select><input type="text" id="userKeyword" placeholder="搜索昵称/手机号"><button class="search-btn" onclick="loadUsers()">搜索</button></div></div><table><thead><tr><th>ID</th><th>昵称</th><th>角色</th><th>手机</th><th>灵豆</th><th>信用分</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTable"></tbody></table><div class="pagination" id="userPagination"></div></div></div>
+    <div class="page-section" id="page-posts"><div class="panel"><div class="panel-header"><h4>信息审核</h4><div class="toolbar"><select id="postTypeFilter" onchange="loadPosts()"><option value="">全部类型</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><select id="postStatusFilter" onchange="loadPosts()"><option value="">全部状态</option><option value="active">已发布</option><option value="pending">待审核</option><option value="deleted">已删除</option></select><button class="search-btn" onclick="loadPosts()">刷新</button></div></div><table><thead><tr><th>ID</th><th>类型</th><th>标题</th><th>发布者</th><th>浏览</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="postTable"></tbody></table><div class="pagination" id="postPagination"></div></div></div>
+    <div class="page-section" id="page-jobs"><div class="panel"><div class="panel-header"><h4>招工管理</h4></div><table><thead><tr><th>ID</th><th>标题</th><th>发布者</th><th>薪资</th><th>人数</th><th>状态</th><th>发布时间</th></tr></thead><tbody id="jobTable"></tbody></table><div class="pagination" id="jobPagination"></div></div></div>
+    <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
   </div>
 </div>
-
 <script>
-const API = '/api/admin';
-let token = localStorage.getItem('admin_token') || '';
-let currentAdmin = null;
-
-// 请求封装
-async function api(url, opts = {}) {
-  const res = await fetch(API + url, {
-    method: opts.method || 'GET',
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: 'Bearer ' + token } : {}) },
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
-  const data = await res.json();
-  if (data.code === 401) { doLogout(); return null; }
-  return data.data || data;
-}
-
-// 登录
-async function doLogin() {
-  const username = document.getElementById('loginUser').value;
-  const password = document.getElementById('loginPwd').value;
-  try {
-    const res = await fetch(API + '/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (data.code === 200 && data.data) {
-      token = data.data.token;
-      currentAdmin = data.data.admin;
-      localStorage.setItem('admin_token', token);
-      showLayout();
-    } else {
-      document.getElementById('loginErr').textContent = data.message || '登录失败';
-    }
-  } catch (e) {
-    document.getElementById('loginErr').textContent = '网络错误';
-  }
-}
-
-function doLogout() {
-  token = '';
-  currentAdmin = null;
-  localStorage.removeItem('admin_token');
-  document.getElementById('loginPage').style.display = 'flex';
-  document.getElementById('layoutPage').style.display = 'none';
-}
-
-function showLayout() {
-  document.getElementById('loginPage').style.display = 'none';
-  document.getElementById('layoutPage').style.display = 'block';
-  document.getElementById('adminName').textContent = currentAdmin ? currentAdmin.nickname : '管理员';
-  loadDashboard();
-}
-
-// 页面切换
-function switchPage(name, el) {
-  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  if (el) el.classList.add('active');
-  if (name === 'dashboard') loadDashboard();
-  if (name === 'users') loadUsers();
-  if (name === 'posts') loadPosts();
-  if (name === 'jobs') loadJobs();
-  if (name === 'exposures') loadExposures();
-}
-
-// 数据概览
-async function loadDashboard() {
-  const d = await api('/dashboard');
-  if (!d) return;
-  document.getElementById('statCards').innerHTML = `
-    <div class="stat-card blue"><div class="label">总用户数</div><div class="value">${d.userCount || 0}</div></div>
-    <div class="stat-card green"><div class="label">企业用户</div><div class="value">${d.enterpriseCount || 0}</div></div>
-    <div class="stat-card orange"><div class="label">临工用户</div><div class="value">${d.workerCount || 0}</div></div>
-    <div class="stat-card blue"><div class="label">发布信息</div><div class="value">${d.postCount || 0}</div></div>
-    <div class="stat-card green"><div class="label">招工信息</div><div class="value">${d.jobCount || 0}</div></div>
-    <div class="stat-card red"><div class="label">曝光信息</div><div class="value">${d.exposureCount || 0}</div></div>
-  `;
-}
-
-// 用户管理
-let userPage = 1;
-async function loadUsers(page) {
-  if (page) userPage = page;
-  const role = document.getElementById('userRoleFilter').value;
-  const keyword = document.getElementById('userKeyword').value;
-  const d = await api(`/users?page=${userPage}&role=${role}&keyword=${keyword}`);
-  if (!d) return;
-  const list = d.list || [];
-  document.getElementById('userTable').innerHTML = list.length ? list.map(u => `<tr>
-    <td>${u.id}</td><td>${u.nickname || '-'}</td>
-    <td><span class="badge ${u.role === 'enterprise' ? 'badge-blue' : 'badge-orange'}">${u.role === 'enterprise' ? '企业' : u.role === 'worker' ? '临工' : '未选择'}</span></td>
-    <td>${u.phone || '-'}</td><td>${u.beanBalance || 0}</td><td>${u.creditScore || 0}</td>
-    <td><span class="badge ${u.status === 'active' ? 'badge-green' : 'badge-red'}">${u.status === 'active' ? '正常' : '封禁'}</span></td>
-    <td>${(u.createdAt || '').substring(0, 10)}</td>
-    <td>${u.status === 'active' ? `<button class="btn btn-danger" onclick="banUser(${u.id})">封禁</button>` : `<button class="btn btn-success" onclick="unbanUser(${u.id})">解封</button>`}</td>
-  </tr>`).join('') : '<tr><td colspan="9" class="empty">暂无数据</td></tr>';
-  renderPagination('userPagination', d.total, userPage, d.pageSize, 'loadUsers');
-}
-
-async function banUser(id) { if (confirm('确认封禁？')) { await api(`/users/${id}/ban`, { method: 'PUT' }); loadUsers(); } }
-async function unbanUser(id) { if (confirm('确认解封？')) { await api(`/users/${id}/unban`, { method: 'PUT' }); loadUsers(); } }
-
-// 信息审核
-let postPage = 1;
-async function loadPosts(page) {
-  if (page) postPage = page;
-  const type = document.getElementById('postTypeFilter').value;
-  const status = document.getElementById('postStatusFilter').value;
-  const d = await api(`/posts?page=${postPage}&type=${type}&status=${status}`);
-  if (!d) return;
-  const list = d.list || [];
-  const typeMap = { purchase: '采购需求', stock: '工厂库存', process: '代加工' };
-  const statusMap = { active: ['已发布', 'badge-green'], pending: ['待审核', 'badge-orange'], deleted: ['已删除', 'badge-gray'], expired: ['已过期', 'badge-gray'] };
-  document.getElementById('postTable').innerHTML = list.length ? list.map(p => {
-    const st = statusMap[p.status] || ['未知', 'badge-gray'];
-    return `<tr>
-      <td>${p.id}</td><td><span class="badge badge-blue">${typeMap[p.type] || p.type}</span></td>
-      <td>${(p.title || p.content || '').substring(0, 30)}</td>
-      <td>${p.user ? p.user.nickname || 'ID:' + p.userId : p.userId}</td>
-      <td>${p.viewCount || 0}</td>
-      <td><span class="badge ${st[1]}">${st[0]}</span></td>
-      <td>${(p.createdAt || '').substring(0, 10)}</td>
-      <td>
-        ${p.status !== 'active' ? `<button class="btn btn-success" onclick="auditPost(${p.id},'approve')">通过</button>` : ''}
-        ${p.status !== 'deleted' ? `<button class="btn btn-danger" onclick="auditPost(${p.id},'reject')">驳回</button>` : ''}
-      </td>
-    </tr>`;
-  }).join('') : '<tr><td colspan="8" class="empty">暂无数据</td></tr>';
-  renderPagination('postPagination', d.total, postPage, d.pageSize, 'loadPosts');
-}
-
-async function auditPost(id, action) {
-  const msg = action === 'approve' ? '确认通过？' : '确认驳回？';
-  if (confirm(msg)) { await api(`/posts/${id}/audit`, { method: 'PUT', body: { action } }); loadPosts(); }
-}
-
-// 招工管理
-let jobPage = 1;
-async function loadJobs(page) {
-  if (page) jobPage = page;
-  const d = await api(`/jobs?page=${jobPage}`);
-  if (!d) return;
-  const list = d.list || [];
-  document.getElementById('jobTable').innerHTML = list.length ? list.map(j => `<tr>
-    <td>${j.id}</td><td>${j.title || '-'}</td>
-    <td>${j.user ? j.user.nickname || 'ID:' + j.userId : j.userId}</td>
-    <td>${j.salary || '-'}元/${j.salaryMode || '时'}</td>
-    <td>${j.headcount || '-'}</td>
-    <td><span class="badge badge-green">招工中</span></td>
-    <td>${(j.createdAt || '').substring(0, 10)}</td>
-  </tr>`).join('') : '<tr><td colspan="7" class="empty">暂无数据</td></tr>';
-  renderPagination('jobPagination', d.total, jobPage, d.pageSize, 'loadJobs');
-}
-
-// 曝光管理
-let exposurePage = 1;
-async function loadExposures(page) {
-  if (page) exposurePage = page;
-  const d = await api(`/exposures?page=${exposurePage}`);
-  if (!d) return;
-  const list = d.list || [];
-  document.getElementById('exposureTable').innerHTML = list.length ? list.map(e => `<tr>
-    <td>${e.id}</td><td>${e.company || e.contact || '-'}</td>
-    <td>${e.amount || '-'}</td>
-    <td>${(e.description || '').substring(0, 40)}</td>
-    <td>${(e.createdAt || '').substring(0, 10)}</td>
-    <td><button class="btn btn-danger" onclick="deleteExposure(${e.id})">删除</button></td>
-  </tr>`).join('') : '<tr><td colspan="6" class="empty">暂无数据</td></tr>';
-  renderPagination('exposurePagination', d.total, exposurePage, d.pageSize, 'loadExposures');
-}
-
-async function deleteExposure(id) { if (confirm('确认删除？')) { await api(`/exposures/${id}`, { method: 'DELETE' }); loadExposures(); } }
-
-// 分页
-function renderPagination(elId, total, page, pageSize, fn) {
-  const totalPages = Math.ceil(total / (pageSize || 20));
-  if (totalPages <= 1) { document.getElementById(elId).innerHTML = ''; return; }
-  document.getElementById(elId).innerHTML = `
-    <span>共 ${total} 条</span>
-    <button ${page <= 1 ? 'disabled' : ''} onclick="${fn}(${page - 1})">上一页</button>
-    <span>${page} / ${totalPages}</span>
-    <button ${page >= totalPages ? 'disabled' : ''} onclick="${fn}(${page + 1})">下一页</button>
-  `;
-}
-
-// 初始化
-if (token) {
-  api('/dashboard').then(d => {
-    if (d) { currentAdmin = { nickname: '管理员' }; showLayout(); }
-    else doLogout();
-  });
-} else {
-  document.getElementById('loginPage').style.display = 'flex';
-}
+const API="/api/admin";
+let token=localStorage.getItem("admin_token")||"";
+let currentAdmin=null;
+async function api(url,opts={}){const res=await fetch(API+url,{method:opts.method||"GET",headers:{"Content-Type":"application/json",...(token?{Authorization:"Bearer "+token}:{})},body:opts.body?JSON.stringify(opts.body):undefined});const data=await res.json();if(data.code===401){doLogout();return null;}return data.data||data;}
+async function doLogin(){const username=document.getElementById("loginUser").value;const password=document.getElementById("loginPwd").value;try{const res=await fetch(API+"/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({username,password})});const data=await res.json();if(data.code===200&&data.data){token=data.data.token;currentAdmin=data.data.admin;localStorage.setItem("admin_token",token);showLayout();}else{document.getElementById("loginErr").textContent=data.message||"登录失败";}}catch(e){document.getElementById("loginErr").textContent="网络错误";}}
+function doLogout(){token="";currentAdmin=null;localStorage.removeItem("admin_token");document.getElementById("loginPage").style.display="flex";document.getElementById("layoutPage").style.display="none";}
+function showLayout(){document.getElementById("loginPage").style.display="none";document.getElementById("layoutPage").style.display="block";document.getElementById("adminName").textContent=currentAdmin?currentAdmin.nickname:"管理员";loadDashboard();}
+function switchPage(name,el){document.querySelectorAll(".page-section").forEach(s=>s.classList.remove("active"));document.querySelectorAll(".menu-item").forEach(m=>m.classList.remove("active"));document.getElementById("page-"+name).classList.add("active");if(el)el.classList.add("active");const h={dashboard:["数据概览","平台运营数据总览"],users:["用户管理","管理平台注册用户"],posts:["信息审核","审核发布的供需信息"],jobs:["招工管理","管理招工信息"],exposures:["曝光管理","管理曝光举报信息"]};const t=h[name]||["",""];document.getElementById("pageTitle").textContent=t[0];document.getElementById("pageDesc").textContent=t[1];if(name==="dashboard")loadDashboard();if(name==="users")loadUsers();if(name==="posts")loadPosts();if(name==="jobs")loadJobs();if(name==="exposures")loadExposures();}
+async function loadDashboard(){const d=await api("/dashboard");if(\!d)return;const I={u:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>',e:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>',w:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>',p:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>',j:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>',x:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>'};document.getElementById("statCards").innerHTML='<div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">总用户数</span><div class="sc-icon">'+I.u+'</div></div><div class="sc-value">'+( d.userCount||0)+'</div></div><div class="stat-card sc-green"><div class="sc-top"><span class="sc-label">企业用户</span><div class="sc-icon">'+I.e+'</div></div><div class="sc-value">'+( d.enterpriseCount||0)+'</div></div><div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">临工用户</span><div class="sc-icon">'+I.w+'</div></div><div class="sc-value">'+( d.workerCount||0)+'</div></div><div class="stat-card sc-cyan"><div class="sc-top"><span class="sc-label">发布信息</span><div class="sc-icon">'+I.p+'</div></div><div class="sc-value">'+( d.postCount||0)+'</div></div><div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">招工信息</span><div class="sc-icon">'+I.j+'</div></div><div class="sc-value">'+( d.jobCount||0)+'</div></div><div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">曝光信息</span><div class="sc-icon">'+I.x+'</div></div><div class="sc-value">'+( d.exposureCount||0)+'</div></div>';}
+let userPage=1;
+async function loadUsers(page){if(page)userPage=page;const role=document.getElementById("userRoleFilter").value;const keyword=document.getElementById("userKeyword").value;const d=await api("/users?page="+userPage+"&role="+role+"&keyword="+keyword);if(\!d)return;const list=d.list||[];document.getElementById("userTable").innerHTML=list.length?list.map(u=>"<tr><td>"+u.id+"</td><td>"+(u.nickname||"-")+"</td><td><span class=badge\ "+(u.role==="enterprise"?"badge-blue":"badge-orange")+">"+(u.role==="enterprise"?"企业":u.role==="worker"?"临工":"未选择")+"</span></td><td>"+(u.phone||"-")+"</td><td>"+(u.beanBalance||0)+"</td><td>"+(u.creditScore||0)+"</td><td><span class=badge\ "+(u.status==="active"?"badge-green":"badge-red")+">"+(u.status==="active"?"正常":"封禁")+"</span></td><td>"+(u.createdAt||"").substring(0,10)+"</td><td>"+(u.status==="active"?"<button class=\"btn btn-danger\" onclick=\"banUser("+u.id+")\">封禁</button>":"<button class=\"btn btn-success\" onclick=\"unbanUser("+u.id+")\">解封</button>")+"</td></tr>").join(""):"<tr><td colspan=9 class=empty>暂无数据</td></tr>";renderPagination("userPagination",d.total,userPage,d.pageSize,"loadUsers");}
+async function banUser(id){if(confirm("确认封禁？")){await api("/users/"+id+"/ban",{method:"PUT"});loadUsers();}}
+async function unbanUser(id){if(confirm("确认解封？")){await api("/users/"+id+"/unban",{method:"PUT"});loadUsers();}}
+let postPage=1;
+async function loadPosts(page){if(page)postPage=page;const type=document.getElementById("postTypeFilter").value;const status=document.getElementById("postStatusFilter").value;const d=await api("/posts?page="+postPage+"&type="+type+"&status="+status);if(\!d)return;const list=d.list||[];const typeMap={purchase:"采购需求",stock:"工厂库存",process:"代加工"};const statusMap={active:["已发布","badge-green"],pending:["待审核","badge-orange"],deleted:["已删除","badge-gray"],expired:["已过期","badge-gray"]};document.getElementById("postTable").innerHTML=list.length?list.map(p=>{const st=statusMap[p.status]||["未知","badge-gray"];return"<tr><td>"+p.id+"</td><td><span class=\"badge badge-blue\">"+(typeMap[p.type]||p.type)+"</span></td><td>"+((p.title||p.content||"").substring(0,30))+"</td><td>"+(p.user?p.user.nickname||"ID:"+p.userId:p.userId)+"</td><td>"+(p.viewCount||0)+"</td><td><span class=\"badge "+st[1]+"\">"+st[0]+"</span></td><td>"+(p.createdAt||"").substring(0,10)+"</td><td>"+(p.status\!=="active"?"<button class=\"btn btn-success\" onclick=\"auditPost("+p.id+",'approve')\">通过</button>":"")+(p.status\!=="deleted"?"<button class=\"btn btn-danger\" onclick=\"auditPost("+p.id+",'reject')\">驳回</button>":"")+"</td></tr>";}).join(""):"<tr><td colspan=8 class=empty>暂无数据</td></tr>";renderPagination("postPagination",d.total,postPage,d.pageSize,"loadPosts");}
+async function auditPost(id,action){if(confirm(action==="approve"?"确认通过？":"确认驳回？")){await api("/posts/"+id+"/audit",{method:"PUT",body:{action}});loadPosts();}}
+let jobPage=1;
+async function loadJobs(page){if(page)jobPage=page;const d=await api("/jobs?page="+jobPage);if(\!d)return;const list=d.list||[];document.getElementById("jobTable").innerHTML=list.length?list.map(j=>"<tr><td>"+j.id+"</td><td>"+(j.title||"-")+"</td><td>"+(j.user?j.user.nickname||"ID:"+j.userId:j.userId)+"</td><td>"+(j.salary||"-")+"元/"+(j.salaryMode||"时")+"</td><td>"+(j.headcount||"-")+"</td><td><span class=\"badge badge-green\">招工中</span></td><td>"+(j.createdAt||"").substring(0,10)+"</td></tr>").join(""):"<tr><td colspan=7 class=empty>暂无数据</td></tr>";renderPagination("jobPagination",d.total,jobPage,d.pageSize,"loadJobs");}
+let exposurePage=1;
+async function loadExposures(page){if(page)exposurePage=page;const d=await api("/exposures?page="+exposurePage);if(\!d)return;const list=d.list||[];document.getElementById("exposureTable").innerHTML=list.length?list.map(e=>"<tr><td>"+e.id+"</td><td>"+(e.company||e.contact||"-")+"</td><td>"+(e.amount||"-")+"</td><td>"+((e.description||"").substring(0,40))+"</td><td>"+(e.createdAt||"").substring(0,10)+"</td><td><button class=\"btn btn-danger\" onclick=\"deleteExposure("+e.id+")\">删除</button></td></tr>").join(""):"<tr><td colspan=6 class=empty>暂无数据</td></tr>";renderPagination("exposurePagination",d.total,exposurePage,d.pageSize,"loadExposures");}
+async function deleteExposure(id){if(confirm("确认删除？")){await api("/exposures/"+id,{method:"DELETE"});loadExposures();}}
+function renderPagination(elId,total,page,pageSize,fn){const tp=Math.ceil(total/(pageSize||20));if(tp<=1){document.getElementById(elId).innerHTML="";return;}document.getElementById(elId).innerHTML="<span>共 "+total+" 条</span><button "+(page<=1?"disabled":"")+" onclick=\""+fn+"("+(page-1)+")\">上一页</button><span>"+page+" / "+tp+"</span><button "+(page>=tp?"disabled":"")+" onclick=\""+fn+"("+(page+1)+")\">下一页</button>";}
+if(token){api("/dashboard").then(d=>{if(d){currentAdmin={nickname:"管理员"};showLayout();}else doLogout();});}else{document.getElementById("loginPage").style.display="flex";}
 </script>
 </body>
 </html>
