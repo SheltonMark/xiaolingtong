@@ -3,12 +3,16 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
+import { User } from '../../entities/user.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Injectable()
 export class ApplicationService {
   constructor(
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
   ) {}
 
   async apply(jobId: number, workerId: number) {
@@ -19,6 +23,13 @@ export class ApplicationService {
     const existing = await this.appRepo.findOne({ where: { jobId, workerId } });
     if (existing) throw new BadRequestException('已报名');
 
+    // 超额报名控制
+    const cfg = await this.configRepo.findOne({ where: { key: 'over_apply_rate' } });
+    const overRate = cfg ? +cfg.value : 0.5;
+    const maxApply = Math.ceil(job.needCount * (1 + overRate));
+    const currentCount = await this.appRepo.count({ where: { jobId } });
+    if (currentCount >= maxApply) throw new BadRequestException('报名人数已满');
+
     const app = this.appRepo.create({ jobId, workerId, status: 'pending' });
     return this.appRepo.save(app);
   }
@@ -26,7 +37,7 @@ export class ApplicationService {
   async confirm(jobId: number, workerId: number) {
     const app = await this.appRepo.findOne({ where: { jobId, workerId } });
     if (!app) throw new BadRequestException('未找到报名记录');
-    if (app.status !== 'pending') throw new BadRequestException('当前状态不可确认');
+    if (app.status !== 'accepted') throw new BadRequestException('当前状态不可确认');
 
     app.status = 'confirmed';
     app.confirmedAt = new Date();
@@ -53,7 +64,7 @@ export class ApplicationService {
   async cancel(id: number, workerId: number) {
     const app = await this.appRepo.findOne({ where: { id } });
     if (!app || app.workerId !== workerId) throw new ForbiddenException('无权操作');
-    if (!['pending', 'confirmed'].includes(app.status)) throw new BadRequestException('当前状态不可取消');
+    if (!['pending', 'accepted', 'confirmed'].includes(app.status)) throw new BadRequestException('当前状态不可取消');
 
     app.status = 'cancelled';
     await this.appRepo.save(app);

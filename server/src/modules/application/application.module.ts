@@ -4,9 +4,11 @@ import { ApplicationController } from './application.controller';
 import { ApplicationService } from './application.service';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
+import { User } from '../../entities/user.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([JobApplication, Job])],
+  imports: [TypeOrmModule.forFeature([JobApplication, Job, User, SysConfig])],
   controllers: [ApplicationController],
   providers: [ApplicationService],
 })
