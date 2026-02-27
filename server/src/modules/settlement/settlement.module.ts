@@ -8,9 +8,10 @@ import { Job } from '../../entities/job.entity';
 import { WorkLog } from '../../entities/work-log.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
+import { User } from '../../entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Settlement, SettlementItem, Job, WorkLog, Wallet, WalletTransaction])],
+  imports: [TypeOrmModule.forFeature([Settlement, SettlementItem, Job, WorkLog, Wallet, WalletTransaction, User])],
   controllers: [SettlementController],
   providers: [SettlementService],
 })

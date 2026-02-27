@@ -5,6 +5,7 @@ import { Settlement } from '../../entities/settlement.entity';
 import { SettlementItem } from '../../entities/settlement-item.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
+import { User } from '../../entities/user.entity';
 
 const PLATFORM_FEE_RATE = 0.05;
 
@@ -15,6 +16,7 @@ export class SettlementService {
     @InjectRepository(SettlementItem) private itemRepo: Repository<SettlementItem>,
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
     @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
+    @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
 
   async detail(jobId: number) {
@@ -51,6 +53,9 @@ export class SettlementService {
         refType: 'settlement', refId: settlement.id, status: 'success',
         remark: '工资结算',
       }));
+
+      // 完工信用分 +2
+      await this.userRepo.increment({ id: item.workerId }, 'creditScore', 2);
     }
 
     settlement.status = 'distributed';
