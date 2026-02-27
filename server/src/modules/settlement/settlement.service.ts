@@ -6,8 +6,10 @@ import { SettlementItem } from '../../entities/settlement-item.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { User } from '../../entities/user.entity';
-
-const PLATFORM_FEE_RATE = 0.05;
+import { Job } from '../../entities/job.entity';
+import { WorkLog } from '../../entities/work-log.entity';
+import { JobApplication } from '../../entities/job-application.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Injectable()
 export class SettlementService {
@@ -17,7 +19,103 @@ export class SettlementService {
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
     @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(Job) private jobRepo: Repository<Job>,
+    @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
+    @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
   ) {}
+
+  private async getConfig(key: string, defaultVal: string): Promise<string> {
+    const c = await this.configRepo.findOne({ where: { key } });
+    return c ? c.value : defaultVal;
+  }
+
+  async createSettlement(jobId: number, userId: number) {
+    const job = await this.jobRepo.findOneBy({ id: jobId });
+    if (!job) throw new BadRequestException('招工不存在');
+
+    const existing = await this.settleRepo.findOne({ where: { jobId } });
+    if (existing) throw new BadRequestException('结算单已存在');
+
+    // 获取佣金率（优先单个job覆盖，否则全局默认）
+    const jobCommission = await this.getConfig(`job_commission_${jobId}`, '');
+    const globalCommission = await this.getConfig('default_commission_rate', '0.20');
+    const commissionRate = jobCommission ? +jobCommission : +globalCommission;
+
+    // 获取管理员服务费单价
+    const managerFeeStr = await this.getConfig('manager_service_fee', '5');
+    const managerFeeUnit = +managerFeeStr;
+
+    // 查找实际参与工作的临工（confirmed/working/done）
+    const apps = await this.appRepo.find({
+      where: { jobId },
+    });
+    const workerApps = apps.filter(a => ['confirmed', 'working', 'done'].includes(a.status));
+    if (workerApps.length === 0) throw new BadRequestException('没有参与工作的临工');
+
+    // 找管理员
+    const supervisorApp = apps.find(a => a.isSupervisor === 1);
+    const supervisorId = supervisorApp ? supervisorApp.workerId : undefined;
+
+    let totalHours = 0;
+    let factoryTotal = 0;
+    let workerTotal = 0;
+    const items: { workerId: number; hours: number; factoryPay: number; workerPay: number }[] = [];
+
+    for (const app of workerApps) {
+      // 汇总该工人的 WorkLog
+      const logs = await this.workLogRepo.find({ where: { jobId, workerId: app.workerId } });
+      const hours = logs.reduce((sum, l) => sum + (+l.hours || 0), 0);
+      const pieces = logs.reduce((sum, l) => sum + (+l.pieces || 0), 0);
+
+      let factoryPay: number;
+      if (job.salaryType === 'piece') {
+        factoryPay = pieces * +job.salary;
+      } else {
+        factoryPay = hours * +job.salary;
+      }
+      const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
+
+      totalHours += hours;
+      factoryTotal += factoryPay;
+      workerTotal += workerPay;
+      items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
+    }
+
+    // 管理员服务费
+    const supervisorFee = supervisorId ? +(workerApps.length * totalHours * managerFeeUnit).toFixed(2) : 0;
+    const platformFee = +(factoryTotal - workerTotal - supervisorFee).toFixed(2);
+
+    const settlementEntity = this.settleRepo.create({
+      jobId,
+      enterpriseId: job.userId,
+      totalWorkers: workerApps.length,
+      totalHours,
+      factoryTotal: +factoryTotal.toFixed(2),
+      platformFee: platformFee > 0 ? platformFee : 0,
+      workerTotal: +workerTotal.toFixed(2),
+      supervisorId,
+      supervisorFee,
+      commissionRate,
+      status: 'pending' as const,
+    });
+    const settlement = await this.settleRepo.save(settlementEntity);
+
+    for (const it of items) {
+      await this.itemRepo.save(this.itemRepo.create({
+        settlementId: settlement.id,
+        workerId: it.workerId,
+        hours: it.hours,
+        factoryPay: it.factoryPay,
+        workerPay: it.workerPay,
+      }));
+    }
+
+    // Job 状态改为 pending_settlement
+    await this.jobRepo.update(jobId, { status: 'pending_settlement' });
+
+    return { message: '结算单已生成', settlementId: settlement.id };
+  }
 
   async detail(jobId: number) {
     const settlement = await this.settleRepo.findOne({ where: { jobId }, relations: ['job'] });

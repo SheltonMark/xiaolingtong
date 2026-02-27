@@ -11,6 +11,11 @@ export class SettlementController {
     return this.settlementService.detail(jobId);
   }
 
+  @Post(':jobId/create')
+  create(@Param('jobId') jobId: number, @CurrentUser('sub') userId: number) {
+    return this.settlementService.createSettlement(jobId, userId);
+  }
+
   @Post(':jobId/pay')
   pay(@Param('jobId') jobId: number, @CurrentUser('sub') userId: number) {
     return this.settlementService.pay(jobId, userId);
