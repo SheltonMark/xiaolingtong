@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { Settlement } from '../../entities/settlement.entity';
 import { SettlementItem } from '../../entities/settlement-item.entity';
@@ -10,6 +11,7 @@ import { Job } from '../../entities/job.entity';
 import { WorkLog } from '../../entities/work-log.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
 export class SettlementService {
@@ -23,6 +25,8 @@ export class SettlementService {
     @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
+    private paymentService: PaymentService,
+    private config: ConfigService,
   ) {}
 
   private async getConfig(key: string, defaultVal: string): Promise<string> {
@@ -130,35 +134,20 @@ export class SettlementService {
     if (settlement.enterpriseId !== enterpriseId) throw new ForbiddenException('无权操作');
     if (settlement.status !== 'pending') throw new BadRequestException('结算单状态异常');
 
-    settlement.status = 'paid';
-    settlement.paidAt = new Date();
-    await this.settleRepo.save(settlement);
+    const user = await this.userRepo.findOneBy({ id: enterpriseId });
+    if (!user) throw new BadRequestException('用户不存在');
 
-    // 分发到工人钱包
-    const items = await this.itemRepo.find({ where: { settlementId: settlement.id } });
-    for (const item of items) {
-      let wallet = await this.walletRepo.findOne({ where: { userId: item.workerId } });
-      if (!wallet) {
-        wallet = this.walletRepo.create({ userId: item.workerId });
-        wallet = await this.walletRepo.save(wallet);
-      }
-      wallet.balance = +wallet.balance + +item.workerPay;
-      wallet.totalIncome = +wallet.totalIncome + +item.workerPay;
-      await this.walletRepo.save(wallet);
+    const outTradeNo = this.paymentService.generateOutTradeNo('STL', settlement.id);
+    const host = this.config.get('API_HOST', 'http://49.235.166.177:3000');
+    const result = await this.paymentService.createJsapiOrder({
+      outTradeNo,
+      description: `小灵通用工结算-${settlement.totalWorkers}人`,
+      totalFee: Math.round(+settlement.factoryTotal * 100),
+      openid: user.openid,
+      notifyUrl: `${host}/api/payment/notify`,
+    });
 
-      await this.walletTxRepo.save(this.walletTxRepo.create({
-        userId: item.workerId, type: 'income', amount: item.workerPay,
-        refType: 'settlement', refId: settlement.id, status: 'success',
-        remark: '工资结算',
-      }));
-
-      // 完工信用分 +2
-      await this.userRepo.increment({ id: item.workerId }, 'creditScore', 2);
-    }
-
-    settlement.status = 'distributed';
-    await this.settleRepo.save(settlement);
-    return { message: '支付成功，工资已发放' };
+    return { settlementId: settlement.id, outTradeNo, ...result };
   }
 
   async confirmByWorker(jobId: number, workerId: number) {

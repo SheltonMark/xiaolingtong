@@ -11,9 +11,13 @@ import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { User } from '../../entities/user.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { PaymentModule } from '../payment/payment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Settlement, SettlementItem, Job, WorkLog, Wallet, WalletTransaction, User, JobApplication, SysConfig])],
+  imports: [
+    TypeOrmModule.forFeature([Settlement, SettlementItem, Job, WorkLog, Wallet, WalletTransaction, User, JobApplication, SysConfig]),
+    PaymentModule,
+  ],
   controllers: [SettlementController],
   providers: [SettlementService],
 })

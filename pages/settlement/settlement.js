@@ -65,9 +65,21 @@ Page({
       content: '支付后工资将自动发放至临工钱包',
       success: (res) => {
         if (res.confirm) {
-          post('/settlements/' + this.data.jobId + '/pay').then(() => {
-            wx.showToast({ title: '支付成功', icon: 'success' })
-            setTimeout(() => wx.navigateBack(), 1500)
+          post('/settlements/' + this.data.jobId + '/pay').then((data) => {
+            if (data.prepay_id) {
+              wx.requestPayment({
+                timeStamp: data.timeStamp,
+                nonceStr: data.nonceStr,
+                package: data.package,
+                signType: data.signType || 'RSA',
+                paySign: data.paySign,
+                success() {
+                  wx.showToast({ title: '支付成功', icon: 'success' })
+                  setTimeout(() => wx.navigateBack(), 1500)
+                },
+                fail() { wx.showToast({ title: '支付取消', icon: 'none' }) }
+              })
+            }
           }).catch(() => {})
         }
       }
