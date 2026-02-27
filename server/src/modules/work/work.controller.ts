@@ -1,10 +1,20 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query } from '@nestjs/common';
 import { WorkService } from './work.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('work')
 export class WorkController {
   constructor(private workService: WorkService) {}
+
+  @Get('orders')
+  getOrders(@CurrentUser('sub') userId: number) {
+    return this.workService.getOrders(userId);
+  }
+
+  @Get('session/:jobId')
+  getSession(@Param('jobId') jobId: number) {
+    return this.workService.getSession(jobId);
+  }
 
   @Post('checkin')
   checkin(@CurrentUser('sub') userId: number, @Body() dto: any) {
