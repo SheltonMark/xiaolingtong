@@ -93,12 +93,28 @@ export class WorkService {
   async recordAnomaly(workerId: number, dto: any) {
     const log = this.workLogRepo.create({
       jobId: dto.jobId,
-      workerId,
+      workerId: dto.targetWorkerId || workerId,
       date: dto.date || new Date().toISOString().slice(0, 10),
       anomalyType: dto.anomalyType,
       anomalyNote: dto.anomalyNote,
       photoUrls: dto.photoUrls,
     });
-    return this.workLogRepo.save(log);
+    await this.workLogRepo.save(log);
+
+    // 信用分扣分
+    const targetId = dto.targetWorkerId || workerId;
+    const penaltyMap: Record<string, number> = {
+      absent: 5,
+      early_leave: 5,
+      late: 2,
+      injury: 0,
+      fraud: 20,
+    };
+    const penalty = penaltyMap[dto.anomalyType] || 0;
+    if (penalty > 0) {
+      await this.userRepo.decrement({ id: targetId }, 'creditScore', penalty);
+    }
+
+    return log;
   }
 }
