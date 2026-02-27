@@ -9,8 +9,10 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { Settlement } from '../../entities/settlement.entity';
+import { SettlementItem } from '../../entities/settlement-item.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
+import { Job } from '../../entities/job.entity';
 
 const WxPay = require('wechatpay-node-v3');
 
@@ -29,8 +31,10 @@ export class PaymentService {
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(AdOrder) private adOrderRepo: Repository<AdOrder>,
     @InjectRepository(Settlement) private settlementRepo: Repository<Settlement>,
+    @InjectRepository(SettlementItem) private settlementItemRepo: Repository<SettlementItem>,
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
     @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
+    @InjectRepository(Job) private jobRepo: Repository<Job>,
   ) {
     this.appid = config.get('WX_APPID', '');
     this.mchid = config.get('WX_MCH_ID', '');
@@ -206,7 +210,52 @@ export class PaymentService {
     stl.status = 'paid';
     stl.paidAt = new Date();
     await this.settlementRepo.save(stl);
-    // TODO: 分发工资到各临工钱包（需要 settlement_items 逻辑）
+
+    // 分发工资到各临工钱包
+    const items = await this.settlementItemRepo.find({ where: { settlementId: stl.id } });
+    for (const item of items) {
+      let wallet = await this.walletRepo.findOne({ where: { userId: item.workerId } });
+      if (!wallet) {
+        wallet = this.walletRepo.create({ userId: item.workerId });
+        wallet = await this.walletRepo.save(wallet);
+      }
+      wallet.balance = +wallet.balance + +item.workerPay;
+      wallet.totalIncome = +wallet.totalIncome + +item.workerPay;
+      await this.walletRepo.save(wallet);
+
+      await this.walletTxRepo.save(this.walletTxRepo.create({
+        userId: item.workerId, type: 'income', amount: item.workerPay,
+        refType: 'settlement', refId: stl.id, status: 'success',
+        remark: '工资结算',
+      }));
+
+      // 完工信用分 +2
+      await this.userRepo.increment({ id: item.workerId }, 'creditScore', 2);
+    }
+
+    // 分发管理员服务费
+    if (stl.supervisorId && +stl.supervisorFee > 0) {
+      let supWallet = await this.walletRepo.findOne({ where: { userId: stl.supervisorId } });
+      if (!supWallet) {
+        supWallet = this.walletRepo.create({ userId: stl.supervisorId });
+        supWallet = await this.walletRepo.save(supWallet);
+      }
+      supWallet.balance = +supWallet.balance + +stl.supervisorFee;
+      supWallet.totalIncome = +supWallet.totalIncome + +stl.supervisorFee;
+      await this.walletRepo.save(supWallet);
+
+      await this.walletTxRepo.save(this.walletTxRepo.create({
+        userId: stl.supervisorId, type: 'income', amount: stl.supervisorFee,
+        refType: 'settlement', refId: stl.id, status: 'success',
+        remark: '管理员服务费',
+      }));
+    }
+
+    stl.status = 'distributed';
+    await this.settlementRepo.save(stl);
+
+    // Job 状态改为 settled
+    await this.jobRepo.update(stl.jobId, { status: 'settled' });
   }
 
   private extractId(outTradeNo: string): number {
