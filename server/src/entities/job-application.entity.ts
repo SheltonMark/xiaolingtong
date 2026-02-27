@@ -13,8 +13,11 @@ export class JobApplication {
   @Column({ type: 'bigint' })
   workerId: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'confirmed', 'working', 'done', 'rejected', 'cancelled'], default: 'pending' })
+  @Column({ type: 'enum', enum: ['pending', 'accepted', 'confirmed', 'working', 'done', 'rejected', 'released', 'cancelled'], default: 'pending' })
   status: string;
+
+  @Column({ type: 'tinyint', default: 0 })
+  isSupervisor: number;
 
   @Column({ type: 'datetime', nullable: true })
   confirmedAt: Date;

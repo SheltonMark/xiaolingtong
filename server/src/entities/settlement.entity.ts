@@ -28,6 +28,15 @@ export class Settlement {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   workerTotal: number;
 
+  @Column({ type: 'bigint', nullable: true })
+  supervisorId: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  supervisorFee: number;
+
+  @Column({ type: 'decimal', precision: 5, scale: 4, default: 0.20 })
+  commissionRate: number;
+
   @Column({ type: 'enum', enum: ['pending', 'paid', 'distributed', 'completed'], default: 'pending' })
   status: string;
 

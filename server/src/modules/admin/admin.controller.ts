@@ -234,4 +234,25 @@ export class AdminController {
   transactionList(@Query() query: any) {
     return this.adminService.transactionList(query);
   }
+
+  // 用工订单管理
+  @Get('job-orders')
+  jobOrderList(@Query() query: any) {
+    return this.adminService.jobOrderList(query);
+  }
+
+  @Get('job-orders/:id')
+  jobOrderDetail(@Param('id') id: number) {
+    return this.adminService.jobOrderDetail(id);
+  }
+
+  @Post('job-orders/:id/assign')
+  assignWorkers(@Param('id') id: number, @Body() body: { workerIds: number[]; supervisorId: number }) {
+    return this.adminService.assignWorkers(id, body);
+  }
+
+  @Put('job-orders/:id/commission')
+  adjustCommission(@Param('id') id: number, @Body('commissionRate') rate: number) {
+    return this.adminService.adjustCommission(id, rate);
+  }
 }

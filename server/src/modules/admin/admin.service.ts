@@ -22,6 +22,7 @@ import { Settlement } from '../../entities/settlement.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { JobApplication } from '../../entities/job-application.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -51,6 +52,7 @@ export class AdminService {
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
     @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     private jwt: JwtService,
   ) {}
 
@@ -440,6 +442,84 @@ export class AdminService {
     qb.skip((page - 1) * pageSize).take(pageSize);
     const [list, total] = await qb.getManyAndCount();
     return { list, total, page: +page, pageSize: +pageSize };
+  }
+
+  // 用工订单管理
+  async jobOrderList(query: any) {
+    const { status, page = 1, pageSize = 20 } = query;
+    const qb = this.jobRepo.createQueryBuilder('j')
+      .leftJoinAndSelect('j.user', 'u')
+      .loadRelationCountAndMap('j.applyCount', 'j.applications')
+      .orderBy('j.createdAt', 'DESC');
+    if (status) qb.andWhere('j.status = :status', { status });
+    qb.skip((page - 1) * pageSize).take(pageSize);
+    const [list, total] = await qb.getManyAndCount();
+    // 手动查报名数
+    for (const job of list) {
+      const cnt = await this.appRepo.count({ where: { jobId: job.id } });
+      (job as any).applyCount = cnt;
+    }
+    return { list, total, page: +page, pageSize: +pageSize };
+  }
+
+  async jobOrderDetail(jobId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId }, relations: ['user'] });
+    if (!job) return { message: '不存在' };
+    const applications = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'ASC' },
+    });
+    // 附加每个工人的完工次数
+    const enriched: any[] = [];
+    for (const app of applications) {
+      const doneCount = await this.appRepo.count({ where: { workerId: app.workerId, status: 'done' } });
+      enriched.push({ ...app, worker: { ...app.worker, doneCount } });
+    }
+    return { job, applications: enriched };
+  }
+
+  async assignWorkers(jobId: number, body: { workerIds: number[]; supervisorId: number }) {
+    const job = await this.jobRepo.findOneBy({ id: jobId });
+    if (!job) return { message: '招工不存在' };
+
+    const { workerIds, supervisorId } = body;
+
+    // 选中的改为 accepted
+    await this.appRepo.createQueryBuilder()
+      .update().set({ status: 'accepted', isSupervisor: 0 })
+      .where('jobId = :jobId AND workerId IN (:...ids)', { jobId, ids: workerIds })
+      .execute();
+
+    // 未选中的改为 rejected
+    await this.appRepo.createQueryBuilder()
+      .update().set({ status: 'rejected' })
+      .where('jobId = :jobId AND status = :s AND workerId NOT IN (:...ids)', { jobId, s: 'pending', ids: workerIds })
+      .execute();
+
+    // 指定管理员
+    if (supervisorId) {
+      await this.appRepo.update({ jobId, workerId: supervisorId }, { isSupervisor: 1 });
+    }
+
+    // Job 状态改为 assigned
+    await this.jobRepo.update(jobId, { status: 'full' as any });
+    return { message: '分配成功' };
+  }
+
+  async adjustCommission(jobId: number, commissionRate: number) {
+    // 存到 job 的 description 备注里，结算时读取
+    const job = await this.jobRepo.findOneBy({ id: jobId });
+    if (!job) return { message: '不存在' };
+    // 用 SysConfig 存单个 job 的佣金率覆盖
+    const key = `job_commission_${jobId}`;
+    let config = await this.configRepo.findOne({ where: { key } });
+    if (config) {
+      await this.configRepo.update(config.id, { value: String(commissionRate) });
+    } else {
+      await this.configRepo.save(this.configRepo.create({ key, value: String(commissionRate), label: `招工${jobId}佣金率`, group: 'job' }));
+    }
+    return { message: '佣金率已调整为 ' + (commissionRate * 100) + '%' };
   }
 
   async initDefaultConfigs() {
