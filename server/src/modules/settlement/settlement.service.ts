@@ -171,6 +171,21 @@ export class SettlementService {
     item.confirmed = 1;
     item.confirmedAt = new Date();
     await this.itemRepo.save(item);
+
+    // 检查是否所有人都确认了 → Job 状态改为 closed
+    const unconfirmed = await this.itemRepo.count({ where: { settlementId: settlement.id, confirmed: 0 } });
+    if (unconfirmed === 0 && ['distributed', 'completed'].includes(settlement.status)) {
+      settlement.status = 'completed';
+      await this.settleRepo.save(settlement);
+      await this.jobRepo.update(jobId, { status: 'closed' });
+
+      // application 状态改为 done
+      await this.appRepo.createQueryBuilder()
+        .update().set({ status: 'done' })
+        .where("jobId = :jobId AND status IN ('confirmed','working')", { jobId })
+        .execute();
+    }
+
     return { message: '已确认' };
   }
 }

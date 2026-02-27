@@ -75,7 +75,18 @@ export class WorkService {
       lng: dto.lng,
       photoUrl: dto.photoUrl,
     });
-    return this.checkinRepo.save(checkin);
+    await this.checkinRepo.save(checkin);
+
+    // 第一个人签到时，Job 状态从 full → working
+    const job = await this.jobRepo.findOneBy({ id: dto.jobId });
+    if (job && job.status === 'full') {
+      await this.jobRepo.update(dto.jobId, { status: 'working' });
+    }
+
+    // application 状态改为 working
+    await this.appRepo.update({ jobId: dto.jobId, workerId }, { status: 'working' });
+
+    return checkin;
   }
 
   async submitLog(workerId: number, dto: any) {
