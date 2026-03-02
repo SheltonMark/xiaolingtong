@@ -74,8 +74,21 @@ export class PostService {
   }
 
   async create(userId: number, dto: any) {
-    await this.checkKeywords((dto.content || '') + (dto.title || ''));
-    const post = this.postRepo.create({ ...dto, userId });
+    const { type, title, category, description, images, showPhone, showWechat, validityDays, ...structuredFields } = dto;
+
+    const content = description || '';
+    await this.checkKeywords(content + (title || ''));
+
+    const post = this.postRepo.create({
+      userId,
+      type,
+      title,
+      industry: category,
+      content,
+      fields: Object.keys(structuredFields).length ? structuredFields : null,
+      images: images || null,
+      expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : null,
+    });
     return this.postRepo.save(post);
   }
 
