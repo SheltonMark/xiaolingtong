@@ -1,7 +1,9 @@
 .publish-page {
   min-height: 100vh;
   background-color: #F5F5F5;
-  padding-bottom: 40rpx;
+  /* tab bar 固定高度 120rpx + 原始间距 40rpx；iOS 安全区通过 env() 追加 */
+  padding-bottom: 160rpx;
+  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
 }
 
 /* 类型选择卡片 */
