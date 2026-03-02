@@ -3,13 +3,16 @@
   flex-direction: column;
   height: 100vh;
   background-color: #ffffff;
+  box-sizing: border-box;
+  padding-top: 32rpx;
 }
 .logo-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  padding-top: 176rpx;
 }
 .logo-box {
   width: 160rpx;
@@ -40,7 +43,8 @@
   color: #94A3B8;
 }
 .login-bottom {
-  padding: 0 48rpx 80rpx;
+  padding: 0 48rpx 140rpx;
+  padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
 }
 .wx-login-btn {
   display: flex;
