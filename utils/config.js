@@ -1,9 +1,9 @@
 const config = {
   // 开发环境用 IP，上线后换域名
-  baseUrl: 'http://49.235.166.177:3000',
+  baseUrl: 'https://quanqiutong888.com',
   apiPrefix: '/api',
   // WebSocket
-  wsUrl: 'ws://49.235.166.177:3000/ws/chat'
+  wsUrl: 'wss://quanqiutong888.com/ws/chat'
 }
 
 module.exports = config

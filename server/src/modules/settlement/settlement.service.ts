@@ -138,7 +138,7 @@ export class SettlementService {
     if (!user) throw new BadRequestException('用户不存在');
 
     const outTradeNo = this.paymentService.generateOutTradeNo('STL', settlement.id);
-    const host = this.config.get('API_HOST', 'http://49.235.166.177:3000');
+    const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
       description: `小灵通用工结算-${settlement.totalWorkers}人`,

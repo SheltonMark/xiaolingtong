@@ -26,7 +26,7 @@ export class BeanService {
     if (!user) throw new BadRequestException('用户不存在');
 
     const outTradeNo = this.paymentService.generateOutTradeNo('BEAN', 0);
-    const host = this.config.get('API_HOST', 'http://49.235.166.177:3000');
+    const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
       description: `小灵通灵豆充值-${dto.amount}个`,
