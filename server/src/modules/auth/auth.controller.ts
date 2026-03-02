@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -10,11 +10,13 @@ export class AuthController {
   @Public()
   @Post('wx-login')
   wxLogin(@Body('code') code: string) {
+    if (!code) throw new BadRequestException('code 不能为空');
     return this.authService.wxLogin(code);
   }
 
   @Post('choose-role')
   chooseRole(@CurrentUser('sub') userId: number, @Body('role') role: string) {
+    if (!role) throw new BadRequestException('role 不能为空');
     return this.authService.chooseRole(userId, role);
   }
 

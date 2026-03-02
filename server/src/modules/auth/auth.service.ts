@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -28,7 +28,7 @@ export class AuthService {
     } else {
       const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
       const { data } = await axios.get(url);
-      if (data.errcode) throw new Error(data.errmsg);
+      if (data.errcode) throw new BadRequestException(data.errmsg || '微信登录失败');
       openid = data.openid;
     }
 
