@@ -87,7 +87,7 @@ export class PostService {
       content,
       fields: Object.keys(structuredFields).length ? structuredFields : null,
       images: images || null,
-      expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : null,
+      expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : undefined,
     });
     return this.postRepo.save(post);
   }
