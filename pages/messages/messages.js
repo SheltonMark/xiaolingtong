@@ -19,9 +19,16 @@ Page({
 
   loadMessages() {
     get('/conversations').then(res => {
-      const list = res.data.list || res.data || []
-      const unread = list.reduce((sum, m) => sum + (m.unreadCount || 0), 0)
-      this.setData({ chatMessages: list, chatUnreadCount: unread })
+      const list = Array.isArray(res.data) ? res.data : (res.data.list || [])
+      const mapped = list.map(item => ({
+        ...item,
+        avatarText: item.avatarText || (item.name ? item.name[0] : '聊'),
+        avatarBg: item.avatarBg || '#3B82F6',
+        lastMsg: item.lastMsg || '暂无消息',
+        time: item.time || ''
+      }))
+      const unread = mapped.reduce((sum, m) => sum + (m.unreadCount || 0), 0)
+      this.setData({ chatMessages: mapped, chatUnreadCount: unread })
     }).catch(() => {})
     get('/notifications').then(res => {
       const list = res.data.list || res.data || []
@@ -47,7 +54,12 @@ Page({
     }
   },
   onTapChat(e) {
-    const id = e.currentTarget.dataset.id || ''
+    const item = e.currentTarget.dataset.item || {}
+    const id = item.id || ''
+    if (!id) {
+      wx.showToast({ title: '会话不存在', icon: 'none' })
+      return
+    }
     wx.navigateTo({ url: '/pages/chat/chat?id=' + id })
   }
 })

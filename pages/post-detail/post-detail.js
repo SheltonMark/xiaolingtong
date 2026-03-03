@@ -53,7 +53,20 @@ Page({
   },
 
   onChat() {
-    wx.navigateTo({ url: '/pages/chat/chat?id=' + this.data.detail.id })
+    const detail = this.data.detail || {}
+    const targetUserId = detail.userId || (detail.user && detail.user.id)
+    if (!targetUserId) {
+      wx.showToast({ title: '发布者信息缺失', icon: 'none' })
+      return
+    }
+    post('/conversations/with-user/' + targetUserId).then(res => {
+      const conversationId = res.data && res.data.id
+      if (!conversationId) {
+        wx.showToast({ title: '会话创建失败', icon: 'none' })
+        return
+      }
+      wx.navigateTo({ url: '/pages/chat/chat?id=' + conversationId })
+    }).catch(() => {})
   },
 
   onShare() {

@@ -12,12 +12,17 @@ export class ChatController {
   }
 
   @Get(':id/messages')
-  messages(@Param('id') id: number, @Query() query: any) {
-    return this.chatService.getMessages(id, query);
+  messages(@Param('id') id: number, @CurrentUser('sub') userId: number, @Query() query: any) {
+    return this.chatService.getMessages(id, userId, query);
   }
 
   @Post(':id/send')
   send(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.chatService.sendMessage(id, userId, dto);
+  }
+
+  @Post('with-user/:userId')
+  withUser(@CurrentUser('sub') currentUserId: number, @Param('userId') userId: number) {
+    return this.chatService.getOrCreateConversation(currentUserId, userId);
   }
 }
