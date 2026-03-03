@@ -1,24 +1,25 @@
 const { post, upload } = require('../../utils/request')
+const DEFAULT_FORM = {
+  productName: '',
+  category: '',
+  spec: '',
+  quantity: '',
+  price: '',
+  priceMin: '',
+  priceMax: '',
+  quality: '',
+  deliveryDays: '',
+  description: '',
+  minOrder: '',
+  processType: '',
+  processDesc: '',
+  capacity: ''
+}
 
 Page({
   data: {
     typeIndex: 0,
-    form: {
-      productName: '',
-      category: '',
-      spec: '',
-      quantity: '',
-      price: '',
-      priceMin: '',
-      priceMax: '',
-      quality: '',
-      deliveryDays: '',
-      description: '',
-      minOrder: '',
-      processType: '',
-      processDesc: '',
-      capacity: ''
-    },
+    form: { ...DEFAULT_FORM },
     images: [],
     categoryOptions: ['日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具', '其他'],
     deliveryOptions: ['7天内', '15天内', '30天内', '45天内', '60天内'],
@@ -34,6 +35,16 @@ Page({
   },
 
   onLoad() {
+    this.initContactInfo()
+  },
+
+  resetDraft() {
+    this.setData({
+      typeIndex: 0,
+      form: { ...DEFAULT_FORM },
+      images: [],
+      validityIndex: 2
+    })
     this.initContactInfo()
   },
 
@@ -178,6 +189,7 @@ Page({
     post('/posts', data).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '发布成功', icon: 'success' })
+      this.resetDraft()
       setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
     }).catch(() => {
       wx.hideLoading()
