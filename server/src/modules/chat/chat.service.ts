@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conversation } from '../../entities/conversation.entity';
 import { ChatMessage } from '../../entities/chat-message.entity';
+import { ChatRealtimeService } from './chat-realtime.service';
 
 const VOICE_PREFIX = '__VOICE__';
 
@@ -11,6 +12,7 @@ export class ChatService {
   constructor(
     @InjectRepository(Conversation) private convRepo: Repository<Conversation>,
     @InjectRepository(ChatMessage) private msgRepo: Repository<ChatMessage>,
+    private realtime: ChatRealtimeService,
   ) {}
 
   private toNumber(value: any): number {
@@ -157,7 +159,15 @@ export class ChatService {
       lastMessageAt: new Date(),
     });
 
-    return this.mapMessage(saved);
+    const mapped = this.mapMessage(saved);
+    const receiverId = this.toNumber(conv.userA) === this.toNumber(senderId)
+      ? this.toNumber(conv.userB)
+      : this.toNumber(conv.userA);
+    if (receiverId) {
+      this.realtime.emitToUser(receiverId, 'new_message', mapped);
+    }
+
+    return mapped;
   }
 
   async getOrCreateConversation(userA: number, userB: number) {

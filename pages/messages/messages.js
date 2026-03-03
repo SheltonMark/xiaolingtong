@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request')
+const wsChat = require('../../utils/ws-chat')
 
 Page({
   data: {
@@ -13,10 +14,40 @@ Page({
 
   onShow() {
     this.loadMessages()
+    wsChat.connect()
+    if (!this._wsUnsubscribe) {
+      this._wsUnsubscribe = wsChat.subscribe((event) => {
+        if (event === 'new_message') {
+          this.scheduleRefresh()
+        }
+      })
+    }
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
       this.getTabBar().setData({ selected: userRole === 'enterprise' ? 3 : 2, userRole })
     }
+  },
+  onHide() {
+    if (this._wsUnsubscribe) {
+      this._wsUnsubscribe()
+      this._wsUnsubscribe = null
+    }
+    this.clearRefreshTimer()
+  },
+  onUnload() {
+    this.onHide()
+  },
+  clearRefreshTimer() {
+    if (!this._refreshTimer) return
+    clearTimeout(this._refreshTimer)
+    this._refreshTimer = null
+  },
+  scheduleRefresh() {
+    if (this._refreshTimer) return
+    this._refreshTimer = setTimeout(() => {
+      this._refreshTimer = null
+      this.loadMessages()
+    }, 300)
   },
 
   loadMessages() {

@@ -1,4 +1,5 @@
 const { get, post, upload } = require('../../utils/request')
+const wsChat = require('../../utils/ws-chat')
 
 const VOICE_PREFIX = '__VOICE__'
 
@@ -50,6 +51,18 @@ Page({
       wx.showToast({ title: '录音失败', icon: 'none' })
     })
   },
+  onShow() {
+    wsChat.connect()
+    if (!this._wsUnsubscribe) {
+      this._wsUnsubscribe = wsChat.subscribe((event, data) => this.onWsEvent(event, data))
+    }
+  },
+  onHide() {
+    if (this._wsUnsubscribe) {
+      this._wsUnsubscribe()
+      this._wsUnsubscribe = null
+    }
+  },
   clearRecordTimer() {
     if (this.recordTimer) {
       clearInterval(this.recordTimer)
@@ -73,7 +86,8 @@ Page({
       id: item.id,
       from,
       time: item.time || '',
-      senderId
+      senderId,
+      conversationId: Number(item.conversationId || this.data.conversationId || 0)
     }
 
     if (item.type === 'image') {
@@ -91,6 +105,15 @@ Page({
       } catch (error) {}
     }
     return { ...base, type: 'text', text: item.content || '' }
+  },
+  onWsEvent(event, data) {
+    if (event !== 'new_message' || !data) return
+    const message = this.normalizeMessage(data)
+    if (Number(message.conversationId) !== Number(this.data.conversationId)) return
+    if ((this.data.messages || []).some(item => Number(item.id) === Number(message.id))) return
+    this.setData({
+      messages: [...this.data.messages, message]
+    }, () => this.scrollToBottom())
   },
   scrollToBottom() {
     const list = this.data.messages || []
@@ -216,6 +239,10 @@ Page({
     this.setData({ playingVoiceUrl: url })
   },
   onUnload() {
+    if (this._wsUnsubscribe) {
+      this._wsUnsubscribe()
+      this._wsUnsubscribe = null
+    }
     if (this.audioContext) {
       this.audioContext.destroy()
       this.audioContext = null
