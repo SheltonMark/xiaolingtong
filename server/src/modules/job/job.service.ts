@@ -20,6 +20,66 @@ export class JobService {
     }
   }
 
+  private normalizeText(value: any): string {
+    if (value === undefined || value === null) return '';
+    return String(value).trim();
+  }
+
+  private parseSalaryType(value: any): 'hourly' | 'piece' {
+    const text = this.normalizeText(value);
+    if (!text) return 'hourly';
+    if (text === 'piece' || text.includes('按件')) return 'piece';
+    return 'hourly';
+  }
+
+  private normalizeBenefits(value: any) {
+    if (!Array.isArray(value)) return undefined;
+    const normalized = value
+      .map((item: any) => {
+        if (!item) return null;
+        if (typeof item === 'string') return { label: item, color: 'green' };
+        if (item.label) return item;
+        return null;
+      })
+      .filter(Boolean);
+    return normalized.length ? normalized : undefined;
+  }
+
+  private normalizeImages(value: any) {
+    if (!Array.isArray(value)) return undefined;
+    const normalized = value.filter(Boolean);
+    return normalized.length ? normalized : undefined;
+  }
+
+  private normalizeCreateDto(dto: any) {
+    const salary = Number(dto.salary || dto.price || 0);
+    const needCount = Number(dto.needCount || dto.headcount || dto.need || 0);
+    const salaryType = this.parseSalaryType(dto.salaryType || dto.salaryMode);
+    const salaryUnit = this.normalizeText(dto.salaryUnit) || (salaryType === 'hourly' ? '元/时' : '元/件');
+    const location = this.normalizeText(dto.location || dto.address);
+    const dateStart = this.normalizeText(dto.dateStart || dto.startDate);
+    const dateEnd = this.normalizeText(dto.dateEnd || dto.endDate);
+    const startTime = this.normalizeText(dto.startTime);
+    const endTime = this.normalizeText(dto.endTime);
+    const workHours = this.normalizeText(dto.workHours) || (startTime && endTime ? `${startTime}-${endTime}` : '');
+
+    return {
+      title: this.normalizeText(dto.title || dto.jobType),
+      salary,
+      salaryType,
+      salaryUnit,
+      needCount,
+      location,
+      dateStart,
+      dateEnd,
+      workHours,
+      description: this.normalizeText(dto.description || dto.content),
+      benefits: this.normalizeBenefits(dto.benefits),
+      images: this.normalizeImages(dto.images),
+      urgent: dto.urgent ? 1 : 0,
+    };
+  }
+
   async list(query: any) {
     const { keyword, salaryType, minSalary, maxSalary, page = 1, pageSize = 20 } = query;
     const qb = this.jobRepo.createQueryBuilder('j')
@@ -47,8 +107,15 @@ export class JobService {
   }
 
   async create(userId: number, dto: any) {
-    await this.checkKeywords((dto.title || '') + (dto.description || ''));
-    const job = this.jobRepo.create({ ...dto, userId });
+    const payload = this.normalizeCreateDto(dto);
+    if (!payload.title) throw new BadRequestException('请输入招工标题');
+    if (!(payload.salary > 0)) throw new BadRequestException('请输入正确工价');
+    if (!(payload.needCount > 0)) throw new BadRequestException('请输入招工人数');
+    if (!payload.location) throw new BadRequestException('请选择工作地点');
+    if (!payload.dateStart || !payload.dateEnd) throw new BadRequestException('请选择工作日期');
+
+    await this.checkKeywords(payload.title + (payload.description || ''));
+    const job = this.jobRepo.create({ ...payload, userId });
     return this.jobRepo.save(job);
   }
 

@@ -88,17 +88,25 @@ Page({
       wx.showToast({ title: '请填写必填项', icon: 'none' })
       return
     }
+    if (!form.startDate || !form.endDate) {
+      wx.showToast({ title: '请选择工作日期', icon: 'none' })
+      return
+    }
+    if (!form.location) {
+      wx.showToast({ title: '请输入工作地点', icon: 'none' })
+      return
+    }
     const data = {
       title: form.title,
       jobType: form.jobType,
       salary: Number(form.salary),
-      salaryMode: salaryModes[salaryMode],
-      headcount: Number(form.need),
+      salaryType: salaryMode === 0 ? 'hourly' : 'piece',
+      salaryUnit: salaryMode === 0 ? '元/时' : '元/件',
+      needCount: Number(form.need),
       description: form.description,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      startTime: form.startTime,
-      endTime: form.endTime,
+      dateStart: form.startDate,
+      dateEnd: form.endDate,
+      workHours: `${form.startTime || '08:00'}-${form.endTime || '18:00'}`,
       location: form.location,
       benefits: selectedBenefits,
       images
