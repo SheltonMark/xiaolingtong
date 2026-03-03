@@ -5,6 +5,37 @@
   background-color: #F8FAFC; 
   overflow: hidden; 
 }
+.recording-mask {
+  position: fixed;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.recording-panel {
+  min-width: 260rpx;
+  padding: 24rpx 28rpx;
+  border-radius: 20rpx;
+  background: rgba(15,23,42,0.8);
+  text-align: center;
+}
+.recording-title {
+  display: block;
+  color: #FFFFFF;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+.recording-sub {
+  display: block;
+  margin-top: 8rpx;
+  color: #E2E8F0;
+  font-size: 22rpx;
+}
 .chat-body { 
   flex: 1; 
   padding: 24rpx;

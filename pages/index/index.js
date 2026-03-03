@@ -1,4 +1,4 @@
-const { get } = require('../../utils/request')
+const { get, post } = require('../../utils/request')
 
 Page({
   data: {
@@ -173,7 +173,30 @@ Page({
   },
 
   onChat(e) {
-    wx.navigateTo({ url: '/pages/chat/chat' })
+    const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
+    const allItems = [
+      ...(this.data.purchaseList || []),
+      ...(this.data.stockList || []),
+      ...(this.data.processList || []),
+      ...(this.data.jobListEnterprise || []),
+      ...(this.data.jobList || [])
+    ]
+    const item = allItems.find(i => String(i.id) === String(id))
+    const targetUserId = item && (item.userId || (item.user && item.user.id))
+
+    if (!targetUserId) {
+      wx.showToast({ title: '暂不支持该条信息直接聊天', icon: 'none' })
+      return
+    }
+
+    post('/conversations/with-user/' + targetUserId).then(res => {
+      const conversationId = res.data && res.data.id
+      if (!conversationId) {
+        wx.showToast({ title: '创建会话失败', icon: 'none' })
+        return
+      }
+      wx.navigateTo({ url: '/pages/chat/chat?id=' + conversationId })
+    }).catch(() => {})
   },
 
   onReport(e) {

@@ -12,6 +12,7 @@ Page({
     messages: [],
     keyboardHeight: 0,
     recording: false,
+    recordingSeconds: 0,
     playingVoiceUrl: ''
   },
   onLoad(options) {
@@ -26,7 +27,8 @@ Page({
 
     this.recorderManager = wx.getRecorderManager()
     this.recorderManager.onStop((res) => {
-      this.setData({ recording: false })
+      this.clearRecordTimer()
+      this.setData({ recording: false, recordingSeconds: 0 })
       const filePath = res.tempFilePath
       if (!filePath) return
       wx.showLoading({ title: '语音上传中...' })
@@ -43,9 +45,16 @@ Page({
       })
     })
     this.recorderManager.onError(() => {
-      this.setData({ recording: false })
+      this.clearRecordTimer()
+      this.setData({ recording: false, recordingSeconds: 0 })
       wx.showToast({ title: '录音失败', icon: 'none' })
     })
+  },
+  clearRecordTimer() {
+    if (this.recordTimer) {
+      clearInterval(this.recordTimer)
+      this.recordTimer = null
+    }
   },
   loadMessages(id) {
     if (!id) return
@@ -152,12 +161,17 @@ Page({
     if (!url) return
     wx.previewImage({ current: url, urls: [url] })
   },
-  onToggleVoice() {
-    if (this.data.recording) {
-      this.recorderManager.stop()
-      return
-    }
+  onVoiceTouchStart() {
+    if (this.data.recording || !this.recorderManager) return
+    this.clearRecordTimer()
+    this.recordStartAt = Date.now()
     this.setData({ recording: true })
+    this.recordTimer = setInterval(() => {
+      const seconds = Math.max(0, Math.floor((Date.now() - this.recordStartAt) / 1000))
+      if (seconds !== this.data.recordingSeconds) {
+        this.setData({ recordingSeconds: seconds })
+      }
+    }, 200)
     this.recorderManager.start({
       duration: 60000,
       sampleRate: 16000,
@@ -165,7 +179,14 @@ Page({
       encodeBitRate: 96000,
       format: 'mp3'
     })
-    wx.showToast({ title: '录音中，再点结束', icon: 'none' })
+  },
+  onVoiceTouchEnd() {
+    if (!this.data.recording || !this.recorderManager) return
+    this.recorderManager.stop()
+  },
+  onVoiceTouchCancel() {
+    if (!this.data.recording || !this.recorderManager) return
+    this.recorderManager.stop()
   },
   onPlayVoice(e) {
     const url = e.currentTarget.dataset.url
@@ -199,6 +220,7 @@ Page({
       this.audioContext.destroy()
       this.audioContext = null
     }
+    this.clearRecordTimer()
     if (this.recorderManager && this.data.recording) {
       this.recorderManager.stop()
     }

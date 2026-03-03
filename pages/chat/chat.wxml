@@ -1,6 +1,12 @@
 <!--pages/chat/chat.wxml-->
 <view class="chat-page">
   <nav-bar title="在线聊天" />
+  <view class="recording-mask" wx:if="{{recording}}">
+    <view class="recording-panel">
+      <text class="recording-title">录音中...</text>
+      <text class="recording-sub">松开发送（{{recordingSeconds}}s）</text>
+    </view>
+  </view>
   <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}">
     <view class="time-mark"><text>今天 14:30</text></view>
     <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
@@ -41,7 +47,10 @@
   </scroll-view>
   <view class="chat-bottom" style="bottom: {{keyboardHeight}}px;">
     <view class="chat-input-row">
-      <view class="chat-tool-btn" bindtap="onToggleVoice">
+      <view class="chat-tool-btn"
+            bindtouchstart="onVoiceTouchStart"
+            bindtouchend="onVoiceTouchEnd"
+            bindtouchcancel="onVoiceTouchCancel">
         <text class="iconfont icon-yuyin chat-tool-icon {{recording ? 'chat-tool-icon-active' : ''}}"></text>
       </view>
       <input
