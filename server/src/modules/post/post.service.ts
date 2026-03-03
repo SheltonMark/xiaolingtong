@@ -28,6 +28,69 @@ export class PostService {
     }
   }
 
+  private normalizeText(value: any): string {
+    if (value === undefined || value === null) return '';
+    return String(value).trim();
+  }
+
+  private composePostContent(type: string, title: string, description: string, fields: Record<string, any>) {
+    const safeFields = fields || {};
+    const joinSegments = (segments: string[]) => segments.filter(Boolean).join('，');
+
+    const productName = this.normalizeText(title || safeFields.productName);
+    const processType = this.normalizeText(safeFields.processType || title);
+    const quantity = this.normalizeText(safeFields.quantity);
+    const spec = this.normalizeText(safeFields.spec);
+    const deliveryDays = this.normalizeText(safeFields.deliveryDays);
+    const quality = this.normalizeText(safeFields.quality);
+    const price = this.normalizeText(safeFields.price);
+    const priceMin = this.normalizeText(safeFields.priceMin);
+    const priceMax = this.normalizeText(safeFields.priceMax);
+    const minOrder = this.normalizeText(safeFields.minOrder);
+    const capacity = this.normalizeText(safeFields.capacity);
+    const processDesc = this.normalizeText(safeFields.processDesc);
+    const extraDesc = this.normalizeText(description);
+
+    const budgetText = priceMin && priceMax
+      ? `预算${priceMin}-${priceMax}元`
+      : priceMin
+        ? `预算${priceMin}元起`
+        : priceMax
+          ? `预算${priceMax}元以内`
+          : '';
+
+    let autoContent = '';
+    if (type === 'purchase') {
+      autoContent = joinSegments([
+        productName ? `采购${productName}${quantity ? `${quantity}个` : ''}` : '',
+        spec ? `规格：${spec}` : '',
+        deliveryDays ? `交期：${deliveryDays}` : '',
+        budgetText,
+        quality ? `质量要求：${quality}` : '',
+      ]);
+    } else if (type === 'stock') {
+      autoContent = joinSegments([
+        productName ? `${productName}现货供应` : '',
+        quantity ? `库存${quantity}个` : '',
+        price ? `单价${price}元` : '',
+        minOrder ? `${minOrder}个起订` : '',
+        spec ? `规格：${spec}` : '',
+      ]);
+    } else if (type === 'process') {
+      autoContent = joinSegments([
+        processType ? `承接${processType}` : '',
+        processDesc ? `工艺：${processDesc}` : '',
+        capacity ? `产能${capacity}件/天` : '',
+        price ? `加工单价${price}元/件` : '',
+        minOrder ? `${minOrder}个起订` : '',
+        deliveryDays ? `交期：${deliveryDays}` : '',
+      ]);
+    }
+
+    if (autoContent && extraDesc) return `${autoContent}，${extraDesc}`;
+    return autoContent || extraDesc || this.normalizeText(title);
+  }
+
   async list(query: any) {
     const { type, industry, keyword, page = 1, pageSize = 20 } = query;
     const qb = this.postRepo.createQueryBuilder('p')
@@ -74,21 +137,45 @@ export class PostService {
   }
 
   async create(userId: number, dto: any) {
-    const { type, title, category, description, images, showPhone, showWechat, validityDays, ...structuredFields } = dto;
+    const {
+      type,
+      title,
+      category,
+      description,
+      images,
+      showPhone,
+      showWechat,
+      validityDays,
+      contactName,
+      contactPhone,
+      contactWechat,
+      ...structuredFields
+    } = dto;
 
-    const content = description || '';
+    const content = this.composePostContent(type, title, description, structuredFields);
+    const phoneVisible = showPhone !== false;
+    const wechatVisible = showWechat !== false;
+    const normalizedContactName = this.normalizeText(contactName) || null;
+    const normalizedContactPhone = this.normalizeText(contactPhone) || null;
+    const normalizedContactWechat = this.normalizeText(contactWechat) || null;
+
     await this.checkKeywords(content + (title || ''));
 
-    const post = this.postRepo.create({
+    const postData: Partial<Post> = {
       userId,
       type,
       title,
       industry: category,
       content,
-      fields: Object.keys(structuredFields).length ? structuredFields : null,
-      images: images || null,
       expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : undefined,
-    });
+    };
+    if (Object.keys(structuredFields).length) postData.fields = structuredFields;
+    if (images && images.length) postData.images = images;
+    if (normalizedContactName) postData.contactName = normalizedContactName;
+    if (phoneVisible && normalizedContactPhone) postData.contactPhone = normalizedContactPhone;
+    if (wechatVisible && normalizedContactWechat) postData.contactWechat = normalizedContactWechat;
+
+    const post = this.postRepo.create(postData);
     return this.postRepo.save(post);
   }
 

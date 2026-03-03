@@ -25,12 +25,31 @@ Page({
     validityOptions: ['7天', '15天', '30天', '60天', '90天'],
     validityIndex: 2,
     contactInfo: {
-      name: '王经理',
-      phone: '138****1234',
-      wechat: 'wang_trade_2024'
+      name: '',
+      phone: '',
+      wechat: ''
     },
-    phoneChecked: true,
-    wechatChecked: true
+    phoneChecked: false,
+    wechatChecked: false
+  },
+
+  onLoad() {
+    this.initContactInfo()
+  },
+
+  initContactInfo() {
+    const app = getApp()
+    const userInfo = app.globalData.userInfo || {}
+    const contactInfo = {
+      name: userInfo.nickname || '',
+      phone: userInfo.phone || '',
+      wechat: ''
+    }
+    this.setData({
+      contactInfo,
+      phoneChecked: !!contactInfo.phone,
+      wechatChecked: !!contactInfo.wechat
+    })
   },
 
   onTypeChange(e) {
@@ -40,6 +59,11 @@ Page({
   onInput(e) {
     const field = e.currentTarget.dataset.field
     this.setData({ ['form.' + field]: e.detail.value })
+  },
+
+  onContactInput(e) {
+    const field = e.currentTarget.dataset.field
+    this.setData({ ['contactInfo.' + field]: e.detail.value })
   },
 
   onCategoryChange(e) {
@@ -92,8 +116,11 @@ Page({
   },
 
   onSubmit() {
-    const { form, phoneChecked, wechatChecked, images, typeIndex } = this.data
+    const { form, phoneChecked, wechatChecked, images, typeIndex, contactInfo } = this.data
     const types = ['purchase', 'stock', 'process']
+    const contactName = (contactInfo.name || '').trim()
+    const contactPhone = (contactInfo.phone || '').trim()
+    const contactWechat = (contactInfo.wechat || '').trim()
     if (!form.productName && typeIndex !== 2) {
       wx.showToast({ title: '请输入物品名称', icon: 'none' })
       return
@@ -106,20 +133,37 @@ Page({
       wx.showToast({ title: '请至少选择一种联系方式', icon: 'none' })
       return
     }
+    if (!contactName) {
+      wx.showToast({ title: '请输入联系人', icon: 'none' })
+      return
+    }
+    if (phoneChecked && !contactPhone) {
+      wx.showToast({ title: '请填写手机号', icon: 'none' })
+      return
+    }
+    if (wechatChecked && !contactWechat) {
+      wx.showToast({ title: '请填写微信号', icon: 'none' })
+      return
+    }
     const data = {
       type: types[typeIndex],
       title: typeIndex === 2 ? form.processType : form.productName,
       category: form.category,
       spec: form.spec,
       quantity: form.quantity ? Number(form.quantity) : undefined,
+      price: form.price ? Number(form.price) : undefined,
       priceMin: form.priceMin ? Number(form.priceMin) : undefined,
       priceMax: form.priceMax ? Number(form.priceMax) : undefined,
       quality: form.quality,
       deliveryDays: form.deliveryDays,
-      description: form.description || form.processDesc,
+      processDesc: form.processDesc,
+      description: form.description,
       minOrder: form.minOrder ? Number(form.minOrder) : undefined,
       capacity: form.capacity,
       images,
+      contactName,
+      contactPhone,
+      contactWechat,
       showPhone: phoneChecked,
       showWechat: wechatChecked,
       validityDays: Number(this.data.validityOptions[this.data.validityIndex].replace('天', ''))
