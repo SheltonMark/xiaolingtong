@@ -33,16 +33,21 @@
 
 /* 底部三按钮 */
 .card-actions {
-  display: flex; border-top: 1rpx solid #F1F5F9;
+  display: flex;
+  gap: 12rpx;
+  padding: 12rpx 16rpx 16rpx;
+  border-top: 1rpx solid #F1F5F9;
 }
 .action-btn {
-  flex: 1; height: 80rpx;
+  flex: 1;
+  height: 72rpx;
   display: flex; align-items: center; justify-content: center; gap: 8rpx;
-  font-size: 22rpx; font-weight: 500;
+  font-size: 22rpx;
+  font-weight: 500;
+  border-radius: 14rpx;
 }
-.action-btn:not(:last-child) { border-right: 1rpx solid #F1F5F9; }
 .action-btn .iconfont { font-size: 28rpx; }
 .action-icon-align { position: relative; top: 2rpx; }
-.action-wechat { color: #10B981; }
-.action-phone { color: #3B82F6; }
-.action-chat { color: #F97316; }
+.action-wechat { color: #10B981; background-color: #ECFDF5; }
+.action-phone { color: #3B82F6; background-color: #EFF6FF; }
+.action-chat { color: #F97316; background-color: #FFF7ED; }
