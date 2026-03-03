@@ -168,7 +168,7 @@
 
 /* ===== 分类图标网格 ===== */
 .cate-grid-wrap {
-  padding: 16rpx 32rpx 0;
+  padding: 16rpx 32rpx 8rpx;
 }
 .cate-grid {
   display: flex;
@@ -214,13 +214,13 @@
   padding: 0 32rpx 32rpx;
 }
 .worker-list-wrap {
-  padding: 0 32rpx 32rpx;
+  padding: 20rpx 32rpx 32rpx;
 }
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx 0 16rpx;
+  padding: 44rpx 0 16rpx;
 }
 .section-title {
   font-size: 28rpx;
