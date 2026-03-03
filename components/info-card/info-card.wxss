@@ -31,8 +31,20 @@
 }
 .icon-btn .iconfont { font-size: 24rpx; color: #94A3B8; }
 .share-btn {
+  width: 52rpx;
+  min-width: 52rpx;
+  max-width: 52rpx;
+  height: 52rpx;
+  margin: 0;
   padding: 0;
   line-height: 52rpx;
+  flex: none;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 .share-btn::after {
   border: none;

@@ -53,8 +53,7 @@ Page({
     ],
     // 临工端
     jobList: [],
-    filterLabels: ['工种', '计费方式', '距离', '工价'],
-    myCompanyName: ''
+    filterLabels: ['工种', '计费方式', '距离', '工价']
   },
 
   onLoad() {
@@ -82,27 +81,11 @@ Page({
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole })
-    if (userRole === 'enterprise') {
-      this.loadMyCompanyName().finally(() => this.loadData())
-    } else {
-      this.loadData()
-    }
+    this.loadData()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
     }
     setTimeout(() => this.measureHeader(), 100)
-  },
-
-  loadMyCompanyName() {
-    return get('/cert/status').then(res => {
-      const cert = (res.data && res.data.cert) || {}
-      const companyName = cert.companyName || ''
-      this.setData({ myCompanyName: companyName })
-      return companyName
-    }).catch(() => {
-      this.setData({ myCompanyName: '' })
-      return ''
-    })
   },
 
   loadData() {
@@ -127,21 +110,15 @@ Page({
   },
 
   _mapPosts(list) {
-    const app = getApp()
-    const userInfo = app.globalData.userInfo || {}
-    const currentUserId = userInfo.id
     return (Array.isArray(list) ? list : []).map(item => {
       const verifiedName = item.companyName || ''
-      const isMine = currentUserId && String(item.userId) === String(currentUserId)
-      const ownCompanyName = this.data.myCompanyName || userInfo.nickname || ''
-      const fallbackName = (item.user && item.user.nickname) || (isMine ? ownCompanyName : '') || item.contactName || ''
-      const companyName = verifiedName || fallbackName || '企业用户'
+      const companyName = verifiedName || '企业用户'
       return {
         ...item,
         companyName,
         companyMeta: item.industry || '',
         avatarUrl: (item.user && item.user.avatarUrl) || '',
-        avatarText: (verifiedName || fallbackName) ? companyName[0] : '企',
+        avatarText: verifiedName ? companyName[0] : '企',
         time: item.createdAt ? item.createdAt.substring(0, 10) : '',
         wechat: item.contactWechat || item.wechat || '',
         phone: item.contactPhone || item.phone || ''
