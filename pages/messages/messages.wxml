@@ -7,13 +7,13 @@
     <view class="tab-item {{currentTab === 0 ? 'tab-active' : ''}}" data-index="{{0}}" bindtap="onTabChange">
       <view class="tab-text-wrap">
         <text class="tab-label">业务消息</text>
-        <view class="tab-badge tab-badge-float" wx:if="{{chatUnreadCount > 0}}">{{chatUnreadCount}}</view>
+        <view class="tab-badge tab-badge-float" wx:if="{{chatUnreadCount > 0}}">{{chatUnreadDisplay}}</view>
       </view>
     </view>
     <view class="tab-item {{currentTab === 1 ? 'tab-active' : ''}}" data-index="{{1}}" bindtap="onTabChange">
       <view class="tab-text-wrap">
         <text class="tab-label">系统通知</text>
-        <view class="tab-badge tab-badge-float" wx:if="{{systemUnreadCount > 0}}">{{systemUnreadCount}}</view>
+        <view class="tab-badge tab-badge-float" wx:if="{{systemUnreadCount > 0}}">{{systemUnreadDisplay}}</view>
       </view>
     </view>
   </view>

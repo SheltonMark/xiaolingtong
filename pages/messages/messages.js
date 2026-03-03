@@ -4,7 +4,9 @@ Page({
   data: {
     currentTab: 0,
     chatUnreadCount: 0,
+    chatUnreadDisplay: '',
     systemUnreadCount: 0,
+    systemUnreadDisplay: '',
     chatMessages: [],
     systemMessages: []
   },
@@ -27,20 +29,28 @@ Page({
         lastMsg: item.lastMsg || '暂无消息',
         time: item.time || ''
       }))
-      const unread = mapped.reduce((sum, m) => sum + (m.unreadCount || 0), 0)
-      this.setData({ chatMessages: mapped, chatUnreadCount: unread })
+      const unread = mapped.reduce((sum, m) => sum + Number(m.unreadCount || 0), 0)
+      this.setData({
+        chatMessages: mapped,
+        chatUnreadCount: unread,
+        chatUnreadDisplay: unread > 99 ? '99+' : String(unread)
+      })
     }).catch(() => {})
     get('/notifications').then(res => {
       const list = res.data.list || res.data || []
       const unread = list.filter(m => m.unread).length
-      this.setData({ systemMessages: list, systemUnreadCount: unread })
+      this.setData({
+        systemMessages: list,
+        systemUnreadCount: unread,
+        systemUnreadDisplay: unread > 99 ? '99+' : String(unread)
+      })
     }).catch(() => {})
   },
   onTabChange(e) { this.setData({ currentTab: e.currentTarget.dataset.index }) },
   onReadAll() {
     post('/notifications/read-all').then(() => {
       const sys = this.data.systemMessages.map(m => ({ ...m, unread: false }))
-      this.setData({ systemMessages: sys, systemUnreadCount: 0 })
+      this.setData({ systemMessages: sys, systemUnreadCount: 0, systemUnreadDisplay: '' })
       wx.showToast({ title: '已全部已读', icon: 'success' })
     }).catch(() => {})
   },
