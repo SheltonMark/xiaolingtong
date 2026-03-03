@@ -6,6 +6,7 @@ import { ContactUnlock } from '../../entities/contact-unlock.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Keyword } from '../../entities/keyword.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 
 const UNLOCK_COST = 10;
 
@@ -17,6 +18,7 @@ export class PostService {
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
+    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -91,6 +93,34 @@ export class PostService {
     return autoContent || extraDesc || this.normalizeText(title);
   }
 
+  private async getEnterpriseCertMap(userIds: number[]) {
+    const uniqueIds = Array.from(new Set((userIds || []).filter(Boolean)));
+    const certMap = new Map<number, EnterpriseCert>();
+    if (!uniqueIds.length) return certMap;
+
+    const certs = await this.entCertRepo.createQueryBuilder('c')
+      .where('c.userId IN (:...userIds)', { userIds: uniqueIds })
+      .orderBy('c.userId', 'ASC')
+      .addOrderBy('c.id', 'DESC')
+      .getMany();
+
+    for (const cert of certs) {
+      if (!certMap.has(cert.userId)) certMap.set(cert.userId, cert);
+    }
+    return certMap;
+  }
+
+  private buildCompanyInfo(post: any, certMap: Map<number, EnterpriseCert>) {
+    const userId = Number(post.userId || (post.user && post.user.id) || 0);
+    const cert = certMap.get(userId);
+    const enterpriseVerified = !!(cert && cert.status === 'approved');
+    return {
+      ...post,
+      companyName: enterpriseVerified ? cert!.companyName : '',
+      enterpriseVerified,
+    };
+  }
+
   async list(query: any) {
     const { type, industry, keyword, page = 1, pageSize = 20 } = query;
     const qb = this.postRepo.createQueryBuilder('p')
@@ -106,7 +136,9 @@ export class PostService {
       .take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+    const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
+    const normalizedList = (list || []).map(item => this.buildCompanyInfo(item, certMap));
+    return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }
 
   async myPosts(userId: number, query: any) {
@@ -122,7 +154,9 @@ export class PostService {
       .take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+    const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
+    const normalizedList = (list || []).map(item => this.buildCompanyInfo(item, certMap));
+    return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }
 
   async detail(id: number, userId: number) {
@@ -133,7 +167,9 @@ export class PostService {
     await this.postRepo.save(post);
 
     const unlocked = await this.unlockRepo.findOne({ where: { userId, postId: id } });
-    return { ...post, contactUnlocked: !!unlocked || post.userId === userId };
+    const certMap = await this.getEnterpriseCertMap([Number(post.userId)]);
+    const normalizedPost = this.buildCompanyInfo(post, certMap);
+    return { ...normalizedPost, contactUnlocked: !!unlocked || post.userId === userId };
   }
 
   async create(userId: number, dto: any) {

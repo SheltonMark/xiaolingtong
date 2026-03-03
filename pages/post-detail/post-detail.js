@@ -104,7 +104,7 @@ Page({
   },
 
   formatDetail(raw) {
-    const companyNameRaw = (raw.user && raw.user.nickname) || ''
+    const companyNameRaw = raw.companyName || (raw.enterpriseVerified ? ((raw.user && raw.user.nickname) || '') : '')
     const companyName = this.getDisplayCompanyName(companyNameRaw)
     const hasCompanyName = !!this.normalizeText(companyNameRaw)
     const avatarText = hasCompanyName ? this.normalizeText(companyNameRaw).slice(0, 1) : '企'
@@ -120,7 +120,7 @@ Page({
       avatarUrl: (raw.user && raw.user.avatarUrl) || '',
       avatarText,
       companyName: companyName || '企业用户',
-      certText: hasCompanyName ? '已认证' : '未认证',
+      certText: raw.enterpriseVerified ? '已认证' : '未认证',
       industry: raw.industry || '未分类',
       postCount: (raw.user && raw.user.postCount) || raw.postCount || '--'
     }

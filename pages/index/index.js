@@ -111,13 +111,15 @@ Page({
 
   _mapPosts(list) {
     return (Array.isArray(list) ? list : []).map(item => {
-      const companyName = (item.user && item.user.nickname) || '企业用户'
+      const verifiedName = item.companyName || ''
+      const fallbackName = item.enterpriseVerified ? ((item.user && item.user.nickname) || '') : ''
+      const companyName = verifiedName || fallbackName || '企业用户'
       return {
         ...item,
         companyName,
         companyMeta: item.industry || '',
         avatarUrl: (item.user && item.user.avatarUrl) || '',
-        avatarText: companyName ? companyName[0] : '企',
+        avatarText: (verifiedName || fallbackName) ? companyName[0] : '企',
         time: item.createdAt ? item.createdAt.substring(0, 10) : ''
       }
     })
