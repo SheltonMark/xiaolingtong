@@ -18,23 +18,58 @@
   justify-content: center;
 }
 .recording-panel {
-  min-width: 260rpx;
-  padding: 24rpx 28rpx;
+  min-width: 280rpx;
+  padding: 28rpx 32rpx;
   border-radius: 20rpx;
   background: rgba(15,23,42,0.8);
   text-align: center;
 }
+.recording-panel-cancel {
+  background: rgba(127,29,29,0.88);
+}
+.recording-mic {
+  color: #FFFFFF;
+  font-size: 44rpx;
+  line-height: 1;
+}
+.recording-bars {
+  margin-top: 14rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8rpx;
+  height: 36rpx;
+}
+.recording-bar {
+  width: 8rpx;
+  border-radius: 8rpx;
+  background: #34D399;
+  animation: voiceWave 1s ease-in-out infinite;
+}
+.recording-panel-cancel .recording-bar {
+  background: #FCA5A5;
+}
+.recording-bar-1 { animation-delay: 0s; }
+.recording-bar-2 { animation-delay: 0.15s; }
+.recording-bar-3 { animation-delay: 0.3s; }
+.recording-bar-4 { animation-delay: 0.45s; }
+.recording-bar-5 { animation-delay: 0.6s; }
+@keyframes voiceWave {
+  0%, 100% { height: 10rpx; opacity: 0.5; }
+  50% { height: 32rpx; opacity: 1; }
+}
 .recording-title {
   display: block;
+  margin-top: 10rpx;
   color: #FFFFFF;
-  font-size: 30rpx;
-  font-weight: 600;
+  font-size: 24rpx;
+  font-weight: 500;
 }
 .recording-sub {
   display: block;
-  margin-top: 8rpx;
+  margin-top: 6rpx;
   color: #E2E8F0;
-  font-size: 22rpx;
+  font-size: 20rpx;
 }
 .chat-body { 
   flex: 1; 
@@ -147,9 +182,14 @@
 .chat-tool-icon {
   font-size: 48rpx;
   color: #64748B;
+  line-height: 1;
 }
 .chat-tool-icon-active {
   color: #10B981;
+}
+.keyboard-icon {
+  font-size: 42rpx;
+  font-family: -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;
 }
 .chat-input { 
   flex: 1; 
@@ -160,6 +200,28 @@
   padding: 0 24rpx; 
   font-size: 26rpx;
   box-sizing: border-box;
+}
+.press-talk-btn {
+  flex: 1;
+  height: 72rpx;
+  border-radius: 36rpx;
+  background-color: #F1F5F9;
+  border: 1rpx solid #E2E8F0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+.press-talk-btn-active {
+  background-color: #E2E8F0;
+}
+.press-talk-btn-cancel {
+  background-color: #FEE2E2;
+  border-color: #FCA5A5;
+}
+.press-talk-text {
+  font-size: 24rpx;
+  color: #334155;
 }
 .chat-send-btn {
   width: 50rpx;

@@ -12,8 +12,11 @@ Page({
     myAvatarText: '',
     messages: [],
     keyboardHeight: 0,
+    voiceMode: false,
+    hasRecordAuth: false,
     recording: false,
     recordingSeconds: 0,
+    cancelVoice: false,
     playingVoiceUrl: ''
   },
   onLoad(options) {
@@ -29,7 +32,17 @@ Page({
     this.recorderManager = wx.getRecorderManager()
     this.recorderManager.onStop((res) => {
       this.clearRecordTimer()
-      this.setData({ recording: false, recordingSeconds: 0 })
+      const shouldCancel = !!this.pendingCancelVoice
+      this.pendingCancelVoice = false
+      this.setData({ recording: false, recordingSeconds: 0, cancelVoice: false })
+      if (shouldCancel) {
+        wx.showToast({ title: '已取消发送', icon: 'none' })
+        return
+      }
+      if ((res.duration || 0) < 800) {
+        wx.showToast({ title: '说话时间太短', icon: 'none' })
+        return
+      }
       const filePath = res.tempFilePath
       if (!filePath) return
       wx.showLoading({ title: '语音上传中...' })
@@ -47,8 +60,17 @@ Page({
     })
     this.recorderManager.onError(() => {
       this.clearRecordTimer()
-      this.setData({ recording: false, recordingSeconds: 0 })
+      this.pendingCancelVoice = false
+      this.setData({ recording: false, recordingSeconds: 0, cancelVoice: false })
       wx.showToast({ title: '录音失败', icon: 'none' })
+    })
+
+    wx.getSetting({
+      success: (res) => {
+        if (res.authSetting && res.authSetting['scope.record']) {
+          this.setData({ hasRecordAuth: true })
+        }
+      }
     })
   },
   onShow() {
@@ -137,6 +159,38 @@ Page({
     }
   },
   onMsgInput(e) { this.setData({ inputText: e.detail.value }) },
+  onTapVoiceIcon() {
+    if (this.data.recording) return
+    if (this.data.voiceMode) {
+      this.setData({ voiceMode: false })
+      return
+    }
+    this.ensureRecordPermission().then((ok) => {
+      if (!ok) return
+      this.setData({ voiceMode: true, keyboardHeight: 0 })
+    })
+  },
+  ensureRecordPermission() {
+    return new Promise((resolve) => {
+      wx.authorize({
+        scope: 'scope.record',
+        success: () => {
+          this.setData({ hasRecordAuth: true })
+          resolve(true)
+        },
+        fail: () => {
+          wx.openSetting({
+            success: (res) => {
+              const enabled = !!(res.authSetting && res.authSetting['scope.record'])
+              this.setData({ hasRecordAuth: enabled })
+              resolve(enabled)
+            },
+            fail: () => resolve(false)
+          })
+        }
+      })
+    })
+  },
   onSend() {
     const text = (this.data.inputText || '').trim()
     if (!text) return
@@ -184,11 +238,13 @@ Page({
     if (!url) return
     wx.previewImage({ current: url, urls: [url] })
   },
-  onVoiceTouchStart() {
-    if (this.data.recording || !this.recorderManager) return
+  onVoiceTouchStart(e) {
+    if (!this.data.voiceMode || this.data.recording || !this.recorderManager) return
     this.clearRecordTimer()
     this.recordStartAt = Date.now()
-    this.setData({ recording: true })
+    this.recordStartY = e.touches && e.touches[0] ? e.touches[0].clientY : 0
+    this.pendingCancelVoice = false
+    this.setData({ recording: true, cancelVoice: false, recordingSeconds: 0 })
     this.recordTimer = setInterval(() => {
       const seconds = Math.max(0, Math.floor((Date.now() - this.recordStartAt) / 1000))
       if (seconds !== this.data.recordingSeconds) {
@@ -203,12 +259,22 @@ Page({
       format: 'mp3'
     })
   },
+  onVoiceTouchMove(e) {
+    if (!this.data.recording) return
+    const moveY = e.touches && e.touches[0] ? e.touches[0].clientY : 0
+    const cancel = (this.recordStartY - moveY) > 70
+    if (cancel !== this.data.cancelVoice) {
+      this.setData({ cancelVoice: cancel })
+    }
+  },
   onVoiceTouchEnd() {
     if (!this.data.recording || !this.recorderManager) return
+    this.pendingCancelVoice = this.data.cancelVoice
     this.recorderManager.stop()
   },
   onVoiceTouchCancel() {
     if (!this.data.recording || !this.recorderManager) return
+    this.pendingCancelVoice = true
     this.recorderManager.stop()
   },
   onPlayVoice(e) {
@@ -249,6 +315,7 @@ Page({
     }
     this.clearRecordTimer()
     if (this.recorderManager && this.data.recording) {
+      this.pendingCancelVoice = true
       this.recorderManager.stop()
     }
   }

@@ -2,9 +2,17 @@
 <view class="chat-page">
   <nav-bar title="在线聊天" />
   <view class="recording-mask" wx:if="{{recording}}">
-    <view class="recording-panel">
-      <text class="recording-title">录音中...</text>
-      <text class="recording-sub">松开发送（{{recordingSeconds}}s）</text>
+    <view class="recording-panel {{cancelVoice ? 'recording-panel-cancel' : ''}}">
+      <view class="recording-mic iconfont icon-yuyin"></view>
+      <view class="recording-bars">
+        <view class="recording-bar recording-bar-1"></view>
+        <view class="recording-bar recording-bar-2"></view>
+        <view class="recording-bar recording-bar-3"></view>
+        <view class="recording-bar recording-bar-4"></view>
+        <view class="recording-bar recording-bar-5"></view>
+      </view>
+      <text class="recording-title">{{cancelVoice ? '松开手指，取消发送' : '手指上滑，取消发送'}}</text>
+      <text class="recording-sub">{{recordingSeconds}}s</text>
     </view>
   </view>
   <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}">
@@ -47,29 +55,33 @@
   </scroll-view>
   <view class="chat-bottom" style="bottom: {{keyboardHeight}}px;">
     <view class="chat-input-row">
-      <view class="chat-tool-btn"
+      <view class="chat-tool-btn" bindtap="onTapVoiceIcon">
+        <text class="chat-tool-icon {{recording ? 'chat-tool-icon-active' : ''}} {{voiceMode ? 'keyboard-icon' : 'iconfont icon-yuyin'}}">{{voiceMode ? '⌨' : ''}}</text>
+      </view>
+      <input wx:if="{{!voiceMode}}"
+             class="chat-input"
+             placeholder="输入消息..."
+             bindinput="onMsgInput"
+             bindfocus="onInputFocus"
+             bindblur="onInputBlur"
+             bindkeyboardheightchange="onKeyboardHeightChange"
+             value="{{inputText}}"
+             adjust-position="{{false}}"
+             cursor-spacing="24"
+             confirm-type="send"
+             bindconfirm="onSend" />
+      <view wx:else
+            class="press-talk-btn {{recording ? 'press-talk-btn-active' : ''}} {{cancelVoice ? 'press-talk-btn-cancel' : ''}}"
             bindtouchstart="onVoiceTouchStart"
+            bindtouchmove="onVoiceTouchMove"
             bindtouchend="onVoiceTouchEnd"
             bindtouchcancel="onVoiceTouchCancel">
-        <text class="iconfont icon-yuyin chat-tool-icon {{recording ? 'chat-tool-icon-active' : ''}}"></text>
+        <text class="press-talk-text">{{recording ? (cancelVoice ? '松开取消发送' : '松开发送，上滑取消') : '按住说话'}}</text>
       </view>
-      <input
-        class="chat-input"
-        placeholder="输入消息..."
-        bindinput="onMsgInput"
-        bindfocus="onInputFocus"
-        bindblur="onInputBlur"
-        bindkeyboardheightchange="onKeyboardHeightChange"
-        value="{{inputText}}"
-        adjust-position="{{false}}"
-        cursor-spacing="24"
-        confirm-type="send"
-        bindconfirm="onSend"
-      />
       <view class="chat-tool-btn" bindtap="onChooseImage">
         <text class="iconfont icon-tupian chat-tool-icon"></text>
       </view>
-      <view class="chat-send-btn" bindtap="onSend">
+      <view class="chat-send-btn" bindtap="onSend" wx:if="{{!voiceMode}}">
         <text class="send-arrow">↑</text>
       </view>
     </view>
