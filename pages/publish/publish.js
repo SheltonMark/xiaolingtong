@@ -96,14 +96,20 @@ Page({
       mediaType: ['image'],
       success: (res) => {
         const newImages = res.tempFiles.map(f => f.tempFilePath)
-        // 上传图片
+        // 仅保存上传成功后的远程地址，避免临时本地路径失效
         const uploads = newImages.map(path => upload(path))
-        Promise.all(uploads).then(results => {
-          const urls = results.map(r => r.data.url || r.data)
-          this.setData({ images: [...this.data.images, ...urls] })
-        }).catch(() => {
-          // 上传失败时用本地路径占位
-          this.setData({ images: [...this.data.images, ...newImages] })
+        Promise.allSettled(uploads).then(results => {
+          const urls = results
+            .filter(r => r.status === 'fulfilled')
+            .map(r => (r.value.data && r.value.data.url) || r.value.data || '')
+            .filter(Boolean)
+          const failCount = results.length - urls.length
+          if (urls.length) {
+            this.setData({ images: [...this.data.images, ...urls] })
+          }
+          if (failCount > 0) {
+            wx.showToast({ title: `有${failCount}张上传失败，请重试`, icon: 'none' })
+          }
         })
       }
     })
