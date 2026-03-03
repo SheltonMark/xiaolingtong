@@ -58,7 +58,7 @@
           <text class="pub-name">{{detail.companyName}}</text>
           <text class="cert-badge {{detail.certText === '未认证' ? 'cert-badge-pending' : ''}}">{{detail.certText}}</text>
         </view>
-        <text class="pub-industry">{{detail.industry}} · 发布信息 {{detail.postCount || 12}} 条</text>
+        <text class="pub-industry">{{detail.industry}} · 发布信息 {{detail.postCount || '--'}} 条</text>
       </view>
     </view>
   </view>

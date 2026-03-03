@@ -116,7 +116,7 @@ export class PostService {
     const enterpriseVerified = !!(cert && cert.status === 'approved');
     return {
       ...post,
-      companyName: enterpriseVerified ? cert!.companyName : '',
+      companyName: (cert && cert.companyName) || '',
       enterpriseVerified,
     };
   }
@@ -167,9 +167,16 @@ export class PostService {
     await this.postRepo.save(post);
 
     const unlocked = await this.unlockRepo.findOne({ where: { userId, postId: id } });
+    const userPostCount = await this.postRepo.count({
+      where: { userId: post.userId, status: 'active' as any },
+    });
     const certMap = await this.getEnterpriseCertMap([Number(post.userId)]);
     const normalizedPost = this.buildCompanyInfo(post, certMap);
-    return { ...normalizedPost, contactUnlocked: !!unlocked || post.userId === userId };
+    return {
+      ...normalizedPost,
+      postCount: userPostCount,
+      contactUnlocked: !!unlocked || post.userId === userId,
+    };
   }
 
   async create(userId: number, dto: any) {

@@ -112,7 +112,7 @@ Page({
   _mapPosts(list) {
     return (Array.isArray(list) ? list : []).map(item => {
       const verifiedName = item.companyName || ''
-      const fallbackName = item.enterpriseVerified ? ((item.user && item.user.nickname) || '') : ''
+      const fallbackName = (item.user && item.user.nickname) || ''
       const companyName = verifiedName || fallbackName || '企业用户'
       return {
         ...item,

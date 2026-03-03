@@ -104,7 +104,7 @@ Page({
   },
 
   formatDetail(raw) {
-    const companyNameRaw = raw.companyName || (raw.enterpriseVerified ? ((raw.user && raw.user.nickname) || '') : '')
+    const companyNameRaw = raw.companyName || ((raw.user && raw.user.nickname) || '')
     const companyName = this.getDisplayCompanyName(companyNameRaw)
     const hasCompanyName = !!this.normalizeText(companyNameRaw)
     const avatarText = hasCompanyName ? this.normalizeText(companyNameRaw).slice(0, 1) : '企'
