@@ -63,6 +63,7 @@
   </view>
 
   <!-- 底部操作 -->
+  <view class="bottom-actions-placeholder"></view>
   <view class="bottom-actions">
     <view class="fav-btn" bindtap="onToggleFav">
       <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
