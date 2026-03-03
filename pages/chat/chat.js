@@ -1,5 +1,4 @@
 const { get, post } = require('../../utils/request')
-const config = require('../../utils/config')
 
 Page({
   data: {
@@ -8,7 +7,8 @@ Page({
     scrollToView: '',
     otherAvatarText: '',
     myAvatarText: '',
-    messages: []
+    messages: [],
+    keyboardHeight: 0
   },
   onLoad(options) {
     if (options.id) {
@@ -22,11 +22,29 @@ Page({
   loadMessages(id) {
     get('/conversations/' + id + '/messages').then(res => {
       const list = res.data || []
-      this.setData({ messages: list })
-      if (list.length) {
-        this.setData({ scrollToView: 'msg-' + list[list.length - 1].id })
-      }
+      this.setData({ messages: list }, () => this.scrollToBottom())
     }).catch(() => {})
+  },
+  scrollToBottom() {
+    const list = this.data.messages || []
+    if (!list.length) return
+    const lastId = 'msg-' + list[list.length - 1].id
+    this.setData({ scrollToView: '' }, () => {
+      this.setData({ scrollToView: lastId })
+    })
+  },
+  onKeyboardHeightChange(e) {
+    const height = (e.detail && e.detail.height) || 0
+    if (height === this.data.keyboardHeight) return
+    this.setData({ keyboardHeight: height }, () => this.scrollToBottom())
+  },
+  onInputFocus() {
+    this.scrollToBottom()
+  },
+  onInputBlur() {
+    if (this.data.keyboardHeight) {
+      this.setData({ keyboardHeight: 0 })
+    }
   },
   onMsgInput(e) { this.setData({ inputText: e.detail.value }) },
   onSend() {
@@ -34,7 +52,9 @@ Page({
     const text = this.data.inputText
     const time = new Date().getHours() + ':' + String(new Date().getMinutes()).padStart(2, '0')
     const tempMsg = { id: Date.now(), from: 'me', text, time }
-    this.setData({ messages: [...this.data.messages, tempMsg], inputText: '', scrollToView: 'msg-' + tempMsg.id })
+    this.setData({ messages: [...this.data.messages, tempMsg], inputText: '', scrollToView: 'msg-' + tempMsg.id }, () => {
+      this.scrollToBottom()
+    })
     post('/conversations/' + this.data.conversationId + '/send', { content: text }).catch(() => {})
   },
   onChooseImage() {

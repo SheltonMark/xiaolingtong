@@ -1,13 +1,10 @@
 <!--pages/chat/chat.wxml-->
 <view class="chat-page">
   <nav-bar title="在线聊天" />
-  <!-- 聊天消息区 - 新增style强制宽度 -->
-  <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}" style="width: 100%;">
-    <!-- 原有内容不变 -->
+  <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}">
     <view class="time-mark"><text>今天 14:30</text></view>
     <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
     <block wx:for="{{messages}}" wx:key="id">
-      <!-- 对方消息 -->
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
         <view class="msg-avatar-wrap">
           <view class="text-avatar text-avatar-md" style="background-color: #F97316;">{{otherAvatarText}}</view>
@@ -20,7 +17,6 @@
           <text class="msg-time-text">{{item.time}}</text>
         </view>
       </view>
-      <!-- 我的消息 -->
       <view class="msg-row msg-right" wx:if="{{item.from === 'me'}}" id="msg-{{item.id}}">
         <view class="msg-bubble-wrap msg-bubble-right">
           <view class="bubble bubble-right" wx:if="{{item.text}}">
@@ -34,12 +30,27 @@
       </view>
     </block>
   </scroll-view>
-  <!-- 底部输入栏不变 -->
-  <view class="chat-bottom">
+  <view class="chat-bottom" style="bottom: {{keyboardHeight}}px;">
     <view class="chat-input-row">
-      <text class="chat-tool-btn"><text class="iconfont icon-yuyin"></text></text>
-      <input class="chat-input" placeholder="输入消息..." bindinput="onMsgInput" value="{{inputText}}" confirm-type="send" bindconfirm="onSend" />
-      <text class="chat-tool-btn" bindtap="onChooseImage"><text class="iconfont icon-tupian"></text></text>
+      <view class="chat-tool-btn">
+        <text class="iconfont icon-yuyin chat-tool-icon"></text>
+      </view>
+      <input
+        class="chat-input"
+        placeholder="输入消息..."
+        bindinput="onMsgInput"
+        bindfocus="onInputFocus"
+        bindblur="onInputBlur"
+        bindkeyboardheightchange="onKeyboardHeightChange"
+        value="{{inputText}}"
+        adjust-position="{{false}}"
+        cursor-spacing="24"
+        confirm-type="send"
+        bindconfirm="onSend"
+      />
+      <view class="chat-tool-btn" bindtap="onChooseImage">
+        <text class="iconfont icon-tupian chat-tool-icon"></text>
+      </view>
       <view class="chat-send-btn" bindtap="onSend">
         <text class="send-arrow">↑</text>
       </view>
