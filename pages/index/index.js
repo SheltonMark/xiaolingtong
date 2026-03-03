@@ -110,12 +110,17 @@ Page({
   },
 
   _mapPosts(list) {
-    return (Array.isArray(list) ? list : []).map(item => ({
-      ...item,
-      companyName: (item.user && item.user.nickname) || item.title || '',
-      avatarText: item.user && item.user.nickname ? item.user.nickname[0] : '',
-      time: item.createdAt ? item.createdAt.substring(0, 10) : ''
-    }))
+    return (Array.isArray(list) ? list : []).map(item => {
+      const companyName = (item.user && item.user.nickname) || '企业用户'
+      return {
+        ...item,
+        companyName,
+        companyMeta: item.industry || '',
+        avatarUrl: (item.user && item.user.avatarUrl) || '',
+        avatarText: companyName ? companyName[0] : '企',
+        time: item.createdAt ? item.createdAt.substring(0, 10) : ''
+      }
+    })
   },
 
   onTabChange(e) {
