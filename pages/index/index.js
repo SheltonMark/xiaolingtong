@@ -120,7 +120,9 @@ Page({
         companyMeta: item.industry || '',
         avatarUrl: (item.user && item.user.avatarUrl) || '',
         avatarText: (verifiedName || fallbackName) ? companyName[0] : '企',
-        time: item.createdAt ? item.createdAt.substring(0, 10) : ''
+        time: item.createdAt ? item.createdAt.substring(0, 10) : '',
+        wechat: item.contactWechat || item.wechat || '',
+        phone: item.contactPhone || item.phone || ''
       }
     })
   },
@@ -157,7 +159,7 @@ Page({
       ...(this.data.jobListEnterprise || []),
       ...(this.data.jobList || [])
     ]
-    const item = allItems.find(i => i.id === id)
+    const item = allItems.find(i => String(i.id) === String(id))
     const wechat = item ? item.wechat : ''
     if (!wechat) {
       wx.showToast({ title: '暂无微信号', icon: 'none' })
@@ -176,7 +178,21 @@ Page({
   },
 
   onPhone(e) {
-    wx.makePhoneCall({ phoneNumber: '13800138000', fail() {} })
+    const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
+    const allItems = [
+      ...(this.data.purchaseList || []),
+      ...(this.data.stockList || []),
+      ...(this.data.processList || []),
+      ...(this.data.jobListEnterprise || []),
+      ...(this.data.jobList || [])
+    ]
+    const item = allItems.find(i => String(i.id) === String(id))
+    const phone = item ? item.phone : ''
+    if (!phone) {
+      wx.showToast({ title: '暂无电话号码', icon: 'none' })
+      return
+    }
+    wx.makePhoneCall({ phoneNumber: phone, fail() {} })
   },
 
   onChat(e) {
