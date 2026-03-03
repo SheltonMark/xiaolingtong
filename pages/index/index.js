@@ -53,7 +53,8 @@ Page({
     ],
     // 临工端
     jobList: [],
-    filterLabels: ['工种', '计费方式', '距离', '工价']
+    filterLabels: ['工种', '计费方式', '距离', '工价'],
+    myCompanyName: ''
   },
 
   onLoad() {
@@ -81,11 +82,27 @@ Page({
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole })
-    this.loadData()
+    if (userRole === 'enterprise') {
+      this.loadMyCompanyName().finally(() => this.loadData())
+    } else {
+      this.loadData()
+    }
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
     }
     setTimeout(() => this.measureHeader(), 100)
+  },
+
+  loadMyCompanyName() {
+    return get('/cert/status').then(res => {
+      const cert = (res.data && res.data.cert) || {}
+      const companyName = cert.companyName || ''
+      this.setData({ myCompanyName: companyName })
+      return companyName
+    }).catch(() => {
+      this.setData({ myCompanyName: '' })
+      return ''
+    })
   },
 
   loadData() {
@@ -110,9 +127,14 @@ Page({
   },
 
   _mapPosts(list) {
+    const app = getApp()
+    const userInfo = app.globalData.userInfo || {}
+    const currentUserId = userInfo.id
     return (Array.isArray(list) ? list : []).map(item => {
       const verifiedName = item.companyName || ''
-      const fallbackName = (item.user && item.user.nickname) || ''
+      const isMine = currentUserId && String(item.userId) === String(currentUserId)
+      const ownCompanyName = this.data.myCompanyName || userInfo.nickname || ''
+      const fallbackName = (item.user && item.user.nickname) || (isMine ? ownCompanyName : '') || item.contactName || ''
       const companyName = verifiedName || fallbackName || '企业用户'
       return {
         ...item,
@@ -125,6 +147,37 @@ Page({
         phone: item.contactPhone || item.phone || ''
       }
     })
+  },
+
+  _getAllItems() {
+    return [
+      ...(this.data.purchaseList || []),
+      ...(this.data.stockList || []),
+      ...(this.data.processList || []),
+      ...(this.data.jobListEnterprise || []),
+      ...(this.data.jobList || [])
+    ]
+  },
+
+  _buildSharePayloadById(id) {
+    const allItems = this._getAllItems()
+    const item = allItems.find(i => String(i.id) === String(id))
+    if (!item) {
+      return {
+        title: '小灵通供需平台',
+        path: '/pages/index/index'
+      }
+    }
+
+    const isJob = !!(item.salary || item.salaryUnit || item.need)
+    const path = isJob
+      ? '/pages/job-detail/job-detail?id=' + item.id
+      : '/pages/post-detail/post-detail?id=' + item.id
+
+    const shareTitle = item.title || (item.content ? String(item.content).slice(0, 28) : '') || '供需信息'
+    const payload = { title: shareTitle, path }
+    if (item.images && item.images.length) payload.imageUrl = item.images[0]
+    return payload
   },
 
   onTabChange(e) {
@@ -152,13 +205,7 @@ Page({
   onWechat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     // 从列表中找到对应项的微信号
-    const allItems = [
-      ...(this.data.purchaseList || []),
-      ...(this.data.stockList || []),
-      ...(this.data.processList || []),
-      ...(this.data.jobListEnterprise || []),
-      ...(this.data.jobList || [])
-    ]
+    const allItems = this._getAllItems()
     const item = allItems.find(i => String(i.id) === String(id))
     const wechat = item ? item.wechat : ''
     if (!wechat) {
@@ -179,13 +226,7 @@ Page({
 
   onPhone(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const allItems = [
-      ...(this.data.purchaseList || []),
-      ...(this.data.stockList || []),
-      ...(this.data.processList || []),
-      ...(this.data.jobListEnterprise || []),
-      ...(this.data.jobList || [])
-    ]
+    const allItems = this._getAllItems()
     const item = allItems.find(i => String(i.id) === String(id))
     const phone = item ? item.phone : ''
     if (!phone) {
@@ -197,13 +238,7 @@ Page({
 
   onChat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const allItems = [
-      ...(this.data.purchaseList || []),
-      ...(this.data.stockList || []),
-      ...(this.data.processList || []),
-      ...(this.data.jobListEnterprise || []),
-      ...(this.data.jobList || [])
-    ]
+    const allItems = this._getAllItems()
     const item = allItems.find(i => String(i.id) === String(id))
     const targetUserId = item && (item.userId || (item.user && item.user.id))
 
@@ -228,7 +263,29 @@ Page({
   },
 
   onShare(e) {
+    const id = (e.detail && e.detail.id) || (e.currentTarget.dataset && e.currentTarget.dataset.id) || ''
+    this._lastSharePayload = this._buildSharePayloadById(id)
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] })
+  },
+
+  onShareAppMessage(res) {
+    const id = (res && res.target && res.target.dataset && res.target.dataset.id) || ''
+    const payload = this._buildSharePayloadById(id)
+    return payload && payload.path ? payload : (this._lastSharePayload || {
+      title: '小灵通供需平台',
+      path: '/pages/index/index'
+    })
+  },
+
+  onShareTimeline() {
+    const payload = this._lastSharePayload || {
+      title: '小灵通供需平台',
+      path: '/pages/index/index'
+    }
+    const query = payload.path.includes('?') ? payload.path.split('?')[1] : ''
+    const result = { title: payload.title || '小灵通供需平台', query }
+    if (payload.imageUrl) result.imageUrl = payload.imageUrl
+    return result
   },
 
   onApply(e) {

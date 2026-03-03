@@ -13,9 +13,9 @@
       <view class="icon-btn" catchtap="onTapReport">
         <text class="iconfont icon-tishixinxi"></text>
       </view>
-      <view class="icon-btn" catchtap="onTapShare">
+      <button class="icon-btn share-btn" open-type="share" data-id="{{item.id}}" catchtap="onTapShare">
         <text class="iconfont icon-fenxiang1"></text>
-      </view>
+      </button>
     </view>
   </view>
   <!-- 文字内容 -->

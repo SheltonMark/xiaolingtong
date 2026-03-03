@@ -3,5 +3,7 @@
     "info-card": "/components/info-card/info-card",
     "empty-state": "/components/empty-state/empty-state"
   },
-  "navigationStyle": "custom"
+  "navigationStyle": "custom",
+  "enableShareAppMessage": true,
+  "enableShareTimeline": true
 }
