@@ -55,18 +55,28 @@
         </view>
       </view>
       <!-- 我的动态 -->
-      <view wx:if="{{currentTab === 0}}">
-        <view class="dynamic-card" wx:for="{{myPosts}}" wx:key="id" data-id="{{item.id}}" bindtap="onTapPost">
+      <view wx:if="{{currentTab === 0}}" class="dynamic-list">
+        <view class="dynamic-section-head">
+          <text class="dynamic-head-title">最近发布</text>
+          <text class="dynamic-head-more" bindtap="onViewAllPosts">查看全部</text>
+        </view>
+        <view class="dynamic-card" wx:for="{{myPosts}}" wx:key="id">
           <view class="dynamic-top">
             <text class="dynamic-type type-{{item.typeColor}}">{{item.type}}</text>
             <text class="dynamic-date">{{item.date}}</text>
           </view>
           <text class="dynamic-title">{{item.title}}</text>
+          <text class="dynamic-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
           <view class="dynamic-meta">
             <text class="dynamic-meta-text">{{item.views}}次浏览</text>
             <text class="dynamic-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
           </view>
+          <view class="dynamic-actions">
+            <view class="dynamic-action action-view" data-id="{{item.id}}" catchtap="onTapPost">查看</view>
+            <view class="dynamic-action action-delete" data-id="{{item.id}}" catchtap="onDeletePost">删除</view>
+          </view>
         </view>
+        <empty-state wx:if="{{myPosts.length === 0}}" text="暂无发布记录" subText="去发布第一条信息吧~" />
       </view>
       <!-- 我的收藏 -->
       <view wx:if="{{currentTab === 1}}">

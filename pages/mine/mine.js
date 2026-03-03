@@ -1,4 +1,4 @@
-const { get } = require('../../utils/request')
+const { get, del } = require('../../utils/request')
 
 Page({
   data: {
@@ -67,9 +67,41 @@ Page({
     // 加载我的发布
     if (this.data.userRole === 'enterprise') {
       get('/posts/mine').then(res => {
-        this.setData({ myPosts: res.data.list || res.data || [] })
+        const list = res.data.list || res.data || []
+        const mapped = this.mapMyPosts(list)
+        this.setData({ myPosts: mapped.slice(0, 3) })
       }).catch(() => {})
     }
+  },
+
+  mapMyPosts(list) {
+    const typeMap = {
+      purchase: { label: '采购需求', color: 'blue' },
+      stock: { label: '工厂库存', color: 'green' },
+      process: { label: '代加工', color: 'amber' },
+      job: { label: '招工', color: 'orange' }
+    }
+    const statusMap = {
+      active: { text: '展示中', color: '#10B981' },
+      expired: { text: '已过期', color: '#F59E0B' },
+      deleted: { text: '已删除', color: '#94A3B8' }
+    }
+    return (Array.isArray(list) ? list : []).map(item => {
+      const typeMeta = typeMap[item.type] || { label: '信息', color: 'blue' }
+      const statusMeta = statusMap[item.status] || { text: '审核中', color: '#F97316' }
+      const title = item.title || (item.content || '').slice(0, 28) || '未命名发布'
+      return {
+        ...item,
+        type: typeMeta.label,
+        typeColor: typeMeta.color,
+        date: item.createdAt ? item.createdAt.substring(0, 10) : '',
+        title,
+        desc: item.content || '',
+        views: Number(item.viewCount || 0),
+        statusText: statusMeta.text,
+        statusColor: statusMeta.color
+      }
+    })
   },
 
   onTabChange(e) {
@@ -83,6 +115,26 @@ Page({
 
   onTapPost(e) {
     wx.navigateTo({ url: '/pages/post-detail/post-detail?id=' + e.currentTarget.dataset.id })
+  },
+
+  onViewAllPosts() {
+    wx.navigateTo({ url: '/pages/my-posts/my-posts' })
+  },
+
+  onDeletePost(e) {
+    const id = e.currentTarget.dataset.id
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后不可恢复，确定删除这条发布吗？',
+      confirmColor: '#F43F5E',
+      success: (res) => {
+        if (!res.confirm) return
+        del('/posts/' + id).then(() => {
+          wx.showToast({ title: '删除成功', icon: 'success' })
+          this.loadProfile()
+        }).catch(() => {})
+      }
+    })
   },
 
   onSettings() {

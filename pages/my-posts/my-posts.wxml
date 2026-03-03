@@ -6,7 +6,7 @@
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
           wx:for="{{tabs}}" wx:key="index"
           data-index="{{index}}" bindtap="onTabChange">
-      <text>{{item}}</text>
+      <text>{{item.label}}</text>
     </view>
   </view>
 
@@ -14,7 +14,7 @@
   <view class="post-list">
     <view class="post-card {{item.status === 'offline' ? 'card-offline' : ''}}"
           wx:for="{{posts}}" wx:key="id"
-          wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}">
+          wx:if="{{currentTab === 0 || item.typeKey === tabs[currentTab].key}}">
       <view class="post-top">
         <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
         <view class="status-tag status-bg-{{item.statusColor}}">

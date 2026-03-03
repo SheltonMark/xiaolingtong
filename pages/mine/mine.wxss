@@ -213,22 +213,74 @@
 }
 
 /* 我的动态卡片 */
-.dynamic-card {
-  padding: 24rpx 24rpx; border-bottom: 1rpx solid #F1F5F9;
+.dynamic-list {
+  padding: 12rpx 20rpx 20rpx;
 }
-.dynamic-card:last-child { border-bottom: none; }
+.dynamic-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 8rpx 16rpx;
+}
+.dynamic-head-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+.dynamic-head-more {
+  font-size: 22rpx;
+  color: #3B82F6;
+}
+.dynamic-card {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background-color: #F8FAFC;
+  margin-bottom: 16rpx;
+}
 .dynamic-top {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 8rpx;
 }
 .dynamic-type {
-  font-size: 20rpx; padding: 2rpx 12rpx; border-radius: 6rpx; font-weight: 500;
+  font-size: 20rpx;
+  padding: 4rpx 0;
+  border-radius: 6rpx;
+  font-weight: 500;
 }
 .type-blue { color: #3B82F6; background-color: #EFF6FF; }
 .type-orange { color: #F97316; background-color: #FFF7ED; }
 .type-green { color: #10B981; background-color: #ECFDF5; }
 .type-amber { color: #F59E0B; background-color: #FFFBEB; }
 .dynamic-date { font-size: 20rpx; color: #94A3B8; }
-.dynamic-title { font-size: 26rpx; color: #1E293B; font-weight: 500; display: block; margin-bottom: 8rpx; }
-.dynamic-meta { display: flex; align-items: center; justify-content: space-between; }
+.dynamic-title { font-size: 26rpx; color: #1E293B; font-weight: 500; display: block; margin-bottom: 8rpx; line-height: 1.45; }
+.dynamic-desc {
+  display: block;
+  font-size: 22rpx;
+  color: #64748B;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+}
+.dynamic-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14rpx; }
 .dynamic-meta-text { font-size: 20rpx; color: #94A3B8; }
 .dynamic-status { font-size: 20rpx; font-weight: 500; }
+.dynamic-actions {
+  display: flex;
+  gap: 12rpx;
+}
+.dynamic-action {
+  flex: 1;
+  height: 60rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+.action-view {
+  color: #3B82F6;
+  background-color: #EFF6FF;
+}
+.action-delete {
+  color: #F43F5E;
+  background-color: #FFF1F2;
+}
