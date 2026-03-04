@@ -20,7 +20,8 @@
   </view>
 
   <!-- 曝光列表（支持下拉刷新） -->
-  <scroll-view class="eb-list-wrap" scroll-y refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
+  <scroll-view class="eb-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
+    <view class="eb-list-wrap">
     <view class="eb-card" wx:for="{{list}}" wx:key="id"
           wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}"
           data-id="{{item.id}}" bindtap="onTapCard">
@@ -59,6 +60,7 @@
           </view>
         </view>
       </view>
+    </view>
     </view>
   </scroll-view>
 

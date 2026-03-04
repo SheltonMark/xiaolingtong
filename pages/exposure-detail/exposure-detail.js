@@ -83,9 +83,9 @@ Page({
     }).catch(() => {})
   },
   onInputFocus(e) {
-    // 不需要手动调整，让系统自动处理
+    this.setData({ keyboardHeight: e.detail.height || 0 })
   },
   onInputBlur() {
-    // 不需要手动调整，让系统自动处理
+    this.setData({ keyboardHeight: 0 })
   }
 })

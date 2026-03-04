@@ -58,8 +58,8 @@
   </view>
 
   <!-- 底部评论输入 -->
-  <view class="ed-bottom" style="padding-bottom: calc(16rpx + env(safe-area-inset-bottom));">
-    <input class="ed-input" placeholder="写评论..." bindinput="onCommentInput" value="{{commentText}}" adjust-position="{{false}}" bindfocus="onInputFocus" bindblur="onInputBlur" />
+  <view class="ed-bottom" style="bottom: {{keyboardHeight}}px;">
+    <input class="ed-input" placeholder="写评论..." bindinput="onCommentInput" value="{{commentText}}" adjust-position="{{false}}" bindfocus="onInputFocus" bindblur="onInputBlur" hold-keyboard="{{true}}" />
     <button class="ed-send-btn" bindtap="onSendComment">发送</button>
   </view>
 </view>
