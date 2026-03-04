@@ -6,7 +6,7 @@
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
           wx:for="{{tabs}}" wx:key="index"
           data-index="{{index}}" bindtap="onTabChange">
-      <text>{{item}}</text>
+      <text>{{item.label}}</text>
     </view>
   </view>
 
@@ -14,7 +14,7 @@
   <view class="post-list">
     <view class="post-card {{item.status === 'offline' ? 'card-offline' : ''}}"
           wx:for="{{posts}}" wx:key="id"
-          wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}">
+          wx:if="{{currentTab === 0 || item.typeKey === tabs[currentTab].key}}">
       <view class="post-top">
         <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
         <view class="status-tag status-bg-{{item.statusColor}}">
@@ -22,6 +22,34 @@
         </view>
       </view>
       <text class="post-title">{{item.title}}</text>
+
+      <!-- 招工信息详情 -->
+      <view class="job-detail-info" wx:if="{{item.typeKey === 'job'}}">
+        <view class="job-info-row">
+          <text class="job-info-label">工价：</text>
+          <text class="job-info-value text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
+        </view>
+        <view class="job-info-row">
+          <text class="job-info-label">人数：</text>
+          <text class="job-info-value">需{{item.needCount}}人 · 已报名{{item.appliedCount}}人</text>
+        </view>
+        <view class="job-info-row" wx:if="{{item.dateRange}}">
+          <text class="job-info-label">日期：</text>
+          <text class="job-info-value">{{item.dateRange}}</text>
+        </view>
+        <view class="job-info-row" wx:if="{{item.workHours}}">
+          <text class="job-info-label">时间：</text>
+          <text class="job-info-value">{{item.workHours}}</text>
+        </view>
+        <view class="job-info-row" wx:if="{{item.cityDistrict}}">
+          <text class="job-info-label">地点：</text>
+          <text class="job-info-value">{{item.cityDistrict}}</text>
+        </view>
+      </view>
+
+      <!-- 其他类型信息详情 -->
+      <text class="post-desc" wx:if="{{item.typeKey !== 'job' && item.desc}}">{{item.desc}}</text>
+
       <!-- 驳回原因 -->
       <view class="reject-box" wx:if="{{item.rejectReason}}">
         <text class="reject-text">驳回原因：{{item.rejectReason}}</text>
@@ -34,7 +62,7 @@
       </view>
       <!-- 操作按钮 -->
       <view class="post-actions">
-        <button class="act-btn act-blue" data-id="{{item.id}}" bindtap="onViewPost">查看详情</button>
+        <button class="act-btn act-blue" data-id="{{item.id}}" data-type="{{item.typeKey}}" bindtap="onViewPost">查看详情</button>
         <button class="act-btn act-orange" wx:if="{{item.canSettle}}" data-id="{{item.jobId}}" bindtap="onGoSettlement">去结算</button>
         <button class="act-btn act-orange" wx:elif="{{item.canPromote}}" data-id="{{item.id}}" bindtap="onPromotePost">推广置顶</button>
         <button class="act-btn act-rose" data-id="{{item.id}}" bindtap="onDeletePost">删除</button>

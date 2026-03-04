@@ -84,6 +84,11 @@
       }
     ]
   },
+  "usingComponents": {
+    "nav-bar": "/components/nav-bar/nav-bar",
+    "info-card": "/components/info-card/info-card",
+    "empty-state": "/components/empty-state/empty-state"
+  },
   "style": "v2",
   "sitemapLocation": "sitemap.json"
 }

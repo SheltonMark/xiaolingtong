@@ -14,6 +14,12 @@ export class JobController {
     return this.jobService.list(query);
   }
 
+  @Get('mine')
+  @Roles('enterprise')
+  myJobs(@CurrentUser('sub') userId: number) {
+    return this.jobService.myJobs(userId);
+  }
+
   @Public()
   @Get(':id')
   detail(@Param('id') id: number) {

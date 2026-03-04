@@ -3,9 +3,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { FavoriteController } from './favorite.controller';
 import { FavoriteService } from './favorite.service';
 import { Favorite } from '../../entities/favorite.entity';
+import { Post } from '../../entities/post.entity';
+import { Job } from '../../entities/job.entity';
+import { Exposure } from '../../entities/exposure.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Favorite])],
+  imports: [TypeOrmModule.forFeature([Favorite, Post, Job, Exposure])],
   controllers: [FavoriteController],
   providers: [FavoriteService],
 })

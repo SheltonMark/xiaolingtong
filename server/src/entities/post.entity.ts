@@ -45,7 +45,7 @@ export class Post {
   @Column({ type: 'int', default: 0 })
   contactUnlockCount: number;
 
-  @Column({ type: 'enum', enum: ['active', 'expired', 'deleted'], default: 'active' })
+  @Column({ type: 'enum', enum: ['pending', 'active', 'expired', 'deleted'], default: 'pending' })
   status: string;
 
   @Column({ type: 'datetime', nullable: true })

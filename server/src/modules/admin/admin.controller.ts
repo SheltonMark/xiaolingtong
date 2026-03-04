@@ -57,6 +57,16 @@ export class AdminController {
     return this.adminService.deleteExposure(id);
   }
 
+  @Post('exposures/:id/approve')
+  approveExposure(@Param('id') id: number) {
+    return this.adminService.approveExposure(id);
+  }
+
+  @Post('exposures/:id/reject')
+  rejectExposure(@Param('id') id: number) {
+    return this.adminService.rejectExposure(id);
+  }
+
   @Get('reports')
   reportList(@Query() query: any) {
     return this.adminService.reportList(query);

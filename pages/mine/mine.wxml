@@ -13,8 +13,8 @@
         <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;" bindtap="onSettings">{{enterpriseInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
-            <text class="user-name">鑫达贸易公司</text>
-            <text class="cert-badge">已认证</text>
+            <text class="user-name">{{certName || '鑫达贸易公司'}}</text>
+            <text class="cert-badge">{{certBadge}}</text>
           </view>
           <text class="user-sub">工贸一体 · 日用百货</text>
         </view>
@@ -55,22 +55,79 @@
         </view>
       </view>
       <!-- 我的动态 -->
-      <view wx:if="{{currentTab === 0}}">
-        <view class="dynamic-card" wx:for="{{myPosts}}" wx:key="id" data-id="{{item.id}}" bindtap="onTapPost">
+      <view wx:if="{{currentTab === 0}}" class="dynamic-list">
+        <view class="dynamic-section-head">
+          <text class="dynamic-head-title">最近发布</text>
+          <text class="dynamic-head-more" bindtap="onViewAllPosts">查看全部</text>
+        </view>
+        <view class="dynamic-card" wx:for="{{myPosts}}" wx:key="id">
           <view class="dynamic-top">
             <text class="dynamic-type type-{{item.typeColor}}">{{item.type}}</text>
             <text class="dynamic-date">{{item.date}}</text>
           </view>
           <text class="dynamic-title">{{item.title}}</text>
+
+          <!-- 招工信息详情 -->
+          <view class="job-detail-info" wx:if="{{item.typeKey === 'job'}}">
+            <view class="job-info-row">
+              <text class="job-info-label">工价：</text>
+              <text class="job-info-value text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
+            </view>
+            <view class="job-info-row">
+              <text class="job-info-label">人数：</text>
+              <text class="job-info-value">需{{item.needCount}}人 · 已报名{{item.appliedCount}}人</text>
+            </view>
+            <view class="job-info-row" wx:if="{{item.dateRange}}">
+              <text class="job-info-label">日期：</text>
+              <text class="job-info-value">{{item.dateRange}}</text>
+            </view>
+            <view class="job-info-row" wx:if="{{item.workHours}}">
+              <text class="job-info-label">时间：</text>
+              <text class="job-info-value">{{item.workHours}}</text>
+            </view>
+            <view class="job-info-row" wx:if="{{item.cityDistrict}}">
+              <text class="job-info-label">地点：</text>
+              <text class="job-info-value">{{item.cityDistrict}}</text>
+            </view>
+          </view>
+
+          <!-- 其他类型描述 -->
+          <text class="dynamic-desc" wx:if="{{item.typeKey !== 'job' && item.desc}}">{{item.desc}}</text>
+
           <view class="dynamic-meta">
             <text class="dynamic-meta-text">{{item.views}}次浏览</text>
             <text class="dynamic-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
           </view>
+          <view class="dynamic-actions">
+            <view class="dynamic-action action-view" data-id="{{item.id}}" data-type="{{item.typeKey}}" catchtap="onTapPost">查看</view>
+            <view class="dynamic-action action-delete" data-id="{{item.id}}" catchtap="onDeletePost">删除</view>
+          </view>
         </view>
+        <empty-state wx:if="{{myPosts.length === 0}}" text="暂无发布记录" subText="去发布第一条信息吧~" />
       </view>
       <!-- 我的收藏 -->
-      <view wx:if="{{currentTab === 1}}">
-        <empty-state text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
+      <view wx:if="{{currentTab === 1}}" class="favorites-list">
+        <view class="fav-card" wx:for="{{favorites}}" wx:key="id"
+              data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
+          <view class="fav-card-top">
+            <view class="fav-title-row">
+              <text class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+              <text class="fav-title">{{item.title}}</text>
+            </view>
+            <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
+          </view>
+          <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
+          <view class="fav-meta" wx:if="{{item.targetType === 'job'}}">
+            <text class="fav-meta-item text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
+            <text class="fav-meta-item">需{{item.needCount}}人</text>
+            <text class="fav-meta-item">{{item.location}}</text>
+          </view>
+          <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
+            <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
+                   src="{{img}}" mode="aspectFill" class="fav-img" />
+          </view>
+        </view>
+        <empty-state wx:if="{{favorites.length === 0}}" text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
       </view>
     </view>
   </view>
@@ -88,10 +145,10 @@
         <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #F97316;" bindtap="onSettings">{{workerInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
-            <text class="user-name">张三</text>
-            <text class="cert-badge">已认证</text>
+            <text class="user-name">{{certName || '张三'}}</text>
+            <text class="cert-badge">{{certBadge}}</text>
           </view>
-          <text class="user-sub">信用分 <text class="text-cta font-semibold">95</text> · 组装工/包装工</text>
+          <text class="user-sub">信用分 <text class="text-cta font-semibold">{{creditScore}}</text> · 组装工/包装工</text>
         </view>
         <text class="settings-icon iconfont icon-shezhi" bindtap="onSettings"></text>
       </view>
@@ -134,7 +191,34 @@
           <text>{{item}}</text>
         </view>
       </view>
-      <empty-state text="暂无记录" subText="快去报名接单吧~" />
+      <!-- 接单记录 -->
+      <view wx:if="{{currentTab === 0}}">
+        <empty-state text="暂无记录" subText="快去报名接单吧~" />
+      </view>
+      <!-- 我的收藏 -->
+      <view wx:if="{{currentTab === 1}}" class="favorites-list">
+        <view class="fav-card" wx:for="{{favorites}}" wx:key="id"
+              data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
+          <view class="fav-card-top">
+            <view class="fav-title-row">
+              <text class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+              <text class="fav-title">{{item.title}}</text>
+            </view>
+            <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
+          </view>
+          <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
+          <view class="fav-meta" wx:if="{{item.targetType === 'job'}}">
+            <text class="fav-meta-item text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
+            <text class="fav-meta-item">需{{item.needCount}}人</text>
+            <text class="fav-meta-item">{{item.location}}</text>
+          </view>
+          <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
+            <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
+                   src="{{img}}" mode="aspectFill" class="fav-img" />
+          </view>
+        </view>
+        <empty-state wx:if="{{favorites.length === 0}}" text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
+      </view>
     </view>
   </view>
 </view>

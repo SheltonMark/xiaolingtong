@@ -17,6 +17,13 @@ Component({
     }
   },
   methods: {
+    maskCompanyName(name) {
+      const trimmed = String(name || '').trim()
+      if (!trimmed) return ''
+      if (trimmed.includes('公司')) return trimmed[0] + 'xx公司'
+      return trimmed[0] + 'xx'
+    },
+
     updateDisplayName() {
       const app = getApp()
       const name = this.data.item.companyName || ''
@@ -26,7 +33,7 @@ Component({
       if (isMember || hasBeans) {
         this.setData({ displayName: name })
       } else {
-        this.setData({ displayName: '***' + name.slice(3) })
+        this.setData({ displayName: this.maskCompanyName(name) })
       }
     },
     onTapCard() {

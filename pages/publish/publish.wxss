@@ -202,6 +202,17 @@
 }
 .contact-label { font-size: 24rpx; color: #64748B; }
 .contact-value { font-size: 24rpx; color: #1E293B; }
+.contact-input {
+  width: 420rpx;
+  height: 64rpx;
+  background-color: #F8FAFC;
+  border: 2rpx solid #E2E8F0;
+  border-radius: 12rpx;
+  padding: 0 20rpx;
+  font-size: 24rpx;
+  color: #1E293B;
+  box-sizing: border-box;
+}
 .checkbox {
   width: 32rpx;
   height: 32rpx;

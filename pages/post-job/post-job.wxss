@@ -73,9 +73,12 @@
   font-size: 20rpx; color: #64748B;
   background-color: #F1F5F9; padding: 8rpx 20rpx;
   border-radius: 12rpx;
+  border: 2rpx solid transparent;
 }
 .b-tag-active {
-  background-color: #EFF6FF; color: #3B82F6;
+  background-color: #DCFCE7; color: #166534;
+  border-color: #86EFAC;
+  font-weight: 500;
 }
 
 /* 图片上传 */

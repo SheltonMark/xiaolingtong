@@ -207,11 +207,11 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-header"><h3 id="pageTitle">数据概览</h3><p id="pageDesc">平台运营数据总览</p></div>
     <div class="page-section active" id="page-dashboard"><div class="stat-cards" id="statCards"></div></div>
     <div class="page-section" id="page-users"><div class="panel"><div class="panel-header"><h4>用户管理</h4><div class="toolbar"><select id="userRoleFilter" onchange="loadUsers()"><option value="">全部角色</option><option value="enterprise">企业</option><option value="worker">临工</option></select><input type="text" id="userKeyword" placeholder="搜索昵称/手机号"><button class="search-btn" onclick="loadUsers()">搜索</button></div></div><table><thead><tr><th>ID</th><th>昵称</th><th>角色</th><th>手机</th><th>灵豆</th><th>信用分</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTable"></tbody></table><div class="pagination" id="userPagination"></div></div></div>
-    <div class="page-section" id="page-posts"><div class="panel"><div class="panel-header"><h4>信息审核</h4><div class="toolbar"><select id="postTypeFilter" onchange="loadPosts()"><option value="">全部类型</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><select id="postStatusFilter" onchange="loadPosts()"><option value="">全部状态</option><option value="active">已发布</option><option value="pending">待审核</option><option value="deleted">已删除</option></select><button class="search-btn" onclick="loadPosts()">刷新</button></div></div><table><thead><tr><th>ID</th><th>类型</th><th>标题</th><th>发布者</th><th>浏览</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="postTable"></tbody></table><div class="pagination" id="postPagination"></div></div></div>
+    <div class="page-section" id="page-posts"><div class="panel"><div class="panel-header"><h4>信息审核</h4><div class="toolbar"><select id="postTypeFilter" onchange="loadPosts()"><option value="">全部类型</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><select id="postStatusFilter" onchange="loadPosts()"><option value="">全部状态</option><option value="active">已发布</option><option value="pending">待审核</option><option value="deleted">已删除</option></select><button class="search-btn" onclick="loadPosts()">刷新</button></div></div><table><thead><tr><th>ID</th><th>类型</th><th>标题/内容</th><th>图片</th><th>发布者</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="postTable"></tbody></table><div class="pagination" id="postPagination"></div></div></div>
     <div class="page-section" id="page-certs"><div class="panel"><div class="panel-header"><h4>认证审核</h4><div class="toolbar"><select id="certTypeFilter" onchange="loadCerts()"><option value="enterprise">企业认证</option><option value="worker">临工认证</option></select><select id="certStatusFilter" onchange="loadCerts()"><option value="">全部状态</option><option value="pending">待审核</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select><button class="search-btn" onclick="loadCerts()">刷新</button></div></div><table><thead><tr id="certHeader"></tr></thead><tbody id="certTable"></tbody></table><div class="pagination" id="certPagination"></div></div></div>
     <div class="page-section" id="page-reports"><div class="panel"><div class="panel-header"><h4>举报处理</h4></div><table><thead><tr><th>ID</th><th>类型</th><th>目标ID</th><th>原因</th><th>描述</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="reportTable"></tbody></table><div class="pagination" id="reportPagination"></div></div></div>
     <div class="page-section" id="page-jobs"><div class="panel"><div class="panel-header"><h4>招工管理</h4></div><table><thead><tr><th>ID</th><th>标题</th><th>发布者</th><th>薪资</th><th>人数</th><th>状态</th><th>发布时间</th></tr></thead><tbody id="jobTable"></tbody></table><div class="pagination" id="jobPagination"></div></div></div>
-    <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
+    <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>图片</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
     <div class="page-section" id="page-keywords"><div class="panel"><div class="panel-header"><h4>关键词黑名单</h4><div class="toolbar"><input type="text" id="newKeyword" placeholder="输入关键词"><button class="add-btn" onclick="addKeyword()">添加</button></div></div><table><thead><tr><th>ID</th><th>关键词</th><th>添加时间</th><th>操作</th></tr></thead><tbody id="keywordTable"></tbody></table></div></div>
     <div class="page-section" id="page-notices"><div class="panel"><div class="panel-header"><h4>公告管理</h4><div class="toolbar"><button class="add-btn" onclick="showNoticeModal()">发布公告</button></div></div><table><thead><tr><th>ID</th><th>标题</th><th>位置</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="noticeTable"></tbody></table></div></div>
     <div class="page-section" id="page-jobtypes"><div class="panel"><div class="panel-header"><h4>工种管理</h4><div class="toolbar"><input type="text" id="newJobType" placeholder="工种名称"><select id="newJobTypeSettle"><option value="hourly">计时</option><option value="piece">计件</option></select><button class="add-btn" onclick="addJobType()">添加</button></div></div><table><thead><tr><th>ID</th><th>工种名称</th><th>默认结算</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="jobTypeTable"></tbody></table></div></div>
@@ -230,6 +230,15 @@ tr:hover td { background:rgba(35,39,54,.5); }
 <div id="toastContainer" class="toast-container"></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
 <div class="prompt-overlay" id="promptOverlay"><div class="prompt-box"><p id="promptMsg"></p><input type="text" id="promptInput"><div class="prompt-btns"><button class="pb-cancel" onclick="promptResolve(null)">取消</button><button class="pb-ok" onclick="promptResolve(document.getElementById('promptInput').value)">确认</button></div></div></div>
+<div class="modal-overlay" id="certImageModal">
+  <div class="modal" style="width:760px;max-width:92vw;">
+    <h4>认证图片</h4>
+    <div id="certImageContent"></div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="hideCertImageModal()">关闭</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
 <script>
@@ -401,7 +410,11 @@ async function loadCerts(page){
     for(var i=0;i<list.length;i++){var c=list[i];
       var sb=c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red';
       var st=c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回';
-      var ops=c.status==='pending'?'<button class="btn btn-success" onclick="auditCert(\x27enterprise\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27enterprise\x27,'+c.id+')">驳回</button>':'-';
+      var ops=buildCertViewBtn(c,'enterprise');
+      if(c.status==='pending'){
+        ops += '<button class="btn btn-success" onclick="auditCert(\x27enterprise\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27enterprise\x27,'+c.id+')">驳回</button>';
+      }
+      if(!ops)ops='-';
       h+='<tr><td>'+c.id+'</td><td>'+c.companyName+'</td><td>'+c.creditCode+'</td><td>'+(c.contactName||'-')+'</td><td>'+(c.contactPhone||'-')+'</td><td><span class="badge '+sb+'">'+st+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
     }
   }else{
@@ -409,15 +422,63 @@ async function loadCerts(page){
     for(var i=0;i<list.length;i++){var c=list[i];
       var sb=c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red';
       var st=c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回';
-      var ops=c.status==='pending'?'<button class="btn btn-success" onclick="auditCert(\x27worker\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27worker\x27,'+c.id+')">驳回</button>':'-';
+      var ops=buildCertViewBtn(c,'worker');
+      if(c.status==='pending'){
+        ops += '<button class="btn btn-success" onclick="auditCert(\x27worker\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27worker\x27,'+c.id+')">驳回</button>';
+      }
+      if(!ops)ops='-';
       h+='<tr><td>'+c.id+'</td><td>'+c.realName+'</td><td>'+c.idNo+'</td><td>'+(c.skills?c.skills.join(','):'-')+'</td><td><span class="badge '+sb+'">'+st+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
     }
   }
-  document.getElementById('certTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+  var certColspan = type==='enterprise' ? 8 : 7;
+  document.getElementById('certTable').innerHTML=h||'<tr><td colspan="'+certColspan+'" class="empty">暂无数据</td></tr>';
   renderPagination('certPagination',d.total,certPage,d.pageSize,'loadCerts');
 }
 async function auditCert(type,id,action){await api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:action}});loadCerts();}
 async function rejectCert(type,id){var r=await xprompt('请输入驳回原因');if(r){await api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:'reject',rejectReason:r}});toast('已驳回','success');loadCerts();}}
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function buildCertViewBtn(cert,type){
+  var images=[];
+  if(type==='enterprise'){
+    if(cert.licenseImage)images.push({label:'营业执照',url:cert.licenseImage});
+    if(cert.legalIdFront)images.push({label:'法人身份证正面',url:cert.legalIdFront});
+    if(cert.legalIdBack)images.push({label:'法人身份证反面',url:cert.legalIdBack});
+  }else{
+    if(cert.idFrontImage)images.push({label:'身份证正面',url:cert.idFrontImage});
+    if(cert.idBackImage)images.push({label:'身份证反面',url:cert.idBackImage});
+  }
+  if(!images.length)return '';
+  var payload=encodeURIComponent(JSON.stringify(images));
+  return '<button class="btn btn-primary" onclick="showCertImageModal(\''+payload+'\')">查看图片</button>';
+}
+function showCertImageModal(payload){
+  var list=[];
+  try{list=JSON.parse(decodeURIComponent(payload||''));}catch(e){list=[];}
+  if(!list.length){toast('暂无图片','info');return;}
+  var h='';
+  for(var i=0;i<list.length;i++){
+    var item=list[i]||{};
+    var label=escHtml(item.label||('图片'+(i+1)));
+    var url=String(item.url||'').trim();
+    if(!url)continue;
+    var safeUrl=escAttr(url);
+    h+='<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
+    h+='<span style="font-size:13px;color:var(--text-sec)">'+label+'</span>';
+    h+='<a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" style="font-size:13px;color:var(--accent);text-decoration:none">查看原图</a>';
+    h+='</div>';
+    h+='<img src="'+safeUrl+'" style="display:block;max-width:100%;max-height:420px;border-radius:8px;cursor:pointer" onclick="window.open(this.src,\'_blank\')">';
+    h+='</div>';
+  }
+  if(!h)h='<div class="empty">暂无图片</div>';
+  document.getElementById('certImageContent').innerHTML=h;
+  document.getElementById('certImageModal').classList.add('show');
+}
+function hideCertImageModal(){
+  document.getElementById('certImageModal').classList.remove('show');
+  document.getElementById('certImageContent').innerHTML='';
+}
 
 var reportPage=1;
 async function loadReports(page){
@@ -455,11 +516,22 @@ async function loadExposures(page){
   if(!d)return;var list=d.list||[];
   var h='';
   for(var i=0;i<list.length;i++){var e=list[i];
-    h+='<tr><td>'+e.id+'</td><td>'+(e.company||e.contact||'-')+'</td><td>'+(e.amount||'-')+'</td><td>'+((e.description||'').substring(0,40))+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-danger" onclick="deleteExposure('+e.id+')">删除</button></td></tr>';
+    var companyName=(e.companyName||e.personName||'-');
+    var statusBadge=e.status==='pending'?'<span class="badge badge-orange">待审核</span>':e.status==='approved'?'<span class="badge badge-green">已通过</span>':'<span class="badge badge-red">已拒绝</span>';
+    var ops='';
+    if(e.status==='pending'){
+      ops+='<button class="btn btn-success" onclick="approveExposure('+e.id+')">通过</button>';
+      ops+='<button class="btn btn-warning" onclick="rejectExposure('+e.id+')">拒绝</button>';
+    }
+    ops+='<button class="btn btn-danger" onclick="deleteExposure('+e.id+')">删除</button>';
+    var imgs='';if(e.images&&e.images.length){for(var j=0;j<e.images.length;j++){imgs+='<img src="'+e.images[j]+'" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;cursor:pointer;" onclick="window.open(this.src)">';}}else{imgs='-';}
+    h+='<tr><td>'+e.id+'</td><td>'+companyName+'</td><td>'+(e.amount||'-')+'</td><td style="max-width:300px;white-space:pre-wrap;word-break:break-all;">'+(e.description||'-')+'</td><td style="max-width:200px;">'+imgs+'</td><td>'+statusBadge+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
   }
-  document.getElementById('exposureTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
+  document.getElementById('exposureTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('exposurePagination',d.total,exposurePage,d.pageSize,'loadExposures');
 }
+async function approveExposure(id){var ok=await xconfirm('确认通过该曝光信息？');if(ok){await api('/exposures/'+id+'/approve',{method:'POST'});toast('已通过','success');loadExposures();}}
+async function rejectExposure(id){var ok=await xconfirm('确认拒绝该曝光信息？');if(ok){await api('/exposures/'+id+'/reject',{method:'POST'});toast('已拒绝','success');loadExposures();}}
 async function deleteExposure(id){var ok=await xconfirm('确认删除该曝光信息？');if(ok){await api('/exposures/'+id,{method:'DELETE'});toast('已删除','success');loadExposures();}}
 
 async function loadKeywords(){

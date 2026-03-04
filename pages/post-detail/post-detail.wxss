@@ -1,10 +1,10 @@
 .detail-page {
   min-height: 100vh;
   background-color: #F5F5F5;
-  padding-bottom: 40rpx;
+  padding-bottom: 0;
 }
-.swiper-wrap { position: relative; }
-.image-swiper { width: 100%; height: 384rpx; }
+.swiper-wrap { position: relative; background-color: #0F172A; }
+.image-swiper { width: 100%; height: 420rpx; }
 .swiper-img { width: 100%; height: 100%; }
 .swiper-counter {
   position: absolute; bottom: 16rpx; right: 24rpx;
@@ -56,6 +56,10 @@
   font-size: 18rpx; background-color: #10B981; color: #fff;
   padding: 2rpx 12rpx; border-radius: 6rpx;
 }
+.cert-badge-pending {
+  background-color: #F1F5F9;
+  color: #64748B;
+}
 .pub-industry { font-size: 22rpx; color: #94A3B8; margin-top: 4rpx; }
 
 /* 联系方式 */
@@ -84,34 +88,47 @@
 .fav-btn {
   display: flex; align-items: center; justify-content: center;
   width: 72rpx; height: 72rpx; flex-shrink: 0;
+  border-radius: 50%;
+  background-color: #F8FAFC;
+  border: 1rpx solid #E2E8F0;
 }
-.fav-btn .iconfont { font-size: 40rpx; }
+.fav-btn .iconfont { font-size: 36rpx; }
 .fav-active { color: #F59E0B; }
 .fav-inactive { color: #CBD5E1; }
+.bottom-actions-placeholder {
+  height: calc(120rpx + env(safe-area-inset-bottom));
+}
 .bottom-actions {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
   display: flex; align-items: center; gap: 16rpx;
-  padding: 24rpx 32rpx;
-  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
   background-color: #fff;
-  margin-top: 24rpx;
+  box-shadow: 0 -6rpx 24rpx rgba(15,23,42,0.08);
 }
 .bottom-btn {
   display: flex; align-items: center; justify-content: center; gap: 8rpx;
-  padding: 16rpx 0; border-radius: 24rpx;
+  height: 72rpx;
+  padding: 0;
+  border-radius: 18rpx;
   font-size: 24rpx; font-weight: 600; border: none;
   white-space: nowrap;
 }
 .bottom-btn::after { border: none; }
-.bottom-btn-icon { font-size: 28rpx; }
+.bottom-btn-icon { font-size: 26rpx; }
 .btn-chat {
   flex: 1;
   background-color: #10B981; color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(16,185,129,0.3);
+  box-shadow: 0 6rpx 16rpx rgba(16,185,129,0.24);
 }
 .btn-contact {
   flex: 1;
   background-color: #3B82F6; color: #fff;
-  box-shadow: 0 8rpx 24rpx rgba(59,130,246,0.3);
+  box-shadow: 0 6rpx 16rpx rgba(59,130,246,0.24);
 }
 .btn-share {
   background-color: #fff; color: #1E293B;

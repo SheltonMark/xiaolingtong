@@ -1,30 +1,49 @@
 <!--pages/chat/chat.wxml-->
 <view class="chat-page">
   <nav-bar title="在线聊天" />
-  <!-- 聊天消息区 - 新增style强制宽度 -->
-  <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}" style="width: 100%;">
-    <!-- 原有内容不变 -->
+  <view class="recording-mask" wx:if="{{recording}}">
+    <view class="recording-panel {{cancelVoice ? 'recording-panel-cancel' : ''}}">
+      <view class="recording-mic iconfont icon-yuyin"></view>
+      <view class="recording-bars">
+        <view class="recording-bar recording-bar-1"></view>
+        <view class="recording-bar recording-bar-2"></view>
+        <view class="recording-bar recording-bar-3"></view>
+        <view class="recording-bar recording-bar-4"></view>
+        <view class="recording-bar recording-bar-5"></view>
+      </view>
+      <text class="recording-title">{{cancelVoice ? '松开手指，取消发送' : '手指上滑，取消发送'}}</text>
+      <text class="recording-sub">{{recordingSeconds}}s</text>
+    </view>
+  </view>
+  <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}">
     <view class="time-mark"><text>今天 14:30</text></view>
     <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
     <block wx:for="{{messages}}" wx:key="id">
-      <!-- 对方消息 -->
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
         <view class="msg-avatar-wrap">
           <view class="text-avatar text-avatar-md" style="background-color: #F97316;">{{otherAvatarText}}</view>
         </view>
         <view class="msg-bubble-wrap">
-          <view class="bubble bubble-left" wx:if="{{item.text}}">
+          <view class="bubble bubble-left" wx:if="{{item.type === 'text' && item.text}}">
             <text>{{item.text}}</text>
           </view>
-          <image wx:if="{{item.image}}" src="{{item.image}}" mode="widthFix" class="msg-image" />
+          <image wx:if="{{item.type === 'image' && item.image}}" src="{{item.image}}" mode="widthFix" class="msg-image" data-url="{{item.image}}" bindtap="onPreviewImage" />
+          <view class="voice-bubble voice-bubble-left {{playingVoiceUrl === item.voiceUrl ? 'voice-playing' : ''}}" wx:if="{{item.type === 'voice'}}" data-url="{{item.voiceUrl}}" bindtap="onPlayVoice">
+            <text class="iconfont icon-yuyin voice-icon"></text>
+            <text class="voice-duration">{{item.voiceDuration}}"</text>
+          </view>
           <text class="msg-time-text">{{item.time}}</text>
         </view>
       </view>
-      <!-- 我的消息 -->
       <view class="msg-row msg-right" wx:if="{{item.from === 'me'}}" id="msg-{{item.id}}">
         <view class="msg-bubble-wrap msg-bubble-right">
-          <view class="bubble bubble-right" wx:if="{{item.text}}">
+          <view class="bubble bubble-right" wx:if="{{item.type === 'text' && item.text}}">
             <text>{{item.text}}</text>
+          </view>
+          <image wx:if="{{item.type === 'image' && item.image}}" src="{{item.image}}" mode="widthFix" class="msg-image" data-url="{{item.image}}" bindtap="onPreviewImage" />
+          <view class="voice-bubble voice-bubble-right {{playingVoiceUrl === item.voiceUrl ? 'voice-playing' : ''}}" wx:if="{{item.type === 'voice'}}" data-url="{{item.voiceUrl}}" bindtap="onPlayVoice">
+            <text class="voice-duration">{{item.voiceDuration}}"</text>
+            <text class="iconfont icon-yuyin voice-icon"></text>
           </view>
           <text class="msg-time-text msg-time-right">{{item.time}}</text>
         </view>
@@ -34,13 +53,35 @@
       </view>
     </block>
   </scroll-view>
-  <!-- 底部输入栏不变 -->
-  <view class="chat-bottom">
+  <view class="chat-bottom" style="bottom: {{keyboardHeight}}px;">
     <view class="chat-input-row">
-      <text class="chat-tool-btn"><text class="iconfont icon-yuyin"></text></text>
-      <input class="chat-input" placeholder="输入消息..." bindinput="onMsgInput" value="{{inputText}}" confirm-type="send" bindconfirm="onSend" />
-      <text class="chat-tool-btn" bindtap="onChooseImage"><text class="iconfont icon-tupian"></text></text>
-      <view class="chat-send-btn" bindtap="onSend">
+      <view class="chat-tool-btn" bindtap="onTapVoiceIcon">
+        <text class="chat-tool-icon {{recording ? 'chat-tool-icon-active' : ''}} {{voiceMode ? 'keyboard-icon' : 'iconfont icon-yuyin'}}">{{voiceMode ? '⌨' : ''}}</text>
+      </view>
+      <input wx:if="{{!voiceMode}}"
+             class="chat-input"
+             placeholder="输入消息..."
+             bindinput="onMsgInput"
+             bindfocus="onInputFocus"
+             bindblur="onInputBlur"
+             bindkeyboardheightchange="onKeyboardHeightChange"
+             value="{{inputText}}"
+             adjust-position="{{false}}"
+             cursor-spacing="24"
+             confirm-type="send"
+             bindconfirm="onSend" />
+      <view wx:else
+            class="press-talk-btn {{recording ? 'press-talk-btn-active' : ''}} {{cancelVoice ? 'press-talk-btn-cancel' : ''}}"
+            bindtouchstart="onVoiceTouchStart"
+            bindtouchmove="onVoiceTouchMove"
+            bindtouchend="onVoiceTouchEnd"
+            bindtouchcancel="onVoiceTouchCancel">
+        <text class="press-talk-text">{{recording ? (cancelVoice ? '松开取消发送' : '松开发送，上滑取消') : '按住说话'}}</text>
+      </view>
+      <view class="chat-tool-btn" bindtap="onChooseImage">
+        <text class="iconfont icon-tupian chat-tool-icon"></text>
+      </view>
+      <view class="chat-send-btn" bindtap="onSend" wx:if="{{!voiceMode}}">
         <text class="send-arrow">↑</text>
       </view>
     </view>

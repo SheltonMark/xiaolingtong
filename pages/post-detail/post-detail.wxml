@@ -7,7 +7,7 @@
             indicator-dots autoplay circular
             bindchange="onSwiperChange">
       <swiper-item wx:for="{{detail.images}}" wx:key="*this">
-        <image src="{{item}}" mode="aspectFill" class="swiper-img" />
+        <image src="{{item}}" mode="aspectFit" class="swiper-img" data-urls="{{detail.images}}" data-current="{{item}}" catchtap="onPreviewImage" />
       </swiper-item>
     </swiper>
     <view class="swiper-counter">{{swiperCurrent + 1}}/{{detail.images.length}}</view>
@@ -51,18 +51,20 @@
       <text class="section-label">发布者</text>
     </view>
     <view class="publisher-info">
-      <view class="text-avatar" style="width:88rpx;height:88rpx;font-size:32rpx;background-color:#3B82F6;">{{detail.avatarText}}</view>
+      <image wx:if="{{detail.avatarUrl}}" src="{{detail.avatarUrl}}" mode="aspectFill" class="pub-avatar-img" />
+      <view wx:else class="text-avatar" style="width:88rpx;height:88rpx;font-size:32rpx;background-color:#3B82F6;">{{detail.avatarText}}</view>
       <view class="pub-detail">
         <view class="pub-name-row">
-          <text class="pub-name">{{detail.location}} · {{detail.certText}}</text>
-          <text class="cert-badge">已认证</text>
+          <text class="pub-name">{{detail.companyName}}</text>
+          <text class="cert-badge {{detail.certText === '未认证' ? 'cert-badge-pending' : ''}}">{{detail.certText}}</text>
         </view>
-        <text class="pub-industry">{{detail.industry}} · 发布信息 {{detail.postCount || 12}} 条</text>
+        <text class="pub-industry">{{detail.industry}} · 发布信息 {{detail.postCount || '--'}} 条</text>
       </view>
     </view>
   </view>
 
   <!-- 底部操作 -->
+  <view class="bottom-actions-placeholder"></view>
   <view class="bottom-actions">
     <view class="fav-btn" bindtap="onToggleFav">
       <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>

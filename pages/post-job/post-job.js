@@ -6,7 +6,8 @@ Page({
     form: {
       title: '', jobType: '', price: '', headcount: '',
       content: '', startDate: '', endDate: '',
-      startTime: '08:00', endTime: '18:00', address: ''
+      startTime: '08:00', endTime: '18:00', address: '',
+      contactName: '', contactPhone: ''
     },
     jobTypes: ['电子组装', '包装工', '搬运工', '缝纫工', '焊接工', '质检员', '普工', '其他'],
     benefits: [
@@ -93,20 +94,26 @@ Page({
     if (!form.title) { wx.showToast({ title: '请输入招工标题', icon: 'none' }); return }
     if (!form.price) { wx.showToast({ title: '请输入工厂出价', icon: 'none' }); return }
     if (!form.headcount) { wx.showToast({ title: '请输入招工人数', icon: 'none' }); return }
+    if (!form.startDate || !form.endDate) { wx.showToast({ title: '请选择工作日期', icon: 'none' }); return }
+    if (!form.address) { wx.showToast({ title: '请选择工作地点', icon: 'none' }); return }
+    if (!form.contactName) { wx.showToast({ title: '请输入联系人', icon: 'none' }); return }
+    if (!form.contactPhone) { wx.showToast({ title: '请输入联系电话', icon: 'none' }); return }
     const selectedBenefits = benefits.filter(b => b.selected).map(b => b.label)
     wx.showLoading({ title: '发布中...' })
     post('/jobs', {
       title: form.title,
       jobType: form.jobType,
       salary: Number(form.price),
-      salaryMode: settleType === 0 ? '按小时' : '按件',
-      headcount: Number(form.headcount),
+      salaryType: settleType === 0 ? 'hourly' : 'piece',
+      salaryUnit: settleType === 0 ? '元/时' : '元/件',
+      needCount: Number(form.headcount),
       description: form.content,
-      startDate: form.startDate,
-      endDate: form.endDate,
-      startTime: form.startTime,
-      endTime: form.endTime,
+      dateStart: form.startDate,
+      dateEnd: form.endDate,
+      workHours: `${form.startTime || '08:00'}-${form.endTime || '18:00'}`,
       location: form.address,
+      contactName: form.contactName,
+      contactPhone: form.contactPhone,
       benefits: selectedBenefits,
       images
     }).then(() => {

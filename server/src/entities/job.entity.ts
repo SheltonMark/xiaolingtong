@@ -27,6 +27,12 @@ export class Job {
   @Column({ length: 128 })
   location: string;
 
+  @Column({ length: 64, nullable: true })
+  contactName: string;
+
+  @Column({ length: 32, nullable: true })
+  contactPhone: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
   lat: number;
 

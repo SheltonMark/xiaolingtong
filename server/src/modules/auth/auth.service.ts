@@ -5,6 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import axios from 'axios';
 
 @Injectable()
@@ -65,6 +67,31 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) return null;
+
+    // Check certification status
+    let certStatus = 'none'; // none, pending, approved, rejected
+    let certName = '';
+
+    if (user.role === 'enterprise') {
+      const cert = await this.userRepo.manager.findOne(EnterpriseCert, {
+        where: { userId },
+        order: { createdAt: 'DESC' }
+      });
+      if (cert) {
+        certStatus = cert.status;
+        certName = cert.companyName;
+      }
+    } else if (user.role === 'worker') {
+      const cert = await this.userRepo.manager.findOne(WorkerCert, {
+        where: { userId },
+        order: { createdAt: 'DESC' }
+      });
+      if (cert) {
+        certStatus = cert.status;
+        certName = cert.realName;
+      }
+    }
+
     return {
       id: user.id,
       role: user.role,
@@ -74,6 +101,9 @@ export class AuthService {
       beanBalance: user.beanBalance,
       isMember: user.isMember,
       creditScore: user.creditScore,
+      certStatus,
+      certName,
+      isVerified: certStatus === 'approved',
     };
   }
 }

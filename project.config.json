@@ -26,7 +26,20 @@
   "compileType": "miniprogram",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "server"
+      },
+      {
+        "type": "folder",
+        "value": "Docs"
+      },
+      {
+        "type": "folder",
+        "value": "design"
+      }
+    ],
     "include": []
   },
   "appid": "wx3ba24b4797c0f7f0",

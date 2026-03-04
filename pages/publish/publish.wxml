@@ -203,7 +203,13 @@
     <view class="contact-info">
       <view class="contact-row">
         <text class="contact-label">联系人</text>
-        <text class="contact-value">{{contactInfo.name}}</text>
+        <input
+          class="contact-input"
+          placeholder="请输入联系人"
+          data-field="name"
+          value="{{contactInfo.name}}"
+          bindinput="onContactInput"
+        />
       </view>
       <view class="contact-row">
         <view class="contact-left">
@@ -212,7 +218,15 @@
           </view>
           <text class="contact-label">电话</text>
         </view>
-        <text class="contact-value">{{contactInfo.phone}}</text>
+        <input
+          class="contact-input"
+          placeholder="请输入手机号"
+          type="number"
+          maxlength="11"
+          data-field="phone"
+          value="{{contactInfo.phone}}"
+          bindinput="onContactInput"
+        />
       </view>
       <view class="contact-row">
         <view class="contact-left">
@@ -221,7 +235,13 @@
           </view>
           <text class="contact-label">微信</text>
         </view>
-        <text class="contact-value">{{contactInfo.wechat}}</text>
+        <input
+          class="contact-input"
+          placeholder="请输入微信号"
+          data-field="wechat"
+          value="{{contactInfo.wechat}}"
+          bindinput="onContactInput"
+        />
       </view>
       <text class="contact-hint">勾选后对方可见，至少选择一种</text>
       <view class="contact-row">

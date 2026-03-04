@@ -97,6 +97,16 @@
       <input class="form-input" placeholder="如：东莞长安镇xxx工业区" data-field="location" bindinput="onInput" />
     </view>
 
+    <!-- 联系方式 -->
+    <view class="form-group">
+      <text class="form-label required">联系人</text>
+      <input class="form-input" placeholder="请输入联系人" data-field="contactName" value="{{form.contactName}}" bindinput="onInput" />
+    </view>
+    <view class="form-group">
+      <text class="form-label required">联系电话</text>
+      <input class="form-input" type="number" placeholder="请输入联系电话" data-field="contactPhone" value="{{form.contactPhone}}" bindinput="onInput" />
+    </view>
+
     <!-- 福利标签 -->
     <view class="form-group">
       <text class="form-label">福利待遇</text>

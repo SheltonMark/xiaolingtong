@@ -6,7 +6,8 @@ Page({
     menuHeight: 0,
     currentTab: 0,
     tabs: ['全部', '虚假信息', '欺诈行为', '欠薪欠款'],
-    list: []
+    list: [],
+    refreshing: false
   },
   onTabChange(e) { this.setData({ currentTab: Number(e.currentTarget.dataset.index) }) },
   onLoad() {
@@ -20,8 +21,14 @@ Page({
   },
   loadList() {
     get('/exposures').then(res => {
-      this.setData({ list: res.data.list || res.data || [] })
-    }).catch(() => {})
+      this.setData({ list: res.data.list || res.data || [], refreshing: false })
+    }).catch(() => {
+      this.setData({ refreshing: false })
+    })
+  },
+  onRefresh() {
+    this.setData({ refreshing: true })
+    this.loadList()
   },
   onTapCard(e) {
     wx.navigateTo({ url: '/pages/exposure-detail/exposure-detail?id=' + e.currentTarget.dataset.id })

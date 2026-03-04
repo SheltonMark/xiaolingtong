@@ -1,4 +1,4 @@
-const { get } = require('../../utils/request')
+const { get, del } = require('../../utils/request')
 
 Page({
   data: {
@@ -8,6 +8,8 @@ Page({
     currentTab: 0,
     enterpriseInfo: { avatarText: '' },
     workerInfo: { avatarText: '' },
+    myPosts: [],
+    favorites: [],
     // 企业端
     enterpriseTabs: ['我的动态', '我的收藏'],
     enterpriseFuncs: [
@@ -56,20 +58,96 @@ Page({
       app.globalData.userInfo = user
       app.globalData.beanBalance = user.beanBalance || 0
       app.globalData.isMember = user.isMember || false
+
+      // 认证状态
+      const certStatus = user.certStatus || 'none'
+      const certName = user.certName || ''
+      const isVerified = user.isVerified || false
+      let certBadge = ''
+      if (certStatus === 'approved') {
+        certBadge = '已认证'
+      } else if (certStatus === 'pending') {
+        certBadge = '审核中'
+      } else if (certStatus === 'rejected') {
+        certBadge = '未通过'
+      } else {
+        certBadge = '未认证'
+      }
+
       this.setData({
         nickname: user.nickname || '',
         avatarUrl: user.avatarUrl || '',
         beanBalance: user.beanBalance || 0,
         isMember: user.isMember || false,
-        creditScore: user.creditScore || 100
+        creditScore: user.creditScore || 100,
+        certBadge,
+        certName,
+        isVerified
       })
     }).catch(() => {})
-    // 加载我的发布
+    // 加载我的发布（所有类型的最近3条）
     if (this.data.userRole === 'enterprise') {
-      get('/posts/mine').then(res => {
-        this.setData({ myPosts: res.data.list || res.data || [] })
-      }).catch(() => {})
+      Promise.all([
+        get('/posts/mine').catch(() => ({ data: { list: [] } })),
+        get('/jobs/mine').catch(() => ({ data: { list: [] } }))
+      ]).then(([postsRes, jobsRes]) => {
+        const postsList = postsRes.data.list || postsRes.data || []
+        const jobsList = jobsRes.data.list || jobsRes.data || []
+        const allPosts = [...postsList, ...jobsList]
+        // 按创建时间排序，取最近3条
+        const sortedPosts = allPosts.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeB - timeA
+        })
+        const mapped = this.mapMyPosts(sortedPosts)
+        this.setData({ myPosts: mapped.slice(0, 3) })
+      })
     }
+    // 加载我的收藏
+    get('/favorites').then(res => {
+      const list = res.data.list || res.data || []
+      this.setData({ favorites: list.slice(0, 3) })
+    }).catch(() => {})
+  },
+
+  mapMyPosts(list) {
+    const typeMap = {
+      purchase: { label: '采购需求', color: 'blue' },
+      stock: { label: '工厂库存', color: 'green' },
+      process: { label: '代加工', color: 'amber' },
+      job: { label: '招工', color: 'orange' }
+    }
+    const statusMap = {
+      active: { text: '展示中', color: '#10B981' },
+      pending: { text: '审核中', color: '#F97316' },
+      rejected: { text: '未通过', color: '#F43F5E' },
+      expired: { text: '已过期', color: '#F59E0B' },
+      deleted: { text: '已删除', color: '#94A3B8' },
+      recruiting: { text: '招工中', color: '#10B981' },
+      full: { text: '已满员', color: '#F59E0B' },
+      working: { text: '进行中', color: '#3B82F6' },
+      pending_settlement: { text: '待结算', color: '#F97316' },
+      settled: { text: '已结算', color: '#10B981' },
+      closed: { text: '已关闭', color: '#94A3B8' }
+    }
+    return (Array.isArray(list) ? list : []).map(item => {
+      const typeMeta = typeMap[item.type] || { label: '信息', color: 'blue' }
+      const statusMeta = statusMap[item.status] || { text: '审核中', color: '#F97316' }
+      const title = item.title || (item.content || '').slice(0, 28) || '未命名发布'
+      return {
+        ...item,
+        typeKey: item.type,
+        type: typeMeta.label,
+        typeColor: typeMeta.color,
+        date: item.createdAt ? item.createdAt.substring(0, 10) : '',
+        title,
+        desc: item.content || '',
+        views: Number(item.viewCount || 0),
+        statusText: statusMeta.text,
+        statusColor: statusMeta.color
+      }
+    })
   },
 
   onTabChange(e) {
@@ -82,7 +160,44 @@ Page({
   },
 
   onTapPost(e) {
-    wx.navigateTo({ url: '/pages/post-detail/post-detail?id=' + e.currentTarget.dataset.id })
+    const { id, type } = e.currentTarget.dataset
+    const targetUrl = type === 'job'
+      ? '/pages/job-detail/job-detail?id=' + id
+      : '/pages/post-detail/post-detail?id=' + id
+    wx.navigateTo({ url: targetUrl })
+  },
+
+  onTapFavorite(e) {
+    const { id, type } = e.currentTarget.dataset
+    let targetUrl = ''
+    if (type === 'post') {
+      targetUrl = '/pages/post-detail/post-detail?id=' + id
+    } else if (type === 'job') {
+      targetUrl = '/pages/job-detail/job-detail?id=' + id
+    } else if (type === 'exposure') {
+      targetUrl = '/pages/exposure-detail/exposure-detail?id=' + id
+    }
+    if (targetUrl) wx.navigateTo({ url: targetUrl })
+  },
+
+  onViewAllPosts() {
+    wx.navigateTo({ url: '/pages/my-posts/my-posts' })
+  },
+
+  onDeletePost(e) {
+    const id = e.currentTarget.dataset.id
+    wx.showModal({
+      title: '确认删除',
+      content: '删除后不可恢复，确定删除这条发布吗？',
+      confirmColor: '#F43F5E',
+      success: (res) => {
+        if (!res.confirm) return
+        del('/posts/' + id).then(() => {
+          wx.showToast({ title: '删除成功', icon: 'success' })
+          this.loadProfile()
+        }).catch(() => {})
+      }
+    })
   },
 
   onSettings() {

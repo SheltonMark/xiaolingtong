@@ -1,18 +1,21 @@
 <view class="info-card" bindtap="onTapCard">
   <!-- 头部：头像 + 公司名 + 投诉/分享 -->
   <view class="card-header">
-    <view class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:{{item.avatarColor || '#3B82F6'}};">{{item.avatarText || item.content[0]}}</view>
+    <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" class="avatar-img" />
+    <view wx:else class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:{{item.avatarColor || '#3B82F6'}};">{{item.avatarText || (displayName && displayName[0]) || '企'}}</view>
     <view class="card-author">
-      <text class="author-name">{{displayName || item.title || ''}}</text>
-      <text class="author-meta">{{item.companyMeta || ''}} · {{item.time}}</text>
+      <text class="author-name">{{displayName || item.companyName || '企业用户'}}</text>
+      <text class="author-meta" wx:if="{{item.companyMeta && item.time}}">{{item.companyMeta}} · {{item.time}}</text>
+      <text class="author-meta" wx:elif="{{item.companyMeta}}">{{item.companyMeta}}</text>
+      <text class="author-meta" wx:elif="{{item.time}}">{{item.time}}</text>
     </view>
     <view class="header-btns">
       <view class="icon-btn" catchtap="onTapReport">
         <text class="iconfont icon-tishixinxi"></text>
       </view>
-      <view class="icon-btn" catchtap="onTapShare">
+      <button class="icon-btn share-btn" open-type="share" data-id="{{item.id}}" catchtap="onTapShare">
         <text class="iconfont icon-fenxiang1"></text>
-      </view>
+      </button>
     </view>
   </view>
   <!-- 文字内容 -->

@@ -3,6 +3,7 @@
     <view class="nav-back" wx:if="{{showBack}}" bindtap="goBack">
       <text class="back-arrow">‹</text>
     </view>
+    <view class="nav-back" wx:else></view>
     <view class="nav-title">{{title}}</view>
     <view class="nav-right">
       <slot name="right"></slot>

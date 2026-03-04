@@ -1,7 +1,7 @@
 .index-page {
   background-color: #F8FAFC;
   min-height: 100vh;
-  padding-bottom: 180rpx;
+  padding-bottom: 200rpx;
 }
 
 /* ===== 固定顶部（整体一块） ===== */
@@ -168,7 +168,7 @@
 
 /* ===== 分类图标网格 ===== */
 .cate-grid-wrap {
-  padding: 16rpx 32rpx 0;
+  padding: 40rpx 32rpx 20rpx;
 }
 .cate-grid {
   display: flex;
@@ -211,16 +211,17 @@
 
 /* ===== 列表区域 ===== */
 .list-wrap {
-  padding: 0 32rpx 32rpx;
+  margin-top: 8rpx;
+  padding: 0 32rpx 44rpx;
 }
 .worker-list-wrap {
-  padding: 0 32rpx 32rpx;
+  padding: 32rpx 32rpx 44rpx;
 }
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 32rpx 0 16rpx;
+  padding: 40rpx 0 24rpx;
 }
 .section-title {
   font-size: 28rpx;
@@ -237,7 +238,7 @@
   background-color: #ffffff;
   border-radius: 24rpx;
   padding: 32rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 32rpx;
 }
 .job-header {
   display: flex;
@@ -325,6 +326,12 @@
   margin-bottom: 8rpx;
 }
 .progress-text { font-size: 20rpx; color: #94A3B8; }
+.progress-text-simple {
+  font-size: 20rpx;
+  color: #94A3B8;
+  display: block;
+  margin-bottom: 8rpx;
+}
 .progress-bold { color: #1E293B; font-weight: 600; }
 .progress-bar {
   height: 6rpx; background: #F1F5F9; border-radius: 6rpx; overflow: hidden;
@@ -416,7 +423,7 @@
   background-color: #ffffff;
   border-radius: 24rpx;
   padding: 32rpx;
-  margin-bottom: 24rpx;
+  margin-bottom: 32rpx;
 }
 .factory-top {
   display: flex;

@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exposure } from '../../entities/exposure.entity';
 import { ExposureComment } from '../../entities/exposure-comment.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
+import { User } from '../../entities/user.entity';
 
 @Injectable()
 export class ExposureService {
@@ -20,7 +23,38 @@ export class ExposureService {
     qb.orderBy('e.createdAt', 'DESC')
       .skip((page - 1) * pageSize).take(pageSize);
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+
+    // 格式化列表数据
+    const formattedList = list.map(item => ({
+      id: item.id,
+      company: item.companyName || '',
+      contact: item.personName || '',
+      type: this.getCategoryText(item.category),
+      amount: item.amount ? `¥${Number(item.amount).toLocaleString()}` : '',
+      reason: item.description,
+      images: item.images || [],
+      date: this.formatDate(item.createdAt),
+      comments: 0, // 评论数需要单独查询
+      avatarText: this.getCategoryText(item.category)[0],
+      avatarColor: this.getAvatarColor(item.category)
+    }));
+
+    return { list: formattedList, total, page: +page, pageSize: +pageSize };
+  }
+
+  private getCategoryText(category: string): string {
+    const map = { 'false_info': '虚假信息', 'fraud': '欺诈行为', 'wage_theft': '欠薪欠款' };
+    return map[category] || '曝光';
+  }
+
+  private getAvatarColor(category: string): string {
+    const map = { 'false_info': '#F59E0B', 'fraud': '#EF4444', 'wage_theft': '#F43F5E' };
+    return map[category] || '#64748B';
+  }
+
+  private formatDate(date: Date): string {
+    const d = new Date(date);
+    return d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
   }
 
   async detail(id: number) {
@@ -33,11 +67,86 @@ export class ExposureService {
       relations: ['user'],
       order: { createdAt: 'ASC' },
     });
-    return { ...exp, comments };
+
+    // Get publisher certification info
+    let publisherName = '匿名用户';
+    let publisherAvatar = '';
+    if (exp.publisher) {
+      const role = exp.publisher.role;
+      if (role === 'enterprise') {
+        const cert = await this.expRepo.manager.findOne(EnterpriseCert, {
+          where: { userId: exp.publisher.id, status: 'approved' },
+          order: { createdAt: 'DESC' }
+        });
+        if (cert) publisherName = cert.companyName;
+      } else if (role === 'worker') {
+        const cert = await this.expRepo.manager.findOne(WorkerCert, {
+          where: { userId: exp.publisher.id, status: 'approved' },
+          order: { createdAt: 'DESC' }
+        });
+        if (cert) publisherName = cert.realName;
+      }
+      publisherAvatar = exp.publisher.avatarUrl || '';
+    }
+
+    return {
+      id: exp.id,
+      companyName: exp.companyName,
+      personName: exp.personName,
+      amount: exp.amount,
+      description: exp.description,
+      images: exp.images || [],
+      viewCount: exp.viewCount,
+      category: exp.category,
+      createdAt: exp.createdAt,
+      publisher: {
+        name: publisherName,
+        avatarUrl: publisherAvatar,
+      },
+      comments: comments.map(c => ({
+        id: c.id,
+        content: c.content,
+        createdAt: c.createdAt,
+        user: {
+          nickname: c.user?.nickname || '匿名用户',
+          avatarUrl: c.user?.avatarUrl || '',
+        }
+      }))
+    };
   }
 
   async create(publisherId: number, dto: any) {
-    const exp = this.expRepo.create({ ...dto, publisherId, status: 'pending' });
+    // Check if user is verified
+    const user = await this.expRepo.manager.findOne(User, { where: { id: publisherId } });
+    if (!user) throw new BadRequestException('用户不存在');
+
+    let isVerified = false;
+    if (user.role === 'enterprise') {
+      const cert = await this.expRepo.manager.findOne(EnterpriseCert, {
+        where: { userId: publisherId, status: 'approved' }
+      });
+      isVerified = !!cert;
+    } else if (user.role === 'worker') {
+      const cert = await this.expRepo.manager.findOne(WorkerCert, {
+        where: { userId: publisherId, status: 'approved' }
+      });
+      isVerified = !!cert;
+    }
+
+    if (!isVerified) {
+      throw new BadRequestException('需要完成企业认证或实名认证后才能发布曝光');
+    }
+
+    const exp = this.expRepo.create({
+      publisherId,
+      category: dto.category || 'wage_theft', // 默认欠薪欠款
+      companyName: dto.company,
+      personName: dto.contact,
+      amount: dto.amount,
+      description: dto.description,
+      images: dto.images,
+      status: 'pending'
+    });
     return this.expRepo.save(exp);
   }
 

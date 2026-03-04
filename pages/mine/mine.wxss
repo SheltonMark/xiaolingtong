@@ -213,22 +213,178 @@
 }
 
 /* 我的动态卡片 */
-.dynamic-card {
-  padding: 24rpx 24rpx; border-bottom: 1rpx solid #F1F5F9;
+.dynamic-list {
+  padding: 12rpx 20rpx 20rpx;
 }
-.dynamic-card:last-child { border-bottom: none; }
+.dynamic-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 8rpx 16rpx;
+}
+.dynamic-head-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+.dynamic-head-more {
+  font-size: 22rpx;
+  color: #3B82F6;
+}
+.dynamic-card {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background-color: #F8FAFC;
+  margin-bottom: 16rpx;
+}
 .dynamic-top {
   display: flex; align-items: center; justify-content: space-between; margin-bottom: 8rpx;
 }
 .dynamic-type {
-  font-size: 20rpx; padding: 2rpx 12rpx; border-radius: 6rpx; font-weight: 500;
+  font-size: 20rpx;
+  padding: 4rpx 0;
+  border-radius: 6rpx;
+  font-weight: 500;
 }
 .type-blue { color: #3B82F6; background-color: #EFF6FF; }
 .type-orange { color: #F97316; background-color: #FFF7ED; }
 .type-green { color: #10B981; background-color: #ECFDF5; }
 .type-amber { color: #F59E0B; background-color: #FFFBEB; }
 .dynamic-date { font-size: 20rpx; color: #94A3B8; }
-.dynamic-title { font-size: 26rpx; color: #1E293B; font-weight: 500; display: block; margin-bottom: 8rpx; }
-.dynamic-meta { display: flex; align-items: center; justify-content: space-between; }
+.dynamic-title { font-size: 26rpx; color: #1E293B; font-weight: 500; display: block; margin-bottom: 8rpx; line-height: 1.45; }
+.dynamic-desc {
+  display: block;
+  font-size: 22rpx;
+  color: #64748B;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+}
+.dynamic-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14rpx; }
+
+/* 招工详情信息（我的动态） */
+.job-detail-info {
+  background-color: #F8FAFC;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+}
+.job-info-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8rpx;
+}
+.job-info-row:last-child { margin-bottom: 0; }
+.job-info-label {
+  font-size: 22rpx;
+  color: #64748B;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+.job-info-value {
+  font-size: 22rpx;
+  color: #1E293B;
+  flex: 1;
+}
 .dynamic-meta-text { font-size: 20rpx; color: #94A3B8; }
 .dynamic-status { font-size: 20rpx; font-weight: 500; }
+.dynamic-actions {
+  display: flex;
+  gap: 12rpx;
+}
+.dynamic-action {
+  flex: 1;
+  height: 60rpx;
+  border-radius: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  font-weight: 500;
+}
+.action-view {
+  color: #3B82F6;
+  background-color: #EFF6FF;
+}
+.action-delete {
+  color: #F43F5E;
+  background-color: #FFF1F2;
+}
+
+/* 我的收藏列表 */
+.favorites-list {
+  padding: 12rpx 20rpx 20rpx;
+}
+.fav-card {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background-color: #FFFFFF;
+  margin-bottom: 16rpx;
+}
+.fav-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 8rpx;
+}
+.fav-title-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+.fav-type-tag {
+  font-size: 20rpx;
+  padding: 2rpx 14rpx;
+  border-radius: 6rpx;
+  font-weight: 500;
+  line-height: 1.6;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.fav-type-post { color: #3B82F6; background-color: #EFF6FF; }
+.fav-type-job { color: #F97316; background-color: #FFF7ED; }
+.fav-type-exposure { color: #F43F5E; background-color: #FFF1F2; }
+.fav-date { font-size: 20rpx; color: #94A3B8; flex-shrink: 0; white-space: nowrap; }
+.fav-title {
+  font-size: 26rpx;
+  color: #1E293B;
+  font-weight: 500;
+  line-height: 1.45;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.fav-content {
+  display: block;
+  font-size: 22rpx;
+  color: #64748B;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.fav-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+.fav-meta-item {
+  font-size: 22rpx;
+  color: #64748B;
+}
+.fav-images {
+  display: flex;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+.fav-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+}
