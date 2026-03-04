@@ -12,18 +12,35 @@
   <!-- 搜索结果 -->
   <view wx:if="{{searchResults.length > 0}}" class="search-results">
     <view class="results-header">
-      <text class="results-count">找到 {{searchResults.length}} 条结果</text>
+      <view class="results-header-content">
+        <text class="results-title">搜索结果</text>
+        <text class="results-count">{{searchResults.length}} 条</text>
+      </view>
     </view>
     <view class="results-list">
-      <view class="info-card" wx:for="{{searchResults}}" wx:key="id" bindtap="onCardTap" data-id="{{item.id}}">
-        <view class="card-header">
-          <view class="card-avatar" style="background-color: #10B981;">{{item.avatarText}}</view>
-          <view class="card-info">
-            <text class="card-title">{{item.companyName}}</text>
-            <text class="card-meta">{{item.time}}</text>
+      <view class="result-item" wx:for="{{searchResults}}" wx:key="id" bindtap="onCardTap" data-id="{{item.id}}">
+        <view class="result-card">
+          <!-- 左侧头像 -->
+          <view class="card-avatar-section">
+            <view class="card-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+              {{item.avatarText}}
+            </view>
+          </view>
+
+          <!-- 中间内容 -->
+          <view class="card-content-section">
+            <view class="card-header-row">
+              <text class="card-title">{{item.companyName}}</text>
+              <text class="card-time">{{item.time}}</text>
+            </view>
+            <text class="card-content">{{item.content}}</text>
+          </view>
+
+          <!-- 右侧箭头 -->
+          <view class="card-arrow">
+            <text class="iconfont icon-youjiantou"></text>
           </view>
         </view>
-        <text class="card-content">{{item.content}}</text>
       </view>
     </view>
   </view>
