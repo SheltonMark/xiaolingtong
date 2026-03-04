@@ -19,8 +19,8 @@ function getEnvVersion() {
 }
 
 const envVersion = getEnvVersion()
-// 体验版和开发版都使用开发环境（域名未在小程序后台配置前）
-const useDevApi = FORCE_DEV_API || envVersion === 'develop' || envVersion === 'trial'
+// 仅开发版使用 IP，体验版和正式版使用域名
+const useDevApi = FORCE_DEV_API || envVersion === 'develop'
 
 const config = {
   baseUrl: useDevApi ? DEV_BASE_URL : PROD_BASE_URL,
