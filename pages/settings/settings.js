@@ -53,6 +53,27 @@ Page({
     })
   },
 
+  onPhoneTap() {
+    const { phone } = this.data
+    if (!phone) {
+      wx.showToast({ title: '暂无手机号', icon: 'none' })
+      return
+    }
+    wx.showActionSheet({
+      itemList: ['复制手机号', '修改手机号'],
+      success: (res) => {
+        if (res.tapIndex === 0) {
+          // 复制手机号
+          wx.setClipboardData({ data: phone })
+          wx.showToast({ title: '已复制', icon: 'success' })
+        } else if (res.tapIndex === 1) {
+          // 修改手机号
+          wx.navigateTo({ url: '/pages/settings/settings' })
+        }
+      }
+    })
+  },
+
   onClearCache() {
     wx.showModal({
       title: '提示',

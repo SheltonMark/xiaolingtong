@@ -15,7 +15,7 @@
 
   <!-- 账号信息 -->
   <view class="section">
-    <view class="cell">
+    <view class="cell" bindtap="onPhoneTap">
       <text class="cell-label">手机号</text>
       <view class="cell-right">
         <text class="cell-value">{{phone}}</text>
