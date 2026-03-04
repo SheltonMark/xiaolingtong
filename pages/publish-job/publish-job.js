@@ -12,7 +12,9 @@ Page({
       endDate: '',
       startTime: '08:00',
       endTime: '18:00',
-      location: ''
+      location: '',
+      contactName: '',
+      contactPhone: ''
     },
     salaryMode: 0,
     salaryModes: ['按小时', '按件'],
@@ -96,6 +98,14 @@ Page({
       wx.showToast({ title: '请输入工作地点', icon: 'none' })
       return
     }
+    if (!form.contactName) {
+      wx.showToast({ title: '请输入联系人', icon: 'none' })
+      return
+    }
+    if (!form.contactPhone) {
+      wx.showToast({ title: '请输入联系电话', icon: 'none' })
+      return
+    }
     const data = {
       title: form.title,
       jobType: form.jobType,
@@ -108,6 +118,8 @@ Page({
       dateEnd: form.endDate,
       workHours: `${form.startTime || '08:00'}-${form.endTime || '18:00'}`,
       location: form.location,
+      contactName: form.contactName,
+      contactPhone: form.contactPhone,
       benefits: selectedBenefits,
       images
     }

@@ -112,6 +112,20 @@
     </view>
   </view>
 
+  <!-- 联系方式 -->
+  <view class="form-card">
+    <view class="form-row">
+      <view class="form-col">
+        <text class="form-label required">联系人</text>
+        <input class="form-input" placeholder="请输入联系人" data-field="contactName" value="{{form.contactName}}" bindinput="onInput" />
+      </view>
+      <view class="form-col">
+        <text class="form-label required">联系电话</text>
+        <input class="form-input" type="number" placeholder="请输入联系电话" data-field="contactPhone" value="{{form.contactPhone}}" bindinput="onInput" />
+      </view>
+    </view>
+  </view>
+
   <!-- 福利/备注 -->
   <view class="form-card">
     <text class="form-label">福利/备注 <text class="label-hint">(选填)</text></text>

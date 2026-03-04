@@ -67,7 +67,11 @@ Page({
 
   onViewPost(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/pages/post-detail/post-detail?id=' + id })
+    const type = e.currentTarget.dataset.type
+    const targetUrl = type === 'job'
+      ? '/pages/job-detail/job-detail?id=' + id
+      : '/pages/post-detail/post-detail?id=' + id
+    wx.navigateTo({ url: targetUrl })
   },
 
   onPromotePost(e) {

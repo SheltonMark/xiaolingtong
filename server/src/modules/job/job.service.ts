@@ -72,6 +72,8 @@ export class JobService {
       salaryUnit,
       needCount,
       location,
+      contactName: this.normalizeText(dto.contactName || dto.contact),
+      contactPhone: this.normalizeText(dto.contactPhone || dto.phone),
       dateStart,
       dateEnd,
       workHours,
@@ -127,8 +129,8 @@ export class JobService {
         name: job.user?.nickname || '企业用户',
         verified: false,
         creditScore: job.user?.creditScore || 100,
-        contact: '联系人',
-        phone: job.user?.phone || ''
+        contact: job.contactName || '联系人',
+        phone: job.contactPhone || job.user?.phone || ''
       }
     };
   }
@@ -139,6 +141,8 @@ export class JobService {
     if (!(payload.salary > 0)) throw new BadRequestException('请输入正确工价');
     if (!(payload.needCount > 0)) throw new BadRequestException('请输入招工人数');
     if (!payload.location) throw new BadRequestException('请选择工作地点');
+    if (!payload.contactName) throw new BadRequestException('请输入联系人');
+    if (!payload.contactPhone) throw new BadRequestException('请输入联系电话');
     if (!payload.dateStart || !payload.dateEnd) throw new BadRequestException('请选择工作日期');
 
     await this.checkKeywords(payload.title + (payload.description || ''));

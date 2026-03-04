@@ -72,7 +72,7 @@
             <text class="dynamic-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
           </view>
           <view class="dynamic-actions">
-            <view class="dynamic-action action-view" data-id="{{item.id}}" catchtap="onTapPost">查看</view>
+            <view class="dynamic-action action-view" data-id="{{item.id}}" data-type="{{item.typeKey}}" catchtap="onTapPost">查看</view>
             <view class="dynamic-action action-delete" data-id="{{item.id}}" catchtap="onDeletePost">删除</view>
           </view>
         </view>

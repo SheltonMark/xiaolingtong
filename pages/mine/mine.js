@@ -99,6 +99,7 @@ Page({
       const title = item.title || (item.content || '').slice(0, 28) || '未命名发布'
       return {
         ...item,
+        typeKey: item.type,
         type: typeMeta.label,
         typeColor: typeMeta.color,
         date: item.createdAt ? item.createdAt.substring(0, 10) : '',
@@ -121,7 +122,11 @@ Page({
   },
 
   onTapPost(e) {
-    wx.navigateTo({ url: '/pages/post-detail/post-detail?id=' + e.currentTarget.dataset.id })
+    const { id, type } = e.currentTarget.dataset
+    const targetUrl = type === 'job'
+      ? '/pages/job-detail/job-detail?id=' + id
+      : '/pages/post-detail/post-detail?id=' + id
+    wx.navigateTo({ url: targetUrl })
   },
 
   onViewAllPosts() {

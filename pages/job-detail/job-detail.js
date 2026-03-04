@@ -48,7 +48,12 @@ Page({
   },
 
   onCallPhone() {
-    wx.makePhoneCall({ phoneNumber: '13900005678', fail() {} })
+    const phoneNumber = this.data.job?.company?.phone || ''
+    if (!phoneNumber) {
+      wx.showToast({ title: '暂无联系电话', icon: 'none' })
+      return
+    }
+    wx.makePhoneCall({ phoneNumber, fail() {} })
   },
   onToggleFav() {
     const id = this.data.job.id
