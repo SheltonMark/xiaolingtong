@@ -3,6 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Exposure } from '../../entities/exposure.entity';
 import { ExposureComment } from '../../entities/exposure-comment.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
+import { User } from '../../entities/user.entity';
 
 @Injectable()
 export class ExposureService {
@@ -71,13 +74,13 @@ export class ExposureService {
     if (exp.publisher) {
       const role = exp.publisher.role;
       if (role === 'enterprise') {
-        const cert = await this.expRepo.manager.findOne('EnterpriseCert', {
+        const cert = await this.expRepo.manager.findOne(EnterpriseCert, {
           where: { userId: exp.publisher.id, status: 'approved' },
           order: { createdAt: 'DESC' }
         });
         if (cert) publisherName = cert.companyName;
       } else if (role === 'worker') {
-        const cert = await this.expRepo.manager.findOne('WorkerCert', {
+        const cert = await this.expRepo.manager.findOne(WorkerCert, {
           where: { userId: exp.publisher.id, status: 'approved' },
           order: { createdAt: 'DESC' }
         });
@@ -114,17 +117,17 @@ export class ExposureService {
 
   async create(publisherId: number, dto: any) {
     // Check if user is verified
-    const user = await this.expRepo.manager.findOne('User', { where: { id: publisherId } });
+    const user = await this.expRepo.manager.findOne(User, { where: { id: publisherId } });
     if (!user) throw new BadRequestException('用户不存在');
 
     let isVerified = false;
     if (user.role === 'enterprise') {
-      const cert = await this.expRepo.manager.findOne('EnterpriseCert', {
+      const cert = await this.expRepo.manager.findOne(EnterpriseCert, {
         where: { userId: publisherId, status: 'approved' }
       });
       isVerified = !!cert;
     } else if (user.role === 'worker') {
-      const cert = await this.expRepo.manager.findOne('WorkerCert', {
+      const cert = await this.expRepo.manager.findOne(WorkerCert, {
         where: { userId: publisherId, status: 'approved' }
       });
       isVerified = !!cert;

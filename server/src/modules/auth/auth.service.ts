@@ -5,6 +5,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import axios from 'axios';
 
 @Injectable()
@@ -71,7 +73,7 @@ export class AuthService {
     let certName = '';
 
     if (user.role === 'enterprise') {
-      const cert = await this.userRepo.manager.findOne('EnterpriseCert', {
+      const cert = await this.userRepo.manager.findOne(EnterpriseCert, {
         where: { userId },
         order: { createdAt: 'DESC' }
       });
@@ -80,7 +82,7 @@ export class AuthService {
         certName = cert.companyName;
       }
     } else if (user.role === 'worker') {
-      const cert = await this.userRepo.manager.findOne('WorkerCert', {
+      const cert = await this.userRepo.manager.findOne(WorkerCert, {
         where: { userId },
         order: { createdAt: 'DESC' }
       });
