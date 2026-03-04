@@ -347,6 +347,11 @@ Page({
     wx.showToast({ title: '已切换为' + (newRole === 'enterprise' ? '企业端' : '临工端'), icon: 'none' })
   },
 
+  onPullDownRefresh() {
+    this.loadData()
+    setTimeout(() => wx.stopPullDownRefresh(), 800)
+  },
+
   // picker 城市选择
   onCityChange(e) {
     const idx = e.detail.value

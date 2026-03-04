@@ -19,48 +19,43 @@
     </view>
   </view>
 
-  <!-- 曝光列表（支持下拉刷新） -->
-  <scroll-view class="eb-scroll" scroll-y enhanced="{{true}}" show-scrollbar="{{false}}" refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
+  <!-- 曝光列表 -->
+  <scroll-view class="eb-scroll" scroll-y refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
     <view class="eb-list-wrap">
-    <view class="eb-card" wx:for="{{list}}" wx:key="id"
-          wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}"
-          data-id="{{item.id}}" bindtap="onTapCard">
-      <!-- 头部 -->
-      <view class="eb-card-header">
-        <view class="text-avatar text-avatar-sm" style="background-color: {{item.avatarColor}};">{{item.avatarText}}</view>
-        <view class="eb-header-info">
-          <text class="eb-target">{{item.company}}{{item.company && item.contact ? ' / ' : ''}}{{item.contact}}</text>
-          <text class="eb-type-badge">{{item.type}}</text>
-        </view>
-      </view>
-      <!-- 详情 -->
-      <view class="eb-detail">
-        <view class="eb-detail-row" wx:if="{{item.amount}}">
-          <text class="eb-dl">欠款金额</text>
-          <text class="eb-dv text-cta font-medium">{{item.amount}}</text>
-        </view>
-      </view>
-      <!-- 描述 -->
-      <text class="eb-desc">{{item.reason}}</text>
-      <!-- 图片 -->
-      <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">
-        <view class="img-grid-item" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
-          <image class="img-grid-img" src="{{img}}" mode="aspectFill" data-urls="{{item.images}}" data-current="{{img}}" catchtap="onPreviewImage" />
-        </view>
-      </view>
-      <!-- 底部 -->
-      <view class="eb-bottom">
-        <text class="eb-bottom-date">{{item.date}}</text>
-        <view class="eb-actions">
-          <view class="eb-action">
-            <text class="eb-action-icon iconfont icon-pinglun"></text>
+      <view class="eb-card" wx:for="{{list}}" wx:key="id"
+            wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}"
+            data-id="{{item.id}}" bindtap="onTapCard">
+        <view class="eb-card-header">
+          <view class="text-avatar text-avatar-sm" style="background-color: {{item.avatarColor}};">{{item.avatarText}}</view>
+          <view class="eb-header-info">
+            <text class="eb-target">{{item.company}}{{item.company && item.contact ? ' / ' : ''}}{{item.contact}}</text>
+            <text class="eb-type-badge">{{item.type}}</text>
           </view>
-          <view class="eb-action">
-            <text class="eb-action-icon iconfont icon-fenxiang1"></text>
+        </view>
+        <view class="eb-detail">
+          <view class="eb-detail-row" wx:if="{{item.amount}}">
+            <text class="eb-dl">欠款金额</text>
+            <text class="eb-dv text-cta font-medium">{{item.amount}}</text>
+          </view>
+        </view>
+        <text class="eb-desc">{{item.reason}}</text>
+        <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">
+          <view class="img-grid-item" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
+            <image class="img-grid-img" src="{{img}}" mode="aspectFill" data-urls="{{item.images}}" data-current="{{img}}" catchtap="onPreviewImage" />
+          </view>
+        </view>
+        <view class="eb-card-bottom">
+          <text class="eb-bottom-date">{{item.date}}</text>
+          <view class="eb-actions">
+            <view class="eb-action">
+              <text class="eb-action-icon iconfont icon-pinglun"></text>
+            </view>
+            <view class="eb-action">
+              <text class="eb-action-icon iconfont icon-fenxiang1"></text>
+            </view>
           </view>
         </view>
       </view>
-    </view>
     </view>
   </scroll-view>
 

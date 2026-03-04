@@ -4,6 +4,8 @@
     "empty-state": "/components/empty-state/empty-state"
   },
   "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "enableShareAppMessage": true,
   "enableShareTimeline": true
 }

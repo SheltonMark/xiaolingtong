@@ -70,9 +70,10 @@ Page({
   onCommentInput(e) { this.setData({ commentText: e.detail.value }) },
   onSendComment() {
     if (!this.data.commentText.trim()) return
+    wx.hideKeyboard()
     post('/exposures/' + this.data.detail.id + '/comment', { content: this.data.commentText }).then(res => {
       wx.showToast({ title: '评论已发送', icon: 'success' })
-      this.setData({ commentText: '' })
+      this.setData({ commentText: '', keyboardHeight: 0 })
       this.loadDetail(this.data.detail.id)
     }).catch(() => {})
   },
