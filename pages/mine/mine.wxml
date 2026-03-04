@@ -79,8 +79,28 @@
         <empty-state wx:if="{{myPosts.length === 0}}" text="暂无发布记录" subText="去发布第一条信息吧~" />
       </view>
       <!-- 我的收藏 -->
-      <view wx:if="{{currentTab === 1}}">
-        <empty-state text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
+      <view wx:if="{{currentTab === 1}}" class="favorites-list">
+        <view class="fav-card" wx:for="{{favorites}}" wx:key="id"
+              data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
+          <view class="fav-card-top">
+            <text class="fav-type-tag fav-type-{{item.targetType}}">
+              {{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}
+            </text>
+            <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
+          </view>
+          <text class="fav-title">{{item.title}}</text>
+          <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
+          <view class="fav-meta" wx:if="{{item.targetType === 'job'}}">
+            <text class="fav-meta-item text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
+            <text class="fav-meta-item">需{{item.needCount}}人</text>
+            <text class="fav-meta-item">{{item.location}}</text>
+          </view>
+          <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
+            <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
+                   src="{{img}}" mode="aspectFill" class="fav-img" />
+          </view>
+        </view>
+        <empty-state wx:if="{{favorites.length === 0}}" text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
       </view>
     </view>
   </view>
@@ -144,7 +164,34 @@
           <text>{{item}}</text>
         </view>
       </view>
-      <empty-state text="暂无记录" subText="快去报名接单吧~" />
+      <!-- 接单记录 -->
+      <view wx:if="{{currentTab === 0}}">
+        <empty-state text="暂无记录" subText="快去报名接单吧~" />
+      </view>
+      <!-- 我的收藏 -->
+      <view wx:if="{{currentTab === 1}}" class="favorites-list">
+        <view class="fav-card" wx:for="{{favorites}}" wx:key="id"
+              data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
+          <view class="fav-card-top">
+            <text class="fav-type-tag fav-type-{{item.targetType}}">
+              {{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}
+            </text>
+            <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
+          </view>
+          <text class="fav-title">{{item.title}}</text>
+          <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
+          <view class="fav-meta" wx:if="{{item.targetType === 'job'}}">
+            <text class="fav-meta-item text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
+            <text class="fav-meta-item">需{{item.needCount}}人</text>
+            <text class="fav-meta-item">{{item.location}}</text>
+          </view>
+          <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
+            <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
+                   src="{{img}}" mode="aspectFill" class="fav-img" />
+          </view>
+        </view>
+        <empty-state wx:if="{{favorites.length === 0}}" text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
+      </view>
     </view>
   </view>
 </view>

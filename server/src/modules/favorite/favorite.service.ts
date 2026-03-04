@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Favorite } from '../../entities/favorite.entity';
 import { Post } from '../../entities/post.entity';
 import { Job } from '../../entities/job.entity';
+import { Exposure } from '../../entities/exposure.entity';
 
 @Injectable()
 export class FavoriteService {
@@ -11,15 +12,18 @@ export class FavoriteService {
     @InjectRepository(Favorite) private favRepo: Repository<Favorite>,
     @InjectRepository(Post) private postRepo: Repository<Post>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
+    @InjectRepository(Exposure) private exposureRepo: Repository<Exposure>,
   ) {}
 
   async list(userId: number) {
-    const favorites = await this.favRepo.find({ where: { userId } });
+    const favorites = await this.favRepo.find({ where: { userId }, order: { createdAt: 'DESC' } });
     const postIds = favorites.filter(f => f.targetType === 'post').map(f => f.targetId);
     const jobIds = favorites.filter(f => f.targetType === 'job').map(f => f.targetId);
+    const exposureIds = favorites.filter(f => f.targetType === 'exposure').map(f => f.targetId);
 
     const posts = postIds.length > 0 ? await this.postRepo.findByIds(postIds) : [];
     const jobs = jobIds.length > 0 ? await this.jobRepo.findByIds(jobIds) : [];
+    const exposures = exposureIds.length > 0 ? await this.exposureRepo.findByIds(exposureIds) : [];
 
     const postList = posts.map(p => ({
       id: p.id,
@@ -39,11 +43,24 @@ export class FavoriteService {
       salary: j.salary,
       salaryUnit: j.salaryUnit,
       location: j.location,
+      needCount: j.needCount,
       createdAt: j.createdAt,
       targetType: 'job'
     }));
 
-    return { list: [...postList, ...jobList].sort((a, b) =>
+    const exposureList = exposures.map(e => ({
+      id: e.id,
+      type: 'exposure',
+      title: `${e.companyName || ''}${e.personName ? '/' + e.personName : ''}`,
+      content: e.description,
+      category: e.category,
+      amount: e.amount,
+      images: e.images,
+      createdAt: e.createdAt,
+      targetType: 'exposure'
+    }));
+
+    return { list: [...postList, ...jobList, ...exposureList].sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     ) };
   }
