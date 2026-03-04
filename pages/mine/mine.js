@@ -8,6 +8,8 @@ Page({
     currentTab: 0,
     enterpriseInfo: { avatarText: '' },
     workerInfo: { avatarText: '' },
+    myPosts: [],
+    favorites: [],
     // 企业端
     enterpriseTabs: ['我的动态', '我的收藏'],
     enterpriseFuncs: [
@@ -72,6 +74,11 @@ Page({
         this.setData({ myPosts: mapped.slice(0, 3) })
       }).catch(() => {})
     }
+    // 加载我的收藏
+    get('/favorites').then(res => {
+      const list = res.data.list || res.data || []
+      this.setData({ favorites: list.slice(0, 3) })
+    }).catch(() => {})
   },
 
   mapMyPosts(list) {

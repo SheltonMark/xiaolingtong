@@ -59,24 +59,6 @@ Page({
   },
 
   onShareJob() {
-    const job = this.data.job
-    const title = job.title || '招工信息'
-    const path = `/pages/job-detail/job-detail?id=${job.id}`
-    this._lastSharePayload = { title, path }
-  },
-
-  onShareAppMessage(res) {
-    const id = (res && res.target && res.target.dataset && res.target.dataset.id) || ''
-    if (id && this.data.job.id == id) {
-      const job = this.data.job
-      return {
-        title: job.title || '招工信息',
-        path: `/pages/job-detail/job-detail?id=${job.id}`
-      }
-    }
-    return this._lastSharePayload || {
-      title: '招工信息',
-      path: `/pages/job-detail/job-detail?id=${this.data.job.id}`
-    }
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] })
   }
 })
