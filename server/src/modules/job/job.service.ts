@@ -3,12 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
+import { JobApplication } from '../../entities/job-application.entity';
 
 @Injectable()
 export class JobService {
   constructor(
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
+    @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -122,11 +124,11 @@ export class JobService {
       dateRange,
       hours: job.workHours || '待定',
       company: {
-        name: job.user?.companyName || '企业用户',
-        verified: !!job.user?.enterpriseCert,
+        name: job.user?.nickname || '企业用户',
+        verified: false,
         creditScore: job.user?.creditScore || 100,
-        contact: job.user?.contactName || '联系人',
-        phone: job.user?.contactPhone || job.user?.phone || ''
+        contact: '联系人',
+        phone: job.user?.phone || ''
       }
     };
   }
