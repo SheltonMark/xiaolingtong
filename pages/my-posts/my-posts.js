@@ -57,8 +57,14 @@ Page({
     }
     const statusMap = {
       active: { text: '展示中', color: 'green' },
+      pending: { text: '审核中', color: 'rose' },
+      rejected: { text: '未通过', color: 'rose' },
       recruiting: { text: '招工中', color: 'green' },
       full: { text: '已满员', color: 'amber' },
+      working: { text: '进行中', color: 'green' },
+      pending_settlement: { text: '待结算', color: 'amber' },
+      settled: { text: '已结算', color: 'green' },
+      closed: { text: '已关闭', color: 'gray' },
       expired: { text: '已过期', color: 'amber' },
       deleted: { text: '已删除', color: 'gray' }
     }

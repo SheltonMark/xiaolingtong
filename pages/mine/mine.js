@@ -120,8 +120,16 @@ Page({
     }
     const statusMap = {
       active: { text: '展示中', color: '#10B981' },
+      pending: { text: '审核中', color: '#F97316' },
+      rejected: { text: '未通过', color: '#F43F5E' },
       expired: { text: '已过期', color: '#F59E0B' },
-      deleted: { text: '已删除', color: '#94A3B8' }
+      deleted: { text: '已删除', color: '#94A3B8' },
+      recruiting: { text: '招工中', color: '#10B981' },
+      full: { text: '已满员', color: '#F59E0B' },
+      working: { text: '进行中', color: '#3B82F6' },
+      pending_settlement: { text: '待结算', color: '#F97316' },
+      settled: { text: '已结算', color: '#10B981' },
+      closed: { text: '已关闭', color: '#94A3B8' }
     }
     return (Array.isArray(list) ? list : []).map(item => {
       const typeMeta = typeMap[item.type] || { label: '信息', color: 'blue' }
