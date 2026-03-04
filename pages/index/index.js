@@ -89,24 +89,8 @@ Page({
   },
 
   loadData() {
-    if (this.data.userRole === 'enterprise') {
-      get('/posts', { type: 'purchase' }).then(res => {
-        this.setData({ purchaseList: this._mapPosts(res.data.list || res.data || []) })
-      }).catch(() => {})
-      get('/posts', { type: 'stock' }).then(res => {
-        this.setData({ stockList: this._mapPosts(res.data.list || res.data || []) })
-      }).catch(() => {})
-      get('/posts', { type: 'process' }).then(res => {
-        this.setData({ processList: this._mapPosts(res.data.list || res.data || []) })
-      }).catch(() => {})
-      get('/jobs').then(res => {
-        this.setData({ jobListEnterprise: res.data.list || res.data || [] })
-      }).catch(() => {})
-    } else {
-      get('/jobs').then(res => {
-        this.setData({ jobList: res.data.list || res.data || [] })
-      }).catch(() => {})
-    }
+    // 使用 loadDataByCategory 替代，支持分类筛选
+    this.loadDataByCategory()
   },
 
   _mapPosts(list) {
@@ -194,6 +178,11 @@ Page({
           this.setData({ jobListEnterprise: res.data.list || res.data || [] })
         }).catch(() => {})
       }
+    } else {
+      // 临工端
+      get('/jobs', params).then(res => {
+        this.setData({ jobList: res.data.list || res.data || [] })
+      }).catch(() => {})
     }
   },
 
