@@ -326,6 +326,12 @@
   margin-bottom: 8rpx;
 }
 .progress-text { font-size: 20rpx; color: #94A3B8; }
+.progress-text-simple {
+  font-size: 20rpx;
+  color: #94A3B8;
+  display: block;
+  margin-bottom: 8rpx;
+}
 .progress-bold { color: #1E293B; font-weight: 600; }
 .progress-bar {
   height: 6rpx; background: #F1F5F9; border-radius: 6rpx; overflow: hidden;

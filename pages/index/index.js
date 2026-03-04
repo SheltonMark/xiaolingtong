@@ -53,7 +53,13 @@ Page({
     ],
     // 临工端
     jobList: [],
-    filterLabels: ['工种', '计费方式', '距离', '工价']
+    filterLabels: ['工种', '计费方式', '距离', '工价'],
+    // 筛选状态
+    filterJobType: '',
+    filterSalaryType: '',
+    filterDistance: '',
+    filterSalaryRange: '',
+    sortBy: 'default' // default | salary_asc | salary_desc | distance
   },
 
   onLoad() {
@@ -103,10 +109,31 @@ Page({
         this.setData({ jobListEnterprise: res.data.list || res.data || [] })
       }).catch(() => {})
     } else {
-      get('/jobs').then(res => {
-        this.setData({ jobList: res.data.list || res.data || [] })
-      }).catch(() => {})
+      this.loadWorkerJobs()
     }
+  },
+
+  loadWorkerJobs() {
+    const params = {}
+    if (this.data.filterJobType) params.keyword = this.data.filterJobType
+    if (this.data.filterSalaryType) params.salaryType = this.data.filterSalaryType === '按小时' ? 'hourly' : 'piece'
+    if (this.data.filterSalaryRange) {
+      const range = this.data.filterSalaryRange
+      if (range === '20元以下') params.maxSalary = 20
+      else if (range === '20-30元') { params.minSalary = 20; params.maxSalary = 30 }
+      else if (range === '30-50元') { params.minSalary = 30; params.maxSalary = 50 }
+      else if (range === '50元以上') params.minSalary = 50
+    }
+    get('/jobs', params).then(res => {
+      let list = res.data.list || res.data || []
+      // 客户端排序（如果需要按距离排序，需要获取用户位置）
+      if (this.data.sortBy === 'salary_desc') {
+        list = list.sort((a, b) => b.salary - a.salary)
+      } else if (this.data.sortBy === 'salary_asc') {
+        list = list.sort((a, b) => a.salary - b.salary)
+      }
+      this.setData({ jobList: list })
+    }).catch(() => {})
   },
 
   _mapPosts(list) {
@@ -289,5 +316,37 @@ Page({
       this.getTabBar().setData({ selected: 0, userRole: newRole })
     }
     wx.showToast({ title: '已切换为' + (newRole === 'enterprise' ? '企业端' : '临工端'), icon: 'none' })
+  },
+
+  onFilterTap(e) {
+    const type = e.currentTarget.dataset.type
+    const actions = []
+
+    if (type === 'jobType') {
+      actions.push('全部', '电子组装', '包装工', '搬运工', '缝纫工', '焊接工', '质检员', '普工')
+    } else if (type === 'salaryType') {
+      actions.push('全部', '按小时', '按件')
+    } else if (type === 'distance') {
+      actions.push('全部', '1km内', '3km内', '5km内', '10km内')
+    } else if (type === 'salary') {
+      actions.push('全部', '20元以下', '20-30元', '30-50元', '50元以上')
+    }
+
+    wx.showActionSheet({
+      itemList: actions,
+      success: (res) => {
+        const selected = actions[res.tapIndex]
+        if (type === 'jobType') {
+          this.setData({ filterJobType: selected === '全部' ? '' : selected })
+        } else if (type === 'salaryType') {
+          this.setData({ filterSalaryType: selected === '全部' ? '' : selected })
+        } else if (type === 'distance') {
+          this.setData({ filterDistance: selected === '全部' ? '' : selected })
+        } else if (type === 'salary') {
+          this.setData({ filterSalaryRange: selected === '全部' ? '' : selected })
+        }
+        this.loadWorkerJobs()
+      }
+    })
   }
 })

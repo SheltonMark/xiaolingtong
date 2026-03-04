@@ -124,6 +124,23 @@ export class JobService {
     // 格式化列表数据
     const formattedList = await Promise.all(list.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+
+      // 格式化福利标签
+      const benefitTags = (job.benefits || []).map((b: any) => ({
+        label: typeof b === 'string' ? b : b.label,
+        bg: '#ECFDF5',
+        color: '#10B981'
+      }));
+
+      // 添加工作时间标签
+      const timeTags = job.workHours ? [{
+        label: job.workHours,
+        bg: '#EFF6FF',
+        color: '#3B82F6'
+      }] : [];
+
+      const allTags = [...benefitTags, ...timeTags];
+
       return {
         id: job.id,
         title: job.title,
@@ -135,10 +152,12 @@ export class JobService {
         location: job.location,
         cityDistrict: this.extractCityDistrict(job.location),
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
+        publishDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '',
         desc: job.description || '',
         urgent: job.urgent === 1,
         images: job.images || [],
-        tags: job.benefits || [],
+        tags: benefitTags,
+        allTags,
         companyName: job.user?.nickname || '企业用户',
         time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
       };

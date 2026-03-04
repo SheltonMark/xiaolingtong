@@ -32,8 +32,20 @@
     </view>
     <!-- 临工端筛选 -->
     <view class="filter-bar" wx:if="{{userRole === 'worker'}}">
-      <view class="filter-item" wx:for="{{filterLabels}}" wx:key="index">
-        <text class="filter-text">{{item}}</text>
+      <view class="filter-item" data-type="jobType" bindtap="onFilterTap">
+        <text class="filter-text">{{filterJobType || '工种'}}</text>
+        <view class="filter-arrow-triangle"></view>
+      </view>
+      <view class="filter-item" data-type="salaryType" bindtap="onFilterTap">
+        <text class="filter-text">{{filterSalaryType || '计费方式'}}</text>
+        <view class="filter-arrow-triangle"></view>
+      </view>
+      <view class="filter-item" data-type="distance" bindtap="onFilterTap">
+        <text class="filter-text">{{filterDistance || '距离'}}</text>
+        <view class="filter-arrow-triangle"></view>
+      </view>
+      <view class="filter-item" data-type="salary" bindtap="onFilterTap">
+        <text class="filter-text">{{filterSalaryRange || '工价'}}</text>
         <view class="filter-arrow-triangle"></view>
       </view>
     </view>
@@ -181,16 +193,6 @@
               <view class="progress-fill" style="width: {{item.applied / item.total * 100}}%;"></view>
             </view>
           </view>
-          <view class="card-actions-ent">
-            <view class="action-btn-ent btn-wechat-ent" catchtap="onWechat" data-id="{{item.id}}">
-              <text class="iconfont icon-xiaoxi"></text>
-              <text>微信</text>
-            </view>
-            <view class="action-btn-ent btn-phone-ent" catchtap="onPhone" data-id="{{item.id}}">
-              <text class="iconfont icon-shouji"></text>
-              <text>电话</text>
-            </view>
-          </view>
         </view>
         <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="暂无招工信息" />
       </view>
@@ -248,7 +250,7 @@
           <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
           <view class="job-company-info">
             <text class="job-company">{{item.companyName}}</text>
-            <text class="job-meta">{{item.cityDistrict}} · {{item.dateRange}}</text>
+            <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>
           </view>
         </view>
         <view class="job-pay">
@@ -257,25 +259,16 @@
         </view>
       </view>
       <!-- 标题 -->
-      <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.tagText}}" class="urgent-tag">{{item.tagText}}</text></text>
-      <!-- 福利标签 -->
-      <view class="job-tags" wx:if="{{item.tags && item.tags.length > 0}}">
-        <text class="job-tag" wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
+      <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
+      <!-- 福利标签 + 工作时间 -->
+      <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
+        <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
       </view>
       <!-- 描述 -->
       <text class="job-desc">{{item.desc}}</text>
-      <!-- 图片网格 -->
-      <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">
-        <view class="img-grid-item" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
-          <image src="{{img}}" mode="aspectFill" class="img-grid-img" data-urls="{{item.images}}" data-current="{{img}}" catchtap="onPreviewImage" />
-        </view>
-      </view>
       <!-- 报名进度 -->
       <view class="job-progress">
-        <view class="progress-header">
-          <text class="progress-text">已报名 <text class="progress-bold">{{item.applied}}</text>/{{item.need}}人</text>
-          <text class="progress-text">剩余{{item.need - item.applied}}个名额</text>
-        </view>
+        <text class="progress-text-simple">已报名 {{item.applied}}/{{item.need}}人</text>
         <view class="progress-bar">
           <view class="progress-fill" style="width: {{item.applied / item.need * 100}}%;"></view>
         </view>
