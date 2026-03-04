@@ -64,6 +64,28 @@ export class ExposureService {
       relations: ['user'],
       order: { createdAt: 'ASC' },
     });
+
+    // Get publisher certification info
+    let publisherName = '匿名用户';
+    let publisherAvatar = '';
+    if (exp.publisher) {
+      const role = exp.publisher.role;
+      if (role === 'enterprise') {
+        const cert = await this.expRepo.manager.findOne('EnterpriseCert', {
+          where: { userId: exp.publisher.id, status: 'approved' },
+          order: { createdAt: 'DESC' }
+        });
+        if (cert) publisherName = cert.companyName;
+      } else if (role === 'worker') {
+        const cert = await this.expRepo.manager.findOne('WorkerCert', {
+          where: { userId: exp.publisher.id, status: 'approved' },
+          order: { createdAt: 'DESC' }
+        });
+        if (cert) publisherName = cert.realName;
+      }
+      publisherAvatar = exp.publisher.avatarUrl || '';
+    }
+
     return {
       id: exp.id,
       companyName: exp.companyName,
@@ -74,16 +96,44 @@ export class ExposureService {
       viewCount: exp.viewCount,
       category: exp.category,
       createdAt: exp.createdAt,
+      publisher: {
+        name: publisherName,
+        avatarUrl: publisherAvatar,
+      },
       comments: comments.map(c => ({
         id: c.id,
         content: c.content,
         createdAt: c.createdAt,
-        user: { nickname: c.user?.nickname || '匿名用户' }
+        user: {
+          nickname: c.user?.nickname || '匿名用户',
+          avatarUrl: c.user?.avatarUrl || '',
+        }
       }))
     };
   }
 
   async create(publisherId: number, dto: any) {
+    // Check if user is verified
+    const user = await this.expRepo.manager.findOne('User', { where: { id: publisherId } });
+    if (!user) throw new BadRequestException('用户不存在');
+
+    let isVerified = false;
+    if (user.role === 'enterprise') {
+      const cert = await this.expRepo.manager.findOne('EnterpriseCert', {
+        where: { userId: publisherId, status: 'approved' }
+      });
+      isVerified = !!cert;
+    } else if (user.role === 'worker') {
+      const cert = await this.expRepo.manager.findOne('WorkerCert', {
+        where: { userId: publisherId, status: 'approved' }
+      });
+      isVerified = !!cert;
+    }
+
+    if (!isVerified) {
+      throw new BadRequestException('需要完成企业认证或实名认证后才能发布曝光');
+    }
+
     const exp = this.expRepo.create({
       publisherId,
       category: dto.category || 'wage_theft', // 默认欠薪欠款

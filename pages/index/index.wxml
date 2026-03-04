@@ -8,9 +8,9 @@
     </view>
     <!-- 搜索行 -->
     <view class="top-bar-inner">
-      <view class="city-selector" bindlongpress="onSwitchRole">
+      <view class="city-selector" bindtap="onCityTap" bindlongpress="onSwitchRole">
         <text class="city-icon iconfont icon-address {{userRole === 'enterprise' ? 'text-cta' : 'text-primary'}}"></text>
-        <text class="city-name">东莞</text>
+        <text class="city-name">{{currentCity}}</text>
       </view>
       <view class="search-bar" bindtap="onSearch">
         <text class="search-icon iconfont icon-sousuo"></text>

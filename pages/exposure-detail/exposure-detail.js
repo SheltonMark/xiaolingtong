@@ -19,17 +19,27 @@ Page({
       const d = res.data || {}
       // 格式化发布时间
       const publishTime = d.createdAt ? new Date(d.createdAt).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : ''
+
+      // 发布者信息
+      const publisher = d.publisher || {}
+      const publisherName = publisher.name || '匿名用户'
+      const publisherAvatar = publisher.avatarUrl || ''
+
       this.setData({
         detail: {
           ...d,
           publishTime,
-          avatarText: d.category ? this.getCategoryText(d.category)[0] : '曝',
+          publisherName,
+          publisherAvatar,
+          avatarText: publisherName ? publisherName[0] : '曝',
           viewCount: d.viewCount || 0
         },
         images: d.images || [],
         comments: (d.comments || []).map(c => ({
           id: c.id,
           name: c.user?.nickname || '匿名用户',
+          avatarUrl: c.user?.avatarUrl || '',
+          avatarText: (c.user?.nickname || '匿')[0],
           content: c.content,
           time: this.formatTime(c.createdAt)
         }))
@@ -73,9 +83,9 @@ Page({
     }).catch(() => {})
   },
   onInputFocus(e) {
-    this.setData({ keyboardHeight: e.detail.height || 0 })
+    // 不需要手动调整，让系统自动处理
   },
   onInputBlur() {
-    this.setData({ keyboardHeight: 0 })
+    // 不需要手动调整，让系统自动处理
   }
 })

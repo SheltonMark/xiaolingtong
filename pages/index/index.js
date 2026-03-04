@@ -4,6 +4,8 @@ Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
     statusBarHeight: 0,
+    currentCity: '东莞', // 当前选择的城市
+    cities: [], // 可选城市列表
     // 企业端
     currentTab: 0,
     tabs: ['采购需求', '工厂库存', '代加工', '发布招工'],
@@ -86,12 +88,26 @@ Page({
 
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-    this.setData({ userRole })
+    const currentCity = wx.getStorageSync('currentCity') || '东莞'
+    this.setData({ userRole, currentCity })
+    this.loadCities()
     this.loadData()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
     }
     setTimeout(() => this.measureHeader(), 100)
+  },
+
+  loadCities() {
+    get('/config/cities').then(res => {
+      const cities = res.data.list || []
+      this.setData({ cities })
+      // 如果当前城市不在列表中，设置为第一个城市
+      if (cities.length > 0 && !cities.find(c => c.name === this.data.currentCity)) {
+        this.setData({ currentCity: cities[0].name })
+        wx.setStorageSync('currentCity', cities[0].name)
+      }
+    }).catch(() => {})
   },
 
   loadData() {
@@ -316,6 +332,23 @@ Page({
       this.getTabBar().setData({ selected: 0, userRole: newRole })
     }
     wx.showToast({ title: '已切换为' + (newRole === 'enterprise' ? '企业端' : '临工端'), icon: 'none' })
+  },
+
+  // 点击城市选择
+  onCityTap() {
+    if (this.data.cities.length === 0) {
+      wx.showToast({ title: '暂无可选城市', icon: 'none' })
+      return
+    }
+    wx.showActionSheet({
+      itemList: this.data.cities.map(c => c.name),
+      success: (res) => {
+        const selectedCity = this.data.cities[res.tapIndex]
+        this.setData({ currentCity: selectedCity.name })
+        wx.setStorageSync('currentCity', selectedCity.name)
+        this.loadData()
+      }
+    })
   },
 
   onFilterTap(e) {

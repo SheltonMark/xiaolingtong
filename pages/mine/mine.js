@@ -58,12 +58,31 @@ Page({
       app.globalData.userInfo = user
       app.globalData.beanBalance = user.beanBalance || 0
       app.globalData.isMember = user.isMember || false
+
+      // 认证状态
+      const certStatus = user.certStatus || 'none'
+      const certName = user.certName || ''
+      const isVerified = user.isVerified || false
+      let certBadge = ''
+      if (certStatus === 'approved') {
+        certBadge = '已认证'
+      } else if (certStatus === 'pending') {
+        certBadge = '审核中'
+      } else if (certStatus === 'rejected') {
+        certBadge = '未通过'
+      } else {
+        certBadge = '未认证'
+      }
+
       this.setData({
         nickname: user.nickname || '',
         avatarUrl: user.avatarUrl || '',
         beanBalance: user.beanBalance || 0,
         isMember: user.isMember || false,
-        creditScore: user.creditScore || 100
+        creditScore: user.creditScore || 100,
+        certBadge,
+        certName,
+        isVerified
       })
     }).catch(() => {})
     // 加载我的发布
