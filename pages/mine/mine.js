@@ -85,13 +85,24 @@ Page({
         isVerified
       })
     }).catch(() => {})
-    // 加载我的发布
+    // 加载我的发布（所有类型的最近3条）
     if (this.data.userRole === 'enterprise') {
-      get('/posts/mine').then(res => {
-        const list = res.data.list || res.data || []
-        const mapped = this.mapMyPosts(list)
+      Promise.all([
+        get('/posts/mine').catch(() => ({ data: { list: [] } })),
+        get('/jobs/mine').catch(() => ({ data: { list: [] } }))
+      ]).then(([postsRes, jobsRes]) => {
+        const postsList = postsRes.data.list || postsRes.data || []
+        const jobsList = jobsRes.data.list || jobsRes.data || []
+        const allPosts = [...postsList, ...jobsList]
+        // 按创建时间排序，取最近3条
+        const sortedPosts = allPosts.sort((a, b) => {
+          const timeA = new Date(a.createdAt || 0).getTime()
+          const timeB = new Date(b.createdAt || 0).getTime()
+          return timeB - timeA
+        })
+        const mapped = this.mapMyPosts(sortedPosts)
         this.setData({ myPosts: mapped.slice(0, 3) })
-      }).catch(() => {})
+      })
     }
     // 加载我的收藏
     get('/favorites').then(res => {

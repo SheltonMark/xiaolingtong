@@ -85,6 +85,20 @@
   line-height: 1.5;
 }
 
+/* 帖子描述 */
+.post-desc {
+  font-size: 24rpx;
+  color: #64748B;
+  line-height: 1.6;
+  display: block;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
 /* 招工详情信息 */
 .job-detail-info {
   background-color: #F8FAFC;

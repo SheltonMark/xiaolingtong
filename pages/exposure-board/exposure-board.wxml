@@ -19,8 +19,8 @@
     </view>
   </view>
 
-  <!-- 曝光列表 -->
-  <view class="eb-list-wrap">
+  <!-- 曝光列表（支持下拉刷新） -->
+  <scroll-view class="eb-list-wrap" scroll-y refresher-enabled refresher-triggered="{{refreshing}}" bindrefresherrefresh="onRefresh">
     <view class="eb-card" wx:for="{{list}}" wx:key="id"
           wx:if="{{currentTab === 0 || item.type === tabs[currentTab]}}"
           data-id="{{item.id}}" bindtap="onTapCard">
@@ -60,7 +60,7 @@
         </view>
       </view>
     </view>
-  </view>
+  </scroll-view>
 
   <!-- 悬浮发布按钮 -->
   <view class="eb-fab" bindtap="onPublishExposure">

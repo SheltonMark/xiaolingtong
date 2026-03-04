@@ -21,10 +21,17 @@ Page({
     const tab = this.data.tabs[this.data.currentTab]
     const params = tab.key === 'all' ? {} : { type: tab.key }
 
-    // 如果是全部或招工tab，需要同时获取招工信息
-    if (tab.key === 'all' || tab.key === 'job') {
+    // 招工信息从 /jobs/mine 获取，其他从 /posts/mine 获取
+    if (tab.key === 'job') {
+      // 只显示招工
+      get('/jobs/mine').then(res => {
+        const list = res.data.list || res.data || []
+        this.setData({ posts: this.mapPosts(list) })
+      }).catch(() => {})
+    } else if (tab.key === 'all') {
+      // 全部：获取所有posts和jobs
       Promise.all([
-        get('/posts/mine', params).catch(() => ({ data: { list: [] } })),
+        get('/posts/mine').catch(() => ({ data: { list: [] } })),
         get('/jobs/mine').catch(() => ({ data: { list: [] } }))
       ]).then(([postsRes, jobsRes]) => {
         const postsList = postsRes.data.list || postsRes.data || []
@@ -33,6 +40,7 @@ Page({
         this.setData({ posts: this.mapPosts(allPosts) })
       })
     } else {
+      // 其他类型：只从posts获取
       get('/posts/mine', params).then(res => {
         const list = res.data.list || res.data || []
         this.setData({ posts: this.mapPosts(list) })
@@ -70,7 +78,8 @@ Page({
         expireTime: expireAt,
         expired: item.status === 'expired',
         views: Number(item.viewCount || 0),
-        title: item.title || (item.content || '').slice(0, 36) || '未命名发布'
+        title: item.title || (item.content || '').slice(0, 36) || '未命名发布',
+        desc: item.content || ''
       }
     })
   },

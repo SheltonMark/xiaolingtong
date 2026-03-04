@@ -47,6 +47,9 @@
         </view>
       </view>
 
+      <!-- 其他类型信息详情 -->
+      <text class="post-desc" wx:if="{{item.typeKey !== 'job' && item.desc}}">{{item.desc}}</text>
+
       <!-- 驳回原因 -->
       <view class="reject-box" wx:if="{{item.rejectReason}}">
         <text class="reject-text">驳回原因：{{item.rejectReason}}</text>
