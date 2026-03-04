@@ -22,14 +22,16 @@ Page({
       { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
       { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
       { icon: '\ue832', label: '厨房卫浴', bg: '#ECFDF5', iconColor: '#10B981' },
-      { icon: '\ue626', label: '母婴玩具', bg: '#FFF1F2', iconColor: '#F43F5E' }
+      { icon: '\ue626', label: '母婴玩具', bg: '#FFF1F2', iconColor: '#F43F5E' },
+      { icon: '\ue61a', label: '其他', bg: '#F5F5F5', iconColor: '#64748B' }
     ],
     cateStock: [
       { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
       { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
       { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
       { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
-      { icon: '\ue670', label: '家具家电', bg: '#F3E8FF', iconColor: '#8B5CF6' }
+      { icon: '\ue670', label: '家具家电', bg: '#F3E8FF', iconColor: '#8B5CF6' },
+      { icon: '\ue61a', label: '其他', bg: '#F5F5F5', iconColor: '#64748B' }
     ],
     cateProcess: [
       { icon: '\ue6a0', label: '注塑加工', bg: '#FFFBEB', iconColor: '#F59E0B' },
