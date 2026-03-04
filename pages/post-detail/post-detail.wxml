@@ -75,7 +75,7 @@
     </button>
     <button class="bottom-btn btn-contact" bindtap="onUnlockContact" wx:if="{{!contactUnlocked}}">
       <text class="bottom-btn-icon iconfont icon-jiesuo"></text>
-      <text>查看联系方式</text>
+      <text>需要灵豆解锁</text>
     </button>
     <button class="bottom-btn btn-contact" bindtap="onCallPhone" wx:else>
       <text class="bottom-btn-icon iconfont icon-shouji"></text>

@@ -157,9 +157,32 @@ Page({
   },
 
   onUnlockContact() {
+    const app = getApp()
+    const beanBalance = app.globalData.beanBalance || 0
+
+    // 检查灵豆是否充足
+    if (beanBalance < 10) {
+      wx.showModal({
+        title: '灵豆不足',
+        content: `当前灵豆余额为 ${beanBalance}，需要 10 灵豆才能解锁联系方式。`,
+        confirmText: '去充值',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            // 跳转到灵豆充值页面
+            wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
+          }
+        }
+      })
+      return
+    }
+
+    // 灵豆充足，显示解锁确认
     wx.showModal({
-      title: '查看联系方式',
-      content: '消耗10灵豆查看联系方式，确认？',
+      title: '解锁联系方式',
+      content: `需要耗费 10 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？`,
+      confirmText: '解锁',
+      cancelText: '取消',
       success: (res) => {
         if (res.confirm) {
           wx.showLoading({ title: '解锁中...' })
@@ -167,15 +190,12 @@ Page({
             wx.hideLoading()
             // 检查是否成功扣费
             if (response.data && response.data.success === false) {
-              wx.showToast({ title: response.data.message || '灵豆不足', icon: 'none' })
+              wx.showToast({ title: response.data.message || '解锁失败', icon: 'none' })
               return
             }
-            wx.showToast({ title: '解锁成功，已扣10灵豆', icon: 'success' })
-            // 更新全局灵豆余额
-            const app = getApp()
-            if (app.globalData.beanBalance !== undefined) {
-              app.globalData.beanBalance -= 10
-            }
+            // 扣除灵豆
+            app.globalData.beanBalance = beanBalance - 10
+            wx.showToast({ title: '解锁成功，已扣 10 灵豆', icon: 'success' })
             // 重新加载详情以获取联系方式
             this.loadDetail(this.data.detail.id)
           }).catch((err) => {
