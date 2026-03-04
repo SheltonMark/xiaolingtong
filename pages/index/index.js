@@ -17,6 +17,7 @@ Page({
     processList: [],
     // 分类图标
     catePurchase: [
+      { icon: '\ue61e', label: '全部', bg: '#F3F4F6', iconColor: '#6B7280' },
       { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
       { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
       { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
@@ -26,6 +27,7 @@ Page({
       { icon: '\ue61a', label: '其他', bg: '#F5F5F5', iconColor: '#64748B' }
     ],
     cateStock: [
+      { icon: '\ue61e', label: '全部', bg: '#F3F4F6', iconColor: '#6B7280' },
       { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
       { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
       { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
@@ -34,6 +36,7 @@ Page({
       { icon: '\ue61a', label: '其他', bg: '#F5F5F5', iconColor: '#64748B' }
     ],
     cateProcess: [
+      { icon: '\ue61e', label: '全部', bg: '#F3F4F6', iconColor: '#6B7280' },
       { icon: '\ue6a0', label: '注塑加工', bg: '#FFFBEB', iconColor: '#F59E0B' },
       { icon: '\ue659', label: 'CNC加工', bg: '#EFF6FF', iconColor: '#6366F1' },
       { icon: '\ue63b', label: '丝印印刷', bg: '#F3E8FF', iconColor: '#8B5CF6' },
@@ -41,6 +44,7 @@ Page({
       { icon: '\ue770', label: '模具制造', bg: '#ECFDF5', iconColor: '#10B981' }
     ],
     cateJob: [
+      { icon: '\ue61e', label: '全部', bg: '#F3F4F6', iconColor: '#6B7280' },
       { icon: '\ue687', label: '电子组装', bg: '#E0F2FE', iconColor: '#3B82F6' },
       { icon: '\ue670', label: '包装工', bg: '#FFFBEB', iconColor: '#F59E0B' },
       { icon: '\ue617', label: '缝纫工', bg: '#FCE7F3', iconColor: '#EC4899' },
@@ -48,6 +52,7 @@ Page({
       { icon: '\ue786', label: '质检', bg: '#F3E8FF', iconColor: '#8B5CF6' }
     ],
     cateFactory: [
+      { icon: '\ue61e', label: '全部', bg: '#F3F4F6', iconColor: '#6B7280' },
       { icon: '\ue687', label: '电子组装', bg: '#E0F2FE', iconColor: '#3B82F6' },
       { icon: '\ue770', label: '模具加工', bg: '#FFFBEB', iconColor: '#F59E0B' },
       { icon: '\ue6a0', label: '注塑', bg: '#FFF7ED', iconColor: '#F97316' },
@@ -256,9 +261,9 @@ Page({
       selectedCategory = active ? active.label : null
     }
 
-    // 构建查询参数
+    // 构建查询参数（"全部"时不传递 industry 参数）
     const params = {}
-    if (selectedCategory) {
+    if (selectedCategory && selectedCategory !== '全部') {
       params.industry = selectedCategory
     }
 
