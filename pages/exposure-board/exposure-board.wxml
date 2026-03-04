@@ -53,11 +53,9 @@
         <view class="eb-actions">
           <view class="eb-action">
             <text class="eb-action-icon iconfont icon-pinglun"></text>
-            <text class="eb-action-text">{{item.comments}}</text>
           </view>
           <view class="eb-action">
             <text class="eb-action-icon iconfont icon-fenxiang1"></text>
-            <text class="eb-action-text">分享</text>
           </view>
         </view>
       </view>

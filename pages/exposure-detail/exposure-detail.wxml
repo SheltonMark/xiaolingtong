@@ -7,18 +7,18 @@
       <view class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:#64748B;">{{detail.avatarText}}</view>
       <view class="ed-author-info">
         <text class="ed-author-name">匿名用户</text>
-        <text class="ed-author-time">2026-02-05 发布</text>
+        <text class="ed-author-time">{{detail.publishTime}} 发布</text>
       </view>
     </view>
 
     <!-- 曝光模版信息 -->
     <view class="ed-fields">
-      <view class="ed-field"><text class="ed-field-label">对方公司</text><text class="ed-field-value">***塑胶制品厂</text></view>
-      <view class="ed-field"><text class="ed-field-label">对方姓名</text><text class="ed-field-value">王**</text></view>
-      <view class="ed-field"><text class="ed-field-label">欠款金额</text><text class="ed-field-value text-cta">¥12,800</text></view>
+      <view class="ed-field" wx:if="{{detail.companyName}}"><text class="ed-field-label">对方公司</text><text class="ed-field-value">{{detail.companyName}}</text></view>
+      <view class="ed-field" wx:if="{{detail.personName}}"><text class="ed-field-label">对方姓名</text><text class="ed-field-value">{{detail.personName}}</text></view>
+      <view class="ed-field" wx:if="{{detail.amount}}"><text class="ed-field-label">欠款金额</text><text class="ed-field-value text-cta">¥{{detail.amount}}</text></view>
     </view>
 
-    <text class="ed-content">发布虚假库存信息，实际无货源，多名用户投诉。经多次沟通仍拒绝退款，态度恶劣。合同签订后以各种理由拖延发货，最终失联。</text>
+    <text class="ed-content">{{detail.description}}</text>
 
     <!-- 证据图片 -->
     <view class="img-grid img-count-{{images.length}}">
@@ -28,7 +28,7 @@
     </view>
 
     <view class="ed-meta">
-      <text class="ed-meta-item"><text class="iconfont icon-chakan"></text> 326次浏览</text>
+      <text class="ed-meta-item"><text class="iconfont icon-chakan"></text> {{detail.viewCount}}次浏览</text>
       <text class="ed-meta-item"><text class="iconfont icon-pinglun"></text> {{comments.length}}条评论</text>
       <view class="ed-fav" catchtap="onToggleFav">
         <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
@@ -56,8 +56,8 @@
   </view>
 
   <!-- 底部评论输入 -->
-  <view class="ed-bottom">
-    <input class="ed-input" placeholder="写评论..." bindinput="onCommentInput" value="{{commentText}}" />
+  <view class="ed-bottom" style="padding-bottom: {{keyboardHeight}}px;">
+    <input class="ed-input" placeholder="写评论..." bindinput="onCommentInput" value="{{commentText}}" adjust-position="{{true}}" bindfocus="onInputFocus" bindblur="onInputBlur" />
     <button class="ed-send-btn" bindtap="onSendComment">发送</button>
   </view>
 </view>
