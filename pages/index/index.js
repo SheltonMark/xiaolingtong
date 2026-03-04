@@ -201,6 +201,10 @@ Page({
     wx.navigateTo({ url: '/pages/category/category' })
   },
 
+  onViewMore() {
+    wx.navigateTo({ url: '/pages/category/category' })
+  },
+
   onNotification() {
     wx.switchTab({ url: '/pages/messages/messages' })
   },

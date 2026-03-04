@@ -65,7 +65,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新采购需求</text>
-          <text class="section-more">查看更多</text>
+          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <info-card wx:for="{{purchaseList}}" wx:key="id"
                    item="{{item}}"
@@ -93,7 +93,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新工厂库存</text>
-          <text class="section-more">查看更多</text>
+          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <info-card wx:for="{{stockList}}" wx:key="id"
                    item="{{item}}"
@@ -121,7 +121,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新代加工</text>
-          <text class="section-more">查看更多</text>
+          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <info-card wx:for="{{processList}}" wx:key="id"
                    item="{{item}}"
@@ -149,7 +149,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新招工信息</text>
-          <text class="section-more">查看更多</text>
+          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
               data-id="{{item.id}}" bindtap="onJobTap">
@@ -216,7 +216,7 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">工厂名录</text>
-          <text class="section-more">查看更多</text>
+          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <view class="factory-card" wx:for="{{factoryList}}" wx:key="id">
           <view class="factory-top">
