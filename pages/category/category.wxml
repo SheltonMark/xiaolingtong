@@ -9,38 +9,60 @@
     </view>
   </view>
 
-  <!-- 品类 -->
-  <view class="filter-section">
-    <text class="filter-title">品类</text>
-    <view class="filter-tags">
-      <view class="filter-tag {{categoryIndex === index ? 'filter-tag-active' : ''}}"
-            wx:for="{{categories}}" wx:key="index"
-            data-index="{{index}}" bindtap="onCategoryTap">
-        <text>{{item}}</text>
+  <!-- 搜索结果 -->
+  <view wx:if="{{searchResults.length > 0}}" class="search-results">
+    <view class="results-header">
+      <text class="results-count">找到 {{searchResults.length}} 条结果</text>
+    </view>
+    <view class="results-list">
+      <view class="info-card" wx:for="{{searchResults}}" wx:key="id" bindtap="onCardTap" data-id="{{item.id}}">
+        <view class="card-header">
+          <view class="card-avatar" style="background-color: #10B981;">{{item.avatarText}}</view>
+          <view class="card-info">
+            <text class="card-title">{{item.companyName}}</text>
+            <text class="card-meta">{{item.time}}</text>
+          </view>
+        </view>
+        <text class="card-content">{{item.content}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 地区 -->
-  <view class="filter-section">
-    <text class="filter-title">地区</text>
-    <view class="filter-tags">
-      <view class="filter-tag {{cityIndex === index ? 'filter-tag-active' : ''}}"
-            wx:for="{{cities}}" wx:key="index"
-            data-index="{{index}}" bindtap="onCityTap">
-        <text>{{item}}</text>
+  <!-- 筛选条件（搜索结果为空时显示） -->
+  <view wx:if="{{searchResults.length === 0}}">
+    <!-- 品类 -->
+    <view class="filter-section">
+      <text class="filter-title">品类</text>
+      <view class="filter-tags">
+        <view class="filter-tag {{categoryIndex === index ? 'filter-tag-active' : ''}}"
+              wx:for="{{categories}}" wx:key="index"
+              data-index="{{index}}" bindtap="onCategoryTap">
+          <text>{{item}}</text>
+        </view>
       </view>
     </view>
-  </view>
 
-  <!-- 排序 -->
-  <view class="filter-section">
-    <text class="filter-title">排序</text>
-    <view class="filter-tags">
-      <view class="filter-tag {{sortIndex === index ? 'filter-tag-active' : ''}}"
-            wx:for="{{sorts}}" wx:key="index"
-            data-index="{{index}}" bindtap="onSortTap">
-        <text>{{item}}</text>
+    <!-- 地区 -->
+    <view class="filter-section">
+      <text class="filter-title">地区</text>
+      <view class="filter-tags">
+        <view class="filter-tag {{cityIndex === index ? 'filter-tag-active' : ''}}"
+              wx:for="{{cities}}" wx:key="index"
+              data-index="{{index}}" bindtap="onCityTap">
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 排序 -->
+    <view class="filter-section">
+      <text class="filter-title">排序</text>
+      <view class="filter-tags">
+        <view class="filter-tag {{sortIndex === index ? 'filter-tag-active' : ''}}"
+              wx:for="{{sorts}}" wx:key="index"
+              data-index="{{index}}" bindtap="onSortTap">
+          <text>{{item}}</text>
+        </view>
       </view>
     </view>
   </view>
@@ -48,6 +70,6 @@
   <!-- 底部按钮 -->
   <view class="bottom-btns">
     <button class="btn btn-outline" style="flex:1;" bindtap="onReset">重置</button>
-    <button class="btn btn-primary" style="flex:1;" bindtap="onConfirm">确认</button>
+    <button class="btn btn-primary" style="flex:1;" bindtap="{{searchResults.length > 0 ? 'onConfirm' : 'onSearch'}}">{{searchResults.length > 0 ? '确认' : '搜索'}}</button>
   </view>
 </view>
