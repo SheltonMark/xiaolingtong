@@ -11,4 +11,10 @@ export class ConfigController {
   getCities() {
     return this.configService.getActiveCities();
   }
+
+  @Public()
+  @Get('job-types')
+  getJobTypes() {
+    return this.configService.getActiveJobTypes();
+  }
 }

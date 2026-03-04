@@ -6,6 +6,7 @@ Page({
     statusBarHeight: 0,
     currentCity: '东莞', // 当前选择的城市
     cities: [], // 可选城市列表
+    jobTypes: [], // 可选工种列表
     // 企业端
     currentTab: 0,
     tabs: ['采购需求', '工厂库存', '代加工', '发布招工'],
@@ -91,6 +92,7 @@ Page({
     const currentCity = wx.getStorageSync('currentCity') || '东莞'
     this.setData({ userRole, currentCity })
     this.loadCities()
+    this.loadJobTypes()
     this.loadData()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
@@ -107,6 +109,13 @@ Page({
         this.setData({ currentCity: cities[0].name })
         wx.setStorageSync('currentCity', cities[0].name)
       }
+    }).catch(() => {})
+  },
+
+  loadJobTypes() {
+    get('/config/job-types').then(res => {
+      const jobTypes = res.data.list || []
+      this.setData({ jobTypes })
     }).catch(() => {})
   },
 
@@ -356,7 +365,12 @@ Page({
     const actions = []
 
     if (type === 'jobType') {
-      actions.push('全部', '电子组装', '包装工', '搬运工', '缝纫工', '焊接工', '质检员', '普工')
+      // 从后台配置获取工种列表
+      if (this.data.jobTypes.length === 0) {
+        wx.showToast({ title: '暂无可选工种', icon: 'none' })
+        return
+      }
+      actions.push('全部', ...this.data.jobTypes.map(jt => jt.name))
     } else if (type === 'salaryType') {
       actions.push('全部', '按小时', '按件')
     } else if (type === 'distance') {
