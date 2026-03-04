@@ -103,7 +103,32 @@ export class JobService {
   async detail(id: number) {
     const job = await this.jobRepo.findOne({ where: { id }, relations: ['user'] });
     if (!job) throw new BadRequestException('招工信息不存在');
-    return job;
+
+    // 查询报名人数
+    const appliedCount = await this.appRepo.count({ where: { jobId: id } });
+
+    // 格式化返回数据
+    const salaryTypeMap = { hourly: '计时', piece: '计件' };
+    const dateRange = job.dateStart && job.dateEnd
+      ? `${job.dateStart} 至 ${job.dateEnd}`
+      : '待定';
+
+    return {
+      ...job,
+      need: job.needCount,
+      total: job.needCount,
+      applied: appliedCount,
+      salaryType: salaryTypeMap[job.salaryType] || job.salaryType,
+      dateRange,
+      hours: job.workHours || '待定',
+      company: {
+        name: job.user?.companyName || '企业用户',
+        verified: !!job.user?.enterpriseCert,
+        creditScore: job.user?.creditScore || 100,
+        contact: job.user?.contactName || '联系人',
+        phone: job.user?.contactPhone || job.user?.phone || ''
+      }
+    };
   }
 
   async create(userId: number, dto: any) {

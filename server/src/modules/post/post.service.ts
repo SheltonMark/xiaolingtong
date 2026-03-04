@@ -7,6 +7,7 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { Job } from '../../entities/job.entity';
 
 const UNLOCK_COST = 10;
 
@@ -19,6 +20,7 @@ export class PostService {
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(Job) private jobRepo: Repository<Job>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -143,11 +145,34 @@ export class PostService {
 
   async myPosts(userId: number, query: any) {
     const { type, page = 1, pageSize = 20 } = query;
+
+    // 如果指定了 type=job，只返回招工信息
+    if (type === 'job') {
+      const qb = this.jobRepo.createQueryBuilder('j')
+        .where('j.userId = :userId', { userId })
+        .orderBy('j.createdAt', 'DESC')
+        .skip((page - 1) * pageSize)
+        .take(pageSize);
+      const [list, total] = await qb.getManyAndCount();
+      const jobList = list.map(job => ({
+        id: job.id,
+        type: 'job',
+        title: job.title,
+        content: job.description,
+        status: job.status === 'recruiting' ? 'active' : 'expired',
+        viewCount: 0,
+        createdAt: job.createdAt,
+        expireAt: job.dateEnd
+      }));
+      return { list: jobList, total, page: +page, pageSize: +pageSize };
+    }
+
+    // 否则返回 posts
     const qb = this.postRepo.createQueryBuilder('p')
       .where('p.userId = :userId', { userId })
       .andWhere('p.status != :del', { del: 'deleted' });
 
-    if (type) qb.andWhere('p.type = :type', { type });
+    if (type && type !== 'all') qb.andWhere('p.type = :type', { type });
 
     qb.orderBy('p.createdAt', 'DESC')
       .skip((page - 1) * pageSize)

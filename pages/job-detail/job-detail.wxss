@@ -106,7 +106,14 @@ page {
 .bar-icon-btn {
   display: flex; flex-direction: column; align-items: center; gap: 2rpx;
 }
+.bar-icon-btn-share {
+  display: flex; flex-direction: column; align-items: center; gap: 2rpx;
+  background: transparent; border: none; padding: 0; margin: 0;
+  line-height: 1;
+}
+.bar-icon-btn-share::after { border: none; }
 .bar-icon-btn .iconfont { font-size: 36rpx; }
+.bar-icon-btn-share .iconfont { font-size: 36rpx; }
 .bar-icon-gray { color: #94A3B8; }
 .bar-icon-label { font-size: 18rpx; color: #94A3B8; }
 .bar-right {

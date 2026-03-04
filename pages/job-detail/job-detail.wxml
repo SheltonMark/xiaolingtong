@@ -101,10 +101,10 @@
         <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
         <text class="bar-icon-label">收藏</text>
       </view>
-      <view class="bar-icon-btn" bindtap="onShareJob">
+      <button class="bar-icon-btn-share" open-type="share" data-id="{{job.id}}" bindtap="onShareJob">
         <text class="iconfont icon-fenxiang1 bar-icon-gray"></text>
         <text class="bar-icon-label">分享</text>
-      </view>
+      </button>
     </view>
     <view class="bar-right">
       <view class="bar-btn-phone" bindtap="onCallPhone">电话</view>
@@ -112,20 +112,4 @@
     </view>
   </view>
 
-  <!-- 底部操作栏（企业用户 + 待结算状态） -->
-  <view class="bottom-bar" wx:if="{{userRole === 'enterprise' && job.status === 'pending_settlement'}}">
-    <view class="bar-left">
-      <view class="bar-icon-btn" bindtap="onToggleFav">
-        <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
-        <text class="bar-icon-label">收藏</text>
-      </view>
-      <view class="bar-icon-btn" bindtap="onShareJob">
-        <text class="iconfont icon-fenxiang1 bar-icon-gray"></text>
-        <text class="bar-icon-label">分享</text>
-      </view>
-    </view>
-    <view class="bar-right">
-      <view class="bar-btn-apply" bindtap="onGoSettlement">去结算支付</view>
-    </view>
-  </view>
 </view>

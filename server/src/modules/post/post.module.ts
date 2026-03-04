@@ -8,9 +8,10 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { Job } from '../../entities/job.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, ContactUnlock, User, BeanTransaction, Keyword, EnterpriseCert])],
+  imports: [TypeOrmModule.forFeature([Post, ContactUnlock, User, BeanTransaction, Keyword, EnterpriseCert, Job])],
   controllers: [PostController],
   providers: [PostService],
 })

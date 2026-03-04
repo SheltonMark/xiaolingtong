@@ -18,7 +18,9 @@ Page({
   },
 
   loadPosts() {
-    get('/posts/mine').then(res => {
+    const tab = this.data.tabs[this.data.currentTab]
+    const params = tab.key === 'all' ? {} : { type: tab.key }
+    get('/posts/mine', params).then(res => {
       const list = res.data.list || res.data || []
       this.setData({ posts: this.mapPosts(list) })
     }).catch(() => {})
@@ -58,7 +60,9 @@ Page({
   },
 
   onTabChange(e) {
-    this.setData({ currentTab: Number(e.currentTarget.dataset.index) })
+    this.setData({ currentTab: Number(e.currentTarget.dataset.index) }, () => {
+      this.loadPosts()
+    })
   },
 
   onViewPost(e) {
