@@ -1,6 +1,6 @@
 <!--pages/messages/messages.wxml-->
 <view class="msg-page">
-  <nav-bar title="消息中心" showBack="{{false}}" />
+  <nav-bar title="消息中心" showBack="{{true}}" />
 
   <!-- Tab筛选：业务消息（左）+ 系统通知（右），带未读badge -->
   <view class="tab-bar">
