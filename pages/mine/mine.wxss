@@ -260,6 +260,31 @@
   margin-bottom: 12rpx;
 }
 .dynamic-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14rpx; }
+
+/* 招工详情信息（我的动态） */
+.job-detail-info {
+  background-color: #F8FAFC;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 12rpx;
+}
+.job-info-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8rpx;
+}
+.job-info-row:last-child { margin-bottom: 0; }
+.job-info-label {
+  font-size: 22rpx;
+  color: #64748B;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+.job-info-value {
+  font-size: 22rpx;
+  color: #1E293B;
+  flex: 1;
+}
 .dynamic-meta-text { font-size: 20rpx; color: #94A3B8; }
 .dynamic-status { font-size: 20rpx; font-weight: 500; }
 .dynamic-actions {
