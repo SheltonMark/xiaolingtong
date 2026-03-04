@@ -5,6 +5,8 @@ Page({
     userRole: 'enterprise', // enterprise | worker
     statusBarHeight: 0,
     currentCity: '东莞', // 当前选择的城市
+    cityIndex: 0, // picker 当前索引
+    cityNames: [], // picker 用的城市名数组
     cities: [], // 可选城市列表
     jobTypes: [], // 可选工种列表
     // 企业端
@@ -103,12 +105,14 @@ Page({
   loadCities() {
     get('/config/cities').then(res => {
       const cities = res.data.list || []
-      this.setData({ cities })
-      // 如果当前城市不在列表中，设置为第一个城市
-      if (cities.length > 0 && !cities.find(c => c.name === this.data.currentCity)) {
+      const cityNames = cities.map(c => c.name)
+      let cityIndex = cityNames.indexOf(this.data.currentCity)
+      if (cityIndex < 0 && cities.length > 0) {
+        cityIndex = 0
         this.setData({ currentCity: cities[0].name })
         wx.setStorageSync('currentCity', cities[0].name)
       }
+      this.setData({ cities, cityNames, cityIndex })
     }).catch(() => {})
   },
 
@@ -343,21 +347,14 @@ Page({
     wx.showToast({ title: '已切换为' + (newRole === 'enterprise' ? '企业端' : '临工端'), icon: 'none' })
   },
 
-  // 点击城市选择
-  onCityTap() {
-    if (this.data.cities.length === 0) {
-      wx.showToast({ title: '暂无可选城市', icon: 'none' })
-      return
-    }
-    wx.showActionSheet({
-      itemList: this.data.cities.map(c => c.name),
-      success: (res) => {
-        const selectedCity = this.data.cities[res.tapIndex]
-        this.setData({ currentCity: selectedCity.name })
-        wx.setStorageSync('currentCity', selectedCity.name)
-        this.loadData()
-      }
-    })
+  // picker 城市选择
+  onCityChange(e) {
+    const idx = e.detail.value
+    const city = this.data.cities[idx]
+    if (!city) return
+    this.setData({ cityIndex: idx, currentCity: city.name })
+    wx.setStorageSync('currentCity', city.name)
+    this.loadData()
   },
 
   onFilterTap(e) {

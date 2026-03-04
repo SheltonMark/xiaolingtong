@@ -8,10 +8,12 @@
     </view>
     <!-- 搜索行 -->
     <view class="top-bar-inner">
-      <view class="city-selector" bindtap="onCityTap" bindlongpress="onSwitchRole">
-        <text class="city-icon iconfont icon-address {{userRole === 'enterprise' ? 'text-cta' : 'text-primary'}}"></text>
-        <text class="city-name">{{currentCity}}</text>
-      </view>
+      <picker mode="selector" range="{{cityNames}}" value="{{cityIndex}}" bindchange="onCityChange">
+        <view class="city-selector" bindlongpress="onSwitchRole">
+          <text class="city-icon iconfont icon-address {{userRole === 'enterprise' ? 'text-cta' : 'text-primary'}}"></text>
+          <text class="city-name">{{currentCity}}</text>
+        </view>
+      </picker>
       <view class="search-bar" bindtap="onSearch">
         <text class="search-icon iconfont icon-sousuo"></text>
         <text class="search-placeholder">{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}</text>
