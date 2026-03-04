@@ -168,7 +168,7 @@
 
 /* ===== 分类图标网格 ===== */
 .cate-grid-wrap {
-  padding: 24rpx 32rpx 20rpx;
+  padding: 40rpx 32rpx 20rpx;
 }
 .cate-grid {
   display: flex;

@@ -139,8 +139,11 @@ export class AdminService {
   // 曝光管理
   async exposureList(query: any) {
     const { page = 1, pageSize = 20 } = query;
-    const qb = this.exposureRepo.createQueryBuilder('e');
-    qb.orderBy('e.createdAt', 'DESC').skip((page - 1) * pageSize).take(pageSize);
+    const qb = this.exposureRepo.createQueryBuilder('e')
+      .leftJoinAndSelect('e.publisher', 'u')
+      .orderBy('e.createdAt', 'DESC')
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
     return { list, total, page: +page, pageSize: +pageSize };
   }
@@ -148,6 +151,16 @@ export class AdminService {
   async deleteExposure(id: number) {
     await this.exposureRepo.delete(id);
     return { message: '已删除' };
+  }
+
+  async approveExposure(id: number) {
+    await this.exposureRepo.update(id, { status: 'approved' });
+    return { message: '已通过' };
+  }
+
+  async rejectExposure(id: number) {
+    await this.exposureRepo.update(id, { status: 'rejected' });
+    return { message: '已拒绝' };
   }
 
   // 举报管理
