@@ -110,12 +110,12 @@
         <view class="fav-card" wx:for="{{favorites}}" wx:key="id"
               data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
           <view class="fav-card-top">
-            <text class="fav-type-tag fav-type-{{item.targetType}}">
-              {{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}
-            </text>
+            <view class="fav-title-row">
+              <text class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+              <text class="fav-title">{{item.title}}</text>
+            </view>
             <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
           </view>
-          <text class="fav-title">{{item.title}}</text>
           <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
           <view class="fav-meta" wx:if="{{item.targetType === 'job'}}">
             <text class="fav-meta-item text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
@@ -200,12 +200,12 @@
         <view class="fav-card" wx:for="{{favorites}}" wx:key="id"
               data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
           <view class="fav-card-top">
-            <text class="fav-type-tag fav-type-{{item.targetType}}">
-              {{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}
-            </text>
+            <view class="fav-title-row">
+              <text class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+              <text class="fav-title">{{item.title}}</text>
+            </view>
             <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
           </view>
-          <text class="fav-title">{{item.title}}</text>
           <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
           <view class="fav-meta" wx:if="{{item.targetType === 'job'}}">
             <text class="fav-meta-item text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
