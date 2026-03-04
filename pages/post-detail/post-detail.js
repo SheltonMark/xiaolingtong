@@ -128,13 +128,17 @@ Page({
 
   loadDetail(id) {
     get('/posts/' + id).then(res => {
-      const detail = this.formatDetail(res.data || {})
-      const contactUnlocked = detail.contactUnlocked || false
+      const data = res.data || {}
+      const detail = this.formatDetail(data)
+
+      // 检查是否已解锁（根据是否有联系方式信息判断）
+      const contactUnlocked = !!(data.contactPhone || data.contactWechat || data.contactName)
       const contactInfo = contactUnlocked ? {
-        name: detail.contactName || '',
-        phone: detail.contactPhone || '',
-        wechat: detail.contactWechat || ''
+        name: data.contactName || '',
+        phone: data.contactPhone || '',
+        wechat: data.contactWechat || ''
       } : {}
+
       this.setData({ detail, contactUnlocked, contactInfo })
     }).catch(() => {})
   },
@@ -158,10 +162,26 @@ Page({
       content: '消耗10灵豆查看联系方式，确认？',
       success: (res) => {
         if (res.confirm) {
-          post('/posts/' + this.data.detail.id + '/unlock').then(() => {
-            wx.showToast({ title: '解锁成功', icon: 'success' })
+          wx.showLoading({ title: '解锁中...' })
+          post('/posts/' + this.data.detail.id + '/unlock').then((response) => {
+            wx.hideLoading()
+            // 检查是否成功扣费
+            if (response.data && response.data.success === false) {
+              wx.showToast({ title: response.data.message || '灵豆不足', icon: 'none' })
+              return
+            }
+            wx.showToast({ title: '解锁成功，已扣10灵豆', icon: 'success' })
+            // 更新全局灵豆余额
+            const app = getApp()
+            if (app.globalData.beanBalance !== undefined) {
+              app.globalData.beanBalance -= 10
+            }
+            // 重新加载详情以获取联系方式
             this.loadDetail(this.data.detail.id)
-          }).catch(() => {})
+          }).catch((err) => {
+            wx.hideLoading()
+            wx.showToast({ title: err.message || '解锁失败', icon: 'none' })
+          })
         }
       }
     })
