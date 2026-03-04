@@ -120,6 +120,81 @@ Page({
 
   onTabChange(e) {
     this.setData({ currentTab: e.currentTarget.dataset.index })
+    // tab切换时重新加载数据
+    this.loadDataByCategory()
+  },
+
+  onCategoryTap(e) {
+    const { label } = e.currentTarget.dataset
+    const currentTab = this.data.currentTab
+
+    // 根据当前tab确定要更新的分类数组
+    let cateKey = ''
+    if (currentTab === 0) cateKey = 'catePurchase'
+    else if (currentTab === 1) cateKey = 'cateStock'
+    else if (currentTab === 2) cateKey = 'cateProcess'
+    else if (currentTab === 3) cateKey = 'cateJob'
+    else if (currentTab === 4) cateKey = 'cateFactory'
+
+    if (!cateKey) return
+
+    // 更新分类选中状态
+    const categories = this.data[cateKey].map(item => ({
+      ...item,
+      active: item.label === label ? !item.active : false
+    }))
+
+    this.setData({ [cateKey]: categories })
+
+    // 重新加载数据
+    this.loadDataByCategory()
+  },
+
+  loadDataByCategory() {
+    const currentTab = this.data.currentTab
+
+    // 获取当前选中的分类
+    let selectedCategory = null
+    if (currentTab === 0) {
+      const active = this.data.catePurchase.find(c => c.active)
+      selectedCategory = active ? active.label : null
+    } else if (currentTab === 1) {
+      const active = this.data.cateStock.find(c => c.active)
+      selectedCategory = active ? active.label : null
+    } else if (currentTab === 2) {
+      const active = this.data.cateProcess.find(c => c.active)
+      selectedCategory = active ? active.label : null
+    } else if (currentTab === 3) {
+      const active = this.data.cateJob.find(c => c.active)
+      selectedCategory = active ? active.label : null
+    }
+
+    // 构建查询参数
+    const params = {}
+    if (selectedCategory) {
+      params.industry = selectedCategory
+    }
+
+    // 根据当前tab加载对应数据
+    if (this.data.userRole === 'enterprise') {
+      if (currentTab === 0) {
+        get('/posts', { type: 'purchase', ...params }).then(res => {
+          this.setData({ purchaseList: this._mapPosts(res.data.list || res.data || []) })
+        }).catch(() => {})
+      } else if (currentTab === 1) {
+        get('/posts', { type: 'stock', ...params }).then(res => {
+          this.setData({ stockList: this._mapPosts(res.data.list || res.data || []) })
+        }).catch(() => {})
+      } else if (currentTab === 2) {
+        get('/posts', { type: 'process', ...params }).then(res => {
+          this.setData({ processList: this._mapPosts(res.data.list || res.data || []) })
+        }).catch(() => {})
+      } else if (currentTab === 3) {
+        get('/jobs', params).then(res => {
+          this.setData({ jobListEnterprise: res.data.list || res.data || [] })
+        }).catch(() => {})
+      }
+    }
   },
 
   onSearch() {
