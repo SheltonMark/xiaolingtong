@@ -20,10 +20,24 @@ Page({
   loadPosts() {
     const tab = this.data.tabs[this.data.currentTab]
     const params = tab.key === 'all' ? {} : { type: tab.key }
-    get('/posts/mine', params).then(res => {
-      const list = res.data.list || res.data || []
-      this.setData({ posts: this.mapPosts(list) })
-    }).catch(() => {})
+
+    // 如果是全部或招工tab，需要同时获取招工信息
+    if (tab.key === 'all' || tab.key === 'job') {
+      Promise.all([
+        get('/posts/mine', params).catch(() => ({ data: { list: [] } })),
+        get('/jobs/mine').catch(() => ({ data: { list: [] } }))
+      ]).then(([postsRes, jobsRes]) => {
+        const postsList = postsRes.data.list || postsRes.data || []
+        const jobsList = jobsRes.data.list || jobsRes.data || []
+        const allPosts = [...postsList, ...jobsList]
+        this.setData({ posts: this.mapPosts(allPosts) })
+      })
+    } else {
+      get('/posts/mine', params).then(res => {
+        const list = res.data.list || res.data || []
+        this.setData({ posts: this.mapPosts(list) })
+      }).catch(() => {})
+    }
   },
 
   mapPosts(list) {
@@ -35,6 +49,8 @@ Page({
     }
     const statusMap = {
       active: { text: '展示中', color: 'green' },
+      recruiting: { text: '招工中', color: 'green' },
+      full: { text: '已满员', color: 'amber' },
       expired: { text: '已过期', color: 'amber' },
       deleted: { text: '已删除', color: 'gray' }
     }

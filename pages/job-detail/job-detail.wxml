@@ -22,7 +22,7 @@
     <text class="jd-title">{{job.title}} · 需{{job.need}}人</text>
     <view class="location-row">
       <text class="loc-icon iconfont icon-address"></text>
-      <text class="loc-text">{{job.location}} · 距您{{job.distance}}</text>
+      <text class="loc-text">{{job.location}}</text>
     </view>
   </view>
 
@@ -93,6 +93,9 @@
       </view>
     </view>
   </view>
+
+  <!-- 底部占位 -->
+  <view style="height: calc(120rpx + env(safe-area-inset-bottom));"></view>
 
   <!-- 底部操作栏（仅临工可见） -->
   <view class="bottom-bar" wx:if="{{userRole === 'worker'}}">

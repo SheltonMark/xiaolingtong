@@ -161,15 +161,12 @@
               <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
               <view class="job-company-info">
                 <text class="job-company">{{item.companyName}}</text>
-                <text class="job-meta">{{item.time}} · {{item.location}}</text>
+                <text class="job-meta">{{item.time}} · {{item.cityDistrict}}</text>
               </view>
             </view>
             <view class="header-btns">
               <view class="icon-btn" catchtap="onReport" data-id="{{item.id}}">
                 <text class="iconfont icon-tishixinxi"></text>
-              </view>
-              <view class="icon-btn" catchtap="onShare" data-id="{{item.id}}">
-                <text class="iconfont icon-fenxiang1"></text>
               </view>
             </view>
           </view>
@@ -251,7 +248,7 @@
           <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
           <view class="job-company-info">
             <text class="job-company">{{item.companyName}}</text>
-            <text class="job-meta">{{item.location}} · {{item.distance}} · {{item.dateRange}}</text>
+            <text class="job-meta">{{item.cityDistrict}} · {{item.dateRange}}</text>
           </view>
         </view>
         <view class="job-pay">

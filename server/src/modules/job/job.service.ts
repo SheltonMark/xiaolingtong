@@ -53,6 +53,25 @@ export class JobService {
     return normalized.length ? normalized : undefined;
   }
 
+  // 提取地级市+区县
+  private extractCityDistrict(fullAddress: string): string {
+    if (!fullAddress) return '';
+    // 匹配模式：省份 + 地级市 + 区县
+    // 例如：广东省东莞市长安镇 -> 东莞·长安
+    const match = fullAddress.match(/(?:.*?[省市])?([^省]+?[市州盟])([^市县区]+?[县区镇乡])/);
+    if (match) {
+      const city = match[1].replace(/市$/, '');
+      const district = match[2].replace(/[县区镇乡]$/, '');
+      return `${city}·${district}`;
+    }
+    // 如果匹配失败，尝试简单提取
+    const simpleMatch = fullAddress.match(/([^省]+?[市州盟])([^市]+)/);
+    if (simpleMatch) {
+      return simpleMatch[1].replace(/市$/, '') + '·' + simpleMatch[2].substring(0, 4);
+    }
+    return fullAddress.substring(0, 20);
+  }
+
   private normalizeCreateDto(dto: any) {
     const salary = Number(dto.salary || dto.price || 0);
     const needCount = Number(dto.needCount || dto.headcount || dto.need || 0);
@@ -101,7 +120,31 @@ export class JobService {
       .take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+
+    // 格式化列表数据
+    const formattedList = await Promise.all(list.map(async (job) => {
+      const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+      return {
+        id: job.id,
+        title: job.title,
+        salary: job.salary,
+        salaryUnit: job.salaryUnit,
+        need: job.needCount,
+        applied: appliedCount,
+        total: job.needCount,
+        location: job.location,
+        cityDistrict: this.extractCityDistrict(job.location),
+        dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
+        desc: job.description || '',
+        urgent: job.urgent === 1,
+        images: job.images || [],
+        tags: job.benefits || [],
+        companyName: job.user?.nickname || '企业用户',
+        time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
+      };
+    }));
+
+    return { list: formattedList, total, page: +page, pageSize: +pageSize };
   }
 
   async detail(id: number) {
@@ -125,6 +168,7 @@ export class JobService {
       salaryType: salaryTypeMap[job.salaryType] || job.salaryType,
       dateRange,
       hours: job.workHours || '待定',
+      cityDistrict: this.extractCityDistrict(job.location),
       company: {
         name: job.user?.nickname || '企业用户',
         verified: false,
@@ -133,6 +177,34 @@ export class JobService {
         phone: job.contactPhone || job.user?.phone || ''
       }
     };
+  }
+
+  async myJobs(userId: number) {
+    const jobs = await this.jobRepo.find({
+      where: { userId },
+      order: { createdAt: 'DESC' }
+    });
+
+    const formattedJobs = await Promise.all(jobs.map(async (job) => {
+      const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+      return {
+        id: job.id,
+        type: 'job',
+        title: job.title,
+        salary: job.salary,
+        salaryUnit: job.salaryUnit,
+        needCount: job.needCount,
+        appliedCount,
+        dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
+        workHours: job.workHours,
+        cityDistrict: this.extractCityDistrict(job.location),
+        status: job.status,
+        createdAt: job.createdAt,
+        viewCount: 0 // TODO: 实现浏览次数统计
+      };
+    }));
+
+    return { list: formattedJobs };
   }
 
   async create(userId: number, dto: any) {
