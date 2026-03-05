@@ -4,7 +4,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FavoriteController } from './favorite.controller';
 import { FavoriteService } from './favorite.service';
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
 describe('FavoriteController', () => {
   let controller: FavoriteController;
