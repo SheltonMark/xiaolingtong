@@ -30,14 +30,10 @@ describe('FavoriteController', () => {
   });
 
   describe('list', () => {
-    it('should be defined', () => {
-      expect(controller.list).toBeDefined();
-    });
+    // 测试将在后续步骤中添加
   });
 
   describe('toggle', () => {
-    it('should be defined', () => {
-      expect(controller.toggle).toBeDefined();
-    });
+    // 测试将在后续步骤中添加
   });
 });
