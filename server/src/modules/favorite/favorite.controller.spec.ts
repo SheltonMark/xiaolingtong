@@ -4,6 +4,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FavoriteController } from './favorite.controller';
 import { FavoriteService } from './favorite.service';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
 describe('FavoriteController', () => {
   let controller: FavoriteController;
@@ -26,6 +27,10 @@ describe('FavoriteController', () => {
     }).compile();
 
     controller = module.get<FavoriteController>(FavoriteController);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('list', () => {
@@ -63,6 +68,7 @@ describe('FavoriteController', () => {
 
       const result = await controller.list(userId);
 
+      expect(favoriteService.list).toHaveBeenCalledWith(userId);
       expect(result.list).toEqual([]);
       expect(result.total).toBe(0);
     });
@@ -71,11 +77,11 @@ describe('FavoriteController', () => {
       const userId = 1;
 
       favoriteService.list.mockRejectedValue(
-        new Error('Invalid pagination'),
+        new BadRequestException('Invalid pagination'),
       );
 
       await expect(controller.list(userId)).rejects.toThrow(
-        'Invalid pagination',
+        BadRequestException,
       );
     });
 
@@ -83,11 +89,11 @@ describe('FavoriteController', () => {
       const userId = undefined;
 
       favoriteService.list.mockRejectedValue(
-        new Error('User not authenticated'),
+        new UnauthorizedException('User not authenticated'),
       );
 
       await expect(controller.list(userId as any)).rejects.toThrow(
-        'User not authenticated',
+        UnauthorizedException,
       );
     });
 
