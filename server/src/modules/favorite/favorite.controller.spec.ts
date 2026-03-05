@@ -111,6 +111,77 @@ describe('FavoriteController', () => {
   });
 
   describe('toggle', () => {
-    // 测试将在后续步骤中添加
+    it('should successfully favorite a post', async () => {
+      const userId = 1;
+      const dto = { targetType: 'post', targetId: 101 };
+      const mockResult = {
+        message: '收藏成功',
+        isFavorited: true,
+      };
+
+      favoriteService.toggle.mockResolvedValue(mockResult);
+
+      const result = await controller.toggle(userId, dto);
+
+      expect(favoriteService.toggle).toHaveBeenCalledWith(userId, dto.targetType, dto.targetId);
+      expect(result.isFavorited).toBe(true);
+      expect(result.message).toBe('收藏成功');
+    });
+
+    it('should successfully unfavorite a post', async () => {
+      const userId = 1;
+      const dto = { targetType: 'post', targetId: 101 };
+      const mockResult = {
+        message: '取消收藏成功',
+        isFavorited: false,
+      };
+
+      favoriteService.toggle.mockResolvedValue(mockResult);
+
+      const result = await controller.toggle(userId, dto);
+
+      expect(favoriteService.toggle).toHaveBeenCalledWith(userId, dto.targetType, dto.targetId);
+      expect(result.isFavorited).toBe(false);
+      expect(result.message).toBe('取消收藏成功');
+    });
+
+    it('should throw error when user not authenticated', async () => {
+      const userId = undefined;
+      const dto = { targetType: 'post', targetId: 101 };
+
+      favoriteService.toggle.mockRejectedValue(
+        new UnauthorizedException('User not authenticated'),
+      );
+
+      await expect(controller.toggle(userId as any, dto)).rejects.toThrow(
+        UnauthorizedException,
+      );
+    });
+
+    it('should throw error when targetId is missing', async () => {
+      const userId = 1;
+      const dto = { targetType: 'post', targetId: undefined };
+
+      favoriteService.toggle.mockRejectedValue(
+        new BadRequestException('targetId is required'),
+      );
+
+      await expect(controller.toggle(userId, dto as any)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should handle service exception', async () => {
+      const userId = 1;
+      const dto = { targetType: 'post', targetId: 101 };
+
+      favoriteService.toggle.mockRejectedValue(
+        new Error('Database error'),
+      );
+
+      await expect(controller.toggle(userId, dto)).rejects.toThrow(
+        'Database error',
+      );
+    });
   });
 });
