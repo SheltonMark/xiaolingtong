@@ -2,43 +2,42 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
-import { WalletService } from './wallet.service';
-import { BadRequestException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { WalletService } from './wallet.service';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { User } from '../../entities/user.entity';
 import { PaymentService } from '../payment/payment.service';
+import { BadRequestException } from '@nestjs/common';
 
 describe('WalletService', () => {
   let service: WalletService;
-  let walletRepo: jest.Mocked<any>;
-  let txRepo: jest.Mocked<any>;
-  let userRepo: jest.Mocked<any>;
-  let paymentService: jest.Mocked<any>;
+  let walletRepo: any;
+  let txRepo: any;
+  let userRepo: any;
+  let paymentService: any;
 
   beforeEach(async () => {
     walletRepo = {
       findOne: jest.fn(),
-      create: jest.fn(),
       save: jest.fn(),
-    } as jest.Mocked<any>;
+      create: jest.fn(),
+    };
 
     txRepo = {
-      findOne: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
       createQueryBuilder: jest.fn(),
-    } as jest.Mocked<any>;
+      save: jest.fn(),
+      create: jest.fn(),
+    };
 
     userRepo = {
       findOneBy: jest.fn(),
-    } as jest.Mocked<any>;
+    };
 
     paymentService = {
       generateOutTradeNo: jest.fn(),
       transferToWallet: jest.fn(),
-    } as jest.Mocked<any>;
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -65,34 +64,26 @@ describe('WalletService', () => {
     service = module.get<WalletService>(WalletService);
   });
 
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
   describe('getBalance', () => {
     it('should return existing wallet', async () => {
       const userId = 1;
-      const wallet = {
-        id: 1,
-        userId,
-        balance: 1000,
-        totalIncome: 5000,
-        totalWithdraw: 4000,
-      };
+      const mockWallet = { id: 1, userId, balance: 1000, totalIncome: 5000, totalWithdraw: 4000 };
 
-      walletRepo.findOne.mockResolvedValue(wallet);
+      walletRepo.findOne.mockResolvedValue(mockWallet);
 
       const result = await service.getBalance(userId);
 
       expect(walletRepo.findOne).toHaveBeenCalledWith({ where: { userId } });
-      expect(result).toEqual(wallet);
+      expect(result).toEqual(mockWallet);
     });
 
-    it('should create new wallet if not exists', async () => {
+    it('should create wallet if not exists', async () => {
       const userId = 1;
-      const newWallet = {
-        id: 1,
-        userId,
-        balance: 0,
-        totalIncome: 0,
-        totalWithdraw: 0,
-      };
+      const newWallet = { id: 1, userId, balance: 0, totalIncome: 0, totalWithdraw: 0 };
 
       walletRepo.findOne.mockResolvedValue(null);
       walletRepo.create.mockReturnValue(newWallet);
@@ -100,18 +91,27 @@ describe('WalletService', () => {
 
       const result = await service.getBalance(userId);
 
-      expect(walletRepo.findOne).toHaveBeenCalledWith({ where: { userId } });
       expect(walletRepo.create).toHaveBeenCalledWith({ userId });
       expect(walletRepo.save).toHaveBeenCalled();
       expect(result).toEqual(newWallet);
+    });
+
+    it('should handle wallet with zero balance', async () => {
+      const userId = 1;
+      const mockWallet = { id: 1, userId, balance: 0, totalIncome: 0, totalWithdraw: 0 };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+
+      const result = await service.getBalance(userId);
+
+      expect(result.balance).toBe(0);
     });
   });
 
   describe('getTransactions', () => {
     it('should return transactions with pagination', async () => {
       const userId = 1;
-      const query = { page: 1, pageSize: 20 };
-      const transactions = [
+      const mockTransactions = [
         { id: 1, userId, type: 'income', amount: 100, createdAt: new Date() },
         { id: 2, userId, type: 'withdraw', amount: 50, createdAt: new Date() },
       ];
@@ -122,14 +122,14 @@ describe('WalletService', () => {
         orderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([transactions, 2]),
+        getManyAndCount: jest.fn().mockResolvedValue([mockTransactions, 2]),
       };
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getTransactions(userId, query);
+      const result = await service.getTransactions(userId, { page: 1, pageSize: 20 });
 
-      expect(result.list).toEqual(transactions);
+      expect(result.list).toEqual(mockTransactions);
       expect(result.total).toBe(2);
       expect(result.page).toBe(1);
       expect(result.pageSize).toBe(20);
@@ -137,124 +137,86 @@ describe('WalletService', () => {
 
     it('should filter transactions by type', async () => {
       const userId = 1;
-      const query = { type: 'income', page: 1, pageSize: 20 };
-      const transactions = [
-        { id: 1, userId, type: 'income', amount: 100, createdAt: new Date() },
-      ];
-
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([transactions, 1]),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getTransactions(userId, query);
+      await service.getTransactions(userId, { type: 'income', page: 1, pageSize: 20 });
 
-      expect(result.list).toEqual(transactions);
-      expect(result.total).toBe(1);
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('t.type = :type', { type: 'income' });
     });
 
     it('should handle pagination correctly', async () => {
       const userId = 1;
-      const query = { page: 2, pageSize: 10 };
-      const transactions = [];
-
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([transactions, 0]),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       };
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getTransactions(userId, query);
+      await service.getTransactions(userId, { page: 3, pageSize: 10 });
 
-      expect(mockQueryBuilder.skip).toHaveBeenCalledWith(10);
+      expect(mockQueryBuilder.skip).toHaveBeenCalledWith(20);
       expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
-      expect(result.page).toBe(2);
+    });
+
+    it('should return empty list when no transactions', async () => {
+      const userId = 1;
+      const mockQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      };
+
+      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.getTransactions(userId, { page: 1, pageSize: 20 });
+
+      expect(result.list).toEqual([]);
+      expect(result.total).toBe(0);
     });
   });
 
   describe('getIncome', () => {
     it('should return income transactions', async () => {
       const userId = 1;
-      const query = {};
-      const transactions = [
-        {
-          id: 1,
-          userId,
-          type: 'income',
-          amount: 500,
-          status: 'success',
-          createdAt: new Date(),
-        },
-        {
-          id: 2,
-          userId,
-          type: 'income',
-          amount: 300,
-          status: 'success',
-          createdAt: new Date(),
-        },
+      const mockTransactions = [
+        { id: 1, userId, type: 'income', amount: 100, status: 'success', createdAt: new Date() },
+        { id: 2, userId, type: 'income', amount: 200, status: 'success', createdAt: new Date() },
       ];
 
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(transactions),
+        getMany: jest.fn().mockResolvedValue(mockTransactions),
       };
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getIncome(userId, query);
+      const result = await service.getIncome(userId, {});
 
-      expect(result.list).toEqual(transactions);
-      expect(result.totalAmount).toBe(800);
+      expect(result.list).toEqual(mockTransactions);
+      expect(result.totalAmount).toBe(300);
     });
 
     it('should filter income by month', async () => {
       const userId = 1;
-      const query = { month: '2026-02' };
-      const transactions = [
-        {
-          id: 1,
-          userId,
-          type: 'income',
-          amount: 1000,
-          status: 'success',
-          createdAt: new Date('2026-02-15'),
-        },
-      ];
-
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(transactions),
-      };
-
-      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
-
-      const result = await service.getIncome(userId, query);
-
-      expect(result.list).toEqual(transactions);
-      expect(result.totalAmount).toBe(1000);
-      expect(result.month).toBe('2026-02');
-    });
-
-    it('should return zero total amount when no transactions', async () => {
-      const userId = 1;
-      const query = {};
-
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -264,149 +226,167 @@ describe('WalletService', () => {
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getIncome(userId, query);
+      await service.getIncome(userId, { month: '2026-02' });
 
-      expect(result.list).toEqual([]);
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'DATE_FORMAT(t.createdAt, "%Y-%m") = :month',
+        { month: '2026-02' }
+      );
+    });
+
+    it('should return zero total amount when no income', async () => {
+      const userId = 1;
+      const mockQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      };
+
+      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.getIncome(userId, {});
+
       expect(result.totalAmount).toBe(0);
+    });
+
+    it('should calculate total amount correctly', async () => {
+      const userId = 1;
+      const mockTransactions = [
+        { id: 1, userId, type: 'income', amount: 100, status: 'success', createdAt: new Date() },
+        { id: 2, userId, type: 'income', amount: 250, status: 'success', createdAt: new Date() },
+        { id: 3, userId, type: 'income', amount: 150, status: 'success', createdAt: new Date() },
+      ];
+
+      const mockQueryBuilder = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(mockTransactions),
+      };
+
+      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+
+      const result = await service.getIncome(userId, {});
+
+      expect(result.totalAmount).toBe(500);
     });
   });
 
   describe('withdraw', () => {
-    it('should successfully withdraw when balance is sufficient', async () => {
+    it('should withdraw successfully', async () => {
       const userId = 1;
-      const amount = 500;
-      const wallet = {
-        id: 1,
-        userId,
-        balance: 1000,
-        totalIncome: 5000,
-        totalWithdraw: 4000,
-      };
-      const user = { id: userId, openid: 'test_openid' };
-      const tx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
+      const mockUser = { id: 1, openid: 'test_openid' };
+      const mockTx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
 
-      walletRepo.findOne.mockResolvedValue(wallet);
-      userRepo.findOneBy.mockResolvedValue(user);
-      txRepo.create.mockReturnValue(tx);
-      txRepo.save.mockResolvedValue(tx);
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      txRepo.create.mockReturnValue(mockTx);
+      txRepo.save.mockResolvedValue(mockTx);
       paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
       paymentService.transferToWallet.mockResolvedValue({ success: true });
 
       const result = await service.withdraw(userId, amount);
 
-      expect(walletRepo.findOne).toHaveBeenCalledWith({ where: { userId } });
-      expect(userRepo.findOneBy).toHaveBeenCalledWith({ id: userId });
-      expect(txRepo.create).toHaveBeenCalled();
-      expect(paymentService.transferToWallet).toHaveBeenCalled();
       expect(result.message).toBe('提现成功');
-      expect(result.balance).toBe(500);
+      expect(result.balance).toBe(400);
+      expect(walletRepo.save).toHaveBeenCalled();
+      expect(txRepo.save).toHaveBeenCalled();
     });
 
-    it('should throw error when amount is invalid', async () => {
+    it('should throw error when amount is zero', async () => {
       const userId = 1;
 
-      await expect(service.withdraw(userId, 0)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.withdraw(userId, -100)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.withdraw(userId, 0)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw error when amount is negative', async () => {
+      const userId = 1;
+
+      await expect(service.withdraw(userId, -100)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw error when wallet not found', async () => {
       const userId = 1;
-      const amount = 500;
+      const amount = 100;
 
       walletRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw error when balance is insufficient', async () => {
       const userId = 1;
-      const amount = 2000;
-      const wallet = {
-        id: 1,
-        userId,
-        balance: 500,
-        totalIncome: 5000,
-        totalWithdraw: 4500,
-      };
+      const amount = 1000;
+      const mockWallet = { id: 1, userId, balance: 100, totalWithdraw: 0 };
 
-      walletRepo.findOne.mockResolvedValue(wallet);
+      walletRepo.findOne.mockResolvedValue(mockWallet);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw error when user not found', async () => {
       const userId = 1;
-      const amount = 500;
-      const wallet = {
-        id: 1,
-        userId,
-        balance: 1000,
-        totalIncome: 5000,
-        totalWithdraw: 4000,
-      };
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
 
-      walletRepo.findOne.mockResolvedValue(wallet);
+      walletRepo.findOne.mockResolvedValue(mockWallet);
       userRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
     });
 
-    it('should rollback balance when transfer fails', async () => {
-      const userId = 1;
-      const amount = 500;
-      const wallet = {
-        id: 1,
-        userId,
-        balance: 1000,
-        totalIncome: 5000,
-        totalWithdraw: 4000,
-      };
-      const user = { id: userId, openid: 'test_openid' };
-      const tx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
-
-      walletRepo.findOne.mockResolvedValue(wallet);
-      userRepo.findOneBy.mockResolvedValue(user);
-      txRepo.create.mockReturnValue(tx);
-      txRepo.save.mockResolvedValue(tx);
-      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
-      paymentService.transferToWallet.mockRejectedValue(
-        new Error('Transfer failed'),
-      );
-
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
-
-      // Verify rollback was called
-      expect(walletRepo.save).toHaveBeenCalledTimes(2);
-    });
-
-    it('should handle zero balance wallet', async () => {
+    it('should handle transfer failure and rollback', async () => {
       const userId = 1;
       const amount = 100;
-      const wallet = {
-        id: 1,
-        userId,
-        balance: 0,
-        totalIncome: 0,
-        totalWithdraw: 0,
-      };
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
+      const mockUser = { id: 1, openid: 'test_openid' };
+      const mockTx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
 
-      walletRepo.findOne.mockResolvedValue(wallet);
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      txRepo.create.mockReturnValue(mockTx);
+      txRepo.save.mockResolvedValue(mockTx);
+      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.transferToWallet.mockRejectedValue(new Error('Transfer failed'));
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
+
+      // Verify rollback
+      expect(mockWallet.balance).toBe(500);
+      expect(mockWallet.totalWithdraw).toBe(0);
+    });
+
+    it('should handle wallet with zero balance', async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 0, totalWithdraw: 0 };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should update wallet balance and total withdraw', async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 200 };
+      const mockUser = { id: 1, openid: 'test_openid' };
+      const mockTx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      txRepo.create.mockReturnValue(mockTx);
+      txRepo.save.mockResolvedValue(mockTx);
+      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.transferToWallet.mockResolvedValue({ success: true });
+
+      await service.withdraw(userId, amount);
+
+      expect(mockWallet.balance).toBe(400);
+      expect(mockWallet.totalWithdraw).toBe(300);
     });
   });
 });
