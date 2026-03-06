@@ -277,7 +277,7 @@
       <!-- 底部：分享 + 报名 -->
       <view class="job-bottom">
         <view class="job-outline-btn job-share-wrap" data-id="{{item.id}}">分享
-          <button class="share-overlay" open-type="share" data-id="{{item.id}}"></button>
+          <button class="share-overlay" open-type="share" data-id="{{item.id}}" data-type="job"></button>
         </view>
         <view class="job-apply-btn" catchtap="onApply" data-id="{{item.id}}">立即报名</view>
       </view>

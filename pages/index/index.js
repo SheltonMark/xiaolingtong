@@ -191,9 +191,14 @@ Page({
     ]
   },
 
-  _buildSharePayloadById(id) {
-    const allItems = this._getAllItems()
-    const item = allItems.find(i => String(i.id) === String(id))
+  _buildSharePayloadById(id, type) {
+    var item
+    if (type === 'job') {
+      var list = (this.data.jobList || []).concat(this.data.jobListEnterprise || [])
+      item = list.find(function(i) { return String(i.id) === String(id) })
+    } else {
+      item = this._getAllItems().find(function(i) { return String(i.id) === String(id) })
+    }
     if (!item) {
       return {
         title: '小灵通供需平台',
@@ -201,13 +206,13 @@ Page({
       }
     }
 
-    const isJob = !!(item.salary || item.salaryUnit || item.need)
-    const path = isJob
+    var isJob = type === 'job' || !!(item.salary || item.salaryUnit || item.need)
+    var path = isJob
       ? '/pages/job-detail/job-detail?id=' + item.id
       : '/pages/post-detail/post-detail?id=' + item.id
 
-    const shareTitle = item.title || (item.content ? String(item.content).slice(0, 28) : '') || '供需信息'
-    const payload = { title: shareTitle, path }
+    var shareTitle = item.title || (item.content ? String(item.content).slice(0, 28) : '') || '供需信息'
+    var payload = { title: shareTitle, path }
     if (item.images && item.images.length) payload.imageUrl = item.images[0]
     return payload
   },
@@ -386,7 +391,8 @@ Page({
 
   onShareAppMessage(res) {
     const id = (res && res.target && res.target.dataset && res.target.dataset.id) || ''
-    const payload = this._buildSharePayloadById(id)
+    const type = (res && res.target && res.target.dataset && res.target.dataset.type) || ''
+    const payload = this._buildSharePayloadById(id, type)
     return payload && payload.path ? payload : (this._lastSharePayload || {
       title: '小灵通供需平台',
       path: '/pages/index/index'
