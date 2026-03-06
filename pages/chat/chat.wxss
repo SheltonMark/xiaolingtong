@@ -99,13 +99,19 @@
   justify-content: flex-end; 
   padding-right: 0;
 }
-.msg-avatar-wrap { 
-  width: 64rpx; 
-  height: 64rpx; 
-  flex: 0 0 64rpx; 
+.msg-avatar-wrap {
+  width: 64rpx;
+  height: 64rpx;
+  flex: 0 0 64rpx;
   box-sizing: border-box;
   overflow: hidden;
   border-radius: 50%;
+}
+.msg-avatar-wrap .avatar-img {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
+  display: block;
 }
 .msg-bubble-wrap {
   display: flex; 
