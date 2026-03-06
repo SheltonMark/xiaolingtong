@@ -48,16 +48,5 @@ Page({
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
       this.getTabBar().setData({ selected: 1, userRole })
     }
-  },
-  onShareAppMessage(res) {
-    const id = res.target && res.target.dataset && res.target.dataset.id
-    const company = res.target && res.target.dataset && res.target.dataset.company
-    if (id) {
-      return {
-        title: (company || '曝光信息') + ' - 小灵通曝光榜',
-        path: '/pages/exposure-detail/exposure-detail?id=' + id
-      }
-    }
-    return { title: '小灵通曝光榜', path: '/pages/exposure-board/exposure-board' }
   }
 })

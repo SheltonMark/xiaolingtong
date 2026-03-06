@@ -50,9 +50,9 @@
             <view class="eb-action">
               <text class="eb-action-icon iconfont icon-pinglun"></text>
             </view>
-            <button class="eb-action eb-share-btn" open-type="share" data-id="{{item.id}}" data-company="{{item.company}}" catchtap="">
+            <view class="eb-action">
               <text class="eb-action-icon iconfont icon-fenxiang1"></text>
-            </button>
+            </view>
           </view>
         </view>
       </view>

@@ -114,7 +114,7 @@ page {
 .bar-icon-btn-share {
   display: flex; flex-direction: column; align-items: center; gap: 2rpx;
   background: transparent; border: none; padding: 0; margin: 0;
-  line-height: 1; min-height: 0; font-size: inherit; color: inherit;
+  line-height: 1;
 }
 .bar-icon-btn-share::after { border: none; }
 .bar-icon-btn .iconfont { font-size: 36rpx; }
