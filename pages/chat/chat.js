@@ -9,7 +9,9 @@ Page({
     conversationId: '',
     inputText: '',
     scrollToView: '',
+    otherAvatarUrl: '',
     otherAvatarText: '',
+    myAvatarUrl: '',
     myAvatarText: '',
     messages: [],
     keyboardHeight: 0,
@@ -27,8 +29,12 @@ Page({
       })
     }
     const app = getApp()
-    const nickname = (app.globalData.userInfo && app.globalData.userInfo.nickname) || ''
-    this.setData({ myAvatarText: nickname ? nickname[0] : '我' })
+    const userInfo = app.globalData.userInfo || {}
+    const nickname = userInfo.nickname || ''
+    this.setData({
+      myAvatarUrl: normalizeImageUrl(userInfo.avatarUrl || ''),
+      myAvatarText: nickname ? nickname[0] : '我'
+    })
 
     this.recorderManager = wx.getRecorderManager()
     this.recorderManager.onStop((res) => {
@@ -97,6 +103,16 @@ Page({
     get('/conversations/' + id + '/messages').then(res => {
       const rawList = (res.data && res.data.list) || []
       const list = rawList.map(item => this.normalizeMessage(item))
+      // 从消息中提取对方头像
+      const app = getApp()
+      const myId = Number((app.globalData.userInfo && app.globalData.userInfo.id) || 0)
+      const otherMsg = rawList.find(m => Number(m.senderId) !== myId && m.sender)
+      if (otherMsg && otherMsg.sender) {
+        this.setData({
+          otherAvatarUrl: normalizeImageUrl(otherMsg.sender.avatarUrl || ''),
+          otherAvatarText: otherMsg.sender.nickname ? otherMsg.sender.nickname[0] : '对'
+        })
+      }
       this.setData({ messages: list }, () => this.scrollToBottom())
     }).catch(() => {})
   },

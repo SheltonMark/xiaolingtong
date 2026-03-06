@@ -175,24 +175,23 @@
               <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
               <view class="job-company-info">
                 <text class="job-company">{{item.companyName}}</text>
-                <text class="job-meta">{{item.time}} · {{item.cityDistrict}}</text>
+                <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>
               </view>
             </view>
-            <view class="header-btns">
-              <view class="icon-btn" catchtap="onReport" data-id="{{item.id}}">
-                <text class="iconfont icon-tishixinxi"></text>
-              </view>
+            <view class="job-pay">
+              <text class="job-salary-big">{{item.salary}}</text>
+              <text class="job-salary-unit">{{item.salaryUnit}}</text>
             </view>
           </view>
-          <text class="job-salary-line"><text class="text-cta font-semibold">{{item.salary}}</text> · {{item.title}}<text wx:if="{{item.urgent}}" class="text-rose"> · 急招</text></text>
+          <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
+          <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
+            <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
+          </view>
           <text class="job-desc">{{item.desc}}</text>
           <view class="job-progress">
-            <view class="progress-header">
-              <text class="progress-text">已报名 <text class="progress-bold">{{item.applied}}</text>/{{item.total}}人</text>
-              <text class="progress-text">剩余{{item.total - item.applied}}个名额</text>
-            </view>
+            <text class="progress-text-simple">已报名 {{item.applied}}/{{item.need}}人</text>
             <view class="progress-bar">
-              <view class="progress-fill" style="width: {{item.applied / item.total * 100}}%;"></view>
+              <view class="progress-fill" style="width: {{item.applied / item.need * 100}}%;"></view>
             </view>
           </view>
         </view>
