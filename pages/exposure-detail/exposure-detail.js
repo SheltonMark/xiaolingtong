@@ -23,7 +23,7 @@ Page({
 
       // 发布者信息
       const publisher = d.publisher || {}
-      const publisherName = publisher.name || '匿名用户'
+      const publisherName = publisher.name || ''
       const publisherAvatar = normalizeImageUrl(publisher.avatarUrl || '')
 
       this.setData({
@@ -38,9 +38,9 @@ Page({
         images: normalizeImageList(d.images),
         comments: (d.comments || []).map(c => ({
           id: c.id,
-          name: c.user?.nickname || '匿名用户',
+          name: c.user?.nickname || '',
           avatarUrl: normalizeImageUrl(c.user?.avatarUrl || ''),
-          avatarText: (c.user?.nickname || '匿')[0],
+          avatarText: (c.user?.nickname || '评')[0],
           content: c.content,
           time: this.formatTime(c.createdAt)
         }))

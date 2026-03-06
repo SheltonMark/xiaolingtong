@@ -69,7 +69,7 @@ export class ExposureService {
     });
 
     // Get publisher certification info
-    let publisherName = '匿名用户';
+    let publisherName = '';
     let publisherAvatar = '';
     if (exp.publisher) {
       const role = exp.publisher.role;
@@ -86,6 +86,7 @@ export class ExposureService {
         });
         if (cert) publisherName = cert.realName;
       }
+      if (!publisherName) publisherName = exp.publisher.nickname || '';
       publisherAvatar = exp.publisher.avatarUrl || '';
     }
 
@@ -108,7 +109,7 @@ export class ExposureService {
         content: c.content,
         createdAt: c.createdAt,
         user: {
-          nickname: c.user?.nickname || '匿名用户',
+          nickname: c.user?.nickname || '',
           avatarUrl: c.user?.avatarUrl || '',
         }
       }))
