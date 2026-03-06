@@ -70,7 +70,12 @@ Page({
     }).catch(() => {})
   },
 
-  onShareJob() {
-    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] })
+  onShareAppMessage() {
+    const job = this.data.job || {}
+    const title = (job.title || '招工信息') + (job.salary ? ' ' + job.salary + job.salaryUnit : '')
+    return {
+      title,
+      path: '/pages/job-detail/job-detail?id=' + job.id
+    }
   }
 })

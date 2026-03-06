@@ -276,7 +276,7 @@
       </view>
       <!-- 底部：分享 + 报名 -->
       <view class="job-bottom">
-        <view class="job-outline-btn" catchtap="onShare" data-id="{{item.id}}">分享</view>
+        <button class="job-outline-btn job-share-btn-reset" open-type="share" data-id="{{item.id}}">分享</button>
         <view class="job-apply-btn" catchtap="onApply" data-id="{{item.id}}">立即报名</view>
       </view>
     </view>
