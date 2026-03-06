@@ -1,5 +1,6 @@
 const { get, post, upload } = require('../../utils/request')
 const wsChat = require('../../utils/ws-chat')
+const { normalizeImageUrl } = require('../../utils/image')
 
 const VOICE_PREFIX = '__VOICE__'
 
@@ -113,7 +114,7 @@ Page({
     }
 
     if (item.type === 'image') {
-      return { ...base, type: 'image', image: item.content, text: '' }
+      return { ...base, type: 'image', image: normalizeImageUrl(item.content), text: '' }
     }
     if (typeof item.content === 'string' && item.content.startsWith(VOICE_PREFIX)) {
       try {

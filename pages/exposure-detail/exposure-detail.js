@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request')
+const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 
 Page({
   data: {
@@ -23,7 +24,7 @@ Page({
       // 发布者信息
       const publisher = d.publisher || {}
       const publisherName = publisher.name || '匿名用户'
-      const publisherAvatar = publisher.avatarUrl || ''
+      const publisherAvatar = normalizeImageUrl(publisher.avatarUrl || '')
 
       this.setData({
         detail: {
@@ -34,11 +35,11 @@ Page({
           avatarText: publisherName ? publisherName[0] : '曝',
           viewCount: d.viewCount || 0
         },
-        images: d.images || [],
+        images: normalizeImageList(d.images),
         comments: (d.comments || []).map(c => ({
           id: c.id,
           name: c.user?.nickname || '匿名用户',
-          avatarUrl: c.user?.avatarUrl || '',
+          avatarUrl: normalizeImageUrl(c.user?.avatarUrl || ''),
           avatarText: (c.user?.nickname || '匿')[0],
           content: c.content,
           time: this.formatTime(c.createdAt)

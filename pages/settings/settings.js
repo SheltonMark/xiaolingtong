@@ -1,5 +1,6 @@
 const { put, upload } = require('../../utils/request')
 const auth = require('../../utils/auth')
+const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
   data: {
@@ -18,7 +19,7 @@ Page({
     const userRole = app.globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     const userInfo = app.globalData.userInfo || {}
     const nickname = userInfo.nickname || ''
-    const avatarUrl = app.globalData.avatarUrl || wx.getStorageSync('avatarUrl') || ''
+    const avatarUrl = normalizeImageUrl(app.globalData.avatarUrl || wx.getStorageSync('avatarUrl') || '')
     this.setData({
       userRole,
       nickname,

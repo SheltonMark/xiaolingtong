@@ -1,4 +1,5 @@
 const { get } = require('../../utils/request')
+const { normalizeImageList } = require('../../utils/image')
 
 Page({
   data: {
@@ -21,7 +22,10 @@ Page({
   },
   loadList() {
     get('/exposures').then(res => {
-      this.setData({ list: res.data.list || res.data || [], refreshing: false })
+      this.setData({ list: (res.data.list || res.data || []).map(item => ({
+        ...item,
+        images: normalizeImageList(item.images)
+      })), refreshing: false })
     }).catch(() => {
       this.setData({ refreshing: false })
     })

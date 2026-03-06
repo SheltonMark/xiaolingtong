@@ -1,4 +1,5 @@
 const { get } = require('../../utils/request')
+const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 
 Page({
   data: {
@@ -63,7 +64,9 @@ Page({
     return (Array.isArray(list) ? list : []).map(item => ({
       ...item,
       companyName: (item.user && item.user.nickname) || item.title || '',
+      avatarUrl: normalizeImageUrl((item.user && item.user.avatarUrl) || ''),
       avatarText: item.user && item.user.nickname ? item.user.nickname[0] : '',
+      images: normalizeImageList(item.images),
       time: item.createdAt ? item.createdAt.substring(0, 10) : ''
     }))
   },

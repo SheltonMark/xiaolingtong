@@ -1,4 +1,5 @@
 const { get, del } = require('../../utils/request')
+const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
   data: {
@@ -76,7 +77,7 @@ Page({
 
       this.setData({
         nickname: user.nickname || '',
-        avatarUrl: user.avatarUrl || '',
+        avatarUrl: normalizeImageUrl(user.avatarUrl || ''),
         beanBalance: user.beanBalance || 0,
         isMember: user.isMember || false,
         creditScore: user.creditScore || 100,
