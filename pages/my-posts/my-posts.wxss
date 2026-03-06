@@ -51,8 +51,8 @@
 /* 类型标签 */
 .type-tag {
   font-size: 20rpx;
-  padding: 4rpx 16rpx;
-  border-radius: 8rpx;
+  padding: 4rpx 0;
+  border-radius: 6rpx;
   font-weight: 500;
 }
 .type-blue { background-color: #EFF6FF; color: #3B82F6; }
