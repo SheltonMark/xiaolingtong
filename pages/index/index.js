@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request')
+const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 
 Page({
   data: {
@@ -170,7 +171,8 @@ Page({
         ...item,
         companyName,
         companyMeta: item.industry || '',
-        avatarUrl: (item.user && item.user.avatarUrl) || '',
+        avatarUrl: normalizeImageUrl((item.user && item.user.avatarUrl) || ''),
+        images: normalizeImageList(item.images),
         avatarText: verifiedName ? companyName[0] : '企',
         time: item.createdAt ? item.createdAt.substring(0, 10) : '',
         wechat: item.contactWechat || item.wechat || '',

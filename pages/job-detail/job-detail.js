@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request')
+const { normalizeImageList } = require('../../utils/image')
 
 Page({
   data: {
@@ -16,7 +17,13 @@ Page({
 
   loadJob(id) {
     get('/jobs/' + id).then(res => {
-      this.setData({ job: res.data || {} })
+      const job = res.data || {}
+      this.setData({
+        job: {
+          ...job,
+          images: normalizeImageList(job.images)
+        }
+      })
     }).catch(() => {})
   },
 

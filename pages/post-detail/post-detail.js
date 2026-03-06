@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request')
+const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 
 const TYPE_TEXT_MAP = {
   purchase: '采购需求',
@@ -111,13 +112,13 @@ Page({
     const fields = this.formatDetailFields(raw.type, raw.fields, raw)
     return {
       ...raw,
-      images: Array.isArray(raw.images) ? raw.images : [],
+      images: normalizeImageList(raw.images),
       typeText: TYPE_TEXT_MAP[raw.type] || '供需信息',
       publishTime: this.formatDate(raw.createdAt),
       expireTime: raw.expireAt ? this.formatDate(raw.expireAt) : '长期有效',
       fields,
       desc: this.normalizeText(raw.content),
-      avatarUrl: (raw.user && raw.user.avatarUrl) || '',
+      avatarUrl: normalizeImageUrl((raw.user && raw.user.avatarUrl) || ''),
       avatarText,
       companyName: companyName || '企业用户',
       certText: raw.enterpriseVerified ? '已认证' : '未认证',
