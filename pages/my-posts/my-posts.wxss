@@ -101,9 +101,6 @@
 
 /* 招工详情信息 */
 .job-detail-info {
-  background-color: #F8FAFC;
-  border-radius: 12rpx;
-  padding: 16rpx 20rpx;
   margin-bottom: 12rpx;
 }
 .job-info-row {
