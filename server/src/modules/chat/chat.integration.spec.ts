@@ -5,17 +5,16 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
+import { ChatRealtimeService } from './chat-realtime.service';
 import { Conversation } from '../../entities/conversation.entity';
 import { ChatMessage } from '../../entities/chat-message.entity';
-import { User } from '../../entities/user.entity';
 
 describe('ChatModule Integration Tests', () => {
   let controller: ChatController;
   let service: ChatService;
   let conversationRepository: any;
   let chatMessageRepository: any;
-  let userRepository: any;
-  let chatRealtimeService: any;
+  let realtimeService: any;
 
   beforeEach(async () => {
     conversationRepository = {
@@ -34,16 +33,13 @@ describe('ChatModule Integration Tests', () => {
       save: jest.fn(),
       update: jest.fn(),
       count: jest.fn(),
+      findAndCount: jest.fn(),
       createQueryBuilder: jest.fn(),
     };
 
-    userRepository = {
-      findOne: jest.fn(),
-    };
-
-    chatRealtimeService = {
-      sendMessage: jest.fn(),
+    realtimeService = {
       notifyNewMessage: jest.fn(),
+      emitToUser: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -59,12 +55,8 @@ describe('ChatModule Integration Tests', () => {
           useValue: chatMessageRepository,
         },
         {
-          provide: getRepositoryToken(User),
-          useValue: userRepository,
-        },
-        {
-          provide: 'ChatRealtimeService',
-          useValue: chatRealtimeService,
+          provide: ChatRealtimeService,
+          useValue: realtimeService,
         },
       ],
     }).compile();
@@ -80,12 +72,23 @@ describe('ChatModule Integration Tests', () => {
   describe('list Integration', () => {
     it('should return user conversations', async () => {
       const mockConversations = [
-        { id: 1, userAId: 1, userBId: 2, lastMessage: 'Hello', lastMessageAt: new Date() },
+        { id: 1, userA: 1, userB: 2, lastMessage: 'Hello', lastMessageAt: new Date(), createdAt: new Date(), userARef: { id: 1, nickname: 'User 1' }, userBRef: { id: 2, nickname: 'User 2' } },
       ];
 
-      conversationRepository.find.mockResolvedValue(mockConversations);
-      chatMessageRepository.count.mockResolvedValue(0);
-      userRepository.findOne.mockResolvedValue({ id: 2, nickname: 'User 2', avatar: 'avatar.jpg' });
+      conversationRepository.createQueryBuilder.mockReturnValue({
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(mockConversations),
+      });
+      chatMessageRepository.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([]),
+      });
 
       const result = await controller.list(1);
 
@@ -94,7 +97,12 @@ describe('ChatModule Integration Tests', () => {
     });
 
     it('should return empty array when no conversations', async () => {
-      conversationRepository.find.mockResolvedValue([]);
+      conversationRepository.createQueryBuilder.mockReturnValue({
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      });
 
       const result = await controller.list(1);
 
@@ -103,12 +111,23 @@ describe('ChatModule Integration Tests', () => {
 
     it('should include unread counts', async () => {
       const mockConversations = [
-        { id: 1, userAId: 1, userBId: 2, lastMessage: 'Hello' },
+        { id: 1, userA: 1, userB: 2, lastMessage: 'Hello', lastMessageAt: new Date(), createdAt: new Date(), userARef: { id: 1, nickname: 'User 1' }, userBRef: { id: 2, nickname: 'User 2' } },
       ];
 
-      conversationRepository.find.mockResolvedValue(mockConversations);
-      chatMessageRepository.count.mockResolvedValue(3);
-      userRepository.findOne.mockResolvedValue({ id: 2, nickname: 'User 2' });
+      conversationRepository.createQueryBuilder.mockReturnValue({
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue(mockConversations),
+      });
+      chatMessageRepository.createQueryBuilder.mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        addSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        groupBy: jest.fn().mockReturnThis(),
+        getRawMany: jest.fn().mockResolvedValue([{ conversationId: 1, count: 3 }]),
+      });
 
       const result = await controller.list(1);
 
@@ -120,18 +139,18 @@ describe('ChatModule Integration Tests', () => {
   describe('messages Integration', () => {
     it('should return paginated messages', async () => {
       const mockMessages = [
-        { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text', createdAt: new Date() },
+        { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text', createdAt: new Date(), sender: { id: 1, nickname: 'User 1', avatarUrl: '' } },
       ];
 
-      conversationRepository.findOne.mockResolvedValue({ id: 1, userAId: 1, userBId: 2 });
+      conversationRepository.findOne.mockResolvedValue({ id: 1, userA: 1, userB: 2 });
+      chatMessageRepository.findAndCount.mockResolvedValue([mockMessages, 1]);
       chatMessageRepository.createQueryBuilder.mockReturnValue({
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([mockMessages, 1]),
+        andWhere: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValue({}),
       });
-      chatMessageRepository.update.mockResolvedValue({ affected: 1 });
 
       const result = await controller.messages(1, 1, { page: 1, pageSize: 20 });
 
@@ -142,15 +161,15 @@ describe('ChatModule Integration Tests', () => {
     it('should mark messages as read', async () => {
       const mockMessages = [];
 
-      conversationRepository.findOne.mockResolvedValue({ id: 1, userAId: 1, userBId: 2 });
+      conversationRepository.findOne.mockResolvedValue({ id: 1, userA: 1, userB: 2 });
+      chatMessageRepository.findAndCount.mockResolvedValue([mockMessages, 0]);
       chatMessageRepository.createQueryBuilder.mockReturnValue({
+        update: jest.fn().mockReturnThis(),
+        set: jest.fn().mockReturnThis(),
         where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([mockMessages, 0]),
+        andWhere: jest.fn().mockReturnThis(),
+        execute: jest.fn().mockResolvedValue({}),
       });
-      chatMessageRepository.update.mockResolvedValue({ affected: 0 });
 
       const result = await controller.messages(1, 1, { page: 1, pageSize: 20 });
 
@@ -158,7 +177,7 @@ describe('ChatModule Integration Tests', () => {
     });
 
     it('should throw error on unauthorized access', async () => {
-      conversationRepository.findOne.mockResolvedValue({ id: 1, userAId: 2, userBId: 3 });
+      conversationRepository.findOne.mockResolvedValue(null);
 
       await expect(controller.messages(1, 1, { page: 1, pageSize: 20 })).rejects.toThrow();
     });
@@ -166,8 +185,8 @@ describe('ChatModule Integration Tests', () => {
 
   describe('send Integration', () => {
     it('should send text message successfully', async () => {
-      const mockConversation = { id: 1, userAId: 1, userBId: 2 };
-      const mockMessage = { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text' };
+      const mockConversation = { id: 1, userA: 1, userB: 2 };
+      const mockMessage = { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text', createdAt: new Date() };
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
       chatMessageRepository.create.mockReturnValue(mockMessage);
@@ -181,8 +200,8 @@ describe('ChatModule Integration Tests', () => {
     });
 
     it('should send image message successfully', async () => {
-      const mockConversation = { id: 1, userAId: 1, userBId: 2 };
-      const mockMessage = { id: 1, conversationId: 1, senderId: 1, content: 'image_url', type: 'image' };
+      const mockConversation = { id: 1, userA: 1, userB: 2 };
+      const mockMessage = { id: 1, conversationId: 1, senderId: 1, content: 'image_url', type: 'image', createdAt: new Date() };
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
       chatMessageRepository.create.mockReturnValue(mockMessage);
@@ -196,7 +215,7 @@ describe('ChatModule Integration Tests', () => {
     });
 
     it('should throw error on empty content', async () => {
-      const mockConversation = { id: 1, userAId: 1, userBId: 2 };
+      const mockConversation = { id: 1, userA: 1, userB: 2 };
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
 
@@ -206,7 +225,7 @@ describe('ChatModule Integration Tests', () => {
 
   describe('withUser Integration', () => {
     it('should return existing conversation', async () => {
-      const mockConversation = { id: 1, userAId: 1, userBId: 2 };
+      const mockConversation = { id: 1, userA: 1, userB: 2 };
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
 
@@ -217,7 +236,7 @@ describe('ChatModule Integration Tests', () => {
     });
 
     it('should create new conversation', async () => {
-      const mockConversation = { id: 1, userAId: 1, userBId: 2 };
+      const mockConversation = { id: 1, userA: 1, userB: 2 };
 
       conversationRepository.findOne.mockResolvedValue(null);
       conversationRepository.create.mockReturnValue(mockConversation);

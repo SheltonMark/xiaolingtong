@@ -244,7 +244,7 @@ describe('SettlementService', () => {
       const mockUser = { id: 1, openid: 'test_openid' };
 
       settlementRepository.findOne.mockResolvedValue(mockSettlement);
-      userRepository.findOne.mockResolvedValue(mockUser);
+      userRepository.findOneBy.mockResolvedValue(mockUser);
       paymentService.createJsapiOrder.mockResolvedValue({
         prepayId: 'test_prepay_id',
       });

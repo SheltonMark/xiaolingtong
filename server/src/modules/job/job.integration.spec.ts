@@ -159,9 +159,10 @@ describe('JobModule Integration Tests', () => {
         salary: 100,
         needCount: 5,
         location: 'Beijing',
-        contact: '13800000000',
-        startDate: new Date(),
-        endDate: new Date(),
+        contactName: 'John',
+        contactPhone: '13800000000',
+        dateStart: '2026-03-10',
+        dateEnd: '2026-03-20',
       };
 
       const mockJob = { id: 1, userId: 1, ...dto };
@@ -182,9 +183,10 @@ describe('JobModule Integration Tests', () => {
         salary: 100,
         needCount: 5,
         location: 'Beijing',
-        contact: '13800000000',
-        startDate: new Date(),
-        endDate: new Date(),
+        contactName: 'John',
+        contactPhone: '13800000000',
+        dateStart: '2026-03-10',
+        dateEnd: '2026-03-20',
       };
 
       keywordRepository.find.mockResolvedValue([{ word: 'prohibited' }]);
@@ -220,7 +222,7 @@ describe('JobModule Integration Tests', () => {
   describe('myJobs Integration', () => {
     it('should return user jobs', async () => {
       const mockJobs = [
-        { id: 1, userId: 1, title: 'Job 1', salary: 100 },
+        { id: 1, userId: 1, title: 'Job 1', salary: 100, salaryUnit: '元/时', needCount: 5, dateStart: '2026-03-10', dateEnd: '2026-03-20', workHours: '8:00-17:00', location: 'Beijing', status: 'recruiting', createdAt: new Date() },
       ];
 
       jobRepository.find.mockResolvedValue(mockJobs);
@@ -229,7 +231,7 @@ describe('JobModule Integration Tests', () => {
       const result = await controller.myJobs(1);
 
       expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
+      expect(result.list).toHaveLength(1);
     });
 
     it('should return empty array when no jobs', async () => {
@@ -237,7 +239,7 @@ describe('JobModule Integration Tests', () => {
 
       const result = await controller.myJobs(1);
 
-      expect(result).toEqual([]);
+      expect(result.list).toEqual([]);
     });
   });
 });

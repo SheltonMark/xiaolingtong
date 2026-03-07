@@ -121,6 +121,8 @@ describe('WorkService', () => {
 
       jobRepository.findOne.mockResolvedValue(mockJob);
       checkinRepository.find.mockResolvedValue([]);
+      workLogRepository.find.mockResolvedValue([]);
+      jobApplicationRepository.find.mockResolvedValue([]);
 
       const result = await service.getSession(1);
 
