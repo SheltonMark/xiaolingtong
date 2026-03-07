@@ -1,4 +1,5 @@
 const { get } = require('../../utils/request')
+const { normalizeImageList } = require('../../utils/image')
 
 Page({
   data: {
@@ -21,7 +22,10 @@ Page({
   },
   loadList() {
     get('/exposures').then(res => {
-      this.setData({ list: res.data.list || res.data || [], refreshing: false })
+      this.setData({ list: (res.data.list || res.data || []).map(item => ({
+        ...item,
+        images: normalizeImageList(item.images)
+      })), refreshing: false })
     }).catch(() => {
       this.setData({ refreshing: false })
     })
@@ -44,5 +48,16 @@ Page({
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
       this.getTabBar().setData({ selected: 1, userRole })
     }
+  },
+  onShareAppMessage(res) {
+    const id = res.target && res.target.dataset && res.target.dataset.id
+    const company = res.target && res.target.dataset && res.target.dataset.company
+    if (id) {
+      return {
+        title: (company || '曝光信息') + ' - 小灵通曝光榜',
+        path: '/pages/exposure-detail/exposure-detail?id=' + id
+      }
+    }
+    return { title: '小灵通曝光榜', path: '/pages/exposure-board/exposure-board' }
   }
 })

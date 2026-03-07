@@ -104,9 +104,10 @@
         <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
         <text class="bar-icon-label">收藏</text>
       </view>
-      <view class="bar-icon-btn" bindtap="onShareJob">
+      <view class="bar-icon-btn bar-icon-btn-share-wrap">
         <text class="iconfont icon-fenxiang1 bar-icon-gray"></text>
         <text class="bar-icon-label">分享</text>
+        <button class="share-overlay" open-type="share"></button>
       </view>
     </view>
     <view class="bar-right">

@@ -102,6 +102,7 @@ export class ChatService {
         id: item.id,
         otherUserId: this.toNumber(otherId),
         name,
+        avatarUrl: (other && other.avatarUrl) || '',
         avatarText: name ? name[0] : '聊',
         avatarBg: this.toNumber(otherId) % 2 === 0 ? '#3B82F6' : '#10B981',
         time: this.formatTime(item.lastMessageAt || item.createdAt),

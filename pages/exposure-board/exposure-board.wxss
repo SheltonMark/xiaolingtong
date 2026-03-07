@@ -91,6 +91,13 @@
 .eb-action-icon.icon-pinglun { position: relative; top: 2rpx; }
 .eb-action-text { font-size: 22rpx; color: #94A3B8; height: 40rpx; line-height: 40rpx; }
 .eb-action-icon.icon-fenxiang1 { font-size: 30rpx; }
+.eb-action-share { position: relative; }
+.share-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0; margin: 0; padding: 0; border: none;
+  min-height: 0; background: transparent; z-index: 1;
+}
+.share-overlay::after { border: none; }
 
 /* 悬浮按钮 */
 .eb-fab {

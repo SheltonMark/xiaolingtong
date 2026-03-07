@@ -21,7 +21,8 @@
     <block wx:for="{{messages}}" wx:key="id">
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
         <view class="msg-avatar-wrap">
-          <view class="text-avatar text-avatar-md" style="background-color: #F97316;">{{otherAvatarText}}</view>
+          <image wx:if="{{otherAvatarUrl}}" src="{{otherAvatarUrl}}" mode="aspectFill" class="avatar-img avatar-img-md" />
+          <view wx:else class="text-avatar text-avatar-md" style="background-color: #F97316;">{{otherAvatarText}}</view>
         </view>
         <view class="msg-bubble-wrap">
           <view class="bubble bubble-left" wx:if="{{item.type === 'text' && item.text}}">
@@ -48,7 +49,8 @@
           <text class="msg-time-text msg-time-right">{{item.time}}</text>
         </view>
         <view class="msg-avatar-wrap">
-          <view class="text-avatar text-avatar-md" style="background-color: #3B82F6;">{{myAvatarText}}</view>
+          <image wx:if="{{myAvatarUrl}}" src="{{myAvatarUrl}}" mode="aspectFill" class="avatar-img avatar-img-md" />
+          <view wx:else class="text-avatar text-avatar-md" style="background-color: #3B82F6;">{{myAvatarText}}</view>
         </view>
       </view>
     </block>

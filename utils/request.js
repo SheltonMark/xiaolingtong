@@ -1,5 +1,6 @@
 const config = require('./config')
 const auth = require('./auth')
+const { extractUploadUrl } = require('./image')
 
 const TIMEOUT = 10000         // 普通请求超时 10s
 const UPLOAD_TIMEOUT = 30000  // 上传超时 30s
@@ -144,7 +145,32 @@ function upload(filePath) {
           reject(new Error(data.message || '上传失败'))
           return
         }
-        resolve(data)
+
+        // 统一成包含 data 字段的结构，兼容不同后端返回形态：
+        // 1) { code, data: { url } }
+        // 2) { url, ... }
+        // 3) "https://..."
+        let normalized
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          if (Object.prototype.hasOwnProperty.call(data, 'data')) {
+            normalized = data
+          } else {
+            normalized = { ...data, data }
+          }
+        } else {
+          normalized = { data }
+        }
+
+        const uploadUrl = extractUploadUrl(normalized)
+        if (uploadUrl) {
+          if (normalized && typeof normalized.data === 'object' && normalized.data) {
+            normalized = { ...normalized, data: { ...normalized.data, url: uploadUrl } }
+          } else {
+            normalized = { ...normalized, data: uploadUrl, url: uploadUrl }
+          }
+        }
+
+        resolve(normalized)
       },
       fail(err) {
         wx.showToast({ title: getNetErrTitle(err.errMsg), icon: 'none' })
