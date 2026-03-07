@@ -15,6 +15,7 @@ describe('ChatModule Integration Tests', () => {
   let conversationRepository: any;
   let chatMessageRepository: any;
   let userRepository: any;
+  let chatRealtimeService: any;
 
   beforeEach(async () => {
     conversationRepository = {
@@ -40,6 +41,11 @@ describe('ChatModule Integration Tests', () => {
       findOne: jest.fn(),
     };
 
+    chatRealtimeService = {
+      sendMessage: jest.fn(),
+      notifyNewMessage: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ChatController],
       providers: [
@@ -56,6 +62,10 @@ describe('ChatModule Integration Tests', () => {
           provide: getRepositoryToken(User),
           useValue: userRepository,
         },
+        {
+          provide: 'ChatRealtimeService',
+          useValue: chatRealtimeService,
+        },
       ],
     }).compile();
 
@@ -67,7 +77,7 @@ describe('ChatModule Integration Tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('getConversations Integration', () => {
+  describe('list Integration', () => {
     it('should return user conversations', async () => {
       const mockConversations = [
         { id: 1, userAId: 1, userBId: 2, lastMessage: 'Hello', lastMessageAt: new Date() },
@@ -77,7 +87,7 @@ describe('ChatModule Integration Tests', () => {
       chatMessageRepository.count.mockResolvedValue(0);
       userRepository.findOne.mockResolvedValue({ id: 2, nickname: 'User 2', avatar: 'avatar.jpg' });
 
-      const result = await controller.getConversations(1);
+      const result = await controller.list(1);
 
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
@@ -86,7 +96,7 @@ describe('ChatModule Integration Tests', () => {
     it('should return empty array when no conversations', async () => {
       conversationRepository.find.mockResolvedValue([]);
 
-      const result = await controller.getConversations(1);
+      const result = await controller.list(1);
 
       expect(result).toEqual([]);
     });
@@ -100,14 +110,14 @@ describe('ChatModule Integration Tests', () => {
       chatMessageRepository.count.mockResolvedValue(3);
       userRepository.findOne.mockResolvedValue({ id: 2, nickname: 'User 2' });
 
-      const result = await controller.getConversations(1);
+      const result = await controller.list(1);
 
       expect(result).toBeDefined();
       expect(result[0].unreadCount).toBe(3);
     });
   });
 
-  describe('getMessages Integration', () => {
+  describe('messages Integration', () => {
     it('should return paginated messages', async () => {
       const mockMessages = [
         { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text', createdAt: new Date() },
@@ -123,7 +133,7 @@ describe('ChatModule Integration Tests', () => {
       });
       chatMessageRepository.update.mockResolvedValue({ affected: 1 });
 
-      const result = await controller.getMessages(1, 1, { page: 1, pageSize: 20 });
+      const result = await controller.messages(1, 1, { page: 1, pageSize: 20 });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
@@ -142,7 +152,7 @@ describe('ChatModule Integration Tests', () => {
       });
       chatMessageRepository.update.mockResolvedValue({ affected: 0 });
 
-      const result = await controller.getMessages(1, 1, { page: 1, pageSize: 20 });
+      const result = await controller.messages(1, 1, { page: 1, pageSize: 20 });
 
       expect(result.list).toEqual([]);
     });
@@ -150,11 +160,11 @@ describe('ChatModule Integration Tests', () => {
     it('should throw error on unauthorized access', async () => {
       conversationRepository.findOne.mockResolvedValue({ id: 1, userAId: 2, userBId: 3 });
 
-      await expect(controller.getMessages(1, 1, { page: 1, pageSize: 20 })).rejects.toThrow();
+      await expect(controller.messages(1, 1, { page: 1, pageSize: 20 })).rejects.toThrow();
     });
   });
 
-  describe('sendMessage Integration', () => {
+  describe('send Integration', () => {
     it('should send text message successfully', async () => {
       const mockConversation = { id: 1, userAId: 1, userBId: 2 };
       const mockMessage = { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text' };
@@ -164,7 +174,7 @@ describe('ChatModule Integration Tests', () => {
       chatMessageRepository.save.mockResolvedValue(mockMessage);
       conversationRepository.save.mockResolvedValue(mockConversation);
 
-      const result = await controller.sendMessage(1, 1, { content: 'Hello', type: 'text' });
+      const result = await controller.send(1, 1, { content: 'Hello', type: 'text' });
 
       expect(result).toBeDefined();
       expect(chatMessageRepository.save).toHaveBeenCalled();
@@ -179,7 +189,7 @@ describe('ChatModule Integration Tests', () => {
       chatMessageRepository.save.mockResolvedValue(mockMessage);
       conversationRepository.save.mockResolvedValue(mockConversation);
 
-      const result = await controller.sendMessage(1, 1, { content: 'image_url', type: 'image' });
+      const result = await controller.send(1, 1, { content: 'image_url', type: 'image' });
 
       expect(result).toBeDefined();
       expect(chatMessageRepository.save).toHaveBeenCalled();
@@ -190,17 +200,17 @@ describe('ChatModule Integration Tests', () => {
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
 
-      await expect(controller.sendMessage(1, 1, { content: '', type: 'text' })).rejects.toThrow();
+      await expect(controller.send(1, 1, { content: '', type: 'text' })).rejects.toThrow();
     });
   });
 
-  describe('getOrCreateConversation Integration', () => {
+  describe('withUser Integration', () => {
     it('should return existing conversation', async () => {
       const mockConversation = { id: 1, userAId: 1, userBId: 2 };
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
 
-      const result = await controller.getOrCreateConversation(1, 2);
+      const result = await controller.withUser(1, 2);
 
       expect(result).toBeDefined();
       expect(result.id).toBe(1);
@@ -213,14 +223,14 @@ describe('ChatModule Integration Tests', () => {
       conversationRepository.create.mockReturnValue(mockConversation);
       conversationRepository.save.mockResolvedValue(mockConversation);
 
-      const result = await controller.getOrCreateConversation(1, 2);
+      const result = await controller.withUser(1, 2);
 
       expect(result).toBeDefined();
       expect(conversationRepository.save).toHaveBeenCalled();
     });
 
     it('should throw error on self-conversation', async () => {
-      await expect(controller.getOrCreateConversation(1, 1)).rejects.toThrow();
+      await expect(controller.withUser(1, 1)).rejects.toThrow();
     });
   });
 });
