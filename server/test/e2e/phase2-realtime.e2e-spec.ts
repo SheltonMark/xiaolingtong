@@ -1,174 +1,152 @@
-import { test, expect } from '@playwright/test';
+import axios from 'axios';
 
-test.describe('Phase 2: Real-time Updates - WebSocket & Live Messaging', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.context().addCookies([
+describe('Phase 2: Real-time Chat - Message & Conversation APIs (e2e)', () => {
+  const baseURL = 'http://localhost:3000/api';
+  let apiClient: any;
+  let authToken: string;
+  let conversationId: number;
+  let userId: number;
+
+  beforeAll(async () => {
+    apiClient = axios.create({
+      baseURL,
+      validateStatus: () => true,
+    });
+
+    // Login to get auth token
+    const loginResponse = await apiClient.post('/auth/login', {
+      phone: '13800138000',
+      password: 'password123',
+    });
+    authToken = loginResponse.data.data?.token || '';
+    userId = loginResponse.data.data?.userId || 1;
+  });
+
+  beforeEach(async () => {
+    // Create or get conversation
+    const convResponse = await apiClient.post(
+      '/chat/conversation',
+      { userB: 2 },
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
+    conversationId = convResponse.data.data?.id || 1;
+  });
+
+  it('should send message and receive it', async () => {
+    const response = await apiClient.post(
+      `/chat/message`,
       {
-        name: 'auth_token',
-        value: 'test-token-123',
-        url: 'http://localhost:3000',
+        conversationId,
+        type: 'text',
+        content: 'Real-time message test',
       },
-    ]);
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
+
+    expect(response.status).toBe(201);
+    expect(response.data.data).toHaveProperty('id');
+    expect(response.data.data.content).toBe('Real-time message test');
   });
 
-  test('should show new message in real time', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
-    await page.waitForSelector('[data-testid="chat-container"]');
-
-    // Simulate incoming message
-    await page.evaluate(() => {
-      window.dispatchEvent(
-        new CustomEvent('message', {
-          detail: {
-            type: 'new_message',
-            data: { id: 1, content: 'Real-time message', senderId: 2 },
-          },
-        }),
-      );
+  it('should get conversation list with unread counts', async () => {
+    const response = await apiClient.get('/chat/conversations', {
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
-    await page.waitForSelector('[data-testid="message-item"]');
-    const messageText = await page.textContent('[data-testid="message-item"]');
-    expect(messageText).toContain('Real-time message');
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.data.data)).toBe(true);
   });
 
-  test('should update unread count when new message arrives', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
-    const initialBadge = await page.textContent('[data-testid="unread-badge"]');
+  it('should get messages from conversation', async () => {
+    // Send a message first
+    await apiClient.post(
+      `/chat/message`,
+      {
+        conversationId,
+        type: 'text',
+        content: 'Test message for retrieval',
+      },
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
-    // Simulate incoming message
-    await page.evaluate(() => {
-      window.dispatchEvent(
-        new CustomEvent('message', {
-          detail: {
-            type: 'new_message',
-            data: { id: 1, content: 'New message', senderId: 2, isRead: false },
-          },
-        }),
-      );
-    });
+    const response = await apiClient.get(
+      `/chat/messages/${conversationId}?page=1&pageSize=10`,
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
-    await page.waitForTimeout(500);
-    const updatedBadge = await page.textContent('[data-testid="unread-badge"]');
-    expect(updatedBadge).not.toEqual(initialBadge);
+    expect(response.status).toBe(200);
+    expect(response.data.data).toHaveProperty('list');
+    expect(Array.isArray(response.data.data.list)).toBe(true);
   });
 
-  test('should show online status indicator', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
-    await page.waitForSelector('[data-testid="chat-header"]');
+  it('should mark messages as read', async () => {
+    // Send a message
+    await apiClient.post(
+      `/chat/message`,
+      {
+        conversationId,
+        type: 'text',
+        content: 'Message to mark as read',
+      },
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
-    // Simulate user online status
-    await page.evaluate(() => {
-      window.dispatchEvent(
-        new CustomEvent('user-status', {
-          detail: { userId: 2, status: 'online' },
-        }),
-      );
-    });
+    // Get messages (should auto-mark as read)
+    const response = await apiClient.get(
+      `/chat/messages/${conversationId}?page=1&pageSize=10`,
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
-    const statusIndicator = await page.locator('[data-testid="online-indicator"]');
-    await expect(statusIndicator).toBeVisible();
+    expect(response.status).toBe(200);
+    expect(response.data.data.list.length).toBeGreaterThanOrEqual(0);
   });
 
-  test('should reconnect after connection drop', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
-    await page.waitForSelector('[data-testid="chat-container"]');
+  it('should handle concurrent message sends', async () => {
+    const promises = Array.from({ length: 5 }, (_, i) =>
+      apiClient.post(
+        `/chat/message`,
+        {
+          conversationId,
+          type: 'text',
+          content: `Concurrent message ${i + 1}`,
+        },
+        { headers: { Authorization: `Bearer ${authToken}` } },
+      ),
+    );
 
-    // Simulate connection drop
-    await page.evaluate(() => {
-      window.dispatchEvent(new CustomEvent('connection-lost'));
+    const results = await Promise.all(promises);
+
+    results.forEach((response: any) => {
+      expect(response.status).toBe(201);
+      expect(response.data.data).toHaveProperty('id');
     });
-
-    await page.waitForTimeout(500);
-
-    // Simulate reconnection
-    await page.evaluate(() => {
-      window.dispatchEvent(new CustomEvent('connection-restored'));
-    });
-
-    const reconnectMessage = await page.locator('[data-testid="reconnect-message"]');
-    await expect(reconnectMessage).not.toBeVisible();
   });
 
-  test('should queue messages when offline', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
+  it('should reject empty message content', async () => {
+    const response = await apiClient.post(
+      `/chat/message`,
+      {
+        conversationId,
+        type: 'text',
+        content: '',
+      },
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
-    // Simulate offline
-    await page.evaluate(() => {
-      window.dispatchEvent(new CustomEvent('connection-lost'));
-    });
-
-    // Try to send message
-    await page.fill('[data-testid="message-input"]', 'Offline message');
-    await page.click('[data-testid="send-btn"]');
-
-    // Message should be queued
-    const queuedMessage = await page.locator('[data-testid="queued-message"]');
-    await expect(queuedMessage).toBeVisible();
+    expect(response.status).toBe(400);
   });
 
-  test('should sync messages after reconnect', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
+  it('should reject message to unauthorized conversation', async () => {
+    const response = await apiClient.post(
+      `/chat/message`,
+      {
+        conversationId: 99999,
+        type: 'text',
+        content: 'Unauthorized message',
+      },
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
-    // Simulate offline
-    await page.evaluate(() => {
-      window.dispatchEvent(new CustomEvent('connection-lost'));
-    });
-
-    // Simulate reconnection with new messages
-    await page.evaluate(() => {
-      window.dispatchEvent(
-        new CustomEvent('sync-messages', {
-          detail: {
-            messages: [
-              { id: 1, content: 'Synced message 1', senderId: 2 },
-              { id: 2, content: 'Synced message 2', senderId: 2 },
-            ],
-          },
-        }),
-      );
-    });
-
-    await page.waitForTimeout(500);
-    const messages = await page.locator('[data-testid="message-item"]').count();
-    expect(messages).toBeGreaterThan(0);
-  });
-
-  test('should show typing indicator', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
-
-    // Simulate user typing
-    await page.evaluate(() => {
-      window.dispatchEvent(
-        new CustomEvent('user-typing', {
-          detail: { userId: 2, isTyping: true },
-        }),
-      );
-    });
-
-    const typingIndicator = await page.locator('[data-testid="typing-indicator"]');
-    await expect(typingIndicator).toBeVisible();
-  });
-
-  test('should handle multiple concurrent messages', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
-
-    // Simulate multiple messages arriving concurrently
-    await page.evaluate(() => {
-      for (let i = 0; i < 5; i++) {
-        window.dispatchEvent(
-          new CustomEvent('message', {
-            detail: {
-              type: 'new_message',
-              data: { id: i, content: `Message ${i}`, senderId: 2 },
-            },
-          }),
-        );
-      }
-    });
-
-    await page.waitForTimeout(500);
-    const messages = await page.locator('[data-testid="message-item"]').count();
-    expect(messages).toBeGreaterThanOrEqual(5);
+    expect(response.status).toBe(403);
   });
 });

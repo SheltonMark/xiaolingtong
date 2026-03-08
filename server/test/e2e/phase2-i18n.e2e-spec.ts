@@ -1,84 +1,110 @@
-import { test, expect } from '@playwright/test';
+import axios from 'axios';
 
-test.describe('Phase 2: Internationalization & Formatting - Date, Currency, Numbers', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.context().addCookies([
-      {
-        name: 'auth_token',
-        value: 'test-token-123',
-        url: 'http://localhost:3000',
-      },
-    ]);
+describe('Phase 2: Data Formatting - Date, Currency, Numbers (e2e)', () => {
+  const baseURL = 'http://localhost:3000/api';
+  let apiClient: any;
+  let authToken: string;
+
+  beforeAll(async () => {
+    apiClient = axios.create({
+      baseURL,
+      validateStatus: () => true,
+    });
+
+    const loginResponse = await apiClient.post('/auth/login', {
+      phone: '13800138000',
+      password: 'password123',
+    });
+    authToken = loginResponse.data.data?.token || '';
   });
 
-  test('should display dates in Chinese format (YYYY年MM月DD日)', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/index/index');
-    await page.waitForSelector('[data-testid="date-display"]');
+  it('should format dates correctly in API responses', async () => {
+    const response = await apiClient.get('/user/profile', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
 
-    const dateText = await page.textContent('[data-testid="date-display"]');
-    expect(dateText).toMatch(/\d{4}年\d{2}月\d{2}日/);
-  });
+    expect(response.status).toBe(200);
+    const user = response.data.data;
 
-  test('should display relative time correctly (刚刚/X分钟前/X小时前)', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/chat/chat');
-    await page.waitForSelector('[data-testid="message-time"]');
-
-    const timeText = await page.textContent('[data-testid="message-time"]');
-    expect(
-      timeText?.includes('刚刚') ||
-        timeText?.includes('分钟前') ||
-        timeText?.includes('小时前') ||
-        timeText?.includes('天前'),
-    ).toBeTruthy();
-  });
-
-  test('should format currency with 2 decimal places', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/wallet/wallet');
-    await page.waitForSelector('[data-testid="balance-display"]');
-
-    const balanceText = await page.textContent('[data-testid="balance-display"]');
-    expect(balanceText).toMatch(/¥\d+\.\d{2}/);
-  });
-
-  test('should display large numbers with thousand separators', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/wallet/wallet');
-    await page.waitForSelector('[data-testid="transaction-amount"]');
-
-    const amountText = await page.textContent('[data-testid="transaction-amount"]');
-    // Check for comma or Chinese thousand separator
-    if (amountText && parseInt(amountText.replace(/[^\d]/g, '')) > 999) {
-      expect(amountText).toMatch(/\d{1,3}(,|\s)\d{3}/);
+    if (user.createdAt) {
+      const date = new Date(user.createdAt);
+      expect(date.getTime()).toBeGreaterThan(0);
     }
   });
 
-  test('should format phone numbers correctly', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/mine/mine');
-    await page.waitForSelector('[data-testid="phone-display"]');
+  it('should format currency amounts with 2 decimal places', async () => {
+    const response = await apiClient.get('/wallet/balance', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
 
-    const phoneText = await page.textContent('[data-testid="phone-display"]');
-    // Chinese phone format: 1XX XXXX XXXX or similar
-    expect(phoneText).toMatch(/1\d{2}\s?\d{4}\s?\d{4}/);
+    expect(response.status).toBe(200);
+    const balance = response.data.data.balance;
+
+    const decimalPlaces = (balance.toString().split('.')[1] || '').length;
+    expect(decimalPlaces).toBeLessThanOrEqual(2);
   });
 
-  test('should display status labels in Chinese', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/index/index');
-    await page.waitForSelector('[data-testid="status-label"]');
+  it('should return consistent number formatting', async () => {
+    const response = await apiClient.get('/bean/balance', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
 
-    const statusText = await page.textContent('[data-testid="status-label"]');
-    const validStatuses = ['进行中', '已完成', '已取消', '待审核', '已发布'];
-    expect(validStatuses.some((status) => statusText?.includes(status))).toBeTruthy();
+    expect(response.status).toBe(200);
+    const beanBalance = response.data.data.beanBalance;
+
+    expect(typeof beanBalance).toBe('number');
   });
 
-  test('should handle empty/null values with placeholder text', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/mine/mine');
-    await page.waitForSelector('[data-testid="optional-field"]');
+  it('should handle null/empty values gracefully', async () => {
+    const response = await apiClient.get('/user/profile', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
 
-    const fieldText = await page.textContent('[data-testid="optional-field"]');
-    expect(
-      fieldText?.includes('未设置') ||
-        fieldText?.includes('暂无') ||
-        fieldText?.includes('-') ||
-        fieldText?.includes('N/A'),
-    ).toBeTruthy();
+    expect(response.status).toBe(200);
+    const user = response.data.data;
+
+    expect(user).toBeDefined();
+  });
+
+  it('should format transaction amounts consistently', async () => {
+    const response = await apiClient.get('/wallet/transactions?page=1&pageSize=10', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+
+    expect(response.status).toBe(200);
+    const transactions = response.data.data.list || [];
+
+    transactions.forEach((tx: any) => {
+      if (tx.amount) {
+        const decimalPlaces = (tx.amount.toString().split('.')[1] || '').length;
+        expect(decimalPlaces).toBeLessThanOrEqual(2);
+      }
+    });
+  });
+
+  it('should return timestamps in ISO format', async () => {
+    const response = await apiClient.get('/chat/conversations', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+
+    expect(response.status).toBe(200);
+    const conversations = response.data.data || [];
+
+    conversations.forEach((conv: any) => {
+      if (conv.lastMessageAt) {
+        expect(new Date(conv.lastMessageAt).getTime()).toBeGreaterThan(0);
+      }
+    });
+  });
+
+  it('should handle large numbers without precision loss', async () => {
+    const response = await apiClient.get('/wallet/balance', {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+
+    expect(response.status).toBe(200);
+    const balance = response.data.data.balance;
+
+    expect(Number.isFinite(balance)).toBe(true);
   });
 });

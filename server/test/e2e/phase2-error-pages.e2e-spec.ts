@@ -1,121 +1,113 @@
-import { test, expect } from '@playwright/test';
+import axios from 'axios';
 
-test.describe('Phase 2: Error Handling & Recovery - Error Pages & Retry Logic', () => {
-  test.beforeEach(async ({ page }) => {
-    await page.context().addCookies([
+describe('Phase 2: Error Handling & Recovery - API Error Responses (e2e)', () => {
+  const baseURL = 'http://localhost:3000/api';
+  let apiClient: any;
+  let authToken: string;
+
+  beforeAll(async () => {
+    apiClient = axios.create({
+      baseURL,
+      validateStatus: () => true,
+    });
+
+    const loginResponse = await apiClient.post('/auth/login', {
+      phone: '13800138000',
+      password: 'password123',
+    });
+    authToken = loginResponse.data.data?.token || '';
+  });
+
+  it('should return 400 for invalid request parameters', async () => {
+    const response = await apiClient.post(
+      '/chat/message',
       {
-        name: 'auth_token',
-        value: 'test-token-123',
-        url: 'http://localhost:3000',
+        conversationId: 'invalid',
+        type: 'text',
+        content: 'Test',
       },
-    ]);
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
+
+    expect(response.status).toBe(400);
   });
 
-  test('should show error state when API returns 500', async ({ page }) => {
-    await page.route('**/api/**', (route) => {
-      route.abort('failed');
+  it('should return 401 for missing authentication', async () => {
+    const response = await apiClient.get('/user/profile');
+
+    expect(response.status).toBe(401);
+  });
+
+  it('should return 403 for unauthorized access', async () => {
+    const response = await apiClient.get('/chat/messages/99999?page=1&pageSize=10', {
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
-    await page.goto('http://localhost:3000/pages/index/index');
-    await page.waitForTimeout(1000);
-
-    const errorMessage = await page.locator('[data-testid="error-message"]');
-    await expect(errorMessage).toBeVisible();
+    expect(response.status).toBe(403);
   });
 
-  test('should show not-found state for invalid job id', async ({ page }) => {
-    await page.route('**/api/job/99999', (route) => {
-      route.abort('failed');
+  it('should return 404 for non-existent resource', async () => {
+    const response = await apiClient.get('/user/99999', {
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
-    await page.goto('http://localhost:3000/pages/job-detail/job-detail?id=99999');
-    await page.waitForTimeout(1000);
-
-    const notFoundMessage = await page.locator('[data-testid="not-found-message"]');
-    await expect(notFoundMessage).toBeVisible();
+    expect(response.status).toBe(404);
   });
 
-  test('should show retry button on network error', async ({ page }) => {
-    let requestCount = 0;
+  it('should return error message with details', async () => {
+    const response = await apiClient.post(
+      '/chat/message',
+      {
+        conversationId: 1,
+        type: 'text',
+        content: '',
+      },
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
 
-    await page.route('**/api/**', (route) => {
-      requestCount++;
-      if (requestCount === 1) {
-        route.abort('failed');
-      } else {
-        route.continue();
-      }
+    expect(response.status).toBe(400);
+    expect(response.data).toHaveProperty('message');
+  });
+
+  it('should handle concurrent requests gracefully', async () => {
+    const promises = Array.from({ length: 10 }, () =>
+      apiClient.get('/user/profile', {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }),
+    );
+
+    const results = await Promise.all(promises);
+
+    results.forEach((response: any) => {
+      expect(response.status).toBe(200);
+    });
+  });
+
+  it('should validate request body schema', async () => {
+    const response = await apiClient.post(
+      '/chat/message',
+      {
+        type: 'text',
+      },
+      { headers: { Authorization: `Bearer ${authToken}` } },
+    );
+
+    expect(response.status).toBe(400);
+  });
+
+  it('should handle empty response gracefully', async () => {
+    const response = await apiClient.get('/chat/conversations', {
+      headers: { Authorization: `Bearer ${authToken}` },
     });
 
-    await page.goto('http://localhost:3000/pages/index/index');
-    await page.waitForTimeout(500);
-
-    const retryButton = await page.locator('[data-testid="retry-btn"]');
-    await expect(retryButton).toBeVisible();
-
-    await retryButton.click();
-    await page.waitForTimeout(500);
-
-    // After retry, content should load
-    const content = await page.locator('[data-testid="content"]');
-    await expect(content).toBeVisible();
+    expect(response.status).toBe(200);
+    expect(Array.isArray(response.data.data)).toBe(true);
   });
 
-  test('should redirect to login when token is invalid', async ({ page }) => {
-    await page.context().clearCookies();
+  it('should return consistent error format', async () => {
+    const response = await apiClient.get('/user/profile');
 
-    await page.goto('http://localhost:3000/pages/index/index');
-    await page.waitForURL('**/login/**');
-
-    expect(page.url()).toContain('login');
-  });
-
-  test('should show empty state when list is empty', async ({ page }) => {
-    await page.route('**/api/conversations', (route) => {
-      route.fulfill({
-        status: 200,
-        body: JSON.stringify({ data: [] }),
-      });
-    });
-
-    await page.goto('http://localhost:3000/pages/chat/chat');
-    await page.waitForTimeout(500);
-
-    const emptyState = await page.locator('[data-testid="empty-state"]');
-    await expect(emptyState).toBeVisible();
-
-    const emptyMessage = await emptyState.textContent();
-    expect(emptyMessage).toContain('暂无');
-  });
-
-  test('should recover gracefully after error', async ({ page }) => {
-    let requestCount = 0;
-
-    await page.route('**/api/**', (route) => {
-      requestCount++;
-      if (requestCount <= 2) {
-        route.abort('failed');
-      } else {
-        route.continue();
-      }
-    });
-
-    await page.goto('http://localhost:3000/pages/index/index');
-    await page.waitForTimeout(500);
-
-    // Should show error
-    const errorMessage = await page.locator('[data-testid="error-message"]');
-    await expect(errorMessage).toBeVisible();
-
-    // Click retry multiple times
-    const retryButton = await page.locator('[data-testid="retry-btn"]');
-    await retryButton.click();
-    await page.waitForTimeout(500);
-    await retryButton.click();
-    await page.waitForTimeout(500);
-
-    // Eventually should recover
-    const content = await page.locator('[data-testid="content"]');
-    await expect(content).toBeVisible();
+    expect(response.status).toBe(401);
+    expect(response.data).toHaveProperty('message');
   });
 });
