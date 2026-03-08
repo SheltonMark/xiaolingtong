@@ -14,7 +14,11 @@ Page({
   onShow() {
     get('/beans/balance').then(res => {
       const d = res.data || {}
-      this.setData({ balance: d.balance || 0, totalIn: d.totalIn || 0, totalOut: d.totalOut || 0 })
+      this.setData({
+        balance: (d.balance || 0).toFixed(2),
+        totalIn: (d.totalIn || 0).toFixed(2),
+        totalOut: (d.totalOut || 0).toFixed(2)
+      })
     }).catch(() => {})
     get('/beans/transactions').then(res => {
       const list = res.data || []

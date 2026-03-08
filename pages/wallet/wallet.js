@@ -52,9 +52,5 @@ Page({
   },
   onGoHelp() {
     wx.navigateTo({ url: '/pages/settings/settings' })
-  },
-  onShow() {
-    const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-    this.setData({ userRole })
   }
 })
