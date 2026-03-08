@@ -7,6 +7,7 @@ import * as crypto from 'crypto';
 import { MemberOrder } from '../../entities/member-order.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { BeanOrder } from '../../entities/bean-order.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { Settlement } from '../../entities/settlement.entity';
 import { SettlementItem } from '../../entities/settlement-item.entity';
@@ -29,6 +30,7 @@ export class PaymentService {
     @InjectRepository(MemberOrder) private memberOrderRepo: Repository<MemberOrder>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(BeanOrder) private beanOrderRepo: Repository<BeanOrder>,
     @InjectRepository(AdOrder) private adOrderRepo: Repository<AdOrder>,
     @InjectRepository(Settlement) private settlementRepo: Repository<Settlement>,
     @InjectRepository(SettlementItem) private settlementItemRepo: Repository<SettlementItem>,
@@ -174,21 +176,98 @@ export class PaymentService {
 
   /** 灵豆充值回调 */
   private async handleBeanPay(outTradeNo: string, result: any) {
-    // 从 amount 反推灵豆数量，或从订单记录中获取
-    const totalFen = result.amount?.total || 0;
-    const beanAmount = totalFen; // 1分=1灵豆，可按配置调整
-    const openid = result.payer?.openid;
-    if (!openid) return;
-    const user = await this.userRepo.findOne({ where: { openid } });
-    if (!user) return;
-    // 防重复：检查是否已处理
-    const exists = await this.beanTxRepo.findOne({ where: { refType: 'recharge', remark: outTradeNo } });
-    if (exists) return;
-    await this.userRepo.update(user.id, { beanBalance: () => `beanBalance + ${beanAmount}` });
-    await this.beanTxRepo.save(this.beanTxRepo.create({
-      userId: user.id, type: 'recharge', amount: beanAmount,
-      refType: 'recharge', remark: outTradeNo,
-    }));
+    try {
+      // 从订单表中获取灵豆数量
+      const order = await this.beanOrderRepo.findOne({ where: { outTradeNo } });
+
+      if (!order) {
+        this.logger.warn(`灵豆订单未找到: ${outTradeNo}，尝试从支付结果中恢复`);
+        // 备用方案：如果订单表中找不到，尝试从支付结果中恢复
+        // 这种情况可能发生在数据库迁移或订单保存失败的情况下
+        const openid = result.payer?.openid;
+        if (!openid) {
+          this.logger.error(`灵豆充值失败: 无法获取 openid, outTradeNo: ${outTradeNo}`);
+          return;
+        }
+
+        const user = await this.userRepo.findOne({ where: { openid } });
+        if (!user) {
+          this.logger.error(`灵豆充值失败: 用户不存在, openid: ${openid}`);
+          return;
+        }
+
+        // 防重复：检查是否已处理
+        const exists = await this.beanTxRepo.findOne({ where: { refType: 'recharge', remark: outTradeNo } });
+        if (exists) {
+          this.logger.log(`灵豆充值已处理: ${outTradeNo}`);
+          return;
+        }
+
+        // 从支付金额反推灵豆数量（备用方案）
+        const totalFen = result.amount?.total || 0;
+        // 假设 1 元 = 10 灵豆（可根据实际配置调整）
+        const beanAmount = Math.round(totalFen / 10);
+
+        if (beanAmount <= 0) {
+          this.logger.error(`灵豆充值失败: 灵豆数量无效, totalFen: ${totalFen}`);
+          return;
+        }
+
+        // 更新用户灵豆余额
+        await this.userRepo.update(user.id, { beanBalance: () => `beanBalance + ${beanAmount}` });
+
+        // 记录交易
+        await this.beanTxRepo.save(this.beanTxRepo.create({
+          userId: user.id,
+          type: 'income',
+          amount: beanAmount,
+          refType: 'recharge',
+          remark: outTradeNo,
+        }));
+
+        this.logger.log(`灵豆充值成功(备用方案): ${outTradeNo}, 用户: ${user.id}, 灵豆: ${beanAmount}`);
+        return;
+      }
+
+      if (order.payStatus === 'paid') {
+        this.logger.log(`灵豆充值已支付: ${outTradeNo}`);
+        return;
+      }
+
+      const user = await this.userRepo.findOneBy({ id: order.userId });
+      if (!user) {
+        this.logger.error(`灵豆充值失败: 用户不存在, userId: ${order.userId}`);
+        return;
+      }
+
+      // 防重复：检查是否已处理
+      const exists = await this.beanTxRepo.findOne({ where: { refType: 'recharge', remark: outTradeNo } });
+      if (exists) {
+        this.logger.log(`灵豆充值已处理: ${outTradeNo}`);
+        return;
+      }
+
+      // 更新用户灵豆余额
+      await this.userRepo.update(user.id, { beanBalance: () => `beanBalance + ${order.beanAmount}` });
+
+      // 记录交易（type 必须是 'income' 以便 getBalance 能正确统计）
+      await this.beanTxRepo.save(this.beanTxRepo.create({
+        userId: user.id,
+        type: 'income',
+        amount: order.beanAmount,
+        refType: 'recharge',
+        remark: outTradeNo,
+      }));
+
+      // 更新订单状态
+      order.payStatus = 'paid';
+      order.paidAt = new Date();
+      await this.beanOrderRepo.save(order);
+
+      this.logger.log(`灵豆充值成功: ${outTradeNo}, 用户: ${user.id}, 灵豆: ${order.beanAmount}`);
+    } catch (e) {
+      this.logger.error(`灵豆充值异常: ${outTradeNo}, 错误: ${e.message}`, e.stack);
+    }
   }
 
   /** 广告支付回调 */

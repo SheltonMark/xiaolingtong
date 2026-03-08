@@ -8,6 +8,7 @@ import { BeanController } from './bean.controller';
 import { BeanService } from './bean.service';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { BeanOrder } from '../../entities/bean-order.entity';
 import { PaymentService } from '../payment/payment.service';
 
 describe('BeanModule Integration Tests', () => {
@@ -15,6 +16,7 @@ describe('BeanModule Integration Tests', () => {
   let service: BeanService;
   let userRepository: any;
   let beanTxRepository: any;
+  let beanOrderRepository: any;
   let paymentService: any;
   let configService: any;
 
@@ -31,6 +33,12 @@ describe('BeanModule Integration Tests', () => {
       create: jest.fn(),
       save: jest.fn(),
       createQueryBuilder: jest.fn(),
+    };
+
+    beanOrderRepository = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
     };
 
     paymentService = {
@@ -53,6 +61,10 @@ describe('BeanModule Integration Tests', () => {
         {
           provide: getRepositoryToken(BeanTransaction),
           useValue: beanTxRepository,
+        },
+        {
+          provide: getRepositoryToken(BeanOrder),
+          useValue: beanOrderRepository,
         },
         {
           provide: PaymentService,

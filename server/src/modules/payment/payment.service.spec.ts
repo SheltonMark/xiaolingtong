@@ -9,6 +9,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { MemberOrder } from '../../entities/member-order.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { BeanOrder } from '../../entities/bean-order.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { Settlement } from '../../entities/settlement.entity';
 import { SettlementItem } from '../../entities/settlement-item.entity';
@@ -22,6 +23,7 @@ describe('PaymentService', () => {
   let memberOrderRepo: jest.Mocked<any>;
   let userRepo: jest.Mocked<any>;
   let beanTxRepo: jest.Mocked<any>;
+  let beanOrderRepo: jest.Mocked<any>;
   let adOrderRepo: jest.Mocked<any>;
   let settlementRepo: jest.Mocked<any>;
   let settlementItemRepo: jest.Mocked<any>;
@@ -52,11 +54,18 @@ describe('PaymentService', () => {
 
     userRepo = {
       findOne: jest.fn(),
+      findOneBy: jest.fn(),
       update: jest.fn(),
       increment: jest.fn(),
     } as jest.Mocked<any>;
 
     beanTxRepo = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    } as jest.Mocked<any>;
+
+    beanOrderRepo = {
       findOne: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
@@ -113,6 +122,10 @@ describe('PaymentService', () => {
         {
           provide: getRepositoryToken(BeanTransaction),
           useValue: beanTxRepo,
+        },
+        {
+          provide: getRepositoryToken(BeanOrder),
+          useValue: beanOrderRepo,
         },
         {
           provide: getRepositoryToken(AdOrder),
@@ -223,29 +236,34 @@ describe('PaymentService', () => {
       };
 
       const user = { id: 1, openid: 'test_openid', beanBalance: 100 };
+      const order = { id: 1, userId: 1, outTradeNo, beanAmount: 200, totalFee: 1000, payStatus: 'pending' };
 
-      userRepo.findOne.mockResolvedValue(user);
+      beanOrderRepo.findOne.mockResolvedValue(order);
+      userRepo.findOneBy.mockResolvedValue(user);
       beanTxRepo.findOne.mockResolvedValue(null);
       userRepo.update.mockResolvedValue({ affected: 1 });
       beanTxRepo.create.mockReturnValue({
         userId: 1,
-        type: 'recharge',
-        amount: 1000,
+        type: 'income',
+        amount: 200,
         refType: 'recharge',
         remark: outTradeNo,
       });
       beanTxRepo.save.mockResolvedValue({
         userId: 1,
-        type: 'recharge',
-        amount: 1000,
+        type: 'income',
+        amount: 200,
       });
+      beanOrderRepo.save.mockResolvedValue({ ...order, payStatus: 'paid', paidAt: new Date() });
 
       await service.handlePaySuccess(outTradeNo, result);
 
-      expect(userRepo.findOne).toHaveBeenCalled();
+      expect(beanOrderRepo.findOne).toHaveBeenCalled();
+      expect(userRepo.findOneBy).toHaveBeenCalled();
       expect(beanTxRepo.findOne).toHaveBeenCalled();
       expect(userRepo.update).toHaveBeenCalled();
       expect(beanTxRepo.save).toHaveBeenCalled();
+      expect(beanOrderRepo.save).toHaveBeenCalled();
     });
 
     it('should skip bean payment if already processed', async () => {
@@ -255,14 +273,47 @@ describe('PaymentService', () => {
         payer: { openid: 'test_openid' },
       };
 
-      const user = { id: 1, openid: 'test_openid' };
+      const order = { id: 1, userId: 1, outTradeNo, beanAmount: 200, totalFee: 1000, payStatus: 'paid' };
 
-      userRepo.findOne.mockResolvedValue(user);
-      beanTxRepo.findOne.mockResolvedValue({ id: 1, remark: outTradeNo });
+      beanOrderRepo.findOne.mockResolvedValue(order);
 
       await service.handlePaySuccess(outTradeNo, result);
 
       expect(beanTxRepo.save).not.toHaveBeenCalled();
+    });
+
+    it('should handle bean payment when order not found (fallback)', async () => {
+      const outTradeNo = 'BEAN_0_1234567890_abcd1234';
+      const result = {
+        amount: { total: 1000 },
+        payer: { openid: 'test_openid' },
+      };
+
+      const user = { id: 1, openid: 'test_openid', beanBalance: 100 };
+
+      beanOrderRepo.findOne.mockResolvedValue(null);
+      userRepo.findOne.mockResolvedValue(user);
+      beanTxRepo.findOne.mockResolvedValue(null);
+      userRepo.update.mockResolvedValue({ affected: 1 });
+      beanTxRepo.create.mockReturnValue({
+        userId: 1,
+        type: 'income',
+        amount: 100,
+        refType: 'recharge',
+        remark: outTradeNo,
+      });
+      beanTxRepo.save.mockResolvedValue({
+        userId: 1,
+        type: 'income',
+        amount: 100,
+      });
+
+      await service.handlePaySuccess(outTradeNo, result);
+
+      // 应该使用备用方案，从支付金额反推灵豆数量
+      expect(userRepo.findOne).toHaveBeenCalledWith({ where: { openid: 'test_openid' } });
+      expect(userRepo.update).toHaveBeenCalled();
+      expect(beanTxRepo.save).toHaveBeenCalled();
     });
 
     it('should handle ad payment success', async () => {

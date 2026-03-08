@@ -16,7 +16,7 @@ Page({
   },
   onShow() {
     get('/beans/balance').then(res => {
-      this.setData({ balance: res.data.balance || 0 })
+      this.setData({ balance: res.data.beanBalance || 0 })
     }).catch(() => {})
     get('/beans/transactions').then(res => {
       this.setData({ records: res.data || [] })
@@ -25,6 +25,22 @@ Page({
   onSelect(e) { this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) }) },
   onViewAll() {
     wx.navigateTo({ url: '/pages/bean-detail/bean-detail' })
+  },
+  // 轮询获取余额，等待支付回调处理完成
+  async pollBalance(maxRetries = 10, delayMs = 500) {
+    for (let i = 0; i < maxRetries; i++) {
+      await new Promise(resolve => setTimeout(resolve, delayMs))
+      try {
+        const res = await get('/beans/balance')
+        if (res.data && res.data.beanBalance > 0) {
+          this.setData({ balance: res.data.beanBalance })
+          return true
+        }
+      } catch (e) {
+        // 继续轮询
+      }
+    }
+    return false
   },
   onPay() {
     const pkg = this.data.packages[this.data.selectedIndex]
@@ -43,7 +59,8 @@ Page({
                 paySign: data.paySign,
                 success: () => {
                   wx.showToast({ title: '充值成功', icon: 'success' })
-                  this.onShow()
+                  // 支付成功后轮询获取余额，等待后端支付回调处理完成
+                  this.pollBalance()
                 },
                 fail() { wx.showToast({ title: '支付取消', icon: 'none' }) }
               })

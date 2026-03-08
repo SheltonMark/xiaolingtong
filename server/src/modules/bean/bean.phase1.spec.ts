@@ -8,6 +8,7 @@ import { BeanService } from './bean.service';
 import { BeanController } from './bean.controller';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { BeanOrder } from '../../entities/bean-order.entity';
 import { PaymentService } from '../payment/payment.service';
 
 describe('Phase 1: Backend Data - Boundary Value Tests', () => {
@@ -15,6 +16,7 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
   let service: BeanService;
   let userRepository: any;
   let beanTxRepository: any;
+  let beanOrderRepository: any;
 
   beforeEach(async () => {
     userRepository = {
@@ -29,6 +31,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
       create: jest.fn(),
       save: jest.fn(),
       createQueryBuilder: jest.fn(),
+    };
+
+    beanOrderRepository = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
     };
 
     const paymentService = {
@@ -51,6 +59,10 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
         {
           provide: getRepositoryToken(BeanTransaction),
           useValue: beanTxRepository,
+        },
+        {
+          provide: getRepositoryToken(BeanOrder),
+          useValue: beanOrderRepository,
         },
         {
           provide: PaymentService,

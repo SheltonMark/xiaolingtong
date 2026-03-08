@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { BeanOrder } from '../../entities/bean-order.entity';
 import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class BeanService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(BeanOrder) private beanOrderRepo: Repository<BeanOrder>,
     private paymentService: PaymentService,
     private config: ConfigService,
   ) {}
@@ -39,11 +41,22 @@ export class BeanService {
     if (!user) throw new BadRequestException('用户不存在');
 
     const outTradeNo = this.paymentService.generateOutTradeNo('BEAN', 0);
+    const totalFee = Math.round(dto.price * 100);
     const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
+
+    // 保存订单信息
+    await this.beanOrderRepo.save(this.beanOrderRepo.create({
+      userId,
+      outTradeNo,
+      beanAmount: dto.amount,
+      totalFee,
+      payStatus: 'pending',
+    }));
+
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
       description: `小灵通灵豆充值-${dto.amount}个`,
-      totalFee: Math.round(dto.price * 100),
+      totalFee,
       openid: user.openid,
       notifyUrl: `${host}/api/payment/notify`,
     });

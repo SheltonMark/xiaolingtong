@@ -5,6 +5,7 @@ import { PaymentService } from './payment.service';
 import { MemberOrder } from '../../entities/member-order.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { BeanOrder } from '../../entities/bean-order.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { Settlement } from '../../entities/settlement.entity';
 import { SettlementItem } from '../../entities/settlement-item.entity';
@@ -14,7 +15,7 @@ import { Job } from '../../entities/job.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([
-    MemberOrder, User, BeanTransaction, AdOrder,
+    MemberOrder, User, BeanTransaction, BeanOrder, AdOrder,
     Settlement, SettlementItem, Wallet, WalletTransaction, Job,
   ])],
   controllers: [PaymentController],
