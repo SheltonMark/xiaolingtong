@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: xiaolingtong-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_USER: xlt
+      MYSQL_PASSWORD: XLT2026db
+      MYSQL_DATABASE: xiaolingtong
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - xiaolingtong-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: xiaolingtong-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - xiaolingtong-network
+
+volumes:
+  mysql_data:
+
+networks:
+  xiaolingtong-network:
+    driver: bridge

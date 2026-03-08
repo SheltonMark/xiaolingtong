@@ -161,4 +161,74 @@ describe('BeanModule Integration Tests', () => {
       expect(result.total).toBe(0);
     });
   });
+
+  describe('Bean Balance Synchronization - Data Format Tests', () => {
+    it('should return beanBalance with totalIn and totalOut', async () => {
+      const mockUser = {
+        id: 1,
+        beanBalance: 1000.50,
+        totalIn: 5000.00,
+        totalOut: 4000.00,
+      };
+      userRepository.findOneBy.mockResolvedValue(mockUser);
+
+      const result = await controller.getBalance(1);
+
+      expect(result).toHaveProperty('beanBalance');
+      expect(result).toHaveProperty('totalIn');
+      expect(result).toHaveProperty('totalOut');
+      expect(result.beanBalance).toBe(1000.50);
+      expect(result.totalIn).toBe(5000.00);
+      expect(result.totalOut).toBe(4000.00);
+    });
+
+    it('should format amounts to two decimal places', async () => {
+      const mockUser = {
+        id: 1,
+        beanBalance: 1000.5,
+        totalIn: 5000,
+        totalOut: 4000,
+      };
+      userRepository.findOneBy.mockResolvedValue(mockUser);
+
+      const result = await controller.getBalance(1);
+
+      // 验证格式化为两位小数
+      expect(String(result.beanBalance)).toMatch(/^\d+\.\d{2}$/);
+      expect(String(result.totalIn)).toMatch(/^\d+\.\d{2}$/);
+      expect(String(result.totalOut)).toMatch(/^\d+\.\d{2}$/);
+    });
+
+    it('should handle zero balance correctly', async () => {
+      const mockUser = {
+        id: 1,
+        beanBalance: 0,
+        totalIn: 0,
+        totalOut: 0,
+      };
+      userRepository.findOneBy.mockResolvedValue(mockUser);
+
+      const result = await controller.getBalance(1);
+
+      expect(result.beanBalance).toBe(0);
+      expect(result.totalIn).toBe(0);
+      expect(result.totalOut).toBe(0);
+    });
+
+    it('should handle large numbers correctly', async () => {
+      const mockUser = {
+        id: 1,
+        beanBalance: 999999.99,
+        totalIn: 1000000.00,
+        totalOut: 1.00,
+      };
+      userRepository.findOneBy.mockResolvedValue(mockUser);
+
+      const result = await controller.getBalance(1);
+
+      expect(result.beanBalance).toBe(999999.99);
+      expect(result.totalIn).toBe(1000000.00);
+      expect(result.totalOut).toBe(1.00);
+    });
+  });
 });

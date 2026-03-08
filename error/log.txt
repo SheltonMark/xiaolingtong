@@ -1,0 +1,13 @@
+正在编译代码
+Compile miniprogram
+Compile jSON files
+Error: file: pages/mine/mine.js
+ unknown: Missing semicolon. (158:18)
+
+  156 |     }
+  157 |
+> 158 |   mapMyPosts(list) {
+      |                   ^
+  159 |     const typeMap = {
+  160 |       purchase: { label: '采购需求', color: 'blue' },
+  161 |       stock: { label: '工厂库存', color: 'green' },
