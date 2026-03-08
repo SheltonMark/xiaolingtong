@@ -20,7 +20,8 @@ Page({
     recording: false,
     recordingSeconds: 0,
     cancelVoice: false,
-    playingVoiceUrl: ''
+    playingVoiceUrl: '',
+    timeMarkText: ''
   },
   onLoad(options) {
     if (options.id) {
@@ -113,7 +114,9 @@ Page({
           otherAvatarText: otherMsg.sender.nickname ? otherMsg.sender.nickname[0] : '对'
         })
       }
-      this.setData({ messages: list }, () => this.scrollToBottom())
+      // 设置时间提示为第一条消息的时间
+      const timeMarkText = rawList.length > 0 ? this.formatMessageTime(rawList[0].time || '') : this.formatMessageTime(new Date().toISOString())
+      this.setData({ messages: list, timeMarkText }, () => this.scrollToBottom())
     }).catch(() => {})
   },
   formatMessageTime(timeStr) {

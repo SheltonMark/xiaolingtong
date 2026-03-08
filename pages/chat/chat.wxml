@@ -16,7 +16,7 @@
     </view>
   </view>
   <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}">
-    <view class="time-mark"><text>今天 14:30</text></view>
+    <view class="time-mark"><text>{{timeMarkText}}</text></view>
     <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
     <block wx:for="{{messages}}" wx:key="id">
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
