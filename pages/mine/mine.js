@@ -57,6 +57,7 @@ Page({
       const user = res.data
       const app = getApp()
       app.globalData.userInfo = user
+      app.globalData.avatarUrl = user.avatarUrl || ''
       app.globalData.beanBalance = user.beanBalance || 0
       app.globalData.isMember = user.isMember || false
 
