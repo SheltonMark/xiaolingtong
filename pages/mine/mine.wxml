@@ -23,7 +23,7 @@
       <!-- 数据卡片 -->
       <view class="data-card">
         <view class="data-item" bindtap="onBeanRecharge">
-          <text class="data-value text-cta">128</text>
+          <text class="data-value text-cta">{{beanBalance}}</text>
           <text class="data-label">灵豆</text>
         </view>
         <view class="data-divider"></view>

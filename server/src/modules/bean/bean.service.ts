@@ -18,7 +18,20 @@ export class BeanService {
   async getBalance(userId: number) {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
-    return { beanBalance: user.beanBalance };
+
+    // 计算累计获得和累计消耗
+    const transactions = await this.beanTxRepo.find({ where: { userId } });
+    let totalIn = 0;
+    let totalOut = 0;
+    transactions.forEach(tx => {
+      if (tx.type === 'income') {
+        totalIn += tx.amount;
+      } else if (tx.type === 'expense') {
+        totalOut += tx.amount;
+      }
+    });
+
+    return { beanBalance: user.beanBalance, totalIn, totalOut };
   }
 
   async recharge(userId: number, dto: { amount: number; price: number }) {
