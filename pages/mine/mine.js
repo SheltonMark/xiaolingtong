@@ -11,6 +11,7 @@ Page({
     workerInfo: { avatarText: '' },
     myPosts: [],
     favorites: [],
+    myApplications: [],
     // 企业端
     enterpriseTabs: ['我的动态', '我的收藏'],
     enterpriseFuncs: [
@@ -111,7 +112,48 @@ Page({
       const list = res.data.list || res.data || []
       this.setData({ favorites: list.slice(0, 3) })
     }).catch(() => {})
+    // 临工端加载接单记录
+    if (this.data.userRole === 'worker') {
+      get('/applications').then(res => {
+        const rawList = res.data.list || res.data || []
+        const list = rawList.map(item => this.normalizeApplication(item)).slice(0, 3)
+        this.setData({ myApplications: list })
+      }).catch(() => {})
+    }
   },
+
+  normalizeApplication(item) {
+    const job = item.job || {}
+    const user = job.user || {}
+
+    // 状态映射
+    const statusMap = {
+      pending: { text: '待确认', bg: 'amber', tabKey: '待确认' },
+      accepted: { text: '已入选', bg: 'green', tabKey: '已入选' },
+      confirmed: { text: '进行中', bg: 'green', tabKey: '进行中' },
+      completed: { text: '已完成', bg: 'gray', tabKey: '已完成' },
+      rejected: { text: '未通过', bg: 'rose', tabKey: '待确认' },
+      cancelled: { text: '已取消', bg: 'gray', tabKey: '待确认' }
+    }
+
+    const statusInfo = statusMap[item.status] || { text: '待确认', bg: 'amber', tabKey: '待确认' }
+
+    return {
+      id: item.id,
+      jobId: job.id,
+      company: user.nickname || user.companyName || '企业',
+      title: job.title || '',
+      salary: job.salary || 0,
+      salaryUnit: job.salaryUnit || '元/天',
+      location: job.location || '',
+      description: job.description || '',
+      date: job.dateRange || '',
+      hours: job.workHours || '',
+      status: item.status,
+      statusText: statusInfo.text,
+      statusBg: statusInfo.bg,
+      tabKey: statusInfo.tabKey
+    }
 
   mapMyPosts(list) {
     const typeMap = {
