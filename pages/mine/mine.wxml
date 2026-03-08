@@ -193,7 +193,8 @@
       </view>
       <!-- 接单记录 -->
       <view wx:if="{{currentTab === 0}}" class="applications-list">
-        <view class="app-card {{item.status === 'rejected' ? 'card-faded' : ''}}" wx:for="{{myApplications}}" wx:key="id">
+        <view class="app-card {{item.status === 'rejected' ? 'card-faded' : ''}}" wx:for="{{myApplications}}" wx:key="id"
+              data-id="{{item.jobId}}" bindtap="onViewJobDetail">
           <!-- 头部 -->
           <view class="app-header">
             <view class="app-header-left">

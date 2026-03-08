@@ -265,5 +265,10 @@ Page({
 
   onBeanRecharge() {
     wx.navigateTo({ url: '/pages/bean-detail/bean-detail' })
+  },
+
+  onViewJobDetail(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
   }
 })
