@@ -231,19 +231,22 @@
       <view wx:if="{{currentTab === 1}}" class="favorites-list">
         <view class="fav-card" wx:for="{{favorites}}" wx:key="id"
               data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
-          <view class="fav-card-top">
-            <view class="fav-title-row">
-              <text class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
-              <text class="fav-title">{{item.title}}</text>
-            </view>
+          <!-- 头部 -->
+          <view class="fav-header">
+            <view class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</view>
             <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
           </view>
+          <!-- 标题 -->
+          <text class="fav-title">{{item.title}}</text>
+          <!-- 内容 -->
           <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
+          <!-- 招工信息 -->
           <view class="fav-meta" wx:if="{{item.targetType === 'job'}}">
             <text class="fav-meta-item text-cta font-semibold">{{item.salary}}{{item.salaryUnit}}</text>
             <text class="fav-meta-item">需{{item.needCount}}人</text>
             <text class="fav-meta-item">{{item.location}}</text>
           </view>
+          <!-- 图片 -->
           <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
             <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
                    src="{{img}}" mode="aspectFill" class="fav-img" />
