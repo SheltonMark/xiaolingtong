@@ -116,6 +116,20 @@ Page({
       this.setData({ messages: list }, () => this.scrollToBottom())
     }).catch(() => {})
   },
+  formatMessageTime(timeStr) {
+    if (!timeStr) return ''
+    const date = new Date(timeStr)
+    if (isNaN(date.getTime())) return timeStr
+
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`
+  },
+
   normalizeMessage(item = {}) {
     const app = getApp()
     const currentUserId = (app.globalData.userInfo && app.globalData.userInfo.id) || 0
@@ -124,7 +138,7 @@ Page({
     const base = {
       id: item.id,
       from,
-      time: item.time || '',
+      time: this.formatMessageTime(item.time || ''),
       senderId,
       conversationId: Number(item.conversationId || this.data.conversationId || 0)
     }
