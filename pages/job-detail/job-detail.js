@@ -24,6 +24,16 @@ Page({
           images: normalizeImageList(job.images)
         }
       })
+      // 加载收藏状态
+      this.loadFavStatus(id)
+    }).catch(() => {})
+  },
+
+  loadFavStatus(id) {
+    get('/favorites').then(res => {
+      const list = res.data.list || res.data || []
+      const isFav = list.some(item => item.targetType === 'job' && item.targetId === id)
+      this.setData({ isFav })
     }).catch(() => {})
   },
 
@@ -34,6 +44,10 @@ Page({
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole })
+    // 重新加载收藏状态
+    if (this.data.job.id) {
+      this.loadFavStatus(this.data.job.id)
+    }
   },
 
   onApply() {
