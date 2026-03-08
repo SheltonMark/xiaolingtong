@@ -2,7 +2,11 @@ const { get } = require('../../utils/request')
 
 Page({
   data: {
-    summary: {},
+    summary: {
+      totalAmount: '0',
+      totalCount: 0,
+      balance: '0.00'
+    },
     records: []
   },
   onShow() {
