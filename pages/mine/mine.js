@@ -154,6 +154,7 @@ Page({
       statusBg: statusInfo.bg,
       tabKey: statusInfo.tabKey
     }
+  },
 
   mapMyPosts(list) {
     const typeMap = {
