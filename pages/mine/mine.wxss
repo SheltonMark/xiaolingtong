@@ -316,16 +316,12 @@
   border-radius: 20rpx;
   background-color: #FFFFFF;
   margin-bottom: 16rpx;
-  border-left: 6rpx solid #D1D5DB;
 }
 .fav-card[data-type="post"] {
-  border-left-color: #3B82F6;
 }
 .fav-card[data-type="job"] {
-  border-left-color: #F97316;
 }
 .fav-card[data-type="exposure"] {
-  border-left-color: #F43F5E;
 }
 .fav-card-top {
   display: flex;
