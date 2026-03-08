@@ -165,7 +165,7 @@
         </view>
         <view class="data-divider"></view>
         <view class="data-item">
-          <text class="data-value text-warm">95</text>
+          <text class="data-value text-warm">{{creditScore}}</text>
           <text class="data-label">信用分</text>
         </view>
       </view>
