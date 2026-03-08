@@ -12,6 +12,7 @@ Page({
     myPosts: [],
     favorites: [],
     myApplications: [],
+    walletBalance: '0.00',
     // 企业端
     enterpriseTabs: ['我的动态', '我的收藏'],
     enterpriseFuncs: [
@@ -118,6 +119,11 @@ Page({
         const rawList = res.data.list || res.data || []
         const list = rawList.map(item => this.normalizeApplication(item)).slice(0, 3)
         this.setData({ myApplications: list })
+      }).catch(() => {})
+      // 加载钱包余额
+      get('/wallet').then(res => {
+        const d = res.data || {}
+        this.setData({ walletBalance: (d.balance || 0).toFixed(2) })
       }).catch(() => {})
     }
   },

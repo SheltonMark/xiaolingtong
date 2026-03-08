@@ -155,7 +155,7 @@
       <!-- 数据卡片 -->
       <view class="data-card data-card-3">
         <view class="data-item" bindtap="onWallet">
-          <text class="data-value text-cta">¥520</text>
+          <text class="data-value text-cta">¥{{walletBalance}}</text>
           <text class="data-label">钱包余额</text>
         </view>
         <view class="data-divider"></view>
