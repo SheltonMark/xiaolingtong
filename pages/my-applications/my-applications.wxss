@@ -48,11 +48,20 @@
   font-size: 26rpx; font-weight: 500; color: #1E293B;
   display: block; margin-bottom: 8rpx;
 }
+.app-location-row {
+  display: flex; align-items: center; gap: 8rpx; margin-bottom: 12rpx;
+}
+.location-icon { font-size: 22rpx; }
+.app-location { font-size: 20rpx; color: #94A3B8; }
 .app-date-row {
-  display: flex; align-items: center; gap: 8rpx; margin-bottom: 20rpx;
+  display: flex; align-items: center; gap: 8rpx; margin-bottom: 12rpx;
 }
 .date-icon { font-size: 22rpx; }
 .app-date { font-size: 20rpx; color: #94A3B8; }
+.app-description {
+  font-size: 20rpx; color: #64748B; display: block;
+  margin-bottom: 12rpx; line-height: 1.5;
+}
 
 /* 提醒 */
 .app-alert {

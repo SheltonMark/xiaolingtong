@@ -29,12 +29,19 @@
       </view>
       <!-- 岗位+薪资 -->
       <text class="app-job-line">{{item.title}} · <text class="text-cta">{{item.salary}}</text></text>
+      <!-- 地点 -->
+      <view class="app-location-row">
+        <text class="location-icon">📍</text>
+        <text class="app-location">{{item.location}}</text>
+      </view>
       <!-- 日期 -->
       <view class="app-date-row">
         <text class="date-icon">📅</text>
         <text class="app-date">{{item.date}}</text>
         <text class="app-date" wx:if="{{item.hours}}"> · {{item.hours}}</text>
       </view>
+      <!-- 工作描述 -->
+      <text class="app-description" wx:if="{{item.description}}">{{item.description}}</text>
       <!-- 提醒 -->
       <view class="app-alert" wx:if="{{item.alert}}">
         <text class="alert-icon">⏱</text>
