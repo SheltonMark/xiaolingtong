@@ -90,15 +90,21 @@ export class PaymentService {
     openid: string;
     notifyUrl: string;
   }) {
-    const result = await this.pay.transactions_jsapi({
-      description: params.description,
-      out_trade_no: params.outTradeNo,
-      notify_url: params.notifyUrl,
-      amount: { total: params.totalFee, currency: 'CNY' },
-      payer: { openid: params.openid },
-    });
-    this.logger.log(`JSAPI下单: ${params.outTradeNo}, prepay_id: ${result?.prepay_id}`);
-    return result;
+    this.logger.log(`JSAPI下单请求: outTradeNo=${params.outTradeNo}, totalFee=${params.totalFee}, openid=${params.openid}, notifyUrl=${params.notifyUrl}`);
+    try {
+      const result = await this.pay.transactions_jsapi({
+        description: params.description,
+        out_trade_no: params.outTradeNo,
+        notify_url: params.notifyUrl,
+        amount: { total: params.totalFee, currency: 'CNY' },
+        payer: { openid: params.openid },
+      });
+      this.logger.log(`JSAPI下单响应: ${JSON.stringify(result)}`);
+      return result;
+    } catch (e) {
+      this.logger.error(`JSAPI下单异常: ${e.message}`, e.response?.data ? JSON.stringify(e.response.data) : e.stack);
+      throw e;
+    }
   }
 
   /** 解密回调通知 */
