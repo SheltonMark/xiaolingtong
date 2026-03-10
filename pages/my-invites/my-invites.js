@@ -55,9 +55,12 @@ Page({
   },
 
   onCopyCode() {
+    const code = this.data.inviteCode
+    if (!code) return wx.showToast({ title: '邀请码生成中', icon: 'none' })
+    const link = 'https://quanqiutong888.com/pages/index/index?inviteCode=' + code
     wx.setClipboardData({
-      data: this.data.inviteCode,
-      success: () => wx.showToast({ title: '已复制', icon: 'success' })
+      data: link,
+      success: () => wx.showToast({ title: '链接已复制', icon: 'success' })
     })
   },
 

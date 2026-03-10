@@ -91,5 +91,6 @@
     "empty-state": "/components/empty-state/empty-state"
   },
   "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
   "sitemapLocation": "sitemap.json"
 }

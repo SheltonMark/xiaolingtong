@@ -1,20 +1,22 @@
 <view class="invite-page">
   <nav-bar title="我的邀请" />
 
-  <!-- 顶部统计卡片 -->
-  <view class="stat-card">
-    <view class="code-row">
-      <text class="code-label">我的邀请码</text>
-      <view class="code-box">
-        <text class="code-text">{{inviteCode || '生成中...'}}</text>
-        <text class="copy-btn" bindtap="onCopyCode">复制</text>
+  <!-- 顶部渐变卡片 -->
+  <view class="inv-card">
+    <view class="inv-card-bg1"></view>
+    <view class="inv-card-bg2"></view>
+    <view class="inv-top">
+      <view class="inv-stat-item">
+        <text class="inv-stat-num">{{totalInvites}}</text>
+        <text class="inv-stat-label">累计邀请(人)</text>
       </view>
     </view>
-    <view class="stat-row">
-      <view class="stat-item">
-        <text class="stat-num">{{totalInvites}}</text>
-        <text class="stat-label">累计邀请</text>
+    <view class="inv-bottom">
+      <view class="inv-code-info">
+        <text class="inv-code-label">邀请码</text>
+        <text class="inv-code">{{inviteCode || '------'}}</text>
       </view>
+      <text class="inv-copy" bindtap="onCopyCode">复制链接</text>
     </view>
   </view>
 

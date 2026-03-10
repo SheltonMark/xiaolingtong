@@ -2,24 +2,43 @@
 
 .invite-page { background: #F8FAFC; min-height: 100vh; padding-bottom: calc(120rpx + env(safe-area-inset-bottom)); }
 
-.stat-card {
-  margin: 24rpx; padding: 32rpx;
-  background: #fff; border-radius: 24rpx;
+/* 渐变卡片 - 和钱包页风格一致 */
+.inv-card {
+  margin: 24rpx; padding: 40rpx 32rpx;
+  background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+  border-radius: 24rpx; position: relative; overflow: hidden;
 }
-.code-row { display: flex; align-items: center; justify-content: space-between; }
-.code-label { font-size: 26rpx; color: #64748B; }
-.code-box { display: flex; align-items: center; gap: 16rpx; }
-.code-text { font-size: 32rpx; font-weight: 600; color: #1E293B; letter-spacing: 4rpx; }
-.copy-btn {
-  font-size: 22rpx; color: #3B82F6; background: #EFF6FF;
-  padding: 8rpx 20rpx; border-radius: 8rpx;
+.inv-card-bg1 {
+  position: absolute; top: -40rpx; right: -20rpx;
+  width: 200rpx; height: 200rpx; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.inv-card-bg2 {
+  position: absolute; bottom: -60rpx; left: 40rpx;
+  width: 160rpx; height: 160rpx; border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+.inv-card-label { font-size: 24rpx; color: rgba(255,255,255,0.7); display: block; }
+.inv-top {
+  display: flex; justify-content: center; align-items: center;
+  padding-bottom: 32rpx;
+}
+.inv-stat-item { text-align: center; }
+.inv-stat-num { font-size: 72rpx; font-weight: 700; color: #fff; display: block; line-height: 1.1; }
+.inv-stat-label { font-size: 22rpx; color: rgba(255,255,255,0.7); }
+.inv-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-top: 24rpx; border-top: 1rpx solid rgba(255,255,255,0.15);
+}
+.inv-code-info { display: flex; align-items: center; gap: 12rpx; }
+.inv-code-label { font-size: 24rpx; color: rgba(255,255,255,0.7); }
+.inv-code { font-size: 28rpx; font-weight: 600; color: #fff; letter-spacing: 2rpx; }
+.inv-copy {
+  font-size: 24rpx; color: #3B82F6; background: #fff;
+  padding: 12rpx 28rpx; border-radius: 24rpx; font-weight: 500;
 }
 
-.stat-row { display: flex; margin-top: 32rpx; padding-top: 32rpx; border-top: 1rpx solid #F1F5F9; }
-.stat-item { text-align: center; }
-.stat-num { font-size: 48rpx; font-weight: 700; color: #3B82F6; display: block; }
-.stat-label { font-size: 22rpx; color: #94A3B8; }
-
+/* 列表区域 */
 .section-header { padding: 24rpx 24rpx 16rpx; }
 .section-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }
 
