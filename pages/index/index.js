@@ -371,7 +371,8 @@ Page({
       return
     }
 
-    post('/conversations/with-user/' + targetUserId).then(res => {
+    const postId = Number(item && item.id) || 0
+    post('/conversations/with-user/' + targetUserId, { postId }).then(res => {
       const conversationId = res.data && res.data.id
       if (!conversationId) {
         wx.showToast({ title: '创建会话失败', icon: 'none' })

@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, Jo
 import { User } from './user.entity';
 
 @Entity('conversations')
-@Unique(['userA', 'userB'])
+@Unique(['userA', 'userB', 'postId'])
 export class Conversation {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   id: number;
@@ -12,6 +12,9 @@ export class Conversation {
 
   @Column({ type: 'bigint' })
   userB: number;
+
+  @Column({ type: 'bigint', default: 0 })
+  postId: number;
 
   @Column({ type: 'text', nullable: true })
   lastMessage: string;

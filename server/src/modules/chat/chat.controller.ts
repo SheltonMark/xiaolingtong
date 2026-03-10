@@ -22,7 +22,11 @@ export class ChatController {
   }
 
   @Post('with-user/:userId')
-  withUser(@CurrentUser('sub') currentUserId: number, @Param('userId') userId: number) {
-    return this.chatService.getOrCreateConversation(currentUserId, userId);
+  withUser(
+    @CurrentUser('sub') currentUserId: number,
+    @Param('userId') userId: number,
+    @Body() body: { postId?: number | string },
+  ) {
+    return this.chatService.getOrCreateConversation(currentUserId, userId, body?.postId);
   }
 }

@@ -175,20 +175,21 @@ export class ChatService {
     return mapped;
   }
 
-  async getOrCreateConversation(userA: number, userB: number) {
+  async getOrCreateConversation(userA: number, userB: number, postId?: number | string) {
     if (!userA || !userB) throw new BadRequestException('用户信息不完整');
     if (this.toNumber(userA) === this.toNumber(userB)) {
       throw new BadRequestException('不能和自己发起会话');
     }
+    const normalizedPostId = Math.max(0, this.toNumber(postId));
     const [a, b] = userA < userB ? [userA, userB] : [userB, userA];
-    let conv = await this.convRepo.findOne({ where: { userA: a, userB: b } });
+    let conv = await this.convRepo.findOne({ where: { userA: a, userB: b, postId: normalizedPostId } });
     if (!conv) {
       // 新会话：校验发起方是否已解锁对方联系方式
       const hasUnlock = await this.checkContactUnlock(userA, userB);
       if (!hasUnlock) {
         throw new ForbiddenException('请先解锁对方联系方式后再发起聊天');
       }
-      conv = await this.convRepo.save(this.convRepo.create({ userA: a, userB: b }));
+      conv = await this.convRepo.save(this.convRepo.create({ userA: a, userB: b, postId: normalizedPostId }));
     }
     return conv;
   }
