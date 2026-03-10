@@ -9,7 +9,7 @@ export class Notification {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['job_apply', 'settlement', 'system', 'promotion'] })
+  @Column({ type: 'enum', enum: ['job_apply', 'settlement', 'system', 'promotion', 'invite'] })
   type: string;
 
   @Column({ length: 128 })

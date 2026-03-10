@@ -10,12 +10,15 @@
       <text class="author-meta" wx:elif="{{item.time}}">{{item.time}}</text>
     </view>
     <view class="header-btns">
-      <view class="icon-btn" catchtap="onTapReport">
+      <view class="header-pill-btn pill-report" catchtap="onTapReport">
         <text class="iconfont icon-tishixinxi"></text>
+        <text>举报</text>
       </view>
-      <button class="icon-btn share-btn" open-type="share" data-id="{{item.id}}" catchtap="onTapShare">
+      <view class="header-pill-btn pill-share" catchtap="onTapShare">
         <text class="iconfont icon-fenxiang1"></text>
-      </button>
+        <text>帮找</text>
+        <button class="pill-share-overlay" open-type="share" data-id="{{item.id}}"></button>
+      </view>
     </view>
   </view>
   <!-- 文字内容 -->

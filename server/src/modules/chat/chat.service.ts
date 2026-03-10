@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conversation } from '../../entities/conversation.entity';
 import { ChatMessage } from '../../entities/chat-message.entity';
+import { ContactUnlock } from '../../entities/contact-unlock.entity';
+import { Post } from '../../entities/post.entity';
 import { ChatRealtimeService } from './chat-realtime.service';
 
 const VOICE_PREFIX = '__VOICE__';
@@ -12,6 +14,8 @@ export class ChatService {
   constructor(
     @InjectRepository(Conversation) private convRepo: Repository<Conversation>,
     @InjectRepository(ChatMessage) private msgRepo: Repository<ChatMessage>,
+    @InjectRepository(ContactUnlock) private unlockRepo: Repository<ContactUnlock>,
+    @InjectRepository(Post) private postRepo: Repository<Post>,
     private realtime: ChatRealtimeService,
   ) {}
 
@@ -179,8 +183,23 @@ export class ChatService {
     const [a, b] = userA < userB ? [userA, userB] : [userB, userA];
     let conv = await this.convRepo.findOne({ where: { userA: a, userB: b } });
     if (!conv) {
+      // 新会话：校验发起方是否已解锁对方联系方式
+      const hasUnlock = await this.checkContactUnlock(userA, userB);
+      if (!hasUnlock) {
+        throw new ForbiddenException('请先解锁对方联系方式后再发起聊天');
+      }
       conv = await this.convRepo.save(this.convRepo.create({ userA: a, userB: b }));
     }
     return conv;
+  }
+
+  private async checkContactUnlock(initiator: number, target: number): Promise<boolean> {
+    // 查找 initiator 是否解锁过 target 发布的任意帖子的联系方式
+    const unlock = await this.unlockRepo.createQueryBuilder('u')
+      .innerJoin(Post, 'p', 'u.postId = p.id')
+      .where('u.userId = :initiator', { initiator })
+      .andWhere('p.userId = :target', { target })
+      .getOne();
+    return !!unlock;
   }
 }

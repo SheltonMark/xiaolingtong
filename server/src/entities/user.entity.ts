@@ -38,6 +38,12 @@ export class User {
   @Column({ type: 'enum', enum: ['active', 'banned'], default: 'active' })
   status: string;
 
+  @Column({ length: 8, unique: true, nullable: true })
+  inviteCode: string;
+
+  @Column({ type: 'bigint', nullable: true })
+  invitedBy: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

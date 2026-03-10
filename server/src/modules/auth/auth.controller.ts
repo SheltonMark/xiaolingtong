@@ -9,9 +9,9 @@ export class AuthController {
 
   @Public()
   @Post('wx-login')
-  wxLogin(@Body('code') code: string) {
+  wxLogin(@Body('code') code: string, @Body('inviteCode') inviteCode?: string) {
     if (!code) throw new BadRequestException('code 不能为空');
-    return this.authService.wxLogin(code);
+    return this.authService.wxLogin(code, inviteCode);
   }
 
   @Post('choose-role')

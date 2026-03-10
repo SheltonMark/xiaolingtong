@@ -6,12 +6,15 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { APP_GUARD } from '@nestjs/core';
+import { InviteModule } from '../invite/invite.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Wallet]),
+    TypeOrmModule.forFeature([User, Wallet, BeanTransaction]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -19,6 +22,8 @@ import { APP_GUARD } from '@nestjs/core';
         signOptions: { expiresIn: config.get('JWT_EXPIRES_IN', '7d') },
       }),
     }),
+    InviteModule,
+    NotificationModule,
   ],
   controllers: [AuthController],
   providers: [

@@ -36,7 +36,8 @@
     "pages/withdraw-history/withdraw-history",
     "pages/anomaly/anomaly",
     "pages/agreement/agreement",
-    "pages/privacy/privacy"
+    "pages/privacy/privacy",
+    "pages/my-invites/my-invites"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

@@ -9,7 +9,7 @@ export class WalletTransaction {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['income', 'withdraw', 'refund'] })
+  @Column({ type: 'enum', enum: ['income', 'withdraw', 'refund', 'commission'] })
   type: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })

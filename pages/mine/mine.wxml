@@ -21,10 +21,15 @@
         <text class="settings-icon iconfont icon-shezhi" bindtap="onSettings"></text>
       </view>
       <!-- 数据卡片 -->
-      <view class="data-card">
+      <view class="data-card data-card-3">
         <view class="data-item" bindtap="onBeanRecharge">
           <text class="data-value text-cta">{{beanBalance}}</text>
           <text class="data-label">灵豆</text>
+        </view>
+        <view class="data-divider"></view>
+        <view class="data-item" bindtap="onWallet">
+          <text class="data-value text-cta">¥{{walletBalance}}</text>
+          <text class="data-label">余额</text>
         </view>
         <view class="data-divider"></view>
         <view class="data-item" bindtap="onMembership">

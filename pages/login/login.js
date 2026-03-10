@@ -26,7 +26,10 @@ Page({
           this.setData({ loading: false })
           return
         }
-        post('/auth/wx-login', { code: loginRes.code }).then(res => {
+        post('/auth/wx-login', {
+          code: loginRes.code,
+          inviteCode: getApp().globalData.pendingInviteCode || undefined
+        }).then(res => {
           const { token, user } = res.data
           auth.setToken(token)
           const app = getApp()

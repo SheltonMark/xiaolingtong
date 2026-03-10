@@ -23,6 +23,7 @@ import { AdminModule } from './modules/admin/admin.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { ConfigModule } from './modules/config/config.module';
+import { InviteModule } from './modules/invite/invite.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { ConfigModule } from './modules/config/config.module';
     PaymentModule,
     TasksModule,
     ConfigModule,
+    InviteModule,
   ],
 })
 export class AppModule {}
