@@ -37,7 +37,8 @@
     "pages/anomaly/anomaly",
     "pages/agreement/agreement",
     "pages/privacy/privacy",
-    "pages/my-invites/my-invites"
+    "pages/my-invites/my-invites",
+    "pages/webview/webview"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

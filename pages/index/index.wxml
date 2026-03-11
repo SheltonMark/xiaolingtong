@@ -63,7 +63,7 @@
               indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
         <swiper-item wx:for="{{banners}}" wx:key="id">
           <!-- 广告图片模式 -->
-          <view class="banner-slide" wx:if="{{item.isAd}}" style="position:relative;">
+          <view class="banner-slide" wx:if="{{item.isAd}}" style="position:relative;" bindtap="onAdBannerTap" data-link="{{item.link}}" data-link-type="{{item.linkType}}">
             <image src="{{item.imageUrl}}" class="banner-img" mode="aspectFill" />
             <text class="ad-tag">广告</text>
           </view>

@@ -22,4 +22,10 @@ export class PromotionController {
   getActiveAds(@Query('slot') slot?: string) {
     return this.promoService.getActiveAds(slot || 'banner');
   }
+
+  @Public()
+  @Get('ads/pricing')
+  getAdPricing() {
+    return this.promoService.getAdPricing();
+  }
 }

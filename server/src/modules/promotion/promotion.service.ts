@@ -78,7 +78,7 @@ export class PromotionService {
 
     const ad = this.adRepo.create({
       userId, slot: dto.slot, title: dto.title,
-      imageUrl: dto.imageUrl, link: dto.link,
+      imageUrl: dto.imageUrl, link: dto.link, linkType: dto.linkType || 'internal',
       durationDays: dto.durationDays, price: actualPrice,
       status: 'pending',
     });
@@ -110,5 +110,11 @@ export class PromotionService {
       take: 10,
     });
     return { list: ads };
+  }
+
+  async getAdPricing() {
+    const bannerPrice = parseFloat(await this.getConfig('banner_ad_price', '100'));
+    const feedPrice = parseFloat(await this.getConfig('feed_ad_price', '50'));
+    return { bannerPrice, feedPrice };
   }
 }

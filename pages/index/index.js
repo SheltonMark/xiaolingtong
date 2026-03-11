@@ -135,12 +135,22 @@ Page({
       const adList = (res.data && res.data.list) || []
       if (adList.length > 0) {
         const adBanners = adList.map(ad => ({
-          id: ad.id, imageUrl: ad.imageUrl, link: ad.link, isAd: true
+          id: ad.id, imageUrl: ad.imageUrl, link: ad.link, linkType: ad.linkType || 'internal', isAd: true
         }))
         this.setData({ banners: adBanners })
       }
       // 无广告时保持默认 banners
     }).catch(() => {})
+  },
+
+  onAdBannerTap(e) {
+    const { link, linkType } = e.currentTarget.dataset
+    if (!link) return
+    if (linkType === 'external') {
+      wx.navigateTo({ url: '/pages/webview/webview?url=' + encodeURIComponent(link) })
+    } else {
+      wx.navigateTo({ url: link })
+    }
   },
 
   loadData() {

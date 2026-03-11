@@ -13,10 +13,7 @@
             </view>
             <text class="ad-option-name">首页Banner广告</text>
           </view>
-          <text class="ad-option-price {{selectedSlot === 0 ? 'text-primary' : ''}}">¥200/天</text>
-        </view>
-        <view class="ad-preview" wx:if="{{selectedSlot === 0}}">
-          <text class="ad-preview-text">750 × 300 · 首页轮播位</text>
+          <text class="ad-option-price {{selectedSlot === 0 ? 'text-primary' : ''}}">¥{{slots[0].price}}/天</text>
         </view>
         <text class="ad-option-desc">展示在首页顶部轮播区，曝光量最高</text>
       </view>
@@ -28,7 +25,7 @@
             </view>
             <text class="ad-option-name">信息流推荐位</text>
           </view>
-          <text class="ad-option-price {{selectedSlot === 1 ? 'text-primary' : ''}}">¥100/天</text>
+          <text class="ad-option-price {{selectedSlot === 1 ? 'text-primary' : ''}}">¥{{slots[1].price}}/天</text>
         </view>
         <text class="ad-option-desc">展示在信息列表中，带"广告"标识，自然融入</text>
       </view>
@@ -87,15 +84,19 @@
         </view>
         <text class="link-text">跳转到我的发布信息</text>
       </view>
-      <view class="link-picker" wx:if="{{linkType === 0}}">
-        <text class="link-picker-text">选择已发布的信息</text>
+      <view class="link-picker" wx:if="{{linkType === 0}}" bindtap="onSelectPost">
+        <text class="link-picker-text {{selectedPost ? 'link-picker-selected' : ''}}">{{selectedPost ? (selectedPost.title || selectedPost.content) : '点击选择已发布的信息'}}</text>
         <text class="link-picker-arrow">▼</text>
       </view>
       <view class="link-option" data-index="{{1}}" bindtap="onLinkChange">
         <view class="ad-radio {{linkType === 1 ? 'ad-radio-active' : ''}}">
           <view class="ad-radio-dot" wx:if="{{linkType === 1}}"></view>
         </view>
-        <text class="link-text">跳转到外部链接</text>
+        <text class="link-text">跳转到外部链接（H5页面）</text>
+      </view>
+      <view wx:if="{{linkType === 1}}" class="link-input-wrap">
+        <input class="link-input" placeholder="请输入H5链接，如 https://example.com" value="{{externalLink}}" bindinput="onExternalLinkInput" />
+        <text class="link-input-hint">仅支持H5网页链接，将通过内嵌浏览器打开</text>
       </view>
     </view>
   </view>
