@@ -14,11 +14,8 @@ Page({
     isMember: false,
     dailyFreeViews: 5,
     selectedIndex: 0,
-    plans: [
-      { id: 1, key: 'monthly', name: '月度会员', desc: '适合短期采购需求', price: '99', original: '199', unit: '月', tag: '', tagColor: '', days: 30 },
-      { id: 2, key: 'quarterly', name: '季度会员', desc: '平均每月更划算', price: '238', original: '597', unit: '季', tag: '推荐', tagColor: '#F97316', days: 90 },
-      { id: 3, key: 'yearly', name: '年度会员', desc: '平均每月最低，最划算', price: '799', original: '2,388', unit: '年', tag: '省更多', tagColor: '#F43F5E', days: 365 }
-    ]
+    plansLoaded: false,
+    plans: []
   },
 
   onLoad() {
@@ -74,11 +71,14 @@ Page({
         ? Math.min(this.data.selectedIndex, cards.length - 1)
         : 0
       this.setData({
-        plans: cards.length ? cards : this.data.plans,
+        plans: cards,
+        plansLoaded: cards.length > 0,
         selectedIndex,
         dailyFreeViews: Number(d.dailyFreeViews || this.data.dailyFreeViews)
       })
-    }).catch(() => {})
+    }).catch(() => {
+      this.setData({ plansLoaded: false, plans: [] })
+    })
   },
 
   onSelect(e) {
@@ -87,8 +87,8 @@ Page({
 
   onPay() {
     const plan = this.data.plans[this.data.selectedIndex]
-    if (!plan || !plan.key) {
-      wx.showToast({ title: '套餐信息加载中', icon: 'none' })
+    if (!this.data.plansLoaded || !plan || !plan.key) {
+      wx.showToast({ title: '套餐加载失败，请稍后重试', icon: 'none' })
       return
     }
     wx.showModal({
