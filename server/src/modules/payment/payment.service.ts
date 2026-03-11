@@ -100,7 +100,17 @@ export class PaymentService {
         payer: { openid: params.openid },
       });
       this.logger.log(`JSAPI下单响应: ${JSON.stringify(result)}`);
-      return result;
+      // wechatpay-node-v3 返回 { status, data: { appId, timeStamp, nonceStr, package, signType, paySign } }
+      // 提取 data 层返回扁平结构，前端可直接用于 wx.requestPayment
+      if (result?.status === 200 && result.data) {
+        const payParams = result.data;
+        // 从 package 字段提取 prepay_id 供前端判断下单是否成功
+        const match = payParams.package?.match(/prepay_id=(.+)/);
+        return { ...payParams, prepay_id: match ? match[1] : payParams.package };
+      }
+      // 非 200 时返回错误信息
+      this.logger.error(`JSAPI下单失败: ${JSON.stringify(result)}`);
+      throw new Error(result?.error || '微信支付下单失败');
     } catch (e) {
       this.logger.error(`JSAPI下单异常: ${e.message}`, e.response?.data ? JSON.stringify(e.response.data) : e.stack);
       throw e;
