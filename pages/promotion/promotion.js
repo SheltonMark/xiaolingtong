@@ -22,7 +22,7 @@ Page({
     this._loadPricing()
     get('/beans/balance').then(res => {
       const d = res.data || res
-      this.setData({ myBeans: d.balance || 0 })
+      this.setData({ myBeans: d.beanBalance || d.balance || 0 })
     }).catch(() => {})
   },
 
