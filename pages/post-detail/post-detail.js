@@ -160,8 +160,23 @@ Page({
   onUnlockContact() {
     const app = getApp()
     const beanBalance = app.globalData.beanBalance || 0
+    const isMember = app.globalData.isMember || false
 
-    // 检查灵豆是否充足
+    // 会员可能免费，直接尝试解锁，由后端判断
+    if (isMember) {
+      wx.showModal({
+        title: '解锁联系方式',
+        content: '会员专享：可能免费或享5折优惠，确认解锁？',
+        confirmText: '解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) this._doUnlock()
+        }
+      })
+      return
+    }
+
+    // 非会员检查灵豆
     if (beanBalance < 10) {
       wx.showModal({
         title: '灵豆不足',
@@ -170,7 +185,6 @@ Page({
         cancelText: '取消',
         success: (res) => {
           if (res.confirm) {
-            // 跳转到灵豆充值页面
             wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
           }
         }
@@ -178,33 +192,38 @@ Page({
       return
     }
 
-    // 灵豆充足，显示解锁确认
     wx.showModal({
       title: '解锁联系方式',
       content: `需要耗费 10 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？`,
       confirmText: '解锁',
       cancelText: '取消',
       success: (res) => {
-        if (res.confirm) {
-          wx.showLoading({ title: '解锁中...' })
-          post('/posts/' + this.data.detail.id + '/unlock').then((response) => {
-            wx.hideLoading()
-            // 检查是否成功扣费
-            if (response.data && response.data.success === false) {
-              wx.showToast({ title: response.data.message || '解锁失败', icon: 'none' })
-              return
-            }
-            // 扣除灵豆
-            app.globalData.beanBalance = beanBalance - 10
-            wx.showToast({ title: '解锁成功，已扣 10 灵豆', icon: 'success' })
-            // 重新加载详情以获取联系方式
-            this.loadDetail(this.data.detail.id)
-          }).catch((err) => {
-            wx.hideLoading()
-            wx.showToast({ title: err.message || '解锁失败', icon: 'none' })
-          })
-        }
+        if (res.confirm) this._doUnlock()
       }
+    })
+  },
+
+  _doUnlock() {
+    const app = getApp()
+    wx.showLoading({ title: '解锁中...' })
+    post('/posts/' + this.data.detail.id + '/unlock').then((response) => {
+      wx.hideLoading()
+      const data = response.data || response
+      if (data.success === false) {
+        wx.showToast({ title: data.message || '解锁失败', icon: 'none' })
+        return
+      }
+      // 更新灵豆余额
+      if (data.beanBalance !== undefined) {
+        app.globalData.beanBalance = data.beanBalance
+      }
+      const cost = data.cost || 0
+      const msg = cost === 0 ? '免费解锁成功' : `解锁成功，已扣 ${cost} 灵豆`
+      wx.showToast({ title: msg, icon: 'success' })
+      this.loadDetail(this.data.detail.id)
+    }).catch((err) => {
+      wx.hideLoading()
+      wx.showToast({ title: err.message || '解锁失败', icon: 'none' })
     })
   },
 

@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThanOrEqual } from 'typeorm';
 import { Post } from '../../entities/post.entity';
 import { ContactUnlock } from '../../entities/contact-unlock.entity';
 import { User } from '../../entities/user.entity';
@@ -8,8 +8,7 @@ import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
-
-const UNLOCK_COST = 10;
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Injectable()
 export class PostService {
@@ -21,7 +20,13 @@ export class PostService {
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
+    @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
   ) {}
+
+  private async getConfig(key: string, defaultValue: string): Promise<string> {
+    const row = await this.sysConfigRepo.findOne({ where: { key } });
+    return row ? row.value : defaultValue;
+  }
 
   private async checkKeywords(text: string) {
     const keywords = await this.keywordRepo.find();
@@ -266,26 +271,65 @@ export class PostService {
   async unlockContact(postId: number, userId: number) {
     const post = await this.postRepo.findOne({ where: { id: postId } });
     if (!post) throw new BadRequestException('信息不存在');
-    if (post.userId === userId) return { unlocked: true };
+    if (post.userId === userId) return { unlocked: true, cost: 0 };
 
     const existing = await this.unlockRepo.findOne({ where: { userId, postId } });
-    if (existing) return { unlocked: true };
+    if (existing) return { unlocked: true, cost: 0 };
 
     const user = await this.userRepo.findOneBy({ id: userId });
-    if (!user || user.beanBalance < UNLOCK_COST) throw new BadRequestException('灵豆不足');
+    if (!user) throw new BadRequestException('用户不存在');
 
-    user.beanBalance -= UNLOCK_COST;
-    await this.userRepo.save(user);
+    // 读取配置
+    const baseCost = parseInt(await this.getConfig('unlock_contact_cost', '10')) || 10;
+    const dailyFree = parseInt(await this.getConfig('member_daily_free_views', '5')) || 5;
+    const discount = parseFloat(await this.getConfig('member_view_discount', '0.5')) || 0.5;
 
-    await this.unlockRepo.save(this.unlockRepo.create({ userId, postId, beanCost: UNLOCK_COST }));
-    await this.beanTxRepo.save(this.beanTxRepo.create({
-      userId, type: 'unlock_contact', amount: -UNLOCK_COST,
-      refType: 'post', refId: postId, remark: '解锁联系方式',
-    }));
+    // 判断会员状态
+    const isMember = user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date();
+
+    let actualCost = baseCost;
+    let freeUsed = false;
+
+    if (isMember) {
+      // 统计今日已用免费次数
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayUnlocks = await this.unlockRepo.count({
+        where: { userId, createdAt: MoreThanOrEqual(todayStart) },
+      });
+
+      if (todayUnlocks < dailyFree) {
+        // 免费额度内
+        actualCost = 0;
+        freeUsed = true;
+      } else {
+        // 超出免费额度，打折
+        actualCost = Math.ceil(baseCost * discount);
+      }
+    }
+
+    // 检查灵豆余额
+    if (actualCost > 0 && user.beanBalance < actualCost) {
+      throw new BadRequestException(`灵豆不足，需要${actualCost}灵豆`);
+    }
+
+    // 扣豆
+    if (actualCost > 0) {
+      user.beanBalance -= actualCost;
+      await this.userRepo.save(user);
+
+      await this.beanTxRepo.save(this.beanTxRepo.create({
+        userId, type: 'unlock_contact', amount: -actualCost,
+        refType: 'post', refId: postId,
+        remark: isMember ? '解锁联系方式(会员折扣)' : '解锁联系方式',
+      }));
+    }
+
+    await this.unlockRepo.save(this.unlockRepo.create({ userId, postId, beanCost: actualCost }));
 
     post.contactUnlockCount++;
     await this.postRepo.save(post);
 
-    return { unlocked: true, beanBalance: user.beanBalance };
+    return { unlocked: true, cost: actualCost, beanBalance: user.beanBalance, freeUsed };
   }
 }
