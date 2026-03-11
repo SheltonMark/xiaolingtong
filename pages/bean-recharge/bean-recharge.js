@@ -49,14 +49,15 @@ Page({
       content: '支付 ¥' + pkg.price + ' 获得 ' + pkg.beans + ' 灵豆',
       success: (res) => {
         if (res.confirm) {
-          post('/beans/recharge', { amount: pkg.beans, price: Number(pkg.price) }).then((data) => {
-            if (data.prepay_id) {
+          post('/beans/recharge', { amount: pkg.beans, price: Number(pkg.price) }).then((res) => {
+            const payData = res.data || res
+            if (payData.prepay_id) {
               wx.requestPayment({
-                timeStamp: data.timeStamp,
-                nonceStr: data.nonceStr,
-                package: data.package,
-                signType: data.signType || 'RSA',
-                paySign: data.paySign,
+                timeStamp: payData.timeStamp,
+                nonceStr: payData.nonceStr,
+                package: payData.package,
+                signType: payData.signType || 'RSA',
+                paySign: payData.paySign,
                 success: () => {
                   wx.showToast({ title: '充值成功', icon: 'success' })
                   // 支付成功后轮询获取余额，等待后端支付回调处理完成

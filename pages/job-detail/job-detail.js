@@ -89,9 +89,15 @@ Page({
   },
   onShareAppMessage() {
     const job = this.data.job || {}
+    const myId = getApp().globalData.userInfo && getApp().globalData.userInfo.id
+    const isOwner = myId && String(job.userId || job.enterpriseId) === String(myId)
+    var title = job.title || '招工信息'
+    if (!isOwner) {
+      title = '朋友在招' + title + '｜能去吗？'
+    }
     return {
-      title: (job.title || '招工信息') + ' - 小灵通',
-      path: '/pages/job-detail/job-detail?id=' + (job.id || '')
+      title: title,
+      path: getApp().getSharePath('/pages/job-detail/job-detail?id=' + (job.id || ''))
     }
   }
 })

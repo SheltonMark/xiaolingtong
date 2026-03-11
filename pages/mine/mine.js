@@ -20,7 +20,8 @@ Page({
       { icon: '\ue624', label: '灵豆充值', bg: '#FFF7ED', iconColor: '#F97316', url: '/pages/bean-recharge/bean-recharge' },
       { icon: '\ue786', label: '企业认证', bg: '#ECFDF5', iconColor: '#10B981', url: '/pages/cert-enterprise/cert-enterprise' },
       { icon: '\ue619', label: '我要招工', bg: '#FFF1F2', iconColor: '#F43F5E', url: '/pages/post-job/post-job' },
-      { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' }
+      { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' },
+      { icon: '\ue661', label: '我的邀请', bg: '#F0F9FF', iconColor: '#0EA5E9', url: '/pages/my-invites/my-invites' }
     ],
     myPosts: [],
     // 临工端
@@ -113,17 +114,17 @@ Page({
       const list = res.data.list || res.data || []
       this.setData({ favorites: list.slice(0, 3) })
     }).catch(() => {})
+    // 加载钱包余额（企业端和临工端都需要）
+    get('/wallet').then(res => {
+      const d = res.data || {}
+      this.setData({ walletBalance: (d.balance || 0).toFixed(2) })
+    }).catch(() => {})
     // 临工端加载接单记录
     if (this.data.userRole === 'worker') {
       get('/applications').then(res => {
         const rawList = res.data.list || res.data || []
         const list = rawList.map(item => this.normalizeApplication(item)).slice(0, 3)
         this.setData({ myApplications: list })
-      }).catch(() => {})
-      // 加载钱包余额
-      get('/wallet').then(res => {
-        const d = res.data || {}
-        this.setData({ walletBalance: (d.balance || 0).toFixed(2) })
       }).catch(() => {})
     }
   },

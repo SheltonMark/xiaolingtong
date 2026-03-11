@@ -71,13 +71,12 @@
   color: #E2E8F0;
   font-size: 20rpx;
 }
-.chat-body { 
-  flex: 1; 
+.chat-body {
+  flex: 1;
   padding: 24rpx;
-  padding-bottom: calc(160rpx + env(safe-area-inset-bottom));
-  overflow-y: auto; 
+  overflow-y: auto;
   overflow-x: hidden;
-  box-sizing: border-box; 
+  box-sizing: border-box;
 }
 .time-mark { text-align: center; margin-bottom: 24rpx; }
 .time-mark text { font-size: 20rpx; color: #94A3B8; }

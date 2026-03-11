@@ -55,9 +55,9 @@ Page({
     if (id) {
       return {
         title: (company || '曝光信息') + ' - 小灵通曝光榜',
-        path: '/pages/exposure-detail/exposure-detail?id=' + id
+        path: getApp().getSharePath('/pages/exposure-detail/exposure-detail?id=' + id)
       }
     }
-    return { title: '小灵通曝光榜', path: '/pages/exposure-board/exposure-board' }
+    return { title: '小灵通曝光榜', path: getApp().getSharePath('/pages/exposure-board/exposure-board') }
   }
 })

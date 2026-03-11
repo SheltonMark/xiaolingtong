@@ -14,6 +14,8 @@ import { SettlementItem } from '../../entities/settlement-item.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { Job } from '../../entities/job.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
+import { Notification } from '../../entities/notification.entity';
 
 const WxPay = require('wechatpay-node-v3');
 
@@ -37,6 +39,8 @@ export class PaymentService {
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
     @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
+    @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
+    @InjectRepository(Notification) private notiRepo: Repository<Notification>,
   ) {
     this.appid = config.get('WX_APPID', '');
     this.mchid = config.get('WX_MCH_ID', '');
@@ -86,15 +90,31 @@ export class PaymentService {
     openid: string;
     notifyUrl: string;
   }) {
-    const result = await this.pay.transactions_jsapi({
-      description: params.description,
-      out_trade_no: params.outTradeNo,
-      notify_url: params.notifyUrl,
-      amount: { total: params.totalFee, currency: 'CNY' },
-      payer: { openid: params.openid },
-    });
-    this.logger.log(`JSAPI下单: ${params.outTradeNo}, prepay_id: ${result?.prepay_id}`);
-    return result;
+    this.logger.log(`JSAPI下单请求: outTradeNo=${params.outTradeNo}, totalFee=${params.totalFee}, openid=${params.openid}, notifyUrl=${params.notifyUrl}`);
+    try {
+      const result = await this.pay.transactions_jsapi({
+        description: params.description,
+        out_trade_no: params.outTradeNo,
+        notify_url: params.notifyUrl,
+        amount: { total: params.totalFee, currency: 'CNY' },
+        payer: { openid: params.openid },
+      });
+      this.logger.log(`JSAPI下单响应: ${JSON.stringify(result)}`);
+      // wechatpay-node-v3 返回 { status, data: { appId, timeStamp, nonceStr, package, signType, paySign } }
+      // 提取 data 层返回扁平结构，前端可直接用于 wx.requestPayment
+      if (result?.status === 200 && result.data) {
+        const payParams = result.data;
+        // 从 package 字段提取 prepay_id 供前端判断下单是否成功
+        const match = payParams.package?.match(/prepay_id=(.+)/);
+        return { ...payParams, prepay_id: match ? match[1] : payParams.package };
+      }
+      // 非 200 时返回错误信息
+      this.logger.error(`JSAPI下单失败: ${JSON.stringify(result)}`);
+      throw new Error(result?.error || '微信支付下单失败');
+    } catch (e) {
+      this.logger.error(`JSAPI下单异常: ${e.message}`, e.response?.data ? JSON.stringify(e.response.data) : e.stack);
+      throw e;
+    }
   }
 
   /** 解密回调通知 */
@@ -265,8 +285,50 @@ export class PaymentService {
       await this.beanOrderRepo.save(order);
 
       this.logger.log(`灵豆充值成功: ${outTradeNo}, 用户: ${user.id}, 灵豆: ${order.beanAmount}`);
+
+      // 充值返佣
+      await this.processCommission(user, order.totalFee, order.id);
     } catch (e) {
       this.logger.error(`灵豆充值异常: ${outTradeNo}, 错误: ${e.message}`, e.stack);
+    }
+  }
+
+  /** 充值返佣：邀请人获得充值金额的一定比例 */
+  private async processCommission(user: User, totalFeeFen: number, orderId: number) {
+    try {
+      if (!user.invitedBy) return;
+      const inviter = await this.userRepo.findOneBy({ id: user.invitedBy });
+      if (!inviter || inviter.role !== 'enterprise') return;
+
+      const config = await this.sysConfigRepo.findOne({ where: { key: 'commission_rate' } });
+      const rate = config ? parseFloat(config.value) || 0.10 : 0.10;
+      const amountYuan = totalFeeFen / 100;
+      const commission = Math.round(amountYuan * rate * 100) / 100;
+      if (commission <= 0) return;
+
+      let wallet = await this.walletRepo.findOne({ where: { userId: inviter.id } });
+      if (!wallet) {
+        wallet = await this.walletRepo.save(this.walletRepo.create({ userId: inviter.id }));
+      }
+      wallet.balance = +wallet.balance + commission;
+      wallet.totalIncome = +wallet.totalIncome + commission;
+      await this.walletRepo.save(wallet);
+
+      await this.walletTxRepo.save(this.walletTxRepo.create({
+        userId: inviter.id, type: 'commission', amount: commission,
+        refType: 'bean_recharge', refId: orderId,
+        status: 'success', remark: '邀请返佣',
+      }));
+
+      await this.notiRepo.save(this.notiRepo.create({
+        userId: inviter.id, type: 'invite' as any,
+        title: '返佣到账',
+        content: `您邀请的用户充值了${amountYuan}元，您获得${commission}元返佣`,
+      }));
+
+      this.logger.log(`返佣成功: 邀请人${inviter.id}, 金额${commission}元, 订单${orderId}`);
+    } catch (e) {
+      this.logger.error(`返佣异常: ${e.message}`, e.stack);
     }
   }
 

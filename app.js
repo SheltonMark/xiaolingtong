@@ -7,10 +7,17 @@ App({
     isLoggedIn: false,
     avatarUrl: '',
     isMember: false,
-    beanBalance: 0
+    beanBalance: 0,
+    inviteCode: '',
+    pendingInviteCode: ''
   },
 
-  onLaunch() {
+  onLaunch(options) {
+    // 捕获分享链接中的邀请码
+    if (options && options.query && options.query.inviteCode) {
+      this.globalData.pendingInviteCode = options.query.inviteCode
+    }
+
     const userRole = wx.getStorageSync('userRole')
     const token = wx.getStorageSync('token')
     const avatarUrl = wx.getStorageSync('avatarUrl')
@@ -30,8 +37,16 @@ App({
       this.globalData.avatarUrl = user.avatarUrl || ''
       this.globalData.isMember = user.isMember || false
       this.globalData.beanBalance = user.beanBalance || 0
+      this.globalData.inviteCode = user.inviteCode || ''
       if (user.role) wx.setStorageSync('userRole', user.role)
       if (user.avatarUrl) wx.setStorageSync('avatarUrl', user.avatarUrl)
     }).catch(() => {})
+  },
+
+  getSharePath(basePath) {
+    const code = this.globalData.inviteCode
+    if (!code) return basePath
+    const sep = basePath.includes('?') ? '&' : '?'
+    return basePath + sep + 'inviteCode=' + code
   }
 })

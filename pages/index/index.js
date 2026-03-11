@@ -205,6 +205,16 @@ Page({
       : '/pages/post-detail/post-detail?id=' + item.id
 
     var shareTitle = item.title || (item.content ? String(item.content).slice(0, 28) : '') || '供需信息'
+    // 根据转发者身份切换话术
+    var myId = getApp().globalData.userInfo && getApp().globalData.userInfo.id
+    if (myId && String(item.userId) !== String(myId)) {
+      if (isJob) {
+        shareTitle = '朋友在招' + shareTitle + '｜能去吗？'
+      } else {
+        shareTitle = '有人在找' + shareTitle + '｜你有货吗？'
+      }
+    }
+    path = getApp().getSharePath(path)
     var payload = { title: shareTitle, path }
     if (item.images && item.images.length) payload.imageUrl = item.images[0]
     return payload
@@ -361,7 +371,8 @@ Page({
       return
     }
 
-    post('/conversations/with-user/' + targetUserId).then(res => {
+    const postId = Number(item && item.id) || 0
+    post('/conversations/with-user/' + targetUserId, { postId }).then(res => {
       const conversationId = res.data && res.data.id
       if (!conversationId) {
         wx.showToast({ title: '创建会话失败', icon: 'none' })
@@ -388,7 +399,7 @@ Page({
     const payload = this._buildSharePayloadById(id, type)
     return payload && payload.path ? payload : (this._lastSharePayload || {
       title: '小灵通供需平台',
-      path: '/pages/index/index'
+      path: getApp().getSharePath('/pages/index/index')
     })
   },
 

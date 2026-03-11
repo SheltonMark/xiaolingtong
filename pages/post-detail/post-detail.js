@@ -233,7 +233,8 @@ Page({
       wx.showToast({ title: '发布者信息缺失', icon: 'none' })
       return
     }
-    post('/conversations/with-user/' + targetUserId).then(res => {
+    const postId = Number(detail.id) || 0
+    post('/conversations/with-user/' + targetUserId, { postId }).then(res => {
       const conversationId = res.data && res.data.id
       if (!conversationId) {
         wx.showToast({ title: '会话创建失败', icon: 'none' })

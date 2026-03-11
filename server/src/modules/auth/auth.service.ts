@@ -5,8 +5,11 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
+import { InviteService } from '../invite/invite.service';
+import { NotificationService } from '../notification/notification.service';
 import axios from 'axios';
 
 @Injectable()
@@ -14,18 +17,20 @@ export class AuthService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
+    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     private jwt: JwtService,
     private config: ConfigService,
+    private inviteService: InviteService,
+    private notificationService: NotificationService,
   ) {}
 
-  async wxLogin(code: string) {
+  async wxLogin(code: string, inviteCode?: string) {
     const appid = this.config.get('WX_APPID');
     const secret = this.config.get('WX_SECRET');
 
     let openid: string;
 
     if (!appid || !secret) {
-      // 开发模式：用 code 当 openid
       openid = `dev_${code}`;
     } else {
       const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
@@ -35,11 +40,25 @@ export class AuthService {
     }
 
     let user = await this.userRepo.findOne({ where: { openid } });
+    let isNewUser = false;
     if (!user) {
+      isNewUser = true;
       user = this.userRepo.create({ openid });
       user = await this.userRepo.save(user);
-      // 创建钱包
       await this.walletRepo.save(this.walletRepo.create({ userId: user.id }));
+
+      // 生成邀请码
+      const code = await this.inviteService.ensureInviteCode(user.id);
+      user.inviteCode = code;
+
+      // 绑定邀请关系
+      if (inviteCode) {
+        const inviter = await this.userRepo.findOne({ where: { inviteCode } });
+        if (inviter && inviter.id !== user.id) {
+          await this.inviteService.recordInvite(inviter.id, user.id, inviteCode);
+          user.invitedBy = inviter.id;
+        }
+      }
     }
 
     const token = this.jwt.sign({ sub: user.id, role: user.role });
@@ -58,10 +77,33 @@ export class AuthService {
   }
 
   async chooseRole(userId: number, role: string) {
-    await this.userRepo.update(userId, { role });
     const user = await this.userRepo.findOneBy({ id: userId });
-    const token = this.jwt.sign({ sub: user!.id, role: user!.role });
-    return { token, role: user!.role };
+    if (!user) throw new BadRequestException('用户不存在');
+
+    const isFirstRole = !user.role;
+    await this.userRepo.update(userId, { role });
+
+    // 首次选角色：发放新人灵豆
+    if (isFirstRole) {
+      await this.userRepo.update(userId, { beanBalance: () => 'beanBalance + 3' });
+      await this.beanTxRepo.save(this.beanTxRepo.create({
+        userId, type: 'invite_reward', amount: 3,
+        refType: 'welcome', remark: '新用户注册奖励',
+      }));
+
+      // 通知邀请人
+      if (user.invitedBy) {
+        await this.notificationService.create(user.invitedBy, {
+          type: 'invite' as any,
+          title: '邀请成功',
+          content: `您邀请的用户已注册，角色：${role === 'enterprise' ? '企业' : '临工'}`,
+        });
+      }
+    }
+
+    const updated = await this.userRepo.findOneBy({ id: userId });
+    const token = this.jwt.sign({ sub: updated!.id, role: updated!.role });
+    return { token, role: updated!.role };
   }
 
   async getProfile(userId: number) {
@@ -104,6 +146,7 @@ export class AuthService {
       certStatus,
       certName,
       isVerified: certStatus === 'approved',
+      inviteCode: user.inviteCode,
     };
   }
 }
