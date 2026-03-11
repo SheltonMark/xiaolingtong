@@ -6,15 +6,15 @@
     <view class="mb-card-bg1"></view>
     <view class="mb-card-bg2"></view>
     <view class="mb-user">
-      <view class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#3B82F6;">{{userInfo.avatarText}}</view>
+      <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="mb-user-avatar" mode="aspectFill" />
+      <view wx:else class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#3B82F6;">{{avatarText}}</view>
       <view class="mb-user-info">
-        <text class="mb-user-name">鑫达贸易公司</text>
-        <text class="mb-user-status">当前：未开通会员</text>
+        <text class="mb-user-name">{{nickname || '用户'}}</text>
       </view>
     </view>
     <view class="mb-vip-row">
       <text class="mb-star">⭐</text>
-      <text class="mb-vip-text">小灵通VIP会员</text>
+      <text class="mb-vip-text">{{isMember ? '小灵通VIP会员' : '未开通会员'}}</text>
     </view>
   </view>
 
@@ -27,11 +27,11 @@
           <text class="iconfont icon-chakan"></text>
         </view>
         <text class="benefit-name">每日免费查看</text>
-        <text class="benefit-desc">每天5次免费解锁</text>
+        <text class="benefit-desc">每天{{dailyFreeViews}}次免费解锁</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-rose">
-          <text class="iconfont icon-lingdou"></text>
+          <text class="iconfont icon-douzi"></text>
         </view>
         <text class="benefit-name">查看5折</text>
         <text class="benefit-desc">超出后灵豆半价</text>
@@ -52,7 +52,7 @@
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-sky">
-          <text class="iconfont icon-guanggao"></text>
+          <text class="iconfont icon-gonggao"></text>
         </view>
         <text class="benefit-name">广告9折</text>
         <text class="benefit-desc">投放费用享折扣</text>

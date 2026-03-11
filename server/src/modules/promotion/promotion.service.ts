@@ -115,6 +115,7 @@ export class PromotionService {
   async getAdPricing() {
     const bannerPrice = parseFloat(await this.getConfig('banner_ad_price', '100'));
     const feedPrice = parseFloat(await this.getConfig('feed_ad_price', '50'));
-    return { bannerPrice, feedPrice };
+    const dailyFreeViews = parseInt(await this.getConfig('member_daily_free_views', '5'), 10);
+    return { bannerPrice, feedPrice, dailyFreeViews };
   }
 }
