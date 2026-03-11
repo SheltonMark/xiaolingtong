@@ -17,6 +17,7 @@
           wx:if="{{currentTab === 0 || item.typeKey === tabs[currentTab].key}}">
       <view class="post-top">
         <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
+        <text class="promote-tag" wx:if="{{item.isPromoted}}">置顶中</text>
         <view class="status-tag status-bg-{{item.statusColor}}">
           <text>{{item.statusText}}</text>
         </view>

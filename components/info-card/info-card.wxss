@@ -5,6 +5,14 @@
   border-radius: 24rpx;
   overflow: hidden;
   margin-bottom: 32rpx;
+  position: relative;
+}
+.promoted-badge {
+  position: absolute; top: 0; left: 0; z-index: 2;
+  display: flex; align-items: center; gap: 4rpx;
+  background-color: #F97316; color: #fff;
+  font-size: 20rpx; padding: 6rpx 16rpx;
+  border-radius: 24rpx 0 16rpx 0;
 }
 
 /* 头部 */

@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual } from 'typeorm';
+import { Repository, MoreThanOrEqual, In } from 'typeorm';
 import { Post } from '../../entities/post.entity';
 import { ContactUnlock } from '../../entities/contact-unlock.entity';
 import { User } from '../../entities/user.entity';
@@ -9,6 +9,7 @@ import { Keyword } from '../../entities/keyword.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { Promotion } from '../../entities/promotion.entity';
 
 @Injectable()
 export class PostService {
@@ -21,6 +22,7 @@ export class PostService {
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
+    @InjectRepository(Promotion) private promoRepo: Repository<Promotion>,
   ) {}
 
   private async getConfig(key: string, defaultValue: string): Promise<string> {
@@ -128,6 +130,20 @@ export class PostService {
     };
   }
 
+  /** 获取当前有效置顶的 postId 集合 */
+  private async getPromotedPostIds(postIds: number[]): Promise<Set<number>> {
+    if (!postIds.length) return new Set();
+    const now = new Date();
+    const promos = await this.promoRepo.createQueryBuilder('pr')
+      .select('pr.postId')
+      .where('pr.postId IN (:...postIds)', { postIds })
+      .andWhere('pr.boostType = :type', { type: 'top' })
+      .andWhere('pr.startAt <= :now', { now })
+      .andWhere('pr.endAt >= :now', { now })
+      .getMany();
+    return new Set(promos.map(p => Number(p.postId)));
+  }
+
   async list(query: any) {
     const { type, industry, keyword, page = 1, pageSize = 20 } = query;
     const qb = this.postRepo.createQueryBuilder('p')
@@ -144,7 +160,16 @@ export class PostService {
 
     const [list, total] = await qb.getManyAndCount();
     const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
-    const normalizedList = (list || []).map(item => this.buildCompanyInfo(item, certMap));
+    const promotedIds = await this.getPromotedPostIds((list || []).map(item => Number(item.id)));
+
+    const normalizedList = (list || []).map(item => ({
+      ...this.buildCompanyInfo(item, certMap),
+      isPromoted: promotedIds.has(Number(item.id)),
+    }));
+
+    // 置顶帖排前面
+    normalizedList.sort((a, b) => (b.isPromoted ? 1 : 0) - (a.isPromoted ? 1 : 0));
+
     return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }
 
@@ -185,7 +210,11 @@ export class PostService {
 
     const [list, total] = await qb.getManyAndCount();
     const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
-    const normalizedList = (list || []).map(item => this.buildCompanyInfo(item, certMap));
+    const promotedIds = await this.getPromotedPostIds((list || []).map(item => Number(item.id)));
+    const normalizedList = (list || []).map(item => ({
+      ...this.buildCompanyInfo(item, certMap),
+      isPromoted: promotedIds.has(Number(item.id)),
+    }));
     return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }
 

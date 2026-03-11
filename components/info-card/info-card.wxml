@@ -1,4 +1,9 @@
 <view class="info-card" bindtap="onTapCard">
+  <!-- 置顶标签 -->
+  <view class="promoted-badge" wx:if="{{item.isPromoted}}">
+    <text class="iconfont icon-zhiding"></text>
+    <text>置顶</text>
+  </view>
   <!-- 头部：头像 + 公司名 + 投诉/分享 -->
   <view class="card-header">
     <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" class="avatar-img" />
