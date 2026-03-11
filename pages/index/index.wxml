@@ -71,12 +71,12 @@
               indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
         <swiper-item wx:for="{{banners}}" wx:key="id">
           <!-- 广告图片模式 -->
-          <view class="banner-slide" wx:if="{{item.isAd}}" style="position:relative;" bindtap="onAdBannerTap" data-link="{{item.link}}" data-link-type="{{item.linkType}}">
-            <image src="{{item.imageUrl}}" class="banner-img" mode="aspectFill" />
+          <view class="banner-slide banner-slide-ad" wx:if="{{item.isAd}}" style="position:relative;" bindtap="onAdBannerTap" data-link="{{item.link}}" data-link-type="{{item.linkType}}">
+            <image src="{{item.imageUrl}}" class="banner-img banner-img-ad" mode="aspectFill" />
             <text class="ad-tag">广告</text>
           </view>
           <!-- 默认渐变模式 -->
-          <view class="banner-slide" wx:else style="background: {{item.bg}};">
+          <view class="banner-slide banner-slide-default" wx:else style="background: {{item.bg}};">
             <view class="banner-content">
               <text class="banner-title">{{item.title}}</text>
               <text class="banner-sub">{{item.sub}}</text>
@@ -270,7 +270,7 @@
       <swiper class="banner-swiper" autoplay circular indicator-dots
               indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
         <swiper-item wx:for="{{banners}}" wx:key="id">
-          <view class="banner-slide" style="background: {{item.bg}};">
+          <view class="banner-slide banner-slide-default" style="background: {{item.bg}};">
             <view class="banner-content">
               <text class="banner-title">{{item.title}}</text>
               <text class="banner-sub">{{item.sub}}</text>

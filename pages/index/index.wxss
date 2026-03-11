@@ -169,8 +169,15 @@
   height: 100%;
   display: flex;
   align-items: center;
-  padding: 0 48rpx;
   box-sizing: border-box;
+}
+.banner-slide-default {
+  padding: 0 48rpx;
+}
+.banner-slide-ad {
+  padding: 0;
+  border-radius: 24rpx;
+  overflow: hidden;
 }
 .banner-content {
   display: flex;
@@ -194,6 +201,9 @@
   width: 100%;
   height: 280rpx;
   display: block;
+}
+.banner-img-ad {
+  border-radius: 24rpx;
 }
 .ad-tag {
   position: absolute;
