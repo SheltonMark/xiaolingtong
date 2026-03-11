@@ -14,13 +14,21 @@ Page({
     totalPrice: 0,
     adImage: '',
     myPosts: [],
+    myPostNames: [],
+    selectedPostIndex: 0,
     selectedPost: null,
-    externalLink: ''
+    externalLink: '',
+    isMember: false,
+    actualPrice: 0
   },
 
   onLoad() {
     this._loadPricing()
     this._loadMyPosts()
+    const app = getApp()
+    const user = app.globalData.userInfo || {}
+    const isMember = !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date())
+    this.setData({ isMember })
   },
 
   _loadPricing() {
@@ -33,13 +41,17 @@ Page({
         { name: '信息流推荐位', key: 'feed', price: feedPrice }
       ]
       const unitPrice = slots[this.data.selectedSlot].price
-      this.setData({ slots, unitPrice, totalPrice: unitPrice * this.data.days })
+      const totalPrice = unitPrice * this.data.days
+      const actualPrice = this.data.isMember ? Math.round(totalPrice * 0.9 * 100) / 100 : totalPrice
+      this.setData({ slots, unitPrice, totalPrice, actualPrice })
     }).catch(() => {
       const slots = [
         { name: '首页Banner广告', key: 'banner', price: 100 },
         { name: '信息流推荐位', key: 'feed', price: 50 }
       ]
-      this.setData({ slots, unitPrice: 100, totalPrice: 100 * this.data.days })
+      const totalPrice = 100 * this.data.days
+      const actualPrice = this.data.isMember ? Math.round(totalPrice * 0.9 * 100) / 100 : totalPrice
+      this.setData({ slots, unitPrice: 100, totalPrice, actualPrice })
     })
   },
 
@@ -47,31 +59,28 @@ Page({
     get('/posts/mine', { page: 1, pageSize: 50 }).then(res => {
       const d = res.data || res
       const list = d.list || d.items || d || []
-      this.setData({ myPosts: Array.isArray(list) ? list : [] })
+      const myPosts = Array.isArray(list) ? list : []
+      const myPostNames = myPosts.map(p => p.title || (p.content || '').substring(0, 20) || '信息#' + p.id)
+      this.setData({ myPosts, myPostNames })
     }).catch(() => {})
   },
 
   onSlotChange(e) {
     const idx = Number(e.currentTarget.dataset.index)
     const price = this.data.slots[idx].price
-    this.setData({ selectedSlot: idx, unitPrice: price, totalPrice: price * this.data.days })
+    const totalPrice = price * this.data.days
+    const actualPrice = this.data.isMember ? Math.round(totalPrice * 0.9 * 100) / 100 : totalPrice
+    this.setData({ selectedSlot: idx, unitPrice: price, totalPrice, actualPrice })
   },
 
   onLinkChange(e) {
     this.setData({ linkType: Number(e.currentTarget.dataset.index), selectedPost: null, externalLink: '' })
   },
 
-  onSelectPost() {
-    const posts = this.data.myPosts
-    if (!posts.length) {
-      wx.showToast({ title: '暂无已发布的信息', icon: 'none' })
-      return
-    }
-    const names = posts.map(p => p.title || (p.content || '').substring(0, 20) || '信息#' + p.id)
-    wx.showActionSheet({
-      itemList: names,
-      success: (res) => { this.setData({ selectedPost: posts[res.tapIndex] }) }
-    })
+  onSelectPost(e) {
+    const idx = e.detail.value
+    const post = this.data.myPosts[idx]
+    this.setData({ selectedPostIndex: idx, selectedPost: post || null })
   },
 
   onExternalLinkInput(e) {
@@ -91,7 +100,9 @@ Page({
     if (startDate && endDate) {
       const d = Math.ceil((new Date(endDate) - new Date(startDate)) / 86400000) + 1
       const days = d > 0 ? d : 0
-      this.setData({ days, totalPrice: days * this.data.unitPrice })
+      const totalPrice = days * this.data.unitPrice
+      const actualPrice = this.data.isMember ? Math.round(totalPrice * 0.9 * 100) / 100 : totalPrice
+      this.setData({ days, totalPrice, actualPrice })
     }
   },
 

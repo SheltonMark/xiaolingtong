@@ -70,7 +70,16 @@ Page({
     filterSalaryType: '',
     filterDistance: '',
     filterSalaryRange: '',
-    sortBy: 'default' // default | salary_asc | salary_desc | distance
+    // picker 选项
+    jobTypeOptions: ['全部'],
+    salaryTypeOptions: ['全部', '按小时', '按件'],
+    distanceOptions: ['全部', '1km内', '3km内', '5km内', '10km内'],
+    salaryOptions: ['全部', '20元以下', '20-30元', '30-50元', '50元以上'],
+    jobTypeIndex: 0,
+    salaryTypeIndex: 0,
+    distanceIndex: 0,
+    salaryIndex: 0,
+    sortBy: 'default'
   },
 
   onLoad() {
@@ -126,7 +135,8 @@ Page({
   loadJobTypes() {
     get('/config/job-types').then(res => {
       const jobTypes = res.data.list || []
-      this.setData({ jobTypes })
+      const jobTypeOptions = ['全部', ...jobTypes.map(jt => jt.name)]
+      this.setData({ jobTypes, jobTypeOptions })
     }).catch(() => {})
   },
 
@@ -486,40 +496,28 @@ Page({
     this.loadData()
   },
 
-  onFilterTap(e) {
-    const type = e.currentTarget.dataset.type
-    const actions = []
-
-    if (type === 'jobType') {
-      // 从后台配置获取工种列表
-      if (this.data.jobTypes.length === 0) {
-        wx.showToast({ title: '暂无可选工种', icon: 'none' })
-        return
-      }
-      actions.push('全部', ...this.data.jobTypes.map(jt => jt.name))
-    } else if (type === 'salaryType') {
-      actions.push('全部', '按小时', '按件')
-    } else if (type === 'distance') {
-      actions.push('全部', '1km内', '3km内', '5km内', '10km内')
-    } else if (type === 'salary') {
-      actions.push('全部', '20元以下', '20-30元', '30-50元', '50元以上')
-    }
-
-    wx.showActionSheet({
-      itemList: actions,
-      success: (res) => {
-        const selected = actions[res.tapIndex]
-        if (type === 'jobType') {
-          this.setData({ filterJobType: selected === '全部' ? '' : selected })
-        } else if (type === 'salaryType') {
-          this.setData({ filterSalaryType: selected === '全部' ? '' : selected })
-        } else if (type === 'distance') {
-          this.setData({ filterDistance: selected === '全部' ? '' : selected })
-        } else if (type === 'salary') {
-          this.setData({ filterSalaryRange: selected === '全部' ? '' : selected })
-        }
-        this.loadWorkerJobs()
-      }
-    })
+  onJobTypeChange(e) {
+    const idx = e.detail.value
+    const val = this.data.jobTypeOptions[idx]
+    this.setData({ jobTypeIndex: idx, filterJobType: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
+  },
+  onSalaryTypeChange(e) {
+    const idx = e.detail.value
+    const val = this.data.salaryTypeOptions[idx]
+    this.setData({ salaryTypeIndex: idx, filterSalaryType: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
+  },
+  onDistanceChange(e) {
+    const idx = e.detail.value
+    const val = this.data.distanceOptions[idx]
+    this.setData({ distanceIndex: idx, filterDistance: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
+  },
+  onSalaryChange(e) {
+    const idx = e.detail.value
+    const val = this.data.salaryOptions[idx]
+    this.setData({ salaryIndex: idx, filterSalaryRange: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
   }
 })

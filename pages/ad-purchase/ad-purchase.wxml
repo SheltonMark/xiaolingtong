@@ -84,10 +84,12 @@
         </view>
         <text class="link-text">跳转到我的发布信息</text>
       </view>
-      <view class="link-picker" wx:if="{{linkType === 0}}" bindtap="onSelectPost">
-        <text class="link-picker-text {{selectedPost ? 'link-picker-selected' : ''}}">{{selectedPost ? (selectedPost.title || selectedPost.content) : '点击选择已发布的信息'}}</text>
-        <text class="link-picker-arrow">▼</text>
-      </view>
+      <picker mode="selector" range="{{myPostNames}}" value="{{selectedPostIndex}}" bindchange="onSelectPost" wx:if="{{linkType === 0}}">
+        <view class="link-picker">
+          <text class="link-picker-text {{selectedPost ? 'link-picker-selected' : ''}}">{{selectedPost ? myPostNames[selectedPostIndex] : '请选择已发布的信息'}}</text>
+          <text class="link-picker-arrow">▼</text>
+        </view>
+      </picker>
       <view class="link-option" data-index="{{1}}" bindtap="onLinkChange">
         <view class="ad-radio {{linkType === 1 ? 'ad-radio-active' : ''}}">
           <view class="ad-radio-dot" wx:if="{{linkType === 1}}"></view>
@@ -117,16 +119,23 @@
         <text class="fee-label">单价</text>
         <text class="fee-value">¥{{unitPrice}}/天</text>
       </view>
+      <view class="fee-row" wx:if="{{isMember}}">
+        <text class="fee-label">会员折扣</text>
+        <text class="fee-value fee-discount">9折</text>
+      </view>
       <view class="fee-divider"></view>
       <view class="fee-row fee-total">
         <text class="fee-label">合计</text>
-        <text class="fee-value text-cta">¥{{totalPrice}}</text>
+        <view class="fee-total-right">
+          <text class="fee-original" wx:if="{{isMember}}">¥{{totalPrice}}</text>
+          <text class="fee-value text-cta">¥{{isMember ? actualPrice : totalPrice}}</text>
+        </view>
       </view>
     </view>
   </view>
 
   <!-- 提交 -->
   <view class="ad-bottom-area">
-    <button class="btn btn-primary" bindtap="onPay">提交并支付 · ¥{{totalPrice}}</button>
+    <button class="btn btn-primary" bindtap="onPay">提交并支付 · ¥{{isMember ? actualPrice : totalPrice}}</button>
   </view>
 </view>

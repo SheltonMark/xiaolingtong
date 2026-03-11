@@ -34,22 +34,30 @@
     </view>
     <!-- 临工端筛选 -->
     <view class="filter-bar" wx:if="{{userRole === 'worker'}}">
-      <view class="filter-item" data-type="jobType" bindtap="onFilterTap">
-        <text class="filter-text">{{filterJobType || '工种'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
-      <view class="filter-item" data-type="salaryType" bindtap="onFilterTap">
-        <text class="filter-text">{{filterSalaryType || '计费方式'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
-      <view class="filter-item" data-type="distance" bindtap="onFilterTap">
-        <text class="filter-text">{{filterDistance || '距离'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
-      <view class="filter-item" data-type="salary" bindtap="onFilterTap">
-        <text class="filter-text">{{filterSalaryRange || '工价'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
+      <picker mode="selector" range="{{jobTypeOptions}}" value="{{jobTypeIndex}}" bindchange="onJobTypeChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterJobType || '工种'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{salaryTypeOptions}}" value="{{salaryTypeIndex}}" bindchange="onSalaryTypeChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterSalaryType || '计费方式'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{distanceOptions}}" value="{{distanceIndex}}" bindchange="onDistanceChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterDistance || '距离'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{salaryOptions}}" value="{{salaryIndex}}" bindchange="onSalaryChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterSalaryRange || '工价'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
     </view>
   </view>
 

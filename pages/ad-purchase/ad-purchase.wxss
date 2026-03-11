@@ -88,8 +88,11 @@
 .fee-label { font-size: 24rpx; color: #64748B; }
 .fee-value { font-size: 24rpx; color: #1E293B; }
 .fee-divider { height: 1rpx; background-color: #F1F5F9; margin: 8rpx 0; }
+.fee-discount { color: #F97316; font-weight: 500; }
 .fee-total .fee-label { font-weight: 600; color: #1E293B; }
 .fee-total .fee-value { font-size: 36rpx; font-weight: 700; }
+.fee-total-right { display: flex; align-items: baseline; gap: 12rpx; }
+.fee-original { font-size: 24rpx; color: #94A3B8; text-decoration: line-through; }
 
 /* 底部 */
 .ad-bottom-area { margin: 32rpx 32rpx 0; }
