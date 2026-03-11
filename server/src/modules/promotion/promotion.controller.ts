@@ -7,6 +7,11 @@ import { Public } from '../../common/decorators/public.decorator';
 export class PromotionController {
   constructor(private promoService: PromotionService) {}
 
+  @Get('promotions/pricing')
+  getTopPricing(@CurrentUser('sub') userId: number) {
+    return this.promoService.getTopPricing(userId);
+  }
+
   @Post('promotions')
   promote(@CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.promoService.promote(userId, dto);

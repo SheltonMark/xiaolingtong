@@ -4,15 +4,21 @@
   <!-- 推广信息预览 -->
   <view class="pm-section">
     <text class="pm-hint">推广信息</text>
-    <view class="pm-preview">
-      <image class="pm-preview-img" src="https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=100&h=100&fit=crop" mode="aspectFill" />
+    <view class="pm-preview" wx:if="{{postInfo}}">
+      <image class="pm-preview-img" wx:if="{{postInfo.image}}" src="{{postInfo.image}}" mode="aspectFill" />
+      <view class="pm-preview-img pm-preview-placeholder" wx:else>
+        <text class="iconfont icon-tupian" style="font-size:40rpx;color:#94A3B8;"></text>
+      </view>
       <view class="pm-preview-info">
-        <text class="pm-preview-title">保温杯3000个采购，304不锈钢材质</text>
+        <text class="pm-preview-title">{{postInfo.title}}</text>
         <view class="pm-preview-tags">
-          <text class="pm-tag-blue">采购需求</text>
-          <text class="pm-tag-amber">日用百货</text>
+          <text class="pm-tag-blue">{{postInfo.type}}</text>
+          <text class="pm-tag-amber" wx:if="{{postInfo.industry}}">{{postInfo.industry}}</text>
         </view>
       </view>
+    </view>
+    <view class="pm-preview" wx:else>
+      <text style="color:#94A3B8;font-size:24rpx;">加载中...</text>
     </view>
   </view>
 
@@ -22,8 +28,8 @@
     <text class="pm-effect-desc">置顶后您的信息将在列表顶部展示，带有醒目标识</text>
     <view class="pm-effect-box">
       <view class="pm-effect-row">
-        <text class="pm-top-badge">🔖 置顶</text>
-        <text class="pm-effect-text">保温杯3000个采购...</text>
+        <text class="pm-top-badge">置顶</text>
+        <text class="pm-effect-text">{{postInfo.title || '您的信息标题'}}</text>
       </view>
       <text class="pm-effect-hint">您的信息将展示在这里</text>
     </view>
@@ -33,6 +39,9 @@
   <view class="pm-section">
     <text class="section-title">选择置顶时长</text>
     <view class="pm-options">
+      <view class="pm-preview" wx:if="{{options.length === 0}}">
+        <text style="color:#94A3B8;font-size:24rpx;">暂无可用套餐</text>
+      </view>
       <view class="pm-option {{selectedIndex === index ? 'pm-option-active' : ''}}"
             wx:for="{{options}}" wx:key="id"
             data-index="{{index}}" bindtap="onSelect">
@@ -63,6 +72,6 @@
 
   <!-- 支付按钮 -->
   <view class="pm-bottom-area">
-    <button class="btn btn-primary" bindtap="onPay">立即支付 · {{options[selectedIndex].beans}}灵豆</button>
+    <button class="btn btn-primary" bindtap="onPay">立即支付 · {{options.length ? options[selectedIndex].beans : 0}}灵豆</button>
   </view>
 </view>
