@@ -26,22 +26,36 @@
         <view class="benefit-icon benefit-icon-amber">
           <text class="iconfont icon-chakan"></text>
         </view>
-        <text class="benefit-name">免费查看</text>
-        <text class="benefit-desc">联系方式不限次</text>
+        <text class="benefit-name">每日免费查看</text>
+        <text class="benefit-desc">每天5次免费解锁</text>
+      </view>
+      <view class="benefit-item">
+        <view class="benefit-icon benefit-icon-rose">
+          <text class="iconfont icon-lingdou"></text>
+        </view>
+        <text class="benefit-name">查看5折</text>
+        <text class="benefit-desc">超出后灵豆半价</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-blue">
           <text class="iconfont icon-xingxing"></text>
         </view>
-        <text class="benefit-name">置顶优先</text>
-        <text class="benefit-desc">发布信息优先展示</text>
+        <text class="benefit-name">置顶8折</text>
+        <text class="benefit-desc">推广费用享折扣</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-green">
           <text class="iconfont icon-anquan"></text>
         </view>
-        <text class="benefit-name">专属标识</text>
-        <text class="benefit-desc">VIP认证标识</text>
+        <text class="benefit-name">VIP标识</text>
+        <text class="benefit-desc">专属认证图标</text>
+      </view>
+      <view class="benefit-item">
+        <view class="benefit-icon benefit-icon-sky">
+          <text class="iconfont icon-guanggao"></text>
+        </view>
+        <text class="benefit-name">广告9折</text>
+        <text class="benefit-desc">投放费用享折扣</text>
       </view>
     </view>
   </view>

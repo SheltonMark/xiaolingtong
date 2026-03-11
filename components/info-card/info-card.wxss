@@ -19,9 +19,16 @@
   flex-shrink: 0;
 }
 .card-author { flex: 1; min-width: 0; }
+.author-name-row { display: flex; align-items: center; gap: 8rpx; }
 .author-name {
   font-size: 26rpx; font-weight: 600; color: #1E293B;
-  display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.vip-badge {
+  font-size: 18rpx; font-weight: 600; color: #fff;
+  background: linear-gradient(135deg, #FBBF24, #F97316);
+  padding: 2rpx 10rpx; border-radius: 6rpx;
+  flex-shrink: 0; line-height: 1.4;
 }
 .author-meta { font-size: 20rpx; color: #94A3B8; }
 .header-btns { display: flex; align-items: center; gap: 12rpx; flex-shrink: 0; }
