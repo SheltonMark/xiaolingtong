@@ -33,7 +33,7 @@
         </view>
         <view class="data-divider"></view>
         <view class="data-item" bindtap="onMembership">
-          <text class="data-value-sm text-warm">未开通</text>
+          <text class="data-value-sm text-warm">{{isMember ? '已开通' : '未开通'}}</text>
           <text class="data-label">会员中心</text>
         </view>
       </view>

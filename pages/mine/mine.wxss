@@ -111,9 +111,8 @@
   font-weight: 700;
 }
 .data-value-sm {
-  font-size: 24rpx;
-  font-weight: 600;
-  margin-top: 12rpx;
+  font-size: 28rpx;
+  font-weight: 700;
 }
 .data-label {
   font-size: 22rpx;

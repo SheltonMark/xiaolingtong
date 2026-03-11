@@ -21,14 +21,15 @@ Page({
         if (res.confirm) {
           post('/membership/subscribe', {
             planName: plan.name, price: price, durationDays: plan.days
-          }).then((data) => {
-            if (data.prepay_id) {
+          }).then((res) => {
+            const payData = res.data || res
+            if (payData.prepay_id) {
               wx.requestPayment({
-                timeStamp: data.timeStamp,
-                nonceStr: data.nonceStr,
-                package: data.package,
-                signType: data.signType || 'RSA',
-                paySign: data.paySign,
+                timeStamp: payData.timeStamp,
+                nonceStr: payData.nonceStr,
+                package: payData.package,
+                signType: payData.signType || 'RSA',
+                paySign: payData.paySign,
                 success() {
                   wx.showToast({ title: '开通成功', icon: 'success' })
                   getApp().globalData.isMember = true
