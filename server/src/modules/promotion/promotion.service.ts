@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository } from 'typeorm';
+import { Repository, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
 import { Promotion } from '../../entities/promotion.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { User } from '../../entities/user.entity';
@@ -68,5 +68,20 @@ export class PromotionService {
     });
 
     return { orderId: ad.id, ...result };
+  }
+
+  async getActiveAds(slot: string) {
+    const now = new Date();
+    const ads = await this.adRepo.find({
+      where: {
+        slot: slot as any,
+        status: 'active' as any,
+        startAt: LessThanOrEqual(now),
+        endAt: MoreThanOrEqual(now),
+      },
+      order: { createdAt: 'ASC' },
+      take: 10,
+    });
+    return { list: ads };
   }
 }

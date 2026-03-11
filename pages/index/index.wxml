@@ -57,12 +57,26 @@
 
   <!-- ===== 企业端内容 ===== -->
   <view wx:if="{{userRole === 'enterprise'}}">
-    <!-- 广告 Banner（后续从API获取） -->
-    <!-- <view class="banner-wrap">
-      <view class="banner-inner">
-        <image src="" class="banner-img" mode="aspectFill" />
-      </view>
-    </view> -->
+    <!-- 广告 Banner 轮播 -->
+    <view class="banner-wrap">
+      <swiper class="banner-swiper" autoplay circular indicator-dots
+              indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
+        <swiper-item wx:for="{{banners}}" wx:key="id">
+          <!-- 广告图片模式 -->
+          <view class="banner-slide" wx:if="{{item.isAd}}" style="position:relative;">
+            <image src="{{item.imageUrl}}" class="banner-img" mode="aspectFill" />
+            <text class="ad-tag">广告</text>
+          </view>
+          <!-- 默认渐变模式 -->
+          <view class="banner-slide" wx:else style="background: {{item.bg}};">
+            <view class="banner-content">
+              <text class="banner-title">{{item.title}}</text>
+              <text class="banner-sub">{{item.sub}}</text>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
 
     <!-- Tab 0: 采购需求 -->
     <view wx:if="{{currentTab === 0}}">
@@ -243,6 +257,20 @@
 
   <!-- ===== 临工端内容 ===== -->
   <view wx:if="{{userRole === 'worker'}}" class="worker-list-wrap">
+    <!-- 广告 Banner 轮播 -->
+    <view class="banner-wrap banner-wrap-worker">
+      <swiper class="banner-swiper" autoplay circular indicator-dots
+              indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
+        <swiper-item wx:for="{{banners}}" wx:key="id">
+          <view class="banner-slide" style="background: {{item.bg}};">
+            <view class="banner-content">
+              <text class="banner-title">{{item.title}}</text>
+              <text class="banner-sub">{{item.sub}}</text>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
     <view class="job-card" wx:for="{{jobList}}" wx:key="id"
           data-id="{{item.id}}" bindtap="onJobTap">
       <!-- 头部：公司+工资 -->

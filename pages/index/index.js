@@ -101,6 +101,7 @@ Page({
     this.setData({ userRole, currentCity })
     this.loadCities()
     this.loadJobTypes()
+    this.loadBannerAds()
     this.loadData()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
@@ -126,6 +127,19 @@ Page({
     get('/config/job-types').then(res => {
       const jobTypes = res.data.list || []
       this.setData({ jobTypes })
+    }).catch(() => {})
+  },
+
+  loadBannerAds() {
+    get('/ads/active', { slot: 'banner' }).then(res => {
+      const adList = (res.data && res.data.list) || []
+      if (adList.length > 0) {
+        const adBanners = adList.map(ad => ({
+          id: ad.id, imageUrl: ad.imageUrl, link: ad.link, isAd: true
+        }))
+        this.setData({ banners: adBanners })
+      }
+      // 无广告时保持默认 banners
     }).catch(() => {})
   },
 
