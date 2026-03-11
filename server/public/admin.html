@@ -577,9 +577,29 @@ async function loadConfigs(){
     other:'其他配置',
     general:'通用配置'
   };
+  var memberPlanKeys=['member_monthly_price','member_quarterly_price','member_yearly_price'];
+  var groupKeySortMap={
+    member: memberPlanKeys,
+    price: ['top_price_per_day','view_contact_price','banner_ad_price','feed_ad_price']
+  };
   function toDisplayGroup(cfg){
-    if((cfg.key||'').indexOf('member_')===0)return'member';
+    var k=(cfg&&cfg.key)||'';
+    if(memberPlanKeys.indexOf(k)!==-1)return'member';
     return cfg.group||'other';
+  }
+  function sortConfigList(groupKey,cfgList){
+    var keyOrder=groupKeySortMap[groupKey]||[];
+    return (cfgList||[]).slice().sort(function(a,b){
+      var ak=(a&&a.key)||'';var bk=(b&&b.key)||'';
+      var ai=keyOrder.indexOf(ak);var bi=keyOrder.indexOf(bk);
+      if(ai!==-1||bi!==-1){
+        if(ai===-1)return 1;
+        if(bi===-1)return -1;
+        return ai-bi;
+      }
+      var al=(a&&a.label)||ak;var bl=(b&&b.label)||bk;
+      return String(al).localeCompare(String(bl),'zh-CN');
+    });
   }
   function safeText(v){
     return String(v===undefined||v===null?'':v)
@@ -608,7 +628,7 @@ async function loadConfigs(){
   for(var gi=0;gi<groups.length;gi++){
     var gk=groups[gi];
     h+='<div class="config-group"><div class="config-group-title">'+(groupTitleMap[gk]||gk)+'</div><div class="config-group-grid">';
-    var cfgList=grouped[gk]||[];
+    var cfgList=sortConfigList(gk,grouped[gk]||[]);
     for(var j=0;j<cfgList.length;j++){
       var c=cfgList[j];
       h+='<div class="config-item"><label>'+(safeText(c.label||c.key))+'</label><input id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'"><button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';

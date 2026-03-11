@@ -541,7 +541,7 @@ export class AdminService {
       { key: 'member_quarterly_price', value: '238', label: '季度会员价格(元)', group: 'member' },
       { key: 'member_yearly_price', value: '799', label: '年会员价格(元)', group: 'member' },
       { key: 'view_contact_price', value: '5', label: '查看联系方式价格(灵豆)', group: 'price' },
-      { key: 'top_price_per_day', value: '10', label: '置顶价格(灵豆/天)', group: 'price' },
+      { key: 'top_price_per_day', value: '100', label: '置顶推广价格(灵豆/天)', group: 'price' },
       { key: 'banner_ad_price', value: '100', label: 'Banner广告价格(元/天)', group: 'price' },
       { key: 'feed_ad_price', value: '50', label: '信息流广告价格(元/天)', group: 'price' },
       { key: 'default_commission_rate', value: '20', label: '默认用工抽成比例(%)', group: 'work' },
