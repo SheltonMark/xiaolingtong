@@ -6,6 +6,7 @@ import { Promotion } from '../../entities/promotion.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
@@ -15,15 +16,34 @@ export class PromotionService {
     @InjectRepository(AdOrder) private adRepo: Repository<AdOrder>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
     private paymentService: PaymentService,
     private config: ConfigService,
   ) {}
 
+  private async getConfig(key: string, defaultValue: string): Promise<string> {
+    const row = await this.sysConfigRepo.findOne({ where: { key } });
+    return row ? row.value : defaultValue;
+  }
+
+  private isMemberActive(user: User): boolean {
+    return !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date());
+  }
+
   async promote(userId: number, dto: any) {
     const user = await this.userRepo.findOneBy({ id: userId });
-    if (!user || user.beanBalance < dto.beanCost) throw new BadRequestException('灵豆不足');
+    if (!user) throw new BadRequestException('用户不存在');
 
-    user.beanBalance -= dto.beanCost;
+    // 会员置顶折扣
+    let actualCost = dto.beanCost;
+    if (this.isMemberActive(user)) {
+      const discount = parseFloat(await this.getConfig('member_promote_discount', '0.8')) || 0.8;
+      actualCost = Math.ceil(dto.beanCost * discount);
+    }
+
+    if (user.beanBalance < actualCost) throw new BadRequestException('灵豆不足');
+
+    user.beanBalance -= actualCost;
     await this.userRepo.save(user);
 
     const startAt = new Date();
@@ -31,28 +51,35 @@ export class PromotionService {
     endAt.setDate(endAt.getDate() + dto.durationDays);
 
     const promo = this.promoRepo.create({
-      userId, postId: dto.postId, beanCost: dto.beanCost,
+      userId, postId: dto.postId, beanCost: actualCost,
       durationDays: dto.durationDays, boostType: dto.boostType || 'top',
       startAt, endAt,
     });
     await this.promoRepo.save(promo);
 
     await this.beanTxRepo.save(this.beanTxRepo.create({
-      userId, type: 'promote', amount: -dto.beanCost,
-      refType: 'promotion', refId: promo.id, remark: '信息推广',
+      userId, type: 'promote', amount: -actualCost,
+      refType: 'promotion', refId: promo.id,
+      remark: this.isMemberActive(user) ? '信息推广(会员折扣)' : '信息推广',
     }));
 
-    return { message: '推广成功', beanBalance: user.beanBalance };
+    return { message: '推广成功', beanBalance: user.beanBalance, actualCost };
   }
 
   async purchaseAd(userId: number, dto: any) {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
 
+    // 会员广告投放9折
+    let actualPrice = dto.price;
+    if (this.isMemberActive(user)) {
+      actualPrice = Math.round(dto.price * 0.9 * 100) / 100;
+    }
+
     const ad = this.adRepo.create({
       userId, slot: dto.slot, title: dto.title,
       imageUrl: dto.imageUrl, link: dto.link,
-      durationDays: dto.durationDays, price: dto.price,
+      durationDays: dto.durationDays, price: actualPrice,
       status: 'pending',
     });
     await this.adRepo.save(ad);
@@ -62,12 +89,12 @@ export class PromotionService {
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
       description: `小灵通广告投放-${dto.durationDays}天`,
-      totalFee: Math.round(dto.price * 100),
+      totalFee: Math.round(actualPrice * 100),
       openid: user.openid,
       notifyUrl: `${host}/api/payment/notify`,
     });
 
-    return { orderId: ad.id, ...result };
+    return { orderId: ad.id, actualPrice, ...result };
   }
 
   async getActiveAds(slot: string) {
