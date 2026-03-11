@@ -537,8 +537,9 @@ export class AdminService {
 
   async initDefaultConfigs() {
     const defaults = [
-      { key: 'member_monthly_price', value: '30', label: '月会员价格(元)', group: 'price' },
-      { key: 'member_yearly_price', value: '298', label: '年会员价格(元)', group: 'price' },
+      { key: 'member_monthly_price', value: '99', label: '月会员价格(元)', group: 'member' },
+      { key: 'member_quarterly_price', value: '238', label: '季度会员价格(元)', group: 'member' },
+      { key: 'member_yearly_price', value: '799', label: '年会员价格(元)', group: 'member' },
       { key: 'view_contact_price', value: '5', label: '查看联系方式价格(灵豆)', group: 'price' },
       { key: 'top_price_per_day', value: '10', label: '置顶价格(灵豆/天)', group: 'price' },
       { key: 'banner_ad_price', value: '100', label: 'Banner广告价格(元/天)', group: 'price' },
