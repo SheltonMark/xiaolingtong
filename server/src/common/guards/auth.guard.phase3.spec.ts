@@ -56,6 +56,31 @@ describe('Phase 3: AuthGuard - JWT Token Validation', () => {
       expect(jwtService.verifyAsync).not.toHaveBeenCalled();
     });
 
+    it('should parse token on public route when Authorization exists', async () => {
+      reflector.getAllAndOverride.mockReturnValue(true);
+      const payload = { sub: 123, role: 'enterprise' };
+      jwtService.verifyAsync.mockResolvedValue(payload as any);
+
+      const request: any = {
+        headers: { authorization: 'Bearer valid.public.token' },
+      };
+      const context = {
+        switchToHttp: () => ({
+          getRequest: () => request,
+        }),
+        getHandler: () => ({}),
+        getClass: () => ({}),
+      } as any;
+
+      const result = await guard.canActivate(context);
+
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid.public.token', {
+        secret: 'test-secret-key',
+      });
+      expect(request.user).toEqual(payload);
+    });
+
     it('should throw UnauthorizedException when Authorization header is absent', async () => {
       reflector.getAllAndOverride.mockReturnValue(false);
 

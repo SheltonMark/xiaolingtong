@@ -397,68 +397,95 @@ Page({
     wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
   },
 
+  getCurrentUserId() {
+    const app = getApp()
+    const storageUser = wx.getStorageSync('userInfo') || {}
+    const currentUserId = app.globalData.userId
+      || (app.globalData.userInfo && app.globalData.userInfo.id)
+      || storageUser.id
+      || wx.getStorageSync('userId')
+      || 0
+    return Number(currentUserId) || 0
+  },
+
+  getPostOwnerId(item) {
+    if (!item) return 0
+    return Number(item.userId || (item.user && item.user.id) || 0)
+  },
+
+  isOwnerPost(item) {
+    const currentUserId = this.getCurrentUserId()
+    const ownerId = this.getPostOwnerId(item)
+    return !!(currentUserId && ownerId && currentUserId === ownerId)
+  },
+
+  isPostUnlocked(item) {
+    return this.isOwnerPost(item) || !!(item && item.contactUnlocked)
+  },
+
+  getPostItemById(id) {
+    const allItems = this._getAllItems()
+    return allItems.find(i => String(i.id) === String(id))
+  },
+
   onWechat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const allItems = this._getAllItems()
-    const item = allItems.find(i => String(i.id) === String(id))
+    const item = this.getPostItemById(id)
 
     if (!item) {
       wx.showToast({ title: '信息不存在', icon: 'none' })
       return
     }
 
-    // 检查是否已解锁
-    if (item.contactUnlocked) {
-      // 已解锁，检查是否有微信号
-      if (item.contactWechat) {
-        // 有微信号，直接显示
-        wx.showModal({
-          title: '微信号',
-          content: item.contactWechat,
-          showCancel: true,
-          cancelText: '关闭',
-          confirmText: '复制',
-          success: (res) => {
-            if (res.confirm) {
-              wx.setClipboardData({ data: item.contactWechat })
-            }
-          }
-        })
-      } else {
-        // 没有微信号
-        wx.showToast({ title: '发布者未留微信号', icon: 'none' })
-      }
+    if (this.isOwnerPost(item)) {
+      wx.showToast({ title: '无需获取自己的微信', icon: 'none' })
       return
     }
 
-    // 未解锁，需要解锁
+    if (this.isPostUnlocked(item)) {
+      if (!item.contactWechat) {
+        wx.showToast({ title: '发布者未留微信号', icon: 'none' })
+        return
+      }
+      wx.showModal({
+        title: '微信号',
+        content: item.contactWechat,
+        showCancel: true,
+        cancelText: '关闭',
+        confirmText: '复制',
+        success: (res) => {
+          if (res.confirm) wx.setClipboardData({ data: item.contactWechat })
+        }
+      })
+      return
+    }
+
     this._unlockContact(id, 'wechat')
   },
 
   onPhone(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const allItems = this._getAllItems()
-    const item = allItems.find(i => String(i.id) === String(id))
+    const item = this.getPostItemById(id)
 
     if (!item) {
       wx.showToast({ title: '信息不存在', icon: 'none' })
       return
     }
 
-    // 检查是否已解锁
-    if (item.contactUnlocked) {
-      // 已解锁，检查是否有电话
-      if (item.contactPhone) {
-        // 有电话，直接拨打
-        wx.makePhoneCall({ phoneNumber: item.contactPhone, fail() {} })
-      } else {
-        // 没有电话
-        wx.showToast({ title: '发布者未留电话', icon: 'none' })
-      }
+    if (this.isOwnerPost(item)) {
+      wx.showToast({ title: '无需获取自己的电话', icon: 'none' })
       return
     }
 
-    // 未解锁，需要解锁
+    if (this.isPostUnlocked(item)) {
+      if (!item.contactPhone) {
+        wx.showToast({ title: '发布者未留电话', icon: 'none' })
+        return
+      }
+      wx.makePhoneCall({ phoneNumber: item.contactPhone, fail() {} })
+      return
+    }
+
     this._unlockContact(id, 'phone')
   },
 
@@ -584,53 +611,33 @@ Page({
 
   onChat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const allItems = this._getAllItems()
-    const item = allItems.find(i => String(i.id) === String(id))
-    const targetUserId = item && (item.userId || (item.user && item.user.id))
+    const item = this.getPostItemById(id)
+    const targetUserId = this.getPostOwnerId(item)
     const postId = Number(item && item.id) || 0
 
-    if (!targetUserId) {
+    if (!item || !targetUserId) {
       wx.showToast({ title: '暂不支持该条信息直接聊天', icon: 'none' })
       return
     }
 
-    // 检查是否是自己发布的
-    const app = getApp()
-    const currentUserId = app.globalData.userId
-
-    // 调试信息
-    console.log('=== 在线聊调试信息 ===')
-    console.log('当前用户ID:', currentUserId)
-    console.log('发布者ID:', targetUserId)
-    console.log('测试模式:', app.globalData.TEST_MODE)
-    console.log('测试用户ID:', app.globalData.TEST_USER_ID)
-    console.log('信息ID:', postId)
-    console.log('是否已解锁:', item.contactUnlocked)
-    console.log('==================')
-
-    if (currentUserId && targetUserId === currentUserId) {
+    if (this.isOwnerPost(item)) {
       wx.showToast({ title: '不能和自己对话', icon: 'none' })
       return
     }
 
-    // 检查是否已解锁联系方式
-    if (!item.contactUnlocked) {
-      // 未解锁，需要先解锁
+    if (!this.isPostUnlocked(item)) {
       wx.showModal({
         title: '提示',
         content: '需要先解锁联系方式才能在线聊天',
         confirmText: '去解锁',
         cancelText: '取消',
         success: (res) => {
-          if (res.confirm) {
-            this._unlockContact(id, 'chat')
-          }
+          if (res.confirm) this._unlockContact(id, 'chat')
         }
       })
       return
     }
 
-    // 已解锁，直接创建会话（确保传递正确的 postId）
     post('/conversations/with-user/' + targetUserId, { postId }).then(res => {
       const conversationId = res.data && res.data.id
       if (!conversationId) {

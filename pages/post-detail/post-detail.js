@@ -13,7 +13,9 @@ Page({
     isFav: false,
     detail: {},
     contactUnlocked: false,
-    contactInfo: {}
+    contactInfo: {},
+    isOwner: false,
+    isUnlocked: false
   },
 
   onLoad(options) {
@@ -49,6 +51,47 @@ Page({
     const name = this.normalizeText(rawName) || '企业用户'
     if (this.hasViewPermission()) return name
     return this.maskCompanyName(name)
+  },
+
+  parseBool(value) {
+    if (typeof value === 'boolean') return value
+    if (typeof value === 'number') return value === 1
+    if (typeof value === 'string') {
+      const normalized = value.trim().toLowerCase()
+      return normalized === 'true' || normalized === '1' || normalized === 'yes'
+    }
+    return false
+  },
+
+  resolveEnterpriseVerified(raw) {
+    const certStatus = this.normalizeText(
+      raw.certStatus
+      || (raw.publisher && raw.publisher.certStatus)
+      || (raw.user && raw.user.certStatus)
+    ).toLowerCase()
+    if (certStatus) return certStatus === 'approved'
+
+    if (raw.enterpriseVerified !== undefined) return this.parseBool(raw.enterpriseVerified)
+    if (raw.verified !== undefined) return this.parseBool(raw.verified)
+    if (raw.isVerified !== undefined) return this.parseBool(raw.isVerified)
+    if (raw.publisherVerified !== undefined) return this.parseBool(raw.publisherVerified)
+    return false
+  },
+
+  getCurrentUserId() {
+    const app = getApp()
+    const storageUser = wx.getStorageSync('userInfo') || {}
+    const currentUserId = app.globalData.userId
+      || (app.globalData.userInfo && app.globalData.userInfo.id)
+      || storageUser.id
+      || wx.getStorageSync('userId')
+      || 0
+    return Number(currentUserId) || 0
+  },
+
+  getOwnerUserId(source) {
+    if (!source) return 0
+    return Number(source.userId || (source.user && source.user.id) || 0)
   },
 
   pushDetailField(list, label, value, options = {}) {
@@ -110,6 +153,7 @@ Page({
     const hasCompanyName = !!this.normalizeText(companyNameRaw)
     const avatarText = hasCompanyName ? this.normalizeText(companyNameRaw).slice(0, 1) : '企'
     const fields = this.formatDetailFields(raw.type, raw.fields, raw)
+    const enterpriseVerified = this.resolveEnterpriseVerified(raw)
     return {
       ...raw,
       images: normalizeImageList(raw.images),
@@ -121,7 +165,7 @@ Page({
       avatarUrl: normalizeImageUrl((raw.user && raw.user.avatarUrl) || ''),
       avatarText,
       companyName: companyName || '企业用户',
-      certText: raw.enterpriseVerified ? '已认证' : '未认证',
+      certText: enterpriseVerified ? '已认证' : '未认证',
       industry: raw.industry || '未分类',
       postCount: (raw.user && raw.user.postCount) || raw.postCount || '--'
     }
@@ -132,15 +176,18 @@ Page({
       const data = res.data || {}
       const detail = this.formatDetail(data)
 
-      // 使用后端返回的 contactUnlocked 字段
+      const currentUserId = this.getCurrentUserId()
+      const ownerUserId = this.getOwnerUserId(data)
+      const isOwner = !!(currentUserId && ownerUserId && currentUserId === ownerUserId)
       const contactUnlocked = !!data.contactUnlocked
+      const isUnlocked = isOwner || contactUnlocked
       const contactInfo = {
         name: data.contactName || '',
         phone: data.contactPhone || '',
         wechat: data.contactWechat || ''
       }
 
-      this.setData({ detail, contactUnlocked, contactInfo })
+      this.setData({ detail, contactUnlocked, contactInfo, isOwner, isUnlocked })
     }).catch(() => {})
   },
 
@@ -157,10 +204,34 @@ Page({
     })
   },
 
+  onContactAction() {
+    if (this.data.isOwner) {
+      wx.showToast({ title: '无需获取自己的联系方式', icon: 'none' })
+      return
+    }
+
+    if (this.data.isUnlocked) {
+      this.onShowContact()
+      return
+    }
+
+    this.onUnlockContact()
+  },
+
   onUnlockContact() {
     const postId = this.data.detail.id
     if (!postId) {
       wx.showToast({ title: '信息不存在', icon: 'none' })
+      return
+    }
+
+    if (this.data.isOwner) {
+      wx.showToast({ title: '无需获取自己的联系方式', icon: 'none' })
+      return
+    }
+
+    if (this.data.isUnlocked) {
+      this.onShowContact()
       return
     }
 
@@ -349,24 +420,28 @@ Page({
   },
 
   onChat() {
-    // 检查是否已解锁联系方式
-    if (!this.data.contactUnlocked) {
+    const detail = this.data.detail || {}
+    const currentUserId = this.getCurrentUserId()
+    const targetUserId = this.getOwnerUserId(detail)
+
+    if (this.data.isOwner || (currentUserId && targetUserId && currentUserId === targetUserId)) {
+      wx.showToast({ title: '不能和自己对话', icon: 'none' })
+      return
+    }
+
+    if (!this.data.isUnlocked) {
       wx.showModal({
         title: '提示',
         content: '需要先解锁联系方式才能在线聊天',
         confirmText: '去解锁',
         cancelText: '取消',
         success: (res) => {
-          if (res.confirm) {
-            this.onUnlockContact()
-          }
+          if (res.confirm) this.onUnlockContact()
         }
       })
       return
     }
 
-    const detail = this.data.detail || {}
-    const targetUserId = detail.userId || (detail.user && detail.user.id)
     if (!targetUserId) {
       wx.showToast({ title: '发布者信息缺失', icon: 'none' })
       return

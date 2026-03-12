@@ -114,19 +114,25 @@ export class PostService {
       .getMany();
 
     for (const cert of certs) {
-      if (!certMap.has(cert.userId)) certMap.set(cert.userId, cert);
+      // BIGINT fields may come back as string in JS runtime. Normalize to number for map key.
+      const certUserId = Number(cert.userId);
+      if (!certUserId) continue;
+      if (!certMap.has(certUserId)) certMap.set(certUserId, cert);
     }
     return certMap;
   }
 
   private buildCompanyInfo(post: any, certMap: Map<number, EnterpriseCert>) {
     const userId = Number(post.userId || (post.user && post.user.id) || 0);
-    const cert = certMap.get(userId);
-    const enterpriseVerified = !!(cert && cert.status === 'approved');
+    const cert = userId ? certMap.get(userId) : undefined;
+    const certStatus = cert?.status || 'none';
+    const enterpriseVerified = certStatus === 'approved';
     return {
       ...post,
       companyName: (cert && cert.companyName) || '',
       enterpriseVerified,
+      verified: enterpriseVerified,
+      certStatus,
     };
   }
 
@@ -278,6 +284,15 @@ export class PostService {
       where: { userId: post.userId, status: 'active' as any },
     });
     const certMap = await this.getEnterpriseCertMap([Number(post.userId)]);
+
+    // 调试日志
+    console.log('=== Detail 认证状态调试 ===');
+    console.log('post.userId:', post.userId);
+    console.log('certMap size:', certMap.size);
+    const cert = certMap.get(Number(post.userId));
+    console.log('cert:', cert ? { id: cert.id, status: cert.status, companyName: cert.companyName } : null);
+    console.log('========================');
+
     const normalizedPost = this.buildCompanyInfo(post, certMap);
 
     // 判断是否已解锁（修复类型比较问题）
