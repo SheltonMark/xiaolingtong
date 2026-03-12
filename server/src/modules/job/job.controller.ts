@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Query, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Query, Body } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -92,5 +92,14 @@ export class JobController {
     @CurrentUser('sub') userId: number,
   ) {
     return this.jobService.getApplicationsForEnterprise(jobId, userId);
+  }
+
+  @Delete('applications/:applicationId/cancel')
+  @Roles('worker')
+  cancelApplication(
+    @Param('applicationId') applicationId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.cancelApplication(applicationId, userId);
   }
 }

@@ -514,4 +514,37 @@ export class JobService {
       return { creditDeduction: 20, restrictionDays: 7, message: '扣信用分20分，限制报名7天' };
     }
   }
+
+  async cancelApplication(applicationId: number, workerId: number): Promise<any> {
+    const app = await this.appRepo.findOne({
+      where: { id: applicationId, workerId },
+      relations: ['job']
+    });
+
+    if (!app) throw new NotFoundException('Application not found');
+
+    // 检查是否允许取消
+    const allowedStatuses = ['pending', 'accepted', 'confirmed'];
+    if (!allowedStatuses.includes(app.status)) {
+      throw new BadRequestException(`Cannot cancel application in ${app.status} status`);
+    }
+
+    // 计算惩罚
+    const penalty = this.calculateCancellationPenalty(app.job, new Date());
+
+    // 更新应用状态
+    app.status = 'cancelled';
+    await this.appRepo.save(app);
+
+    // 扣信用分
+    if (penalty.creditDeduction > 0) {
+      const worker = await this.userRepo.findOne({ where: { id: workerId } });
+      if (worker) {
+        worker.creditScore -= penalty.creditDeduction;
+        await this.userRepo.save(worker);
+      }
+    }
+
+    return { id: app.id, status: 'cancelled', penalty };
+  }
 }
