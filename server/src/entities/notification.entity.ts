@@ -9,23 +9,29 @@ export class Notification {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['job_apply', 'settlement', 'system', 'promotion', 'invite', 'cert'] })
-  type: string;
+  @Column({ type: 'varchar', length: 50 })
+  type: string; // 'application_accepted', 'application_rejected', 'work_started', etc.
 
-  @Column({ length: 128 })
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column({ length: 512, nullable: true })
+  @Column({ type: 'text' })
   content: string;
 
-  @Column({ length: 256, nullable: true })
-  link: string;
+  @Column({ type: 'int', nullable: true })
+  relatedId: number; // jobId, applicationId, etc.
 
-  @Column({ type: 'tinyint', default: 0 })
-  isRead: number;
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  relatedType: string; // 'job', 'application', 'settlement', etc.
+
+  @Column({ type: 'boolean', default: false })
+  isRead: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ type: 'timestamp', nullable: true })
+  readAt: Date;
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
