@@ -1,5 +1,15 @@
 const { get } = require('../../utils/request')
 
+const TYPE_MAP = {
+  recharge: '灵豆充值',
+  unlock_contact: '解锁联系方式',
+  promote: '信息推广',
+  reward: '奖励',
+  membership: '会员权益',
+  invite_reward: '邀请奖励',
+  income: '灵豆收入'
+}
+
 Page({
   data: {
     balance: 0,
@@ -13,18 +23,35 @@ Page({
 
   onShow() {
     get('/beans/balance').then(res => {
-      const d = res.data || {}
+      const d = res.data || res
       this.setData({
-        balance: (d.beanBalance || 0).toFixed(2),
-        totalIn: (d.totalIn || 0).toFixed(2),
-        totalOut: (d.totalOut || 0).toFixed(2)
+        balance: d.beanBalance || 0,
+        totalIn: d.totalIn || 0,
+        totalOut: Math.abs(d.totalOut || 0)
       })
     }).catch(() => {})
-    get('/beans/transactions').then(res => {
-      const list = res.data || []
+
+    get('/beans/transactions', { pageSize: 200 }).then(res => {
+      const d = res.data || res
+      const list = d.list || d || []
+      if (!Array.isArray(list)) { this.setData({ allGroups: [], groups: [] }); return }
+
+      // 映射字段
+      const mapped = list.map(item => {
+        const isIncome = item.amount > 0
+        return {
+          id: item.id,
+          type: isIncome ? 'income' : 'expense',
+          title: TYPE_MAP[item.type] || item.remark || '灵豆变动',
+          desc: item.remark || '',
+          amount: (isIncome ? '+' : '') + item.amount,
+          createdAt: item.createdAt || ''
+        }
+      })
+
       // 按月分组
       const map = {}
-      list.forEach(item => {
+      mapped.forEach(item => {
         const month = (item.createdAt || '').substring(0, 7).replace('-', '年') + '月'
         if (!map[month]) map[month] = []
         map[month].push(item)
