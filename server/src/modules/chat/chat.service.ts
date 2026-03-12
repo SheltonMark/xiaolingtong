@@ -170,7 +170,13 @@ export class ChatService {
   }
 
   async getMessages(conversationId: number, userId: number, query: any) {
-    const conv = await this.findConversationForUser(conversationId, userId);
+    const conv = await this.convRepo.createQueryBuilder('c')
+      .leftJoinAndSelect('c.userARef', 'ua')
+      .leftJoinAndSelect('c.userBRef', 'ub')
+      .where('c.id = :conversationId', { conversationId })
+      .andWhere('(c.userA = :userId OR c.userB = :userId)', { userId })
+      .getOne();
+
     if (!conv) throw new ForbiddenException('无权访问此会话');
 
     const page = Math.max(1, this.toNumber(query.page) || 1);
