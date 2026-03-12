@@ -7,11 +7,13 @@ import { JobScheduler } from './job.scheduler';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Job, Keyword, JobApplication]),
     ScheduleModule.forRoot(),
+    NotificationModule,
   ],
   controllers: [JobController],
   providers: [JobService, JobScheduler],

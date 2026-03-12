@@ -7,6 +7,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
 import { JobStateMachine } from './job-state-machine';
 import { getWorkerStatusDisplay, getEnterpriseStatusDisplay, getStatusColor } from './status-mapping';
+import { NotificationTriggerService } from '../notification/notification-trigger.service';
 
 @Injectable()
 export class JobService {
@@ -15,6 +16,7 @@ export class JobService {
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    private notificationTrigger: NotificationTriggerService,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -305,7 +307,24 @@ export class JobService {
       throw new BadRequestException('Application is not in pending status');
     }
 
-    return this.updateApplicationStatus(applicationId, action, userId);
+    const result = await this.updateApplicationStatus(applicationId, action, userId);
+
+    // 发送通知
+    if (action === 'accepted') {
+      await this.notificationTrigger.notifyApplicationAccepted(
+        application.workerId,
+        application.job.id,
+        application.job.title,
+      );
+    } else if (action === 'rejected') {
+      await this.notificationTrigger.notifyApplicationRejected(
+        application.workerId,
+        application.job.id,
+        application.job.title,
+      );
+    }
+
+    return result;
   }
 
   async selectSupervisor(
@@ -510,7 +529,16 @@ export class JobService {
       status: 'pending'
     });
 
-    return this.appRepo.save(application);
+    const result = await this.appRepo.save(application);
+
+    // 发送通知：临工报名成功
+    await this.notificationTrigger.notifyApplicationSubmitted(workerId, jobId, job.title);
+
+    // 发送通知：企业有新报名
+    const worker = await this.userRepo.findOne({ where: { id: workerId } });
+    await this.notificationTrigger.notifyNewApplication(job.userId, jobId, job.title, worker?.nickname || 'Worker');
+
+    return result;
   }
 
   calculateCancellationPenalty(job: Job, cancelledAt: Date): any {
@@ -586,6 +614,18 @@ export class JobService {
         await this.userRepo.save(worker);
       }
     }
+
+    // 发送通知：临工取消报名
+    await this.notificationTrigger.notifyApplicationCancelled(workerId, app.job.id, app.job.title);
+
+    // 发送通知：企业临工已取消
+    const worker = await this.userRepo.findOne({ where: { id: workerId } });
+    await this.notificationTrigger.notifyApplicationCancelledEnterprise(
+      app.job.userId,
+      app.job.id,
+      app.job.title,
+      worker?.nickname || 'Worker',
+    );
 
     return { id: app.id, status: 'cancelled', penalty };
   }
