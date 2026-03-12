@@ -42,7 +42,7 @@
     <!-- 功能入口 -->
     <view class="func-grid">
       <view class="func-item" wx:for="{{enterpriseFuncs}}" wx:key="label"
-            data-url="{{item.url}}" bindtap="onFuncTap">
+            data-url="{{item.url}}" data-label="{{item.label}}" bindtap="onFuncTap">
         <view class="func-icon" style="background-color: {{item.bg}};">
           <text class="func-emoji" style="color: {{item.iconColor}};">{{item.icon}}</text>
         </view>

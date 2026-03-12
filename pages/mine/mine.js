@@ -209,7 +209,24 @@ Page({
   },
 
   onFuncTap(e) {
-    const { url } = e.currentTarget.dataset
+    const { url, label } = e.currentTarget.dataset
+
+    // 特殊处理"工资结算"按钮
+    if (label === '工资结算') {
+      get('/jobs/mine').then(res => {
+        const jobsList = res.data.list || res.data || []
+        if (jobsList.length > 0) {
+          const latestJob = jobsList[0]
+          wx.navigateTo({ url: `/pages/settlement/settlement?jobId=${latestJob.id}` })
+        } else {
+          wx.showToast({ title: '暂无招工信息', icon: 'none' })
+        }
+      }).catch(() => {
+        wx.showToast({ title: '加载失败', icon: 'none' })
+      })
+      return
+    }
+
     if (url) wx.navigateTo({ url })
   },
 
