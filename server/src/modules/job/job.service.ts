@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 
 @Injectable()
 export class JobService {
@@ -11,6 +12,7 @@ export class JobService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -121,9 +123,25 @@ export class JobService {
 
     const [list, total] = await qb.getManyAndCount();
 
+    // 获取企业认证信息
+    const userIds = list.map(job => job.userId).filter(Boolean);
+    const certMap = new Map<number, EnterpriseCert>();
+    if (userIds.length > 0) {
+      const certs = await this.entCertRepo.createQueryBuilder('c')
+        .where('c.userId IN (:...userIds)', { userIds })
+        .andWhere('c.status = :status', { status: 'approved' })
+        .orderBy('c.userId', 'ASC')
+        .addOrderBy('c.id', 'DESC')
+        .getMany();
+      for (const cert of certs) {
+        if (!certMap.has(cert.userId)) certMap.set(cert.userId, cert);
+      }
+    }
+
     // 格式化列表数据
     const formattedList = await Promise.all(list.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+      const cert = certMap.get(job.userId);
 
       // 格式化福利标签
       const benefitTags = (job.benefits || []).map((b: any) => ({
@@ -158,7 +176,14 @@ export class JobService {
         images: job.images || [],
         tags: benefitTags,
         allTags,
-        companyName: job.user?.nickname || '企业用户',
+        companyName: cert?.companyName || job.user?.nickname || '企业用户',
+        avatarUrl: job.user?.avatarUrl || '',
+        user: {
+          id: job.user?.id,
+          avatarUrl: job.user?.avatarUrl || '',
+          isMember: job.user?.isMember || 0
+        },
+        isMember: !!(job.user?.isMember),
         time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
       };
     }));
