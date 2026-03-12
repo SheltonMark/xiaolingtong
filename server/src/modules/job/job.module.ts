@@ -5,9 +5,10 @@ import { JobService } from './job.service';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication])],
+  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert])],
   controllers: [JobController],
   providers: [JobService],
   exports: [JobService],
