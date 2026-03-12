@@ -142,6 +142,7 @@ export class AuthService {
       phone: user.phone,
       beanBalance: user.beanBalance,
       isMember: user.isMember,
+      memberExpireAt: user.memberExpireAt,
       creditScore: user.creditScore,
       certStatus,
       certName,
