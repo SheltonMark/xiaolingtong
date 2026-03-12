@@ -62,7 +62,7 @@ function calculateDistance(from, to) {
 /**
  * 批量计算距离（为列表中的每个项目添加距离信息）
  * @param {Object} userLocation - 用户位置 {latitude, longitude}
- * @param {Array} list - 招工列表
+ * @param {Array} list - 招工列表（使用lat和lng字段）
  * @returns {Promise<Array>} 添加了distance和distanceText字段的列表
  */
 function calculateDistanceForList(userLocation, list) {
@@ -71,13 +71,14 @@ function calculateDistanceForList(userLocation, list) {
   }
 
   const promises = list.map(item => {
-    if (!item.latitude || !item.longitude) {
+    // 后端使用 lat 和 lng 字段
+    if (!item.lat || !item.lng) {
       return Promise.resolve({ ...item, distance: null, distanceText: '' })
     }
 
     return calculateDistance(userLocation, {
-      latitude: item.latitude,
-      longitude: item.longitude
+      latitude: item.lat,
+      longitude: item.lng
     })
       .then(distance => ({
         ...item,
@@ -118,7 +119,7 @@ function getUserLocation() {
 /**
  * 根据距离筛选条件过滤列表
  * @param {Array} list - 招工列表（需要包含distance字段）
- * @param {string} filterDistance - 筛选条件：'1km内', '3km内', '5km内', '10km内'
+ * @param {string} filterDistance - 筛选条件：'1km内', '3km内', '5km内', '10km内', '10km以上'
  * @returns {Array} 过滤后的列表
  */
 function filterByDistance(list, filterDistance) {
@@ -127,17 +128,25 @@ function filterByDistance(list, filterDistance) {
   }
 
   const distanceMap = {
-    '1km内': 1000,
-    '3km内': 3000,
-    '5km内': 5000,
-    '10km内': 10000
+    '1km内': { max: 1000 },
+    '3km内': { max: 3000 },
+    '5km内': { max: 5000 },
+    '10km内': { max: 10000 },
+    '10km以上': { min: 10000 }
   }
 
-  const maxDistance = distanceMap[filterDistance]
-  if (!maxDistance) return list
+  const range = distanceMap[filterDistance]
+  if (!range) return list
 
   return list.filter(item => {
-    return item.distance !== null && item.distance <= maxDistance
+    if (item.distance === null) return false
+    if (range.max !== undefined) {
+      return item.distance <= range.max
+    }
+    if (range.min !== undefined) {
+      return item.distance > range.min
+    }
+    return true
   })
 }
 

@@ -77,7 +77,7 @@ Page({
     // picker 选项
     jobTypeOptions: ['全部'],
     salaryTypeOptions: ['全部', '按小时', '按件'],
-    distanceOptions: ['全部', '1km内', '3km内', '5km内', '10km内'],
+    distanceOptions: ['全部', '1km内', '3km内', '5km内', '10km内', '10km以上'],
     salaryOptions: ['全部', '20元以下', '20-30元', '30-50元', '50元以上'],
     jobTypeIndex: 0,
     salaryTypeIndex: 0,
@@ -401,10 +401,6 @@ Page({
 
   onSearchConfirm(e) {
     const keyword = (e.detail.value || '').trim()
-    if (!keyword) {
-      wx.showToast({ title: '请输入搜索关键词', icon: 'none' })
-      return
-    }
     this.setData({ searchKeyword: keyword })
     // 根据用户角色搜索不同内容
     if (this.data.userRole === 'worker') {
@@ -463,10 +459,6 @@ Page({
       // 招工信息
       this.loadJobList()
     }
-  },
-
-  onViewMore() {
-    wx.navigateTo({ url: '/pages/category/category' })
   },
 
   onNotification() {
@@ -837,8 +829,38 @@ Page({
   onDistanceChange(e) {
     const idx = e.detail.value
     const val = this.data.distanceOptions[idx]
-    this.setData({ distanceIndex: idx, filterDistance: val === '全部' ? '' : val })
-    this.loadWorkerJobs()
+
+    // 如果选择了距离筛选（非"全部"），需要获取用户位置
+    if (val !== '全部' && !this.data.userLocation) {
+      wx.showLoading({ title: '获取位置中...' })
+      getUserLocation().then(location => {
+        wx.hideLoading()
+        this.setData({
+          userLocation: location,
+          distanceIndex: idx,
+          filterDistance: val
+        })
+        this.loadWorkerJobs()
+      }).catch(error => {
+        wx.hideLoading()
+        wx.showModal({
+          title: '需要位置权限',
+          content: '按距离筛选需要获取您的位置信息，请在设置中开启位置权限',
+          confirmText: '去设置',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              wx.openSetting()
+            }
+          }
+        })
+        // 重置为"全部"
+        this.setData({ distanceIndex: 0, filterDistance: '' })
+      })
+    } else {
+      this.setData({ distanceIndex: idx, filterDistance: val === '全部' ? '' : val })
+      this.loadWorkerJobs()
+    }
   },
   onSalaryChange(e) {
     const idx = e.detail.value

@@ -1,5 +1,6 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageList } = require('../../utils/image')
+const { calculateDistance, getUserLocation, formatDistance } = require('../../utils/distance')
 
 Page({
   data: {
@@ -18,12 +19,29 @@ Page({
   loadJob(id) {
     get('/jobs/' + id).then(res => {
       const job = res.data || {}
-      this.setData({
-        job: {
-          ...job,
-          images: normalizeImageList(job.images)
-        }
-      })
+      const jobData = {
+        ...job,
+        images: normalizeImageList(job.images)
+      }
+      this.setData({ job: jobData })
+
+      // 计算距离
+      if (job.latitude && job.longitude) {
+        getUserLocation().then(userLocation => {
+          return calculateDistance(userLocation, {
+            latitude: job.latitude,
+            longitude: job.longitude
+          })
+        }).then(distance => {
+          this.setData({
+            'job.distance': distance,
+            'job.distanceText': formatDistance(distance)
+          })
+        }).catch(() => {
+          // 获取位置失败，不显示距离
+        })
+      }
+
       // 加载收藏状态
       this.loadFavStatus(id)
     }).catch(() => {})

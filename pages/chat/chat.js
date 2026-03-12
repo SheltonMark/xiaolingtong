@@ -107,13 +107,14 @@ Page({
       const list = rawList.map(item => this.normalizeMessage(item))
 
       // 添加时间分组逻辑：每5分钟显示一次时间
-      let lastTime = null
+      let lastDisplayTime = null
       const messagesWithTime = list.map(msg => {
         const msgTime = new Date(msg.time || '')
         let showTime = false
-        if (!lastTime || (msgTime - lastTime) >= 5 * 60 * 1000) {
+        // 第一条消息或距离上次显示时间超过5分钟，则显示时间
+        if (!lastDisplayTime || (msgTime - lastDisplayTime) >= 5 * 60 * 1000) {
           showTime = true
-          lastTime = msgTime
+          lastDisplayTime = msgTime
         }
         return { ...msg, showTime }
       })
