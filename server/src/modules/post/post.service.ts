@@ -184,18 +184,6 @@ export class PostService {
       const isOwner = userId && userId > 0 && itemUserId === userId;
       const isUnlocked = isOwner || unlockedPostIds.has(postId);
 
-      // 调试日志
-      if (postId === 5) {
-        console.log('=== Post 5 解锁状态调试 ===');
-        console.log('当前userId:', userId);
-        console.log('发布者userId:', item.userId);
-        console.log('发布者userId(转换后):', itemUserId);
-        console.log('isOwner:', isOwner);
-        console.log('unlockedPostIds.has(5):', unlockedPostIds.has(postId));
-        console.log('isUnlocked:', isUnlocked);
-        console.log('========================');
-      }
-
       // 构建基础信息
       const baseInfo = {
         ...this.buildCompanyInfo(item, certMap),

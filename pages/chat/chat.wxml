@@ -25,6 +25,7 @@
           <view wx:else class="text-avatar text-avatar-md" style="background-color: #F97316;">{{otherAvatarText}}</view>
         </view>
         <view class="msg-bubble-wrap">
+          <view class="msg-sender-name">{{otherName}}</view>
           <text class="msg-date-text">{{item.time}}</text>
           <view class="bubble bubble-left" wx:if="{{item.type === 'text' && item.text}}">
             <text>{{item.text}}</text>

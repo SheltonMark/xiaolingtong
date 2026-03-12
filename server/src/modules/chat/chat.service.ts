@@ -5,6 +5,8 @@ import { Conversation } from '../../entities/conversation.entity';
 import { ChatMessage } from '../../entities/chat-message.entity';
 import { ContactUnlock } from '../../entities/contact-unlock.entity';
 import { Post } from '../../entities/post.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import { ChatRealtimeService } from './chat-realtime.service';
 
 const VOICE_PREFIX = '__VOICE__';
@@ -16,6 +18,8 @@ export class ChatService {
     @InjectRepository(ChatMessage) private msgRepo: Repository<ChatMessage>,
     @InjectRepository(ContactUnlock) private unlockRepo: Repository<ContactUnlock>,
     @InjectRepository(Post) private postRepo: Repository<Post>,
+    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
     private realtime: ChatRealtimeService,
   ) {}
 
@@ -80,6 +84,44 @@ export class ChatService {
 
     if (!list.length) return [];
 
+    // 获取所有对方用户的ID
+    const otherUserIds = list.map((item) => {
+      const isUserA = this.toNumber(item.userA) === this.toNumber(userId);
+      return this.toNumber(isUserA ? item.userB : item.userA);
+    });
+
+    // 获取企业认证信息
+    const entCerts = await this.entCertRepo.createQueryBuilder('c')
+      .where('c.userId IN (:...userIds)', { userIds: otherUserIds })
+      .andWhere('c.status = :status', { status: 'approved' })
+      .orderBy('c.userId', 'ASC')
+      .addOrderBy('c.id', 'DESC')
+      .getMany();
+
+    const entCertMap = new Map<number, EnterpriseCert>();
+    for (const cert of entCerts) {
+      const certUserId = Number(cert.userId);
+      if (!entCertMap.has(certUserId)) {
+        entCertMap.set(certUserId, cert);
+      }
+    }
+
+    // 获取临工认证信息
+    const workerCerts = await this.workerCertRepo.createQueryBuilder('c')
+      .where('c.userId IN (:...userIds)', { userIds: otherUserIds })
+      .andWhere('c.status = :status', { status: 'approved' })
+      .orderBy('c.userId', 'ASC')
+      .addOrderBy('c.id', 'DESC')
+      .getMany();
+
+    const workerCertMap = new Map<number, WorkerCert>();
+    for (const cert of workerCerts) {
+      const certUserId = Number(cert.userId);
+      if (!workerCertMap.has(certUserId)) {
+        workerCertMap.set(certUserId, cert);
+      }
+    }
+
     const conversationIds = list.map((item) => item.id);
     const unreadRows = await this.msgRepo.createQueryBuilder('m')
       .select('m.conversationId', 'conversationId')
@@ -98,17 +140,27 @@ export class ChatService {
     return list.map((item) => {
       const isUserA = this.toNumber(item.userA) === this.toNumber(userId);
       const other = isUserA ? item.userBRef : item.userARef;
-      const otherId = isUserA ? item.userB : item.userA;
+      const otherId = this.toNumber(isUserA ? item.userB : item.userA);
       const preview = this.buildLastMessagePreview('text', item.lastMessage || '');
-      const name = (other && other.nickname) || `用户${otherId}`;
+
+      // 获取认证名称
+      const entCert = entCertMap.get(otherId);
+      const workerCert = workerCertMap.get(otherId);
+      let displayName = (other && other.nickname) || `用户${otherId}`;
+
+      if (entCert && entCert.companyName) {
+        displayName = entCert.companyName;
+      } else if (workerCert && workerCert.realName) {
+        displayName = workerCert.realName;
+      }
 
       return {
         id: item.id,
-        otherUserId: this.toNumber(otherId),
-        name,
+        otherUserId: otherId,
+        name: displayName,
         avatarUrl: (other && other.avatarUrl) || '',
-        avatarText: name ? name[0] : '聊',
-        avatarBg: this.toNumber(otherId) % 2 === 0 ? '#3B82F6' : '#10B981',
+        avatarText: displayName ? displayName[0] : '聊',
+        avatarBg: otherId % 2 === 0 ? '#3B82F6' : '#10B981',
         time: this.formatTime(item.lastMessageAt || item.createdAt),
         lastMsg: preview || '暂无消息',
         unreadCount: unreadMap.get(this.toNumber(item.id)) || 0,
@@ -140,7 +192,42 @@ export class ChatService {
       .andWhere('readAt IS NULL')
       .execute();
 
-    return { list: list.map((item) => this.mapMessage(item)), total, page, pageSize };
+    // 获取对方用户ID
+    const isUserA = this.toNumber(conv.userA) === this.toNumber(userId);
+    const otherId = this.toNumber(isUserA ? conv.userB : conv.userA);
+
+    // 获取对方的认证信息
+    const entCert = await this.entCertRepo.findOne({
+      where: { userId: otherId, status: 'approved' },
+      order: { id: 'DESC' },
+    });
+
+    const workerCert = await this.workerCertRepo.findOne({
+      where: { userId: otherId, status: 'approved' },
+      order: { id: 'DESC' },
+    });
+
+    // 构建对方用户信息
+    const other = isUserA ? conv.userBRef : conv.userARef;
+    let otherName = (other && other.nickname) || `用户${otherId}`;
+
+    if (entCert && entCert.companyName) {
+      otherName = entCert.companyName;
+    } else if (workerCert && workerCert.realName) {
+      otherName = workerCert.realName;
+    }
+
+    return {
+      list: list.map((item) => this.mapMessage(item)),
+      total,
+      page,
+      pageSize,
+      otherUser: {
+        id: otherId,
+        name: otherName,
+        avatarUrl: (other && other.avatarUrl) || '',
+      },
+    };
   }
 
   async sendMessage(conversationId: number, senderId: number, dto: any) {
