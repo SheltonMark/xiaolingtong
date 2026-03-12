@@ -21,6 +21,17 @@ Page({
   onLoad(options) {
     if (options.id) {
       this.loadDetail(options.id)
+      this.loadFavStatus(options.id)
+    }
+  },
+
+  onShow() {
+    // 重新加载收藏状态
+    const pages = getCurrentPages()
+    const currentPage = pages[pages.length - 1]
+    const options = currentPage.options
+    if (options && options.id) {
+      this.loadFavStatus(options.id)
     }
   },
 
@@ -464,6 +475,15 @@ Page({
   onReport() {
     wx.navigateTo({ url: '/pages/report/report?id=' + this.data.detail.id })
   },
+
+  loadFavStatus(id) {
+    get('/favorites').then(res => {
+      const list = res.data.list || res.data || []
+      const isFav = list.some(item => item.targetType === 'post' && String(item.targetId) === String(id))
+      this.setData({ isFav })
+    }).catch(() => {})
+  },
+
   onToggleFav() {
     const id = this.data.detail.id
     post('/favorites/toggle', { targetType: 'post', targetId: id }).then(() => {

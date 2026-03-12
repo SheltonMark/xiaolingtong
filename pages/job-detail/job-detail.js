@@ -50,7 +50,7 @@ Page({
   loadFavStatus(id) {
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      const isFav = list.some(item => item.targetType === 'job' && item.targetId === id)
+      const isFav = list.some(item => item.targetType === 'job' && String(item.targetId) === String(id))
       this.setData({ isFav })
     }).catch(() => {})
   },

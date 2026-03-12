@@ -13,8 +13,20 @@ Page({
   onLoad(options) {
     if (options.id) {
       this.loadDetail(options.id)
+      this.loadFavStatus(options.id)
     }
   },
+
+  onShow() {
+    // 重新加载收藏状态
+    const pages = getCurrentPages()
+    const currentPage = pages[pages.length - 1]
+    const options = currentPage.options
+    if (options && options.id) {
+      this.loadFavStatus(options.id)
+    }
+  },
+
   loadDetail(id) {
     get('/exposures/' + id).then(res => {
       const d = res.data || {}
@@ -78,6 +90,15 @@ Page({
       this.loadDetail(this.data.detail.id)
     }).catch(() => {})
   },
+
+  loadFavStatus(id) {
+    get('/favorites').then(res => {
+      const list = res.data.list || res.data || []
+      const isFav = list.some(item => item.targetType === 'exposure' && String(item.targetId) === String(id))
+      this.setData({ isFav })
+    }).catch(() => {})
+  },
+
   onToggleFav() {
     post('/favorites/toggle', { targetType: 'exposure', targetId: this.data.detail.id }).then(() => {
       this.setData({ isFav: !this.data.isFav })

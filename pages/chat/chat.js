@@ -109,12 +109,14 @@ Page({
       // 添加时间分组逻辑：每5分钟显示一次时间
       let lastDisplayTime = null
       const messagesWithTime = list.map(msg => {
-        const msgTime = new Date(msg.time || '')
+        const msgTime = new Date(msg.rawTime || '')
         let showTime = false
         // 第一条消息或距离上次显示时间超过5分钟，则显示时间
-        if (!lastDisplayTime || (msgTime - lastDisplayTime) >= 5 * 60 * 1000) {
+        if (!lastDisplayTime || isNaN(msgTime.getTime()) || (msgTime - lastDisplayTime) >= 5 * 60 * 1000) {
           showTime = true
-          lastDisplayTime = msgTime
+          if (!isNaN(msgTime.getTime())) {
+            lastDisplayTime = msgTime
+          }
         }
         return { ...msg, showTime }
       })
@@ -171,7 +173,8 @@ Page({
     const base = {
       id: item.id,
       from,
-      time: this.formatMessageTime(item.time || ''),
+      time: this.formatMessageTime(item.time || item.createdAt || ''),
+      rawTime: item.createdAt || item.time || '', // 保存原始时间用于计算
       senderId,
       conversationId: Number(item.conversationId || this.data.conversationId || 0)
     }
@@ -192,11 +195,40 @@ Page({
     }
     return { ...base, type: 'text', text: item.content || '' }
   },
+
+  // 计算消息是否应该显示时间（距离上一条显示时间的消息超过5分钟）
+  shouldShowTime(newMessage) {
+    const messages = this.data.messages || []
+    if (messages.length === 0) return true // 第一条消息显示时间
+
+    // 找到最后一条显示了时间的消息
+    let lastDisplayTime = null
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].showTime && messages[i].rawTime) {
+        lastDisplayTime = new Date(messages[i].rawTime)
+        break
+      }
+    }
+
+    // 如果没有找到显示时间的消息，说明是第一条，应该显示
+    if (!lastDisplayTime || isNaN(lastDisplayTime.getTime())) return true
+
+    const newTime = new Date(newMessage.rawTime || newMessage.createdAt || '')
+    if (isNaN(newTime.getTime())) return false
+
+    const diff = newTime - lastDisplayTime
+    return diff >= 5 * 60 * 1000 // 5分钟
+  },
+
   onWsEvent(event, data) {
     if (event !== 'new_message' || !data) return
     const message = this.normalizeMessage(data)
     if (Number(message.conversationId) !== Number(this.data.conversationId)) return
     if ((this.data.messages || []).some(item => Number(item.id) === Number(message.id))) return
+
+    // 计算是否显示时间
+    message.showTime = this.shouldShowTime(message)
+
     this.setData({
       messages: [...this.data.messages, message]
     }, () => this.scrollToBottom())
@@ -271,6 +303,10 @@ Page({
     }
     return post('/conversations/' + this.data.conversationId + '/send', { type, content }).then(res => {
       const message = this.normalizeMessage(res.data || {})
+
+      // 计算是否显示时间
+      message.showTime = this.shouldShowTime(message)
+
       this.setData({
         messages: [...this.data.messages, message],
         scrollToView: 'msg-' + message.id
