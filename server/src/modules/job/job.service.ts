@@ -499,4 +499,19 @@ export class JobService {
 
     return this.appRepo.save(application);
   }
+
+  calculateCancellationPenalty(job: Job, cancelledAt: Date): any {
+    const workStart = new Date(`${job.dateStart}T${job.workHours.split('-')[0]}`);
+    const hoursBeforeWork = (workStart.getTime() - cancelledAt.getTime()) / (1000 * 60 * 60);
+
+    if (hoursBeforeWork >= 24) {
+      return { creditDeduction: 0, restrictionDays: 0, message: '无惩罚' };
+    } else if (hoursBeforeWork >= 12) {
+      return { creditDeduction: 5, restrictionDays: 0, message: '扣信用分5分' };
+    } else if (hoursBeforeWork > 0) {
+      return { creditDeduction: 10, restrictionDays: 1, message: '扣信用分10分，限制报名24小时' };
+    } else {
+      return { creditDeduction: 20, restrictionDays: 7, message: '扣信用分20分，限制报名7天' };
+    }
+  }
 }
