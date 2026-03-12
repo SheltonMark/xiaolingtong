@@ -589,4 +589,34 @@ export class JobService {
 
     return { id: app.id, status: 'cancelled', penalty };
   }
+
+  async getEligibleSupervisors(jobId: number, userId: number): Promise<any[]> {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      throw new ForbiddenException('No permission to manage this job');
+    }
+
+    // 获取该工作的所有已接受的应用
+    const { In } = require('typeorm');
+    const acceptedApps = await this.appRepo.find({
+      where: { jobId, status: In(['accepted', 'confirmed']) },
+      relations: ['worker']
+    });
+
+    // 筛选符合条件的临工（信用分≥95，订单数≥10）
+    const eligible = acceptedApps
+      .filter(app => app.worker.creditScore >= 95 && app.worker.totalOrders >= 10)
+      .map(app => ({
+        id: app.id,
+        workerId: app.worker.id,
+        workerName: app.worker.nickname,
+        creditScore: app.worker.creditScore,
+        totalOrders: app.worker.totalOrders,
+        phone: app.worker.phone,
+        status: app.status,
+        isSupervisor: app.isSupervisor
+      }));
+
+    return eligible;
+  }
 }

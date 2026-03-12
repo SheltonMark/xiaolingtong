@@ -102,4 +102,13 @@ export class JobController {
   ) {
     return this.jobService.cancelApplication(applicationId, userId);
   }
+
+  @Get(':jobId/eligible-supervisors')
+  @Roles('enterprise')
+  getEligibleSupervisors(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getEligibleSupervisors(jobId, userId);
+  }
 }
