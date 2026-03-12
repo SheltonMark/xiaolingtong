@@ -217,6 +217,14 @@ export class ChatService {
       otherName = workerCert.realName;
     }
 
+    const otherAvatarUrl = (other && other.avatarUrl) || '';
+    console.log('=== Chat getMessages Debug ===');
+    console.log('conversationId:', conversationId);
+    console.log('otherId:', otherId);
+    console.log('other:', other ? { id: other.id, nickname: other.nickname, avatarUrl: other.avatarUrl } : null);
+    console.log('otherAvatarUrl:', otherAvatarUrl);
+    console.log('=============================');
+
     return {
       list: list.map((item) => this.mapMessage(item)),
       total,
@@ -225,7 +233,7 @@ export class ChatService {
       otherUser: {
         id: otherId,
         name: otherName,
-        avatarUrl: (other && other.avatarUrl) || '',
+        avatarUrl: otherAvatarUrl,
       },
     };
   }
