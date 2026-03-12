@@ -13,7 +13,7 @@
         <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;" bindtap="onSettings">{{enterpriseInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
-            <text class="user-name">{{certName || '鑫达贸易公司'}}</text>
+            <text class="user-name">{{certName || nickname || '未认证用户'}}</text>
             <text class="cert-badge">{{certBadge}}</text>
           </view>
           <text class="user-sub">工贸一体 · 日用百货</text>
@@ -148,7 +148,7 @@
         <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #F97316;" bindtap="onSettings">{{workerInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
-            <text class="user-name">{{certName || '张三'}}</text>
+            <text class="user-name">{{certName || nickname || '未认证用户'}}</text>
             <text class="cert-badge">{{certBadge}}</text>
           </view>
           <text class="user-sub">信用分 <text class="text-cta font-semibold">{{creditScore}}</text> · 组装工/包装工</text>

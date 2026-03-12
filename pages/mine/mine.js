@@ -63,7 +63,8 @@ Page({
       app.globalData.userInfo = user
       app.globalData.avatarUrl = user.avatarUrl || ''
       app.globalData.beanBalance = user.beanBalance || 0
-      app.globalData.isMember = user.isMember || false
+      app.globalData.isMember = !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date())
+      app.globalData.memberExpireAt = user.memberExpireAt || null
 
       // 认证状态
       const certStatus = user.certStatus || 'none'

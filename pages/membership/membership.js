@@ -24,17 +24,32 @@ Page({
   },
 
   _loadUserInfo() {
-    const app = getApp()
-    const user = app.globalData.userInfo || {}
-    const avatarUrl = user.avatarUrl || app.globalData.avatarUrl || ''
-    const nickname = user.nickname || user.companyName || ''
-    const isMember = !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date())
-    this.setData({
-      userInfo: user,
-      avatarUrl,
-      nickname,
-      isMember,
-      avatarText: (nickname || '用户').substring(0, 1)
+    // 直接从后端拉最新用户信息，不依赖 globalData 缓存
+    get('/auth/profile').then(res => {
+      const user = res.data || res
+      const app = getApp()
+      app.globalData.userInfo = user
+      app.globalData.isMember = !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date())
+
+      const avatarUrl = user.avatarUrl || ''
+      const nickname = user.certName || user.nickname || ''
+      const isMember = app.globalData.isMember
+      this.setData({
+        userInfo: user,
+        avatarUrl,
+        nickname,
+        isMember,
+        avatarText: (nickname || '用').substring(0, 1)
+      })
+    }).catch(() => {
+      // 降级用 globalData
+      const app = getApp()
+      const user = app.globalData.userInfo || {}
+      this.setData({
+        isMember: !!(app.globalData.isMember),
+        nickname: user.certName || user.nickname || '',
+        avatarUrl: user.avatarUrl || ''
+      })
     })
   },
 
