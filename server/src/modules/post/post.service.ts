@@ -144,7 +144,7 @@ export class PostService {
     return new Set(promos.map(p => Number(p.postId)));
   }
 
-  async list(query: any) {
+  async list(query: any, userId?: number) {
     const { type, industry, keyword, page = 1, pageSize = 20 } = query;
     const qb = this.postRepo.createQueryBuilder('p')
       .leftJoinAndSelect('p.user', 'u')
@@ -162,10 +162,41 @@ export class PostService {
     const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
     const promotedIds = await this.getPromotedPostIds((list || []).map(item => Number(item.id)));
 
-    const normalizedList = (list || []).map(item => ({
-      ...this.buildCompanyInfo(item, certMap),
-      isPromoted: promotedIds.has(Number(item.id)),
-    }));
+    // 查询当前用户已解锁的信息
+    const postIds = list.map(item => Number(item.id));
+    const unlockedPostIds = new Set<number>();
+    if (userId && postIds.length > 0) {
+      const unlocks = await this.unlockRepo.find({
+        where: { userId, postId: In(postIds) },
+      });
+      unlocks.forEach(unlock => unlockedPostIds.add(Number(unlock.postId)));
+    }
+
+    const normalizedList = (list || []).map(item => {
+      const postId = Number(item.id);
+      const isOwner = userId && item.userId === userId;
+      const isUnlocked = isOwner || unlockedPostIds.has(postId);
+
+      // 构建基础信息
+      const baseInfo = {
+        ...this.buildCompanyInfo(item, certMap),
+        isPromoted: promotedIds.has(postId),
+        contactUnlocked: isUnlocked,
+      };
+
+      // 只有已解锁或是发布者本人才返回联系方式
+      if (isUnlocked) {
+        return {
+          ...baseInfo,
+          contactPhone: item.contactPhone || null,
+          contactWechat: item.contactWechat || null,
+          contactName: item.contactName || null,
+        };
+      }
+
+      // 未解锁时不返回联系方式
+      return baseInfo;
+    });
 
     // 置顶帖排前面
     normalizedList.sort((a, b) => (b.isPromoted ? 1 : 0) - (a.isPromoted ? 1 : 0));
@@ -214,6 +245,10 @@ export class PostService {
     const normalizedList = (list || []).map(item => ({
       ...this.buildCompanyInfo(item, certMap),
       isPromoted: promotedIds.has(Number(item.id)),
+      contactUnlocked: true, // 自己的信息始终已解锁
+      contactPhone: item.contactPhone || null,
+      contactWechat: item.contactWechat || null,
+      contactName: item.contactName || null,
     }));
     return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }

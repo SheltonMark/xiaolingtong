@@ -9,8 +9,8 @@ export class PostController {
 
   @Public()
   @Get()
-  list(@Query() query: any) {
-    return this.postService.list(query);
+  list(@Query() query: any, @CurrentUser('sub') userId: number) {
+    return this.postService.list(query, userId || 0);
   }
 
   @Get('mine')

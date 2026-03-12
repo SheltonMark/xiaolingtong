@@ -158,48 +158,90 @@ Page({
   },
 
   onUnlockContact() {
-    const app = getApp()
-    const beanBalance = app.globalData.beanBalance || 0
-    const isMember = app.globalData.isMember || false
+    const postId = this.data.detail.id
+    if (!postId) {
+      wx.showToast({ title: '信息不存在', icon: 'none' })
+      return
+    }
 
-    // 会员可能免费，直接尝试解锁，由后端判断
-    if (isMember) {
+    // 先获取解锁成本预览
+    wx.showLoading({ title: '加载中...' })
+    get('/posts/' + postId + '/unlock-preview').then((response) => {
+      wx.hideLoading()
+      const data = response.data || response
+
+      // 如果已经解锁过了
+      if (data.alreadyUnlocked) {
+        wx.showToast({ title: '已解锁，无需重复解锁', icon: 'none' })
+        this.loadDetail(postId) // 刷新数据
+        return
+      }
+
+      const cost = data.cost || 0
+      const baseCost = data.baseCost || 10
+      const isMember = data.isMember || false
+      const isFree = data.isFree || false
+      const freeRemaining = data.freeRemaining || 0
+      const beanBalance = data.beanBalance || 0
+      const sufficient = data.sufficient
+
+      // 会员免费提示
+      if (isMember && isFree) {
+        wx.showModal({
+          title: '会员免费查看',
+          content: `会员专享：今日还有 ${freeRemaining} 次免费查看机会，确认使用？`,
+          confirmText: '确认',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) this._doUnlock()
+          }
+        })
+        return
+      }
+
+      // 会员折扣提示
+      if (isMember && !isFree) {
+        wx.showModal({
+          title: '会员折扣',
+          content: `会员专享5折优惠：需要 ${cost} 灵豆（原价 ${baseCost} 灵豆），当前余额 ${beanBalance} 灵豆，确认解锁？`,
+          confirmText: '解锁',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) this._doUnlock()
+          }
+        })
+        return
+      }
+
+      // 非会员检查灵豆
+      if (!sufficient) {
+        wx.showModal({
+          title: '灵豆不足',
+          content: `当前灵豆余额为 ${beanBalance}，需要 ${cost} 灵豆才能解锁联系方式。`,
+          confirmText: '去充值',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
+            }
+          }
+        })
+        return
+      }
+
+      // 非会员确认解锁
       wx.showModal({
         title: '解锁联系方式',
-        content: '会员专享：可能免费或享5折优惠，确认解锁？',
+        content: `需要耗费 ${cost} 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？`,
         confirmText: '解锁',
         cancelText: '取消',
         success: (res) => {
           if (res.confirm) this._doUnlock()
         }
       })
-      return
-    }
-
-    // 非会员检查灵豆
-    if (beanBalance < 10) {
-      wx.showModal({
-        title: '灵豆不足',
-        content: `当前灵豆余额为 ${beanBalance}，需要 10 灵豆才能解锁联系方式。`,
-        confirmText: '去充值',
-        cancelText: '取消',
-        success: (res) => {
-          if (res.confirm) {
-            wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
-          }
-        }
-      })
-      return
-    }
-
-    wx.showModal({
-      title: '解锁联系方式',
-      content: `需要耗费 10 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？`,
-      confirmText: '解锁',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) this._doUnlock()
-      }
+    }).catch((err) => {
+      wx.hideLoading()
+      wx.showToast({ title: err.message || '获取解锁信息失败', icon: 'none' })
     })
   },
 
@@ -233,7 +275,7 @@ Page({
     const phone = contactInfo.phone || ''
 
     if (!wechat && !phone) {
-      wx.showToast({ title: '暂无联系方式', icon: 'none' })
+      wx.showToast({ title: '发布者未留联系方式', icon: 'none' })
       return
     }
 

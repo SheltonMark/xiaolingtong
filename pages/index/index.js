@@ -407,19 +407,25 @@ Page({
       return
     }
 
-    // 检查是否已解锁
-    if (item.wechat) {
-      // 已解锁，直接显示
+    // 检查是否已解锁（使用 contactUnlocked 字段）
+    if (item.contactUnlocked && item.contactWechat) {
+      // 已解锁且有微信号，直接显示
       wx.showModal({
         title: '微信号',
-        content: item.wechat,
+        content: item.contactWechat,
         confirmText: '复制',
         success: (res) => {
           if (res.confirm) {
-            wx.setClipboardData({ data: item.wechat })
+            wx.setClipboardData({ data: item.contactWechat })
           }
         }
       })
+      return
+    }
+
+    if (item.contactUnlocked && !item.contactWechat) {
+      // 已解锁但没有微信号
+      wx.showToast({ title: '发布者未留微信号', icon: 'none' })
       return
     }
 
@@ -437,10 +443,16 @@ Page({
       return
     }
 
-    // 检查是否已解锁
-    if (item.phone) {
-      // 已解锁，直接拨打
-      wx.makePhoneCall({ phoneNumber: item.phone, fail() {} })
+    // 检查是否已解锁（使用 contactUnlocked 字段）
+    if (item.contactUnlocked && item.contactPhone) {
+      // 已解锁且有电话，直接拨打
+      wx.makePhoneCall({ phoneNumber: item.contactPhone, fail() {} })
+      return
+    }
+
+    if (item.contactUnlocked && !item.contactPhone) {
+      // 已解锁但没有电话
+      wx.showToast({ title: '发布者未留电话', icon: 'none' })
       return
     }
 
@@ -580,10 +592,8 @@ Page({
       return
     }
 
-    // 检查是否已解锁联系方式
-    const hasContact = !!(item.wechat || item.phone)
-
-    if (!hasContact) {
+    // 检查是否已解锁联系方式（使用 contactUnlocked 字段）
+    if (!item.contactUnlocked) {
       // 未解锁，需要先解锁
       wx.showModal({
         title: '提示',
