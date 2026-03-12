@@ -92,18 +92,33 @@ Page({
   },
 
   loadFavStatus(id) {
+    console.log('[exposure-detail] loadFavStatus called with id:', id)
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      const isFav = list.some(item => item.targetType === 'exposure' && String(item.targetId) === String(id))
+      console.log('[exposure-detail] favorites list:', list)
+      const isFav = list.some(item => {
+        const match = item.targetType === 'exposure' && String(item.targetId) === String(id)
+        console.log('[exposure-detail] checking item:', item, 'match:', match)
+        return match
+      })
+      console.log('[exposure-detail] isFav result:', isFav)
       this.setData({ isFav })
-    }).catch(() => {})
+    }).catch(err => {
+      console.error('[exposure-detail] loadFavStatus error:', err)
+    })
   },
 
   onToggleFav() {
-    post('/favorites/toggle', { targetType: 'exposure', targetId: this.data.detail.id }).then(() => {
+    console.log('[exposure-detail] onToggleFav called with id:', this.data.detail.id, 'current isFav:', this.data.isFav)
+    post('/favorites/toggle', { targetType: 'exposure', targetId: this.data.detail.id }).then((res) => {
+      console.log('[exposure-detail] toggle response:', res)
       this.setData({ isFav: !this.data.isFav })
       wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
-    }).catch(() => {})
+      // 重新加载收藏状态以确保同步
+      setTimeout(() => this.loadFavStatus(this.data.detail.id), 500)
+    }).catch(err => {
+      console.error('[exposure-detail] toggle error:', err)
+    })
   },
   onInputFocus(e) {
     this.setData({ keyboardHeight: e.detail.height || 0 })

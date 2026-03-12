@@ -48,11 +48,20 @@ Page({
   },
 
   loadFavStatus(id) {
+    console.log('[job-detail] loadFavStatus called with id:', id)
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      const isFav = list.some(item => item.targetType === 'job' && String(item.targetId) === String(id))
+      console.log('[job-detail] favorites list:', list)
+      const isFav = list.some(item => {
+        const match = item.targetType === 'job' && String(item.targetId) === String(id)
+        console.log('[job-detail] checking item:', item, 'match:', match)
+        return match
+      })
+      console.log('[job-detail] isFav result:', isFav)
       this.setData({ isFav })
-    }).catch(() => {})
+    }).catch(err => {
+      console.error('[job-detail] loadFavStatus error:', err)
+    })
   },
 
   onSwiperChange(e) {
@@ -96,10 +105,16 @@ Page({
   },
   onToggleFav() {
     const id = this.data.job.id
-    post('/favorites/toggle', { targetType: 'job', targetId: id }).then(() => {
+    console.log('[job-detail] onToggleFav called with id:', id, 'current isFav:', this.data.isFav)
+    post('/favorites/toggle', { targetType: 'job', targetId: id }).then((res) => {
+      console.log('[job-detail] toggle response:', res)
       this.setData({ isFav: !this.data.isFav })
       wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
-    }).catch(() => {})
+      // 重新加载收藏状态以确保同步
+      setTimeout(() => this.loadFavStatus(id), 500)
+    }).catch(err => {
+      console.error('[job-detail] toggle error:', err)
+    })
   },
 
   onShareJob() {
