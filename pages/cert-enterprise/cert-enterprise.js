@@ -1,19 +1,55 @@
-const { post, upload } = require('../../utils/request')
+const { get, post, upload } = require('../../utils/request')
 
 Page({
   data: {
-    form: { companyName: '', creditCode: '', contactName: '', phone: '' },
+    form: { companyName: '', creditCode: '', legalPerson: '', contactName: '', phone: '', address: '' },
     licenseImage: '',
     idFrontImage: '',
     idBackImage: '',
     selectedType: '',
-    typeOptions: ['工厂', '工贸一体', '电商', '贸易公司', '门店', '其他']
+    typeOptions: ['工厂', '工贸一体', '电商', '贸易公司', '门店', '其他'],
+    categoryNames: [],
+    categoryIndex: -1,
+    selectedCategory: '',
+    // 省市区
+    cityNames: [],
+    cityIndex: 0
   },
+
+  onLoad() {
+    this._loadCategories()
+    this._loadCities()
+  },
+
+  _loadCategories() {
+    get('/config/categories').then(res => {
+      const d = res.data || res
+      const list = d.list || []
+      this.setData({ categoryNames: list.map(c => c.name) })
+    }).catch(() => {})
+  },
+
+  _loadCities() {
+    get('/config/cities').then(res => {
+      const d = res.data || res
+      const list = d.list || []
+      this.setData({ cityNames: list.map(c => c.name) })
+    }).catch(() => {})
+  },
+
   onInput(e) {
     this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value })
   },
   onTypeTap(e) {
     this.setData({ selectedType: e.currentTarget.dataset.tag })
+  },
+  onCategoryChange(e) {
+    const idx = e.detail.value
+    this.setData({ categoryIndex: idx, selectedCategory: this.data.categoryNames[idx] })
+  },
+  onCityChange(e) {
+    const idx = e.detail.value
+    this.setData({ cityIndex: idx, 'form.address': this.data.cityNames[idx] })
   },
   onUploadLicense() {
     wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
@@ -36,28 +72,23 @@ Page({
         .catch(() => this.setData({ idBackImage: path }))
     }})
   },
-  onSelectAddress() {
-    wx.chooseLocation({
-      success: (res) => {
-        this.setData({ 'form.address': res.address, 'form.latitude': res.latitude, 'form.longitude': res.longitude })
-      }
-    })
-  },
   onSubmit() {
-    const { form, licenseImage, selectedType, idFrontImage, idBackImage } = this.data
-    if (!form.companyName || !form.creditCode || !licenseImage || !selectedType) {
+    const { form, licenseImage, selectedType, selectedCategory, idFrontImage, idBackImage } = this.data
+    if (!form.companyName || !form.creditCode || !licenseImage || !selectedType || !form.contactName || !form.phone) {
       wx.showToast({ title: '请填写必填项', icon: 'none' }); return
     }
     wx.showLoading({ title: '提交中...' })
     post('/cert/enterprise', {
       companyName: form.companyName,
       creditCode: form.creditCode,
+      legalPerson: form.legalPerson || form.contactName,
       contactName: form.contactName,
-      phone: form.phone,
+      contactPhone: form.phone,
       licenseImage,
-      idFrontImage,
-      idBackImage,
+      legalIdFront: idFrontImage,
+      legalIdBack: idBackImage,
       companyType: selectedType,
+      category: selectedCategory,
       address: form.address
     }).then(() => {
       wx.hideLoading()

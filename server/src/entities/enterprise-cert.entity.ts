@@ -18,10 +18,10 @@ export class EnterpriseCert {
   @Column({ length: 512 })
   licenseImage: string;
 
-  @Column({ length: 32 })
+  @Column({ length: 32, nullable: true })
   legalPerson: string;
 
-  @Column({ length: 32 })
+  @Column({ length: 32, nullable: true })
   legalIdNo: string;
 
   @Column({ length: 512, nullable: true })
