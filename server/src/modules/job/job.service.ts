@@ -1,9 +1,11 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { User } from '../../entities/user.entity';
+import { JobStateMachine } from './job-state-machine';
 
 @Injectable()
 export class JobService {
@@ -11,6 +13,7 @@ export class JobService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -247,5 +250,92 @@ export class JobService {
     await this.checkKeywords((dto.title || '') + (dto.description || ''));
     Object.assign(job, dto);
     return this.jobRepo.save(job);
+  }
+
+  async updateApplicationStatus(
+    applicationId: number,
+    newStatus: string,
+    userId: number,
+  ): Promise<JobApplication> {
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId },
+      relations: ['job'],
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (!JobStateMachine.canTransition(application.status, newStatus)) {
+      throw new BadRequestException(
+        `Cannot transition from ${application.status} to ${newStatus}`,
+      );
+    }
+
+    application.status = newStatus;
+    if (newStatus === 'confirmed') {
+      application.confirmedAt = new Date();
+    }
+
+    return this.appRepo.save(application);
+  }
+
+  async acceptApplication(
+    applicationId: number,
+    action: 'accepted' | 'rejected',
+    userId: number,
+  ): Promise<JobApplication> {
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId },
+      relations: ['job'],
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    // 验证权限：只有工作发布者可以接受/拒绝
+    if (application.job.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to accept this application');
+    }
+
+    // 验证状态：只有 pending 状态可以接受/拒绝
+    if (application.status !== 'pending') {
+      throw new BadRequestException('Application is not in pending status');
+    }
+
+    return this.updateApplicationStatus(applicationId, action, userId);
+  }
+
+  async selectSupervisor(
+    jobId: number,
+    workerId: number,
+    userId: number,
+  ): Promise<JobApplication> {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to manage this job');
+    }
+
+    const application = await this.appRepo.findOne({
+      where: { jobId, workerId, status: 'accepted' },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found or not in accepted status');
+    }
+
+    // 验证临工资格
+    const worker = await this.userRepo.findOne({ where: { id: workerId } });
+    if (!worker || worker.creditScore < 95 || worker.totalOrders < 10) {
+      throw new BadRequestException('Worker does not meet supervisor requirements');
+    }
+
+    // 更新为 confirmed 并标记为管理员
+    application.status = 'confirmed';
+    application.isSupervisor = 1;
+    application.confirmedAt = new Date();
+
+    return this.appRepo.save(application);
   }
 }
