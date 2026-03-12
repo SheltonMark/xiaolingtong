@@ -9,7 +9,7 @@ export class BeanTransaction {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['recharge', 'unlock_contact', 'promote', 'reward', 'membership', 'invite_reward'] })
+  @Column({ type: 'varchar', length: 32 })
   type: string;
 
   @Column({ type: 'int' })

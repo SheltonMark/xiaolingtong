@@ -131,6 +131,9 @@
   padding: 16rpx 32rpx;
   border-bottom: 1rpx solid #F1F5F9;
 }
+.filter-bar picker {
+  flex: 1;
+}
 .filter-item {
   flex: 1;
   display: flex;

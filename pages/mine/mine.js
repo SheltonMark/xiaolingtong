@@ -119,7 +119,7 @@ Page({
     // 加载钱包余额（企业端和临工端都需要）
     get('/wallet').then(res => {
       const d = res.data || {}
-      this.setData({ walletBalance: (d.balance || 0).toFixed(2) })
+      this.setData({ walletBalance: Number(d.balance || 0).toFixed(2) })
     }).catch(() => {})
     // 临工端加载接单记录
     if (this.data.userRole === 'worker') {

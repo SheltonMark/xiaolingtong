@@ -59,15 +59,7 @@
 
     <view class="form-group">
       <text class="form-label">手机号 <text class="required">*</text></text>
-      <view class="phone-row">
-        <input class="form-input phone-input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="onInput" />
-        <view class="sms-btn" bindtap="onGetCode">获取验证码</view>
-      </view>
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">验证码 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入短信验证码" data-field="smsCode" bindinput="onInput" />
+      <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="onInput" />
     </view>
 
     <view class="form-group">

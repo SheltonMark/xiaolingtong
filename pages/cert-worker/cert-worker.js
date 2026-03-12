@@ -2,7 +2,7 @@ const { post, upload } = require('../../utils/request')
 
 Page({
   data: {
-    form: { name: '', idCard: '', phone: '', smsCode: '' },
+    form: { name: '', idCard: '', phone: '' },
     skills: ['组装工', '包装工', '缝纫工', '搬运工', '质检员', '焊工', '叉车工', '普工'],
     selectedSkills: [],
     frontImage: '',
@@ -15,12 +15,6 @@ Page({
     const idx = s.indexOf(tag)
     idx > -1 ? s.splice(idx, 1) : s.push(tag)
     this.setData({ selectedSkills: s })
-  },
-  onGetCode() {
-    if (!this.data.form.phone) {
-      wx.showToast({ title: '请输入手机号', icon: 'none' }); return
-    }
-    wx.showToast({ title: '验证码已发送', icon: 'success' })
   },
   onUploadFront() {
     wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
@@ -44,9 +38,8 @@ Page({
     wx.showLoading({ title: '提交中...' })
     post('/cert/worker', {
       realName: form.name,
-      idCard: form.idCard,
+      idNo: form.idCard,
       phone: form.phone,
-      smsCode: form.smsCode,
       idFrontImage: frontImage,
       idBackImage: backImage,
       skills: selectedSkills

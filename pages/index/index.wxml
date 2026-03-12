@@ -265,20 +265,6 @@
 
   <!-- ===== 临工端内容 ===== -->
   <view wx:if="{{userRole === 'worker'}}" class="worker-list-wrap">
-    <!-- 广告 Banner 轮播 -->
-    <view class="banner-wrap banner-wrap-worker">
-      <swiper class="banner-swiper" autoplay circular indicator-dots
-              indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
-        <swiper-item wx:for="{{banners}}" wx:key="id">
-          <view class="banner-slide banner-slide-default" style="background: {{item.bg}};">
-            <view class="banner-content">
-              <text class="banner-title">{{item.title}}</text>
-              <text class="banner-sub">{{item.sub}}</text>
-            </view>
-          </view>
-        </swiper-item>
-      </swiper>
-    </view>
     <view class="job-card" wx:for="{{jobList}}" wx:key="id"
           data-id="{{item.id}}" bindtap="onJobTap">
       <!-- 头部：公司+工资 -->

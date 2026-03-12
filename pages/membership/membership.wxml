@@ -83,6 +83,10 @@
   <!-- 开通按钮 -->
   <view class="mb-bottom-area">
     <button class="mb-pay-btn" bindtap="onPay">立即开通 · ¥{{plans[selectedIndex].price}}/{{plans[selectedIndex].unit}}</button>
-    <text class="mb-hint">开通即同意《会员服务协议》· 到期自动停止</text>
+    <view class="mb-hint-row">
+      <text class="mb-hint">开通即同意</text>
+      <text class="mb-hint-link" bindtap="onViewMembershipAgreement">《会员服务协议》</text>
+      <text class="mb-hint">，到期自动停止</text>
+    </view>
   </view>
 </view>

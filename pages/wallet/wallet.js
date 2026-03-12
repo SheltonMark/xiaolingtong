@@ -16,8 +16,8 @@ Page({
     get('/wallet').then(res => {
       const d = res.data || {}
       this.setData({
-        balance: (d.balance || 0).toFixed(2),
-        totalIncome: (d.totalIncome || 0).toFixed(2)
+        balance: Number(d.balance || 0).toFixed(2),
+        totalIncome: Number(d.totalIncome || 0).toFixed(2)
       })
     }).catch(() => {})
     get('/wallet/transactions').then(res => {
