@@ -119,7 +119,12 @@ export class JobService {
       .leftJoinAndSelect('j.user', 'u')
       .where('j.status IN (:...statuses)', { statuses: ['recruiting', 'full'] });
 
-    if (keyword) qb.andWhere('j.title LIKE :kw', { kw: `%${keyword}%` });
+    if (keyword) {
+      qb.andWhere(
+        '(j.title LIKE :kw OR j.description LIKE :kw OR j.companyName LIKE :kw)',
+        { kw: `%${keyword}%` }
+      );
+    }
     if (salaryType) qb.andWhere('j.salaryType = :salaryType', { salaryType });
     if (minSalary) qb.andWhere('j.salary >= :minSalary', { minSalary });
     if (maxSalary) qb.andWhere('j.salary <= :maxSalary', { maxSalary });

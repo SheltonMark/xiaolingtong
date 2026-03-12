@@ -14,9 +14,15 @@
           <text class="city-name">{{currentCity}}</text>
         </view>
       </picker>
-      <view class="search-bar" bindtap="onSearch">
+      <view class="search-bar">
         <text class="search-icon iconfont icon-sousuo"></text>
-        <text class="search-placeholder">{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}</text>
+        <input class="search-input"
+               placeholder="{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}"
+               placeholder-class="search-placeholder"
+               value="{{searchKeyword}}"
+               bindinput="onSearchInput"
+               bindconfirm="onSearchConfirm"
+               confirm-type="search" />
       </view>
       <view class="notify-btn" bindtap="onNotification">
         <text class="notify-icon iconfont icon-tongzhi"></text>
