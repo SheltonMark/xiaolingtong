@@ -67,6 +67,7 @@ coverage/
 planning-with-files/
 xiaolingtong/
 server/uploads/
+.worktrees/
 
 # 微信小程序
 .wechat_devtools/
