@@ -25,12 +25,12 @@ Page({
       }
       this.setData({ job: jobData })
 
-      // 计算距离
-      if (job.latitude && job.longitude) {
+      // 计算距离（后端使用 lat 和 lng 字段）
+      if (job.lat && job.lng) {
         getUserLocation().then(userLocation => {
           return calculateDistance(userLocation, {
-            latitude: job.latitude,
-            longitude: job.longitude
+            latitude: job.lat,
+            longitude: job.lng
           })
         }).then(distance => {
           this.setData({
