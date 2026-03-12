@@ -1,6 +1,6 @@
 <!--pages/chat/chat.wxml-->
 <view class="chat-page">
-  <nav-bar title="在线聊天" />
+  <nav-bar title="{{otherName || '在线聊天'}}" />
   <view class="recording-mask" wx:if="{{recording}}">
     <view class="recording-panel {{cancelVoice ? 'recording-panel-cancel' : ''}}">
       <view class="recording-mic iconfont icon-yuyin"></view>
@@ -16,17 +16,16 @@
     </view>
   </view>
   <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}" style="padding-bottom: calc(160rpx + env(safe-area-inset-bottom) + {{keyboardHeight}}px);">
-    <view class="time-mark"><text>{{timeMarkText}}</text></view>
-    <view class="sys-tip"><text class="sys-tip-text">你正在咨询「保温杯3000个采购」</text></view>
     <block wx:for="{{messages}}" wx:key="id">
+      <!-- 时间标记居中显示 -->
+      <view class="time-mark" wx:if="{{item.showTime}}"><text>{{item.time}}</text></view>
+
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
         <view class="msg-avatar-wrap">
           <image wx:if="{{otherAvatarUrl}}" src="{{otherAvatarUrl}}" mode="aspectFill" class="avatar-img avatar-img-md" />
           <view wx:else class="text-avatar text-avatar-md" style="background-color: #F97316;">{{otherAvatarText}}</view>
         </view>
         <view class="msg-bubble-wrap">
-          <view class="msg-sender-name">{{otherName}}</view>
-          <text class="msg-date-text">{{item.time}}</text>
           <view class="bubble bubble-left" wx:if="{{item.type === 'text' && item.text}}">
             <text>{{item.text}}</text>
           </view>
@@ -39,7 +38,6 @@
       </view>
       <view class="msg-row msg-right" wx:if="{{item.from === 'me'}}" id="msg-{{item.id}}">
         <view class="msg-bubble-wrap msg-bubble-right">
-          <text class="msg-date-text msg-date-right">{{item.time}}</text>
           <view class="bubble bubble-right" wx:if="{{item.type === 'text' && item.text}}">
             <text>{{item.text}}</text>
           </view>

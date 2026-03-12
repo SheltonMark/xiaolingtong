@@ -106,6 +106,18 @@ Page({
       const rawList = (res.data && res.data.list) || []
       const list = rawList.map(item => this.normalizeMessage(item))
 
+      // 添加时间分组逻辑：每5分钟显示一次时间
+      let lastTime = null
+      const messagesWithTime = list.map(msg => {
+        const msgTime = new Date(msg.time || '')
+        let showTime = false
+        if (!lastTime || (msgTime - lastTime) >= 5 * 60 * 1000) {
+          showTime = true
+          lastTime = msgTime
+        }
+        return { ...msg, showTime }
+      })
+
       // 从后端返回的 otherUser 获取对方信息
       const otherUser = res.data && res.data.otherUser
       if (otherUser) {
@@ -128,9 +140,7 @@ Page({
         }
       }
 
-      // 设置时间提示为第一条消息的时间
-      const timeMarkText = rawList.length > 0 ? this.formatMessageTime(rawList[0].time || '') : this.formatMessageTime(new Date().toISOString())
-      this.setData({ messages: list, timeMarkText }, () => this.scrollToBottom())
+      this.setData({ messages: messagesWithTime }, () => this.scrollToBottom())
     }).catch(() => {})
   },
   formatMessageTime(timeStr) {
@@ -138,13 +148,18 @@ Page({
     const date = new Date(timeStr)
     if (isNaN(date.getTime())) return timeStr
 
-    const month = date.getMonth() + 1
-    const day = date.getDate()
+    const now = new Date()
+    const isToday = date.toDateString() === now.toDateString()
     const hours = String(date.getHours()).padStart(2, '0')
     const minutes = String(date.getMinutes()).padStart(2, '0')
-    const seconds = String(date.getSeconds()).padStart(2, '0')
 
-    return `${month}月${day}日 ${hours}:${minutes}:${seconds}`
+    if (isToday) {
+      return `${hours}:${minutes}`
+    }
+
+    const month = date.getMonth() + 1
+    const day = date.getDate()
+    return `${month}月${day}日 ${hours}:${minutes}`
   },
 
   normalizeMessage(item = {}) {
