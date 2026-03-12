@@ -360,6 +360,21 @@ Page({
     wx.switchTab({ url: '/pages/messages/messages' })
   },
 
+  loadUnreadCount() {
+    if (!auth.getToken()) return
+    Promise.all([
+      get('/notifications/unread-count').catch(() => ({ data: { count: 0 } })),
+      get('/conversations').catch(() => ({ data: [] }))
+    ]).then(([notiRes, chatRes]) => {
+      const notiCount = (notiRes.data || notiRes).count || 0
+      const chatList = (chatRes.data || chatRes)
+      const chatCount = Array.isArray(chatList)
+        ? chatList.reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+        : (chatList.list || []).reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+      this.setData({ unreadCount: notiCount + chatCount })
+    })
+  },
+
   onCardTap(e) {
     const { id } = e.detail
     wx.navigateTo({ url: '/pages/post-detail/post-detail?id=' + id })

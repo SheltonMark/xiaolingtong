@@ -20,7 +20,7 @@
       </view>
       <view class="notify-btn" bindtap="onNotification">
         <text class="notify-icon iconfont icon-tongzhi"></text>
-        <view class="notify-badge">3</view>
+        <view class="notify-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
       </view>
     </view>
     <!-- 企业端 Tab -->
