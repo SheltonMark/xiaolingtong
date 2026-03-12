@@ -177,6 +177,19 @@ export class PostService {
       const isOwner = userId && item.userId === userId;
       const isUnlocked = isOwner || unlockedPostIds.has(postId);
 
+      // 调试日志
+      if (postId === 5) {
+        console.log('=== Post 5 解锁状态调试 ===');
+        console.log('当前userId:', userId);
+        console.log('发布者userId:', item.userId);
+        console.log('userId类型:', typeof userId);
+        console.log('item.userId类型:', typeof item.userId);
+        console.log('isOwner:', isOwner);
+        console.log('unlockedPostIds.has(5):', unlockedPostIds.has(postId));
+        console.log('isUnlocked:', isUnlocked);
+        console.log('========================');
+      }
+
       // 构建基础信息
       const baseInfo = {
         ...this.buildCompanyInfo(item, certMap),

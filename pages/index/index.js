@@ -597,6 +597,17 @@ Page({
     // 检查是否是自己发布的
     const app = getApp()
     const currentUserId = app.globalData.userId
+
+    // 调试信息
+    console.log('=== 在线聊调试信息 ===')
+    console.log('当前用户ID:', currentUserId)
+    console.log('发布者ID:', targetUserId)
+    console.log('测试模式:', app.globalData.TEST_MODE)
+    console.log('测试用户ID:', app.globalData.TEST_USER_ID)
+    console.log('信息ID:', postId)
+    console.log('是否已解锁:', item.contactUnlocked)
+    console.log('==================')
+
     if (currentUserId && targetUserId === currentUserId) {
       wx.showToast({ title: '不能和自己对话', icon: 'none' })
       return
