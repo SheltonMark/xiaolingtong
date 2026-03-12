@@ -8,8 +8,13 @@
 
   <view class="form-area">
     <view class="form-group">
-      <text class="form-label">企业名称 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入营业执照上的企业全称" data-field="companyName" bindinput="onInput" />
+      <text class="form-label">公司简称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="用于显示的公司名称，如：鑫达贸易" data-field="companyName" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">营业执照全称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入营业执照上的企业全称" data-field="fullName" bindinput="onInput" />
     </view>
 
     <view class="form-group">

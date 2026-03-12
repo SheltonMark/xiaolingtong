@@ -23,6 +23,7 @@ import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { Notification } from '../../entities/notification.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -53,6 +54,7 @@ export class AdminService {
     @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(Notification) private notiRepo: Repository<Notification>,
     private jwt: JwtService,
   ) {}
 
@@ -200,9 +202,23 @@ export class AdminService {
 
   async auditCert(type: string, id: number, action: string, rejectReason?: string) {
     const repo = type === 'worker' ? this.workerCertRepo : this.entCertRepo;
+    const cert = await repo.findOneBy({ id } as any);
     const update: any = { status: action === 'approve' ? 'approved' : 'rejected', reviewedAt: new Date() };
     if (action === 'reject' && rejectReason) update.rejectReason = rejectReason;
     await repo.update(id, update);
+
+    // 发送通知
+    if (cert && cert.userId) {
+      const typeName = type === 'worker' ? '临工认证' : '企业认证';
+      const title = action === 'approve' ? `${typeName}审核通过` : `${typeName}审核未通过`;
+      const content = action === 'approve'
+        ? `恭喜，您的${typeName}已审核通过！`
+        : `您的${typeName}审核未通过${rejectReason ? '，原因：' + rejectReason : ''}`;
+      await this.notiRepo.save(this.notiRepo.create({
+        userId: cert.userId, type: 'cert' as any, title, content,
+      }));
+    }
+
     return { message: action === 'approve' ? '已通过' : '已驳回' };
   }
 

@@ -19,7 +19,10 @@
   </view>
   <!-- 消息 -->
   <view class="tab-bar-item" data-path="/pages/messages/messages" data-istab="{{true}}" data-index="3" bindtap="switchTab">
-    <text class="tab-icon iconfont icon-xiaoxi {{selected === 3 ? 'tab-icon-ent-active' : ''}}"></text>
+    <view class="tab-icon-wrap">
+      <text class="tab-icon iconfont icon-xiaoxi {{selected === 3 ? 'tab-icon-ent-active' : ''}}"></text>
+      <text class="tab-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</text>
+    </view>
     <text class="tab-text {{selected === 3 ? 'tab-text-ent-active' : ''}}">消息</text>
   </view>
   <!-- 我的 -->
@@ -43,7 +46,10 @@
   </view>
   <!-- 消息 -->
   <view class="tab-bar-item" data-path="/pages/messages/messages" data-istab="{{true}}" data-index="2" bindtap="switchTab">
-    <text class="tab-icon iconfont icon-xiaoxi {{selected === 2 ? 'tab-icon-worker-active' : ''}}"></text>
+    <view class="tab-icon-wrap">
+      <text class="tab-icon iconfont icon-xiaoxi {{selected === 2 ? 'tab-icon-worker-active' : ''}}"></text>
+      <text class="tab-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</text>
+    </view>
     <text class="tab-text {{selected === 2 ? 'tab-text-worker-active' : ''}}">消息</text>
   </view>
   <!-- 我的 -->

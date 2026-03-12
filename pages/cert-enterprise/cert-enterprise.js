@@ -2,7 +2,7 @@ const { get, post, upload } = require('../../utils/request')
 
 Page({
   data: {
-    form: { companyName: '', creditCode: '', legalPerson: '', contactName: '', phone: '', city: '', addressDetail: '' },
+    form: { companyName: '', fullName: '', creditCode: '', legalPerson: '', contactName: '', phone: '', city: '', addressDetail: '' },
     licenseImage: '',
     idFrontImage: '',
     idBackImage: '',
