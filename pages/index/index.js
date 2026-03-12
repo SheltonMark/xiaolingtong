@@ -1,11 +1,13 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
+const auth = require('../../utils/auth')
 
 Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
     statusBarHeight: 0,
     currentCity: '东莞', // 当前选择的城市
+    unreadCount: 0, // 未读消息总数
     cityIndex: 0, // picker 当前索引
     cityNames: [], // picker 用的城市名数组
     cities: [], // 可选城市列表
@@ -112,6 +114,7 @@ Page({
     this.loadJobTypes()
     this.loadBannerAds()
     this.loadData()
+    this.loadUnreadCount()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
     }

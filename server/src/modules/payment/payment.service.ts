@@ -187,7 +187,18 @@ export class PaymentService {
     if (!order || order.payStatus === 'paid') return;
     order.payStatus = 'paid';
     order.paidAt = new Date();
-    const expireAt = new Date();
+
+    // 获取用户当前会员状态
+    const user = await this.userRepo.findOneBy({ id: order.userId });
+    const now = new Date();
+    let startFrom = now;
+
+    // 如果用户已是会员且未过期，从现有到期时间开始累加
+    if (user && user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > now) {
+      startFrom = new Date(user.memberExpireAt);
+    }
+
+    const expireAt = new Date(startFrom);
     expireAt.setDate(expireAt.getDate() + order.durationDays);
     order.expireAt = expireAt;
     await this.memberOrderRepo.save(order);
