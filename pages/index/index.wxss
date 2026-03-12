@@ -306,6 +306,13 @@
   flex: 1;
   min-width: 0;
 }
+.job-avatar-img {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: #F1F5F9;
+}
 .job-company-info {
   display: flex;
   flex-direction: column;

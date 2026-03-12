@@ -231,8 +231,17 @@ export class PostService {
     });
     const certMap = await this.getEnterpriseCertMap([Number(post.userId)]);
     const normalizedPost = this.buildCompanyInfo(post, certMap);
+
+    // 如果已解锁，返回联系方式
+    const contactInfo = (unlocked || post.userId === userId) ? {
+      contactName: post.contactName,
+      contactPhone: post.contactPhone,
+      contactWechat: post.contactWechat,
+    } : {};
+
     return {
       ...normalizedPost,
+      ...contactInfo,
       postCount: userPostCount,
       contactUnlocked: !!unlocked || post.userId === userId,
     };
@@ -295,6 +304,61 @@ export class PostService {
     post.status = 'deleted';
     await this.postRepo.save(post);
     return { message: '已删除' };
+  }
+
+  async previewUnlockCost(postId: number, userId: number) {
+    const post = await this.postRepo.findOne({ where: { id: postId } });
+    if (!post) throw new BadRequestException('信息不存在');
+    if (post.userId === userId) return { alreadyUnlocked: true, cost: 0, isFree: true };
+
+    const existing = await this.unlockRepo.findOne({ where: { userId, postId } });
+    if (existing) return { alreadyUnlocked: true, cost: 0, isFree: true };
+
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new BadRequestException('用户不存在');
+
+    // 读取配置
+    const baseCost = parseInt(await this.getConfig('unlock_contact_cost', '10')) || 10;
+    const dailyFree = parseInt(await this.getConfig('member_daily_free_views', '5')) || 5;
+    const discount = parseFloat(await this.getConfig('member_view_discount', '0.5')) || 0.5;
+
+    // 判断会员状态
+    const isMember = user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date();
+
+    let actualCost = baseCost;
+    let isFree = false;
+    let freeRemaining = 0;
+
+    if (isMember) {
+      // 统计今日已用免费次数
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const todayUnlocks = await this.unlockRepo.count({
+        where: { userId, createdAt: MoreThanOrEqual(todayStart) },
+      });
+
+      freeRemaining = Math.max(0, dailyFree - todayUnlocks);
+
+      if (todayUnlocks < dailyFree) {
+        // 免费额度内
+        actualCost = 0;
+        isFree = true;
+      } else {
+        // 超出免费额度，打折
+        actualCost = Math.ceil(baseCost * discount);
+      }
+    }
+
+    return {
+      alreadyUnlocked: false,
+      cost: actualCost,
+      baseCost,
+      isMember,
+      isFree,
+      freeRemaining,
+      beanBalance: user.beanBalance,
+      sufficient: user.beanBalance >= actualCost,
+    };
   }
 
   async unlockContact(postId: number, userId: number) {

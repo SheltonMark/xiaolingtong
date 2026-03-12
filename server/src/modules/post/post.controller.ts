@@ -39,6 +39,11 @@ export class PostController {
     return this.postService.remove(id, userId);
   }
 
+  @Get(':id/unlock-preview')
+  previewUnlockCost(@Param('id') id: number, @CurrentUser('sub') userId: number) {
+    return this.postService.previewUnlockCost(id, userId || 0);
+  }
+
   @HttpPost(':id/unlock')
   unlockContact(@Param('id') id: number, @CurrentUser('sub') userId: number) {
     return this.postService.unlockContact(id, userId);

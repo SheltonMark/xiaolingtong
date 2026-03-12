@@ -1,7 +1,7 @@
 <!--pages/wallet/wallet.wxml-->
 <view class="wl-page">
   <nav-bar title="我的钱包" />
-  <!-- 余额卡片 -->
+
   <view class="wl-card">
     <view class="wl-card-bg1"></view>
     <view class="wl-card-bg2"></view>
@@ -17,37 +17,6 @@
     </view>
   </view>
 
-  <!-- 快捷入口（仅临工端） -->
-  <view class="wl-shortcuts" wx:if="{{userRole === 'worker'}}">
-    <view class="shortcut-grid">
-      <view class="shortcut-item" bindtap="onGoIncome">
-        <view class="shortcut-icon shortcut-icon-orange">
-          <text class="iconfont icon-qiandai"></text>
-        </view>
-        <text class="shortcut-text">收入明细</text>
-      </view>
-      <view class="shortcut-item" bindtap="onGoBeanShop">
-        <view class="shortcut-icon shortcut-icon-blue">
-          <text class="iconfont icon-douzi"></text>
-        </view>
-        <text class="shortcut-text">灵豆商城</text>
-      </view>
-      <view class="shortcut-item" bindtap="onGoSettlement">
-        <view class="shortcut-icon shortcut-icon-green">
-          <text class="iconfont icon-xiangqing"></text>
-        </view>
-        <text class="shortcut-text">工资单</text>
-      </view>
-      <view class="shortcut-item" bindtap="onGoHelp">
-        <view class="shortcut-icon shortcut-icon-amber">
-          <text class="iconfont icon-bangzhu"></text>
-        </view>
-        <text class="shortcut-text">帮助</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 最近收入 -->
   <view class="wl-section">
     <view class="section-header">
       <text class="section-title">最近收入</text>
@@ -67,6 +36,7 @@
     </view>
     <empty-state wx:if="{{records.length === 0}}" text="暂无收入记录" />
   </view>
+
   <view class="wl-tip">
     <text class="wl-tip-text">提现到微信零钱 · 免手续费 · 预计24小时内到账</text>
   </view>

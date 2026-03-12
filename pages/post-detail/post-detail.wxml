@@ -73,12 +73,14 @@
       <text class="bottom-btn-icon iconfont icon-xiaoxi"></text>
       <text>在线聊</text>
     </button>
+    <!-- 未解锁：显示解锁按钮 -->
     <button class="bottom-btn btn-contact" bindtap="onUnlockContact" wx:if="{{!contactUnlocked}}">
       <text class="bottom-btn-icon iconfont icon-jiesuo"></text>
-      <text>10灵豆解锁</text>
+      <text>解锁联系方式</text>
     </button>
-    <button class="bottom-btn btn-contact" bindtap="onCallPhone" wx:else>
-      <text class="bottom-btn-icon iconfont icon-shouji"></text>
+    <!-- 已解锁：显示立即联系按钮 -->
+    <button class="bottom-btn btn-contact" bindtap="onShowContact" wx:else>
+      <text class="bottom-btn-icon iconfont icon-lianxi"></text>
       <text>立即联系</text>
     </button>
   </view>

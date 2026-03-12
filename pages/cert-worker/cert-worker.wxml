@@ -65,8 +65,8 @@
     <view class="form-group">
       <text class="form-label">擅长工种 <text class="optional">(选填)</text></text>
       <view class="tag-list">
-        <text class="skill-tag {{selectedSkills.indexOf(item) > -1 ? 'skill-tag-active' : ''}}"
-              wx:for="{{skills}}" wx:key="*this" data-tag="{{item}}" bindtap="onSkillTap">{{item}}</text>
+        <view class="skill-tag {{selectedSkillsMap[item] ? 'skill-tag-active' : ''}}"
+              wx:for="{{skills}}" wx:key="*this" data-tag="{{item}}" bindtap="onSkillTap">{{item}}</view>
       </view>
     </view>
 

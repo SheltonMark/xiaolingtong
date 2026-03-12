@@ -194,7 +194,7 @@ Page({
       } else if (this.data.sortBy === 'salary_asc') {
         list = list.sort((a, b) => a.salary - b.salary)
       }
-      this.setData({ jobList: list })
+      this.setData({ jobList: this._mapJobs(list) })
     }).catch(() => {})
   },
 
@@ -214,6 +214,18 @@ Page({
         wechat: item.contactWechat || item.wechat || '',
         phone: item.contactPhone || item.phone || '',
         isMember: !!(user.isMember)
+      }
+    })
+  },
+
+  _mapJobs(list) {
+    return (Array.isArray(list) ? list : []).map((item) => {
+      const user = item.user || {}
+      const companyName = item.companyName || user.nickname || '企业用户'
+      return {
+        ...item,
+        companyName,
+        avatarUrl: normalizeImageUrl(item.avatarUrl || user.avatarUrl || '')
       }
     })
   },
@@ -337,13 +349,13 @@ Page({
         }).catch(() => {})
       } else if (currentTab === 3) {
         get('/jobs', params).then(res => {
-          this.setData({ jobListEnterprise: res.data.list || res.data || [] })
+          this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
         }).catch(() => {})
       }
     } else {
       // 临工端
       get('/jobs', params).then(res => {
-        this.setData({ jobList: res.data.list || res.data || [] })
+        this.setData({ jobList: this._mapJobs(res.data.list || res.data || []) })
       }).catch(() => {})
     }
   },
@@ -387,36 +399,173 @@ Page({
 
   onWechat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    // 从列表中找到对应项的微信号
     const allItems = this._getAllItems()
     const item = allItems.find(i => String(i.id) === String(id))
-    const wechat = item ? item.wechat : ''
-    if (!wechat) {
-      wx.showToast({ title: '暂无微信号', icon: 'none' })
+
+    if (!item) {
+      wx.showToast({ title: '信息不存在', icon: 'none' })
       return
     }
-    wx.showModal({
-      title: '微信号',
-      content: wechat,
-      confirmText: '复制',
-      success: (res) => {
-        if (res.confirm) {
-          wx.setClipboardData({ data: wechat })
+
+    // 检查是否已解锁
+    if (item.wechat) {
+      // 已解锁，直接显示
+      wx.showModal({
+        title: '微信号',
+        content: item.wechat,
+        confirmText: '复制',
+        success: (res) => {
+          if (res.confirm) {
+            wx.setClipboardData({ data: item.wechat })
+          }
         }
-      }
-    })
+      })
+      return
+    }
+
+    // 未解锁，需要解锁
+    this._unlockContact(id, 'wechat')
   },
 
   onPhone(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     const allItems = this._getAllItems()
     const item = allItems.find(i => String(i.id) === String(id))
-    const phone = item ? item.phone : ''
-    if (!phone) {
-      wx.showToast({ title: '暂无电话号码', icon: 'none' })
+
+    if (!item) {
+      wx.showToast({ title: '信息不存在', icon: 'none' })
       return
     }
-    wx.makePhoneCall({ phoneNumber: phone, fail() {} })
+
+    // 检查是否已解锁
+    if (item.phone) {
+      // 已解锁，直接拨打
+      wx.makePhoneCall({ phoneNumber: item.phone, fail() {} })
+      return
+    }
+
+    // 未解锁，需要解锁
+    this._unlockContact(id, 'phone')
+  },
+
+  _unlockContact(postId, type) {
+    const app = getApp()
+
+    // 先获取解锁成本预览
+    wx.showLoading({ title: '加载中...' })
+    get('/posts/' + postId + '/unlock-preview').then((response) => {
+      wx.hideLoading()
+      const data = response.data || response
+
+      // 如果已经解锁过了
+      if (data.alreadyUnlocked) {
+        wx.showToast({ title: '已解锁，无需重复解锁', icon: 'none' })
+        return
+      }
+
+      const cost = data.cost || 0
+      const baseCost = data.baseCost || 10
+      const isMember = data.isMember || false
+      const isFree = data.isFree || false
+      const freeRemaining = data.freeRemaining || 0
+      const beanBalance = data.beanBalance || 0
+      const sufficient = data.sufficient
+
+      // 会员免费提示
+      if (isMember && isFree) {
+        wx.showModal({
+          title: '会员免费查看',
+          content: `会员专享：今日还有 ${freeRemaining} 次免费查看机会，确认使用？`,
+          confirmText: '确认',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) this._doUnlockContact(postId, type)
+          }
+        })
+        return
+      }
+
+      // 会员折扣提示
+      if (isMember && !isFree) {
+        wx.showModal({
+          title: '会员折扣',
+          content: `会员专享5折优惠：需要 ${cost} 灵豆（原价 ${baseCost} 灵豆），当前余额 ${beanBalance} 灵豆，确认解锁？`,
+          confirmText: '解锁',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) this._doUnlockContact(postId, type)
+          }
+        })
+        return
+      }
+
+      // 非会员检查灵豆
+      if (!sufficient) {
+        wx.showModal({
+          title: '灵豆不足',
+          content: `当前灵豆余额为 ${beanBalance}，需要 ${cost} 灵豆才能解锁联系方式。`,
+          confirmText: '去充值',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
+            }
+          }
+        })
+        return
+      }
+
+      // 非会员确认解锁
+      wx.showModal({
+        title: '解锁联系方式',
+        content: `需要耗费 ${cost} 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？`,
+        confirmText: '解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) this._doUnlockContact(postId, type)
+        }
+      })
+    }).catch((err) => {
+      wx.hideLoading()
+      wx.showToast({ title: err.message || '获取解锁信息失败', icon: 'none' })
+    })
+  },
+
+  _doUnlockContact(postId, type) {
+    const app = getApp()
+    wx.showLoading({ title: '解锁中...' })
+    post('/posts/' + postId + '/unlock').then((response) => {
+      wx.hideLoading()
+      const data = response.data || response
+      if (data.success === false) {
+        wx.showToast({ title: data.message || '解锁失败', icon: 'none' })
+        return
+      }
+      // 更新灵豆余额
+      if (data.beanBalance !== undefined) {
+        app.globalData.beanBalance = data.beanBalance
+      }
+      const cost = data.cost || 0
+      const msg = cost === 0 ? '免费解锁成功' : `解锁成功，已扣 ${cost} 灵豆`
+      wx.showToast({ title: msg, icon: 'success' })
+
+      // 重新加载数据
+      this.loadData()
+
+      // 根据类型执行相应操作
+      setTimeout(() => {
+        if (type === 'wechat') {
+          this.onWechat({ detail: { id: postId } })
+        } else if (type === 'phone') {
+          this.onPhone({ detail: { id: postId } })
+        } else if (type === 'chat') {
+          this.onChat({ detail: { id: postId } })
+        }
+      }, 1500)
+    }).catch((err) => {
+      wx.hideLoading()
+      wx.showToast({ title: err.message || '解锁失败', icon: 'none' })
+    })
   },
 
   onChat(e) {
@@ -424,13 +573,33 @@ Page({
     const allItems = this._getAllItems()
     const item = allItems.find(i => String(i.id) === String(id))
     const targetUserId = item && (item.userId || (item.user && item.user.id))
+    const postId = Number(item && item.id) || 0
 
     if (!targetUserId) {
       wx.showToast({ title: '暂不支持该条信息直接聊天', icon: 'none' })
       return
     }
 
-    const postId = Number(item && item.id) || 0
+    // 检查是否已解锁联系方式
+    const hasContact = !!(item.wechat || item.phone)
+
+    if (!hasContact) {
+      // 未解锁，需要先解锁
+      wx.showModal({
+        title: '提示',
+        content: '需要先解锁联系方式才能在线聊天',
+        confirmText: '去解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this._unlockContact(id, 'chat')
+          }
+        }
+      })
+      return
+    }
+
+    // 已解锁，直接创建会话（确保传递正确的 postId）
     post('/conversations/with-user/' + targetUserId, { postId }).then(res => {
       const conversationId = res.data && res.data.id
       if (!conversationId) {

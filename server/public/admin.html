@@ -398,7 +398,14 @@ async function loadPosts(page){
   document.getElementById('postTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('postPagination',d.total,postPage,d.pageSize,'loadPosts');
 }
-async function auditPost(id,action){if(confirm(action==='approve'?'确认通过？':'确认驳回？')){await api('/posts/'+id+'/audit',{method:'PUT',body:{action:action}});loadPosts();}}
+async function auditPost(id,action){
+  var ok=await xconfirm(action==='approve'?'确认通过？':'确认驳回？');
+  if(ok){
+    await api('/posts/'+id+'/audit',{method:'PUT',body:{action:action}});
+    toast(action==='approve'?'已通过':'已驳回','success');
+    loadPosts();
+  }
+}
 
 var certPage=1;
 async function loadCerts(page){
@@ -783,13 +790,13 @@ function joToggleAll(el){var cbs=document.querySelectorAll('.jo-check:not(:disab
 async function doAssign(jobId){
   var cbs=document.querySelectorAll('.jo-check:checked');
   var ids=[];for(var i=0;i<cbs.length;i++)ids.push(Number(cbs[i].value));
-  if(ids.length===0){showAlert('请至少选择一名工人','warning');return;}
+  if(ids.length===0){toast('请至少选择一名工人','warning');return;}
   var supEl=document.querySelector('input[name="joSupervisor"]:checked');
   var supId=supEl?Number(supEl.value):0;
-  if(!supId){showAlert('请指定一名临时管理员','warning');return;}
-  if(ids.indexOf(supId)===-1){showAlert('管理员必须在入选工人中','warning');return;}
-  await api('/job-orders/'+jobId+'/assign',{method:'POST',body:JSON.stringify({workerIds:ids,supervisorId:supId})});
-  showAlert('分配成功','success');
+  if(!supId){toast('请指定一名临时管理员','warning');return;}
+  if(ids.indexOf(supId)===-1){toast('管理员必须在入选工人中','warning');return;}
+  await api('/job-orders/'+jobId+'/assign',{method:'POST',body:{workerIds:ids,supervisorId:supId}});
+  toast('分配成功','success');
   document.getElementById('joDetailPanel').style.display='none';
   loadJobOrders();
 }

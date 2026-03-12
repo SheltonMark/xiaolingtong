@@ -227,6 +227,43 @@ Page({
     })
   },
 
+  onShowContact() {
+    const contactInfo = this.data.contactInfo || {}
+    const wechat = contactInfo.wechat || ''
+    const phone = contactInfo.phone || ''
+
+    if (!wechat && !phone) {
+      wx.showToast({ title: '暂无联系方式', icon: 'none' })
+      return
+    }
+
+    let content = ''
+    if (wechat && phone) {
+      content = `微信：${wechat}\n手机：${phone}`
+    } else if (wechat) {
+      content = `微信：${wechat}`
+    } else {
+      content = `手机：${phone}`
+    }
+
+    wx.showModal({
+      title: '联系方式',
+      content: content,
+      showCancel: true,
+      cancelText: '关闭',
+      confirmText: wechat ? '复制微信' : '拨打电话',
+      success: (res) => {
+        if (res.confirm) {
+          if (wechat) {
+            wx.setClipboardData({ data: wechat })
+          } else if (phone) {
+            wx.makePhoneCall({ phoneNumber: phone, fail() {} })
+          }
+        }
+      }
+    })
+  },
+
   onCopyWechat() {
     const wechat = (this.data.contactInfo && this.data.contactInfo.wechat) || this.data.detail.contactWechat
     if (!wechat) {
@@ -246,6 +283,22 @@ Page({
   },
 
   onChat() {
+    // 检查是否已解锁联系方式
+    if (!this.data.contactUnlocked) {
+      wx.showModal({
+        title: '提示',
+        content: '需要先解锁联系方式才能在线聊天',
+        confirmText: '去解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) {
+            this.onUnlockContact()
+          }
+        }
+      })
+      return
+    }
+
     const detail = this.data.detail || {}
     const targetUserId = detail.userId || (detail.user && detail.user.id)
     if (!targetUserId) {

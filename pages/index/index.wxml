@@ -194,7 +194,8 @@
               data-id="{{item.id}}" bindtap="onJobTap">
           <view class="job-header">
             <view class="job-header-left">
-              <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
+              <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" class="job-avatar-img" mode="aspectFill" />
+              <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
               <view class="job-company-info">
                 <text class="job-company">{{item.companyName}}</text>
                 <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>
@@ -270,7 +271,8 @@
       <!-- 头部：公司+工资 -->
       <view class="job-header">
         <view class="job-header-left">
-          <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
+          <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" class="job-avatar-img" mode="aspectFill" />
+          <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
           <view class="job-company-info">
             <text class="job-company">{{item.companyName}}</text>
             <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>
