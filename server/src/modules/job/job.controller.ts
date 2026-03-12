@@ -40,6 +40,15 @@ export class JobController {
     return this.jobService.update(id, userId, dto);
   }
 
+  @Post(':jobId/apply')
+  @Roles('worker')
+  applyJob(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.applyJob(jobId, userId);
+  }
+
   @Post(':jobId/applications/:applicationId/accept')
   @Roles('enterprise')
   acceptApplication(

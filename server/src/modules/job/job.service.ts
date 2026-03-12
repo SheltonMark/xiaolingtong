@@ -476,4 +476,27 @@ export class JobService {
 
     return true;
   }
+
+  async applyJob(jobId: number, workerId: number): Promise<any> {
+    // 检查时间冲突
+    const conflicts = await this.checkTimeConflict(workerId, jobId);
+    if (conflicts.length > 0) {
+      throw new BadRequestException({
+        message: '工作时间冲突',
+        conflictWith: conflicts
+      });
+    }
+
+    // 创建应用
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new NotFoundException('Job not found');
+
+    const application = this.appRepo.create({
+      jobId,
+      workerId,
+      status: 'pending'
+    });
+
+    return this.appRepo.save(application);
+  }
 }
