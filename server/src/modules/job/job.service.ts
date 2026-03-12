@@ -338,4 +338,97 @@ export class JobService {
 
     return this.appRepo.save(application);
   }
+
+  async confirmAttendance(
+    applicationId: number,
+    workerId: number,
+  ): Promise<JobApplication> {
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId, workerId, status: 'accepted' },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found or not in accepted status');
+    }
+
+    application.status = 'confirmed';
+    application.confirmedAt = new Date();
+
+    return this.appRepo.save(application);
+  }
+
+  async getMyApplications(workerId: number) {
+    const applications = await this.appRepo.find({
+      where: { workerId },
+      relations: ['job', 'job.user'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 按状态分类
+    const grouped = {
+      pending: [],
+      accepted: [],
+      confirmed: [],
+      working: [],
+      done: [],
+    };
+
+    applications.forEach((app) => {
+      // 将 pending 和 accepted 都归到 pending 分类
+      if (app.status === 'pending' || app.status === 'accepted') {
+        grouped.pending.push(app);
+      } else if (app.status === 'confirmed') {
+        grouped.confirmed.push(app);
+      } else if (app.status === 'working') {
+        grouped.working.push(app);
+      } else if (app.status === 'done') {
+        grouped.done.push(app);
+      }
+    });
+
+    return grouped;
+  }
+
+  async getApplicationsForEnterprise(jobId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to view this job');
+    }
+
+    const applications = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 按状态分类
+    const grouped = {
+      pending: [],
+      accepted: [],
+      confirmed: [],
+    };
+
+    applications.forEach((app) => {
+      if (app.status === 'pending') {
+        grouped.pending.push({
+          ...app,
+          worker: {
+            id: app.worker.id,
+            name: app.worker.nickname,
+            creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
+          },
+        });
+      } else if (app.status === 'accepted') {
+        grouped.accepted.push(app);
+      } else if (app.status === 'confirmed') {
+        grouped.confirmed.push({
+          ...app,
+          isSupervisor: app.isSupervisor,
+        });
+      }
+    });
+
+    return grouped;
+  }
 }

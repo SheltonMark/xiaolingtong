@@ -60,4 +60,28 @@ export class JobController {
   ) {
     return this.jobService.selectSupervisor(jobId, dto.workerId, userId);
   }
+
+  @Post('applications/:applicationId/confirm-attendance')
+  @Roles('worker')
+  confirmAttendance(
+    @Param('applicationId') applicationId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.confirmAttendance(applicationId, userId);
+  }
+
+  @Get('my-applications')
+  @Roles('worker')
+  getMyApplications(@CurrentUser('sub') userId: number) {
+    return this.jobService.getMyApplications(userId);
+  }
+
+  @Get(':jobId/applications')
+  @Roles('enterprise')
+  getApplicationsForEnterprise(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getApplicationsForEnterprise(jobId, userId);
+  }
 }
