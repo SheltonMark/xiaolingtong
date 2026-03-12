@@ -8,7 +8,18 @@ Page({
     job: {},
     steps: [],
     workers: [],
-    fees: {}
+    fees: {},
+    activeTab: 0,
+    applications: {
+      pending: [],
+      accepted: [],
+      confirmed: [],
+      working: [],
+      done: [],
+      rejected: [],
+      released: [],
+      cancelled: []
+    }
   },
 
   onLoad(options) {
@@ -25,14 +36,30 @@ Page({
         this.setData({ role: 'worker', viewOnly: true })
       }
     }
-    if (jobId) this.loadSettlement(jobId)
+    if (jobId) {
+      this.loadRecruitment(jobId)
+      this.loadSettlement(jobId)
+    }
+  },
+
+  onTabChange(e) {
+    this.setData({ activeTab: e.currentTarget.dataset.index })
+  },
+
+  loadRecruitment(jobId) {
+    get('/settlements/' + jobId).then(res => {
+      const d = res.data || {}
+      this.setData({
+        job: d.job || {},
+        applications: d.applications || {}
+      })
+    }).catch(() => {})
   },
 
   loadSettlement(jobId) {
     get('/settlements/' + jobId).then(res => {
       const d = res.data || {}
       this.setData({
-        job: d.job || {},
         steps: d.steps || [],
         workers: d.workers || [],
         fees: d.fees || {}
