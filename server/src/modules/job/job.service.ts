@@ -528,36 +528,32 @@ export class JobService {
     }
   }
 
-  async cancelApplication(applicationId: number, workerId: number): Promise<any> {
-    const app = await this.appRepo.findOne({
-      where: { id: applicationId, workerId },
-      relations: ['job']
+  async getMyApplicationsGrouped(workerId: number) {
+    const applications = await this.appRepo.find({
+      where: { workerId },
+      relations: ['job', 'job.user'],
+      order: { createdAt: 'DESC' },
     });
 
-    if (!app) throw new NotFoundException('Application not found');
+    const grouped = {
+      normal: { pending: [], confirmed: [], working: [], done: [] },
+      exception: { rejected: [], released: [], cancelled: [] }
+    };
 
-    // 检查是否允许取消
-    const allowedStatuses = ['pending', 'accepted', 'confirmed'];
-    if (!allowedStatuses.includes(app.status)) {
-      throw new BadRequestException(`Cannot cancel application in ${app.status} status`);
-    }
+    applications.forEach((app) => {
+      const formatted = {
+        ...app,
+        displayStatus: getWorkerStatusDisplay(app.status),
+        statusColor: getStatusColor(app.status)
+      };
 
-    // 计算惩罚
-    const penalty = this.calculateCancellationPenalty(app.job, new Date());
-
-    // 更新应用状态
-    app.status = 'cancelled';
-    await this.appRepo.save(app);
-
-    // 扣信用分
-    if (penalty.creditDeduction > 0) {
-      const worker = await this.userRepo.findOne({ where: { id: workerId } });
-      if (worker) {
-        worker.creditScore -= penalty.creditDeduction;
-        await this.userRepo.save(worker);
+      if (['pending', 'confirmed', 'working', 'done'].includes(app.status)) {
+        grouped.normal[app.status].push(formatted);
+      } else if (['rejected', 'released', 'cancelled'].includes(app.status)) {
+        grouped.exception[app.status].push(formatted);
       }
-    }
+    });
 
-    return { id: app.id, status: 'cancelled', penalty };
+    return grouped;
   }
 }
