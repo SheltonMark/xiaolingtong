@@ -242,6 +242,35 @@ Page({
     wx.navigateTo({ url: '/pages/my-favorites/my-favorites' })
   },
 
+  onViewFavorite(e) {
+    const { id, type } = e.currentTarget.dataset
+    let targetUrl = ''
+    if (type === 'post') {
+      targetUrl = '/pages/post-detail/post-detail?id=' + id
+    } else if (type === 'job') {
+      targetUrl = '/pages/job-detail/job-detail?id=' + id
+    } else if (type === 'exposure') {
+      targetUrl = '/pages/exposure-detail/exposure-detail?id=' + id
+    }
+    if (targetUrl) wx.navigateTo({ url: targetUrl })
+  },
+
+  onCancelFavorite(e) {
+    const { id, type } = e.currentTarget.dataset
+    wx.showModal({
+      title: '取消收藏',
+      content: '确定要取消收藏这条信息吗？',
+      confirmColor: '#F43F5E',
+      success: (res) => {
+        if (!res.confirm) return
+        post('/favorites/toggle', { targetType: type, targetId: id }).then(() => {
+          wx.showToast({ title: '已取消收藏', icon: 'success' })
+          this.loadProfile()
+        }).catch(() => {})
+      }
+    })
+  },
+
   onDeletePost(e) {
     const id = e.currentTarget.dataset.id
     wx.showModal({

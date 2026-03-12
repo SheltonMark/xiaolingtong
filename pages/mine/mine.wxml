@@ -119,8 +119,7 @@
         </view>
         <!-- 收藏列表（只显示前3条） -->
         <view class="fav-card" wx:for="{{favorites}}" wx:for-index="idx" wx:key="id"
-              wx:if="{{idx < 3}}"
-              data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
+              wx:if="{{idx < 3}}">
           <view class="dynamic-top">
             <text class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
             <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
@@ -135,6 +134,11 @@
           <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
             <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
                    src="{{img}}" mode="aspectFill" class="fav-img" />
+          </view>
+          <!-- 操作按钮 -->
+          <view class="dynamic-actions">
+            <view class="dynamic-action action-view" data-id="{{item.id}}" data-type="{{item.targetType}}" catchtap="onViewFavorite">查看</view>
+            <view class="dynamic-action action-delete" data-id="{{item.id}}" data-type="{{item.targetType}}" catchtap="onCancelFavorite">取消收藏</view>
           </view>
         </view>
         <empty-state wx:if="{{favorites.length === 0}}" text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />
@@ -247,8 +251,7 @@
         </view>
         <!-- 收藏列表（只显示前3条） -->
         <view class="fav-card" wx:for="{{favorites}}" wx:for-index="idx" wx:key="id"
-              wx:if="{{idx < 3}}"
-              data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
+              wx:if="{{idx < 3}}">
           <view class="dynamic-top">
             <text class="fav-type-tag fav-type-{{item.targetType}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
             <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
@@ -263,6 +266,11 @@
           <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
             <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
                    src="{{img}}" mode="aspectFill" class="fav-img" />
+          </view>
+          <!-- 操作按钮 -->
+          <view class="dynamic-actions">
+            <view class="dynamic-action action-view" data-id="{{item.id}}" data-type="{{item.targetType}}" catchtap="onViewFavorite">查看</view>
+            <view class="dynamic-action action-delete" data-id="{{item.id}}" data-type="{{item.targetType}}" catchtap="onCancelFavorite">取消收藏</view>
           </view>
         </view>
         <empty-state wx:if="{{favorites.length === 0}}" text="暂无收藏" subText="去浏览信息收藏感兴趣的内容吧~" />

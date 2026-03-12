@@ -42,12 +42,13 @@
   padding: 24rpx 32rpx;
 }
 
-/* 收藏卡片 - 与"我的"页面保持一致 */
+/* 收藏卡片 - 添加白色背景卡片样式 */
 .fav-card {
-  background-color: #F8FAFC;
+  background-color: #FFFFFF;
   border-radius: 20rpx;
   padding: 24rpx;
   margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
 .fav-top {
@@ -124,4 +125,32 @@
   width: 160rpx;
   height: 160rpx;
   border-radius: 12rpx;
+}
+
+/* 操作按钮 */
+.fav-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.fav-action {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.action-view {
+  background-color: #EFF6FF;
+  color: #3B82F6;
+}
+
+.action-delete {
+  background-color: #FFF1F2;
+  color: #F43F5E;
 }

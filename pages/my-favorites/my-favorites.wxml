@@ -12,8 +12,7 @@
 
   <!-- 收藏列表 -->
   <view class="favorites-list">
-    <view class="fav-card" wx:for="{{displayList}}" wx:key="id"
-          data-id="{{item.id}}" data-type="{{item.targetType}}" bindtap="onTapFavorite">
+    <view class="fav-card" wx:for="{{displayList}}" wx:key="id">
       <view class="fav-top">
         <text class="fav-type-tag fav-type-{{item.targetType}}">
           {{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}
@@ -34,6 +33,12 @@
       <view class="fav-images" wx:if="{{item.images && item.images.length > 0}}">
         <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this"
                src="{{img}}" mode="aspectFill" class="fav-img" />
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="fav-actions">
+        <view class="fav-action action-view" data-id="{{item.id}}" data-type="{{item.targetType}}" catchtap="onViewFavorite">查看</view>
+        <view class="fav-action action-delete" data-id="{{item.id}}" data-type="{{item.targetType}}" catchtap="onCancelFavorite">取消收藏</view>
       </view>
     </view>
 

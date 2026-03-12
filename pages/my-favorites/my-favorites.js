@@ -1,4 +1,4 @@
-const { get } = require('../../utils/request')
+const { get, post } = require('../../utils/request')
 
 Page({
   data: {
@@ -55,7 +55,7 @@ Page({
     this.setData({ displayList })
   },
 
-  onTapFavorite(e) {
+  onViewFavorite(e) {
     const { id, type } = e.currentTarget.dataset
     let targetUrl = ''
     if (type === 'post') {
@@ -66,6 +66,22 @@ Page({
       targetUrl = '/pages/exposure-detail/exposure-detail?id=' + id
     }
     if (targetUrl) wx.navigateTo({ url: targetUrl })
+  },
+
+  onCancelFavorite(e) {
+    const { id, type } = e.currentTarget.dataset
+    wx.showModal({
+      title: '取消收藏',
+      content: '确定要取消收藏这条信息吗？',
+      confirmColor: '#F43F5E',
+      success: (res) => {
+        if (!res.confirm) return
+        post('/favorites/toggle', { targetType: type, targetId: id }).then(() => {
+          wx.showToast({ title: '已取消收藏', icon: 'success' })
+          this.loadFavorites()
+        }).catch(() => {})
+      }
+    })
   },
 
   onPullDownRefresh() {
