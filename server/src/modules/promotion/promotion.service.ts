@@ -7,6 +7,7 @@ import { AdOrder } from '../../entities/ad-order.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { Notification } from '../../entities/notification.entity';
 import { PaymentService } from '../payment/payment.service';
 
 type TopPricingItem = {
@@ -24,6 +25,7 @@ export class PromotionService {
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
+    @InjectRepository(Notification) private notiRepo: Repository<Notification>,
     private paymentService: PaymentService,
     private config: ConfigService,
   ) {}
@@ -112,6 +114,13 @@ export class PromotionService {
       userId, type: 'promote', amount: -actualCost,
       refType: 'promotion', refId: promo.id,
       remark: this.isMemberActive(user) ? '信息推广(会员折扣)' : '信息推广',
+    }));
+
+    // 通知
+    await this.notiRepo.save(this.notiRepo.create({
+      userId, type: 'promotion' as any,
+      title: '置顶推广成功',
+      content: `您的信息已置顶${durationDays}天，消耗${actualCost}灵豆`,
     }));
 
     return { message: '推广成功', beanBalance: user.beanBalance, actualCost, durationDays };

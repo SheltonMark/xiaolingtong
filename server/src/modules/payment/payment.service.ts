@@ -192,6 +192,13 @@ export class PaymentService {
     order.expireAt = expireAt;
     await this.memberOrderRepo.save(order);
     await this.userRepo.update(order.userId, { isMember: 1, memberExpireAt: expireAt });
+
+    // 通知
+    await this.notiRepo.save(this.notiRepo.create({
+      userId: order.userId, type: 'system' as any,
+      title: '会员开通成功',
+      content: `您已成功开通会员，有效期至${expireAt.toISOString().substring(0, 10)}`,
+    }));
   }
 
   /** 灵豆充值回调 */
@@ -286,6 +293,13 @@ export class PaymentService {
 
       this.logger.log(`灵豆充值成功: ${outTradeNo}, 用户: ${user.id}, 灵豆: ${order.beanAmount}`);
 
+      // 通知
+      await this.notiRepo.save(this.notiRepo.create({
+        userId: user.id, type: 'system' as any,
+        title: '灵豆充值成功',
+        content: `成功充值${order.beanAmount}灵豆，当前余额${user.beanBalance + order.beanAmount}灵豆`,
+      }));
+
       // 充值返佣
       await this.processCommission(user, order.totalFee, order.id);
     } catch (e) {
@@ -341,6 +355,13 @@ export class PaymentService {
     const endAt = new Date();
     endAt.setDate(endAt.getDate() + order.durationDays);
     await this.adOrderRepo.update(orderId, { status: 'active', startAt, endAt });
+
+    // 通知
+    await this.notiRepo.save(this.notiRepo.create({
+      userId: order.userId, type: 'system' as any,
+      title: '广告投放已生效',
+      content: `您的广告已开始投放，有效期至${endAt.toISOString().substring(0, 10)}`,
+    }));
   }
 
   /** 用工结算支付回调 */
@@ -372,6 +393,13 @@ export class PaymentService {
 
       // 完工信用分 +2
       await this.userRepo.increment({ id: item.workerId }, 'creditScore', 2);
+
+      // 通知临工工资到账
+      await this.notiRepo.save(this.notiRepo.create({
+        userId: item.workerId, type: 'settlement' as any,
+        title: '工资到账',
+        content: `您有一笔工资¥${item.workerPay}已到账，信用分+2`,
+      }));
     }
 
     // 分发管理员服务费
