@@ -6,6 +6,7 @@ import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
 import { JobStateMachine } from './job-state-machine';
+import { getWorkerStatusDisplay, getEnterpriseStatusDisplay, getStatusColor } from './status-mapping';
 
 @Injectable()
 export class JobService {
@@ -374,15 +375,21 @@ export class JobService {
     };
 
     applications.forEach((app) => {
+      const formatted = {
+        ...app,
+        displayStatus: getWorkerStatusDisplay(app.status),
+        statusColor: getStatusColor(app.status)
+      };
+
       // 将 pending 和 accepted 都归到 pending 分类
       if (app.status === 'pending' || app.status === 'accepted') {
-        grouped.pending.push(app);
+        grouped.pending.push(formatted);
       } else if (app.status === 'confirmed') {
-        grouped.confirmed.push(app);
+        grouped.confirmed.push(formatted);
       } else if (app.status === 'working') {
-        grouped.working.push(app);
+        grouped.working.push(formatted);
       } else if (app.status === 'done') {
-        grouped.done.push(app);
+        grouped.done.push(formatted);
       }
     });
 
@@ -409,9 +416,15 @@ export class JobService {
     };
 
     applications.forEach((app) => {
+      const formatted = {
+        ...app,
+        displayStatus: getEnterpriseStatusDisplay(app.status),
+        statusColor: getStatusColor(app.status)
+      };
+
       if (app.status === 'pending') {
         grouped.pending.push({
-          ...app,
+          ...formatted,
           worker: {
             id: app.worker.id,
             name: app.worker.nickname,
@@ -420,10 +433,10 @@ export class JobService {
           },
         });
       } else if (app.status === 'accepted') {
-        grouped.accepted.push(app);
+        grouped.accepted.push(formatted);
       } else if (app.status === 'confirmed') {
         grouped.confirmed.push({
-          ...app,
+          ...formatted,
           isSupervisor: app.isSupervisor,
         });
       }
