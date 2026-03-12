@@ -6,9 +6,12 @@ import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { User } from '../../entities/user.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { Notification } from '../../entities/notification.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert])],
+  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert, User, BeanTransaction, Notification])],
   controllers: [JobController],
   providers: [JobService],
   exports: [JobService],

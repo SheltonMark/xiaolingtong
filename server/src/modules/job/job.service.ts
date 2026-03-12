@@ -5,6 +5,9 @@ import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { User } from '../../entities/user.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { Notification } from '../../entities/notification.entity';
 
 @Injectable()
 export class JobService {
@@ -13,6 +16,9 @@ export class JobService {
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(Notification) private notiRepo: Repository<Notification>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -272,5 +278,54 @@ export class JobService {
     await this.checkKeywords((dto.title || '') + (dto.description || ''));
     Object.assign(job, dto);
     return this.jobRepo.save(job);
+  }
+
+  async setUrgent(jobId: number, userId: number, dto: { durationDays: number }) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new BadRequestException('用户不存在');
+
+    const durationDays = Number(dto.durationDays || 0);
+    if (!durationDays || durationDays < 1) throw new BadRequestException('急招时长不能为空');
+
+    // 急招价格：30灵豆/天
+    const urgentCostPerDay = 30;
+    const actualCost = urgentCostPerDay * durationDays;
+
+    if (user.beanBalance < actualCost) throw new BadRequestException('灵豆不足');
+
+    // 扣除灵豆
+    user.beanBalance -= actualCost;
+    await this.userRepo.save(user);
+
+    // 设置急招状态和过期时间
+    job.urgent = 1;
+    const expireAt = new Date();
+    expireAt.setDate(expireAt.getDate() + durationDays);
+    job.urgentExpireAt = expireAt;
+    await this.jobRepo.save(job);
+
+    // 记录灵豆交易
+    await this.beanTxRepo.save(this.beanTxRepo.create({
+      userId,
+      type: 'urgent',
+      amount: -actualCost,
+      refType: 'job',
+      refId: jobId,
+      remark: `设置急招${durationDays}天`,
+    }));
+
+    // 发送通知
+    await this.notiRepo.save(this.notiRepo.create({
+      userId,
+      type: 'urgent' as any,
+      title: '急招设置成功',
+      content: `您的招工信息已设置急招${durationDays}天，消耗${actualCost}灵豆`,
+    }));
+
+    return { message: '设置成功', beanBalance: user.beanBalance, actualCost, durationDays };
   }
 }

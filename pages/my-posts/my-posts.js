@@ -113,6 +113,11 @@ Page({
     wx.navigateTo({ url: '/pages/promotion/promotion?id=' + id })
   },
 
+  onSetUrgent(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/urgent-job/urgent-job?id=' + id })
+  },
+
   onGoSettlement(e) {
     const jobId = e.currentTarget.dataset.id
     wx.navigateTo({ url: '/pages/settlement/settlement?jobId=' + jobId })
