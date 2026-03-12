@@ -53,7 +53,8 @@ Page({
       const list = res.data.list || res.data || []
       console.log('[job-detail] favorites list:', list)
       const isFav = list.some(item => {
-        const match = item.targetType === 'job' && String(item.targetId) === String(id)
+        // 后端返回的是完整对象，id字段就是targetId
+        const match = item.targetType === 'job' && String(item.id) === String(id)
         console.log('[job-detail] checking item:', item, 'match:', match)
         return match
       })

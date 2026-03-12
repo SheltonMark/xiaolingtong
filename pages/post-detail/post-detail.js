@@ -483,7 +483,8 @@ Page({
       console.log('[post-detail] favorites list:', list)
       console.log('[post-detail] checking for post id:', id)
       const isFav = list.some(item => {
-        const match = item.targetType === 'post' && String(item.targetId) === String(id)
+        // 后端返回的是完整对象，id字段就是targetId
+        const match = item.targetType === 'post' && String(item.id) === String(id)
         console.log('[post-detail] checking item:', item, 'match:', match)
         return match
       })
