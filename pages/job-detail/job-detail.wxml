@@ -99,8 +99,8 @@
   <!-- 底部占位 -->
   <view style="height: calc(120rpx + env(safe-area-inset-bottom));"></view>
 
-  <!-- 底部操作栏（仅临工可见） -->
-  <view class="bottom-bar" wx:if="{{userRole === 'worker'}}">
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
     <view class="bar-left">
       <view class="bar-icon-btn" bindtap="onToggleFav">
         <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
@@ -112,9 +112,14 @@
         <button class="share-overlay" open-type="share"></button>
       </view>
     </view>
-    <view class="bar-right">
+    <!-- 临工端显示报名按钮 -->
+    <view class="bar-right" wx:if="{{userRole === 'worker'}}">
       <view class="bar-btn-phone" bindtap="onCallPhone">电话</view>
       <view class="bar-btn-apply" bindtap="onApply">立即报名</view>
+    </view>
+    <!-- 企业端显示电话按钮 -->
+    <view class="bar-right" wx:else>
+      <view class="bar-btn-phone" style="flex: 1;" bindtap="onCallPhone">联系电话</view>
     </view>
   </view>
 

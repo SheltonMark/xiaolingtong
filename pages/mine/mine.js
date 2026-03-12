@@ -111,7 +111,7 @@ Page({
         this.setData({ myPosts: mapped.slice(0, 3) })
       })
     }
-    // 加载我的收藏
+    // 加载我的收藏（只显示3条）
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
       this.setData({ favorites: list.slice(0, 3) })
@@ -236,6 +236,10 @@ Page({
 
   onViewAllPosts() {
     wx.navigateTo({ url: '/pages/my-posts/my-posts' })
+  },
+
+  onViewAllFavorites() {
+    wx.navigateTo({ url: '/pages/my-favorites/my-favorites' })
   },
 
   onDeletePost(e) {
