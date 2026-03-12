@@ -1,4 +1,5 @@
 const { get } = require('../utils/request')
+const auth = require('../utils/auth')
 
 Component({
   data: {
@@ -23,7 +24,6 @@ Component({
   attached() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole })
-    this.loadUnread()
   },
 
   pageLifetimes: {
@@ -32,6 +32,7 @@ Component({
 
   methods: {
     loadUnread() {
+      if (!auth.getToken()) return
       Promise.all([
         get('/notifications/unread-count').catch(() => ({ data: { count: 0 } })),
         get('/conversations').catch(() => ({ data: [] }))
