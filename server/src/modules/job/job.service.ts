@@ -431,4 +431,49 @@ export class JobService {
 
     return grouped;
   }
+
+  async checkTimeConflict(workerId: number, jobId: number): Promise<any[]> {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new NotFoundException('Job not found');
+
+    const { In } = require('typeorm');
+    const confirmedApps = await this.appRepo.find({
+      where: { workerId, status: In(['accepted', 'confirmed', 'working']) },
+      relations: ['job']
+    });
+
+    const conflicts: any[] = [];
+
+    for (const app of confirmedApps) {
+      if (this.hasTimeOverlap(job, app.job)) {
+        conflicts.push({
+          jobId: app.jobId,
+          jobTitle: app.job.title,
+          dateRange: `${app.job.dateStart}~${app.job.dateEnd}`,
+          workHours: app.job.workHours
+        });
+      }
+    }
+
+    return conflicts;
+  }
+
+  private hasTimeOverlap(job1: Job, job2: Job): boolean {
+    const start1 = new Date(job1.dateStart);
+    const end1 = new Date(job1.dateEnd);
+    const start2 = new Date(job2.dateStart);
+    const end2 = new Date(job2.dateEnd);
+
+    // 日期不重叠
+    if (end1 < start2 || end2 < start1) return false;
+
+    // 日期重叠，检查时间段
+    if (job1.workHours && job2.workHours) {
+      const [s1, e1] = job1.workHours.split('-');
+      const [s2, e2] = job2.workHours.split('-');
+      return !(e1 <= s2 || e2 <= s1);
+    }
+
+    return true;
+  }
 }
