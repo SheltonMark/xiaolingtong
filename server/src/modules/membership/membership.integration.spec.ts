@@ -8,6 +8,7 @@ import { MembershipController } from './membership.controller';
 import { MembershipService } from './membership.service';
 import { MemberOrder } from '../../entities/member-order.entity';
 import { User } from '../../entities/user.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 import { PaymentService } from '../payment/payment.service';
 
 describe('MembershipModule Integration Tests', () => {
@@ -15,6 +16,7 @@ describe('MembershipModule Integration Tests', () => {
   let service: MembershipService;
   let orderRepository: any;
   let userRepository: any;
+  let configRepository: any;
   let paymentService: any;
   let configService: any;
 
@@ -31,6 +33,14 @@ describe('MembershipModule Integration Tests', () => {
       findOne: jest.fn(),
       findOneBy: jest.fn(),
       find: jest.fn(),
+      update: jest.fn(),
+    };
+
+    configRepository = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
       update: jest.fn(),
     };
 
@@ -54,6 +64,10 @@ describe('MembershipModule Integration Tests', () => {
         {
           provide: getRepositoryToken(User),
           useValue: userRepository,
+        },
+        {
+          provide: getRepositoryToken(SysConfig),
+          useValue: configRepository,
         },
         {
           provide: PaymentService,
@@ -80,12 +94,21 @@ describe('MembershipModule Integration Tests', () => {
       const mockOrder = { id: 1, userId: 1, planName: 'Premium', price: 99.99, durationDays: 30, payStatus: 'pending' };
 
       userRepository.findOneBy.mockResolvedValue(mockUser);
+      configRepository.findOne.mockImplementation(({ where }) => {
+        const key = where && where.key;
+        const map = {
+          member_monthly_price: { value: '99' },
+          member_quarterly_price: { value: '238' },
+          member_yearly_price: { value: '799' },
+        };
+        return Promise.resolve(map[key] || null);
+      });
       orderRepository.create.mockReturnValue(mockOrder);
       orderRepository.save.mockResolvedValue(mockOrder);
       paymentService.generateOutTradeNo.mockReturnValue('MBR_1_123456');
       paymentService.createJsapiOrder.mockResolvedValue({ prepayId: 'test_prepay_id' });
 
-      const result = await controller.subscribe(1, { planName: 'Premium', price: 99.99, durationDays: 30 });
+      const result = await controller.subscribe(1, { planKey: 'monthly' });
 
       expect(result).toBeDefined();
       expect(result.orderId).toBe(1);
@@ -96,7 +119,7 @@ describe('MembershipModule Integration Tests', () => {
     it('should throw error when user not found', async () => {
       userRepository.findOneBy.mockResolvedValue(null);
 
-      await expect(controller.subscribe(999, { planName: 'Premium', price: 99.99, durationDays: 30 })).rejects.toThrow();
+      await expect(controller.subscribe(999, { planKey: 'monthly' })).rejects.toThrow();
     });
 
     it('should generate correct trade number', async () => {
@@ -104,12 +127,21 @@ describe('MembershipModule Integration Tests', () => {
       const mockOrder = { id: 5, userId: 1, planName: 'Premium', price: 99.99, durationDays: 30, payStatus: 'pending' };
 
       userRepository.findOneBy.mockResolvedValue(mockUser);
+      configRepository.findOne.mockImplementation(({ where }) => {
+        const key = where && where.key;
+        const map = {
+          member_monthly_price: { value: '99' },
+          member_quarterly_price: { value: '238' },
+          member_yearly_price: { value: '799' },
+        };
+        return Promise.resolve(map[key] || null);
+      });
       orderRepository.create.mockReturnValue(mockOrder);
       orderRepository.save.mockResolvedValue(mockOrder);
       paymentService.generateOutTradeNo.mockReturnValue('MBR_5_123456');
       paymentService.createJsapiOrder.mockResolvedValue({ prepayId: 'test_prepay_id' });
 
-      const result = await controller.subscribe(1, { planName: 'Premium', price: 99.99, durationDays: 30 });
+      const result = await controller.subscribe(1, { planKey: 'monthly' });
 
       expect(paymentService.generateOutTradeNo).toHaveBeenCalledWith('MBR', mockOrder.id);
       expect(result.orderId).toBe(5);

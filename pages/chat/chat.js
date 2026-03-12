@@ -11,6 +11,7 @@ Page({
     scrollToView: '',
     otherAvatarUrl: '',
     otherAvatarText: '',
+    otherName: '',
     myAvatarUrl: '',
     myAvatarText: '',
     messages: [],
@@ -104,16 +105,29 @@ Page({
     get('/conversations/' + id + '/messages').then(res => {
       const rawList = (res.data && res.data.list) || []
       const list = rawList.map(item => this.normalizeMessage(item))
-      // 从消息中提取对方头像
-      const app = getApp()
-      const myId = Number((app.globalData.userInfo && app.globalData.userInfo.id) || 0)
-      const otherMsg = rawList.find(m => Number(m.senderId) !== myId && m.sender)
-      if (otherMsg && otherMsg.sender) {
+
+      // 从后端返回的 otherUser 获取对方信息
+      const otherUser = res.data && res.data.otherUser
+      if (otherUser) {
         this.setData({
-          otherAvatarUrl: normalizeImageUrl(otherMsg.sender.avatarUrl || ''),
-          otherAvatarText: otherMsg.sender.nickname ? otherMsg.sender.nickname[0] : '对'
+          otherAvatarUrl: normalizeImageUrl(otherUser.avatarUrl || ''),
+          otherAvatarText: otherUser.name ? otherUser.name[0] : '对',
+          otherName: otherUser.name || '对方'
         })
+      } else {
+        // 兼容旧逻辑：从消息中提取对方头像
+        const app = getApp()
+        const myId = Number((app.globalData.userInfo && app.globalData.userInfo.id) || 0)
+        const otherMsg = rawList.find(m => Number(m.senderId) !== myId && m.sender)
+        if (otherMsg && otherMsg.sender) {
+          this.setData({
+            otherAvatarUrl: normalizeImageUrl(otherMsg.sender.avatarUrl || ''),
+            otherAvatarText: otherMsg.sender.nickname ? otherMsg.sender.nickname[0] : '对',
+            otherName: otherMsg.sender.nickname || '对方'
+          })
+        }
       }
+
       // 设置时间提示为第一条消息的时间
       const timeMarkText = rawList.length > 0 ? this.formatMessageTime(rawList[0].time || '') : this.formatMessageTime(new Date().toISOString())
       this.setData({ messages: list, timeMarkText }, () => this.scrollToBottom())

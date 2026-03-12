@@ -1,45 +1,141 @@
-const { post } = require('../../utils/request')
+const { get, post } = require('../../utils/request')
+
+const PLAN_META_MAP = {
+  monthly: { desc: '适合短期采购需求', original: '199', tag: '', tagColor: '' },
+  quarterly: { desc: '平均每月更划算', original: '597', tag: '推荐', tagColor: '#F97316' },
+  yearly: { desc: '平均每月最低，最划算', original: '2,388', tag: '省更多', tagColor: '#F43F5E' }
+}
 
 Page({
   data: {
     userInfo: {},
+    avatarUrl: '',
+    nickname: '',
+    isMember: false,
+    dailyFreeViews: 5,
     selectedIndex: 0,
-    plans: [
-      { id: 1, name: '月度会员', desc: '适合短期采购需求', price: '99', original: '199', unit: '月', tag: '', tagColor: '', days: 30 },
-      { id: 2, name: '季度会员', desc: '平均每月仅¥79', price: '238', original: '597', unit: '季', tag: '推荐', tagColor: '#F97316', days: 90 },
-      { id: 3, name: '年度会员', desc: '平均每月仅¥66，最划算', price: '799', original: '2,388', unit: '年', tag: '省¥1400', tagColor: '#F43F5E', days: 365 }
-    ]
+    plansLoaded: false,
+    plans: []
   },
-  onSelect(e) { this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) }) },
+
+  onLoad() {
+    this._loadUserInfo()
+    this._loadPlans()
+  },
+
+  _loadUserInfo() {
+    // 直接从后端拉最新用户信息，不依赖 globalData 缓存
+    get('/auth/profile').then(res => {
+      const user = res.data || res
+      const app = getApp()
+      app.globalData.userInfo = user
+      app.globalData.isMember = !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date())
+
+      const avatarUrl = user.avatarUrl || ''
+      const nickname = user.certName || user.nickname || ''
+      const isMember = app.globalData.isMember
+      this.setData({
+        userInfo: user,
+        avatarUrl,
+        nickname,
+        isMember,
+        avatarText: (nickname || '用').substring(0, 1)
+      })
+    }).catch(() => {
+      // 降级用 globalData
+      const app = getApp()
+      const user = app.globalData.userInfo || {}
+      this.setData({
+        isMember: !!(app.globalData.isMember),
+        nickname: user.certName || user.nickname || '',
+        avatarUrl: user.avatarUrl || ''
+      })
+    })
+  },
+
+  _formatPrice(value) {
+    const n = Number(value || 0)
+    if (!Number.isFinite(n)) return '0'
+    return Number.isInteger(n) ? String(n) : n.toFixed(2)
+  },
+
+  _buildPlanCards(list) {
+    return (Array.isArray(list) ? list : []).map((plan, index) => {
+      const key = plan.key || ''
+      const meta = PLAN_META_MAP[key] || {}
+      return {
+        id: index + 1,
+        key,
+        name: plan.name || '会员套餐',
+        desc: meta.desc || '',
+        price: this._formatPrice(plan.price),
+        original: meta.original || '',
+        unit: plan.unit || '',
+        tag: meta.tag || '',
+        tagColor: meta.tagColor || '',
+        days: Number(plan.durationDays || 0)
+      }
+    })
+  },
+
+  _loadPlans() {
+    get('/membership/plans').then(res => {
+      const d = res.data || res
+      const cards = this._buildPlanCards(d.list || [])
+      const selectedIndex = cards.length
+        ? Math.min(this.data.selectedIndex, cards.length - 1)
+        : 0
+      this.setData({
+        plans: cards,
+        plansLoaded: cards.length > 0,
+        selectedIndex,
+        dailyFreeViews: Number(d.dailyFreeViews || this.data.dailyFreeViews)
+      })
+    }).catch(() => {
+      this.setData({ plansLoaded: false, plans: [] })
+    })
+  },
+
+  onSelect(e) {
+    this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) })
+  },
+
   onPay() {
     const plan = this.data.plans[this.data.selectedIndex]
-    const price = Number(plan.price.replace(',', ''))
+    if (!this.data.plansLoaded || !plan || !plan.key) {
+      wx.showToast({ title: '套餐加载失败，请稍后重试', icon: 'none' })
+      return
+    }
     wx.showModal({
       title: '开通' + plan.name,
       content: '支付 ¥' + plan.price + '/' + plan.unit,
       success: (res) => {
-        if (res.confirm) {
-          post('/membership/subscribe', {
-            planName: plan.name, price: price, durationDays: plan.days
-          }).then((res) => {
-            const payData = res.data || res
-            if (payData.prepay_id) {
-              wx.requestPayment({
-                timeStamp: payData.timeStamp,
-                nonceStr: payData.nonceStr,
-                package: payData.package,
-                signType: payData.signType || 'RSA',
-                paySign: payData.paySign,
-                success() {
-                  wx.showToast({ title: '开通成功', icon: 'success' })
-                  getApp().globalData.isMember = true
-                },
-                fail() { wx.showToast({ title: '支付取消', icon: 'none' }) }
-              })
-            }
-          }).catch(() => {})
-        }
+        if (!res.confirm) return
+        post('/membership/subscribe', { planKey: plan.key }).then((res) => {
+          const payData = res.data || res
+          if (payData.prepay_id || payData.package) {
+            wx.requestPayment({
+              timeStamp: payData.timeStamp,
+              nonceStr: payData.nonceStr,
+              package: payData.package,
+              signType: payData.signType || 'RSA',
+              paySign: payData.paySign,
+              success: () => {
+                wx.showToast({ title: '开通成功', icon: 'success' })
+                getApp().globalData.isMember = true
+                this.setData({ isMember: true })
+              },
+              fail() {
+                wx.showToast({ title: '支付取消', icon: 'none' })
+              }
+            })
+          }
+        }).catch(() => {})
       }
     })
+  },
+
+  onViewMembershipAgreement() {
+    wx.navigateTo({ url: '/pages/member-agreement/member-agreement' })
   }
 })

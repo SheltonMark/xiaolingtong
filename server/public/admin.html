@@ -97,8 +97,11 @@ tr:hover td { background:rgba(35,39,54,.5); }
 .page-section { display:none; }
 .page-section.active { display:block; }
 .empty { text-align:center; padding:48px; color:var(--text-muted); font-size:13px; }
-.config-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-.config-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--bg); border-radius:8px; border:1px solid var(--border); }
+.config-grid { display:flex; flex-direction:column; gap:12px; }
+.config-group { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; }
+.config-group-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:10px; }
+.config-group-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.config-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); }
 .config-item label { flex:1; font-size:13px; color:var(--text-sec); }
 .config-item input { width:120px; height:32px; padding:0 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; text-align:right; outline:none; box-sizing:border-box; }
 .config-item .save-cfg { height:32px; padding:0 12px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:12px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; -webkit-appearance:none; appearance:none; }
@@ -121,7 +124,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
   .toolbar { width:100%; }
   .toolbar input,.toolbar select { flex:1; min-width:0; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
-  .config-grid { grid-template-columns:1fr; }
+  .config-group-grid { grid-template-columns:1fr; }
   .modal { width:calc(100vw - 32px); margin:16px; }
   .login-card { width:calc(100vw - 32px); padding:32px 24px; }
   .layout { display:block !important; }
@@ -395,7 +398,14 @@ async function loadPosts(page){
   document.getElementById('postTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('postPagination',d.total,postPage,d.pageSize,'loadPosts');
 }
-async function auditPost(id,action){if(confirm(action==='approve'?'确认通过？':'确认驳回？')){await api('/posts/'+id+'/audit',{method:'PUT',body:{action:action}});loadPosts();}}
+async function auditPost(id,action){
+  var ok=await xconfirm(action==='approve'?'确认通过？':'确认驳回？');
+  if(ok){
+    await api('/posts/'+id+'/audit',{method:'PUT',body:{action:action}});
+    toast(action==='approve'?'已通过':'已驳回','success');
+    loadPosts();
+  }
+}
 
 var certPage=1;
 async function loadCerts(page){
@@ -564,11 +574,75 @@ async function deleteNotice(id){var ok=await xconfirm('确认删除该公告？'
 
 async function loadConfigs(){
   var list=await api('/configs');if(!list||!list.length){document.getElementById('configGrid').innerHTML='<div class="empty">暂无配置</div>';return;}
-  var h='';
-  for(var i=0;i<list.length;i++){var c=list[i];
-    h+='<div class="config-item"><label>'+(c.label||c.key)+'</label><input id="cfg_'+c.key+'" value="'+c.value+'"><button class="save-cfg" onclick="saveConfig(\x27'+c.key+'\x27)">保存</button></div>';
+  var groupTitleMap={
+    member:'会员配置',
+    price:'价格与计费',
+    work:'用工结算',
+    user:'用户规则',
+    info:'信息发布',
+    job:'招工配置',
+    other:'其他配置',
+    general:'通用配置'
+  };
+  var memberPlanKeys=['member_monthly_price','member_quarterly_price','member_yearly_price'];
+  var groupKeySortMap={
+    member: memberPlanKeys,
+    price: ['top_price_per_day','top_price_3d','top_price_7d','top_price_30d','view_contact_price','banner_ad_price','feed_ad_price']
+  };
+  function toDisplayGroup(cfg){
+    var k=(cfg&&cfg.key)||'';
+    if(memberPlanKeys.indexOf(k)!==-1)return'member';
+    return cfg.group||'other';
   }
-  document.getElementById('configGrid').innerHTML=h;
+  function sortConfigList(groupKey,cfgList){
+    var keyOrder=groupKeySortMap[groupKey]||[];
+    return (cfgList||[]).slice().sort(function(a,b){
+      var ak=(a&&a.key)||'';var bk=(b&&b.key)||'';
+      var ai=keyOrder.indexOf(ak);var bi=keyOrder.indexOf(bk);
+      if(ai!==-1||bi!==-1){
+        if(ai===-1)return 1;
+        if(bi===-1)return -1;
+        return ai-bi;
+      }
+      var al=(a&&a.label)||ak;var bl=(b&&b.label)||bk;
+      return String(al).localeCompare(String(bl),'zh-CN');
+    });
+  }
+  function safeText(v){
+    return String(v===undefined||v===null?'':v)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+  var grouped={};
+  for(var i=0;i<list.length;i++){
+    var c=list[i];
+    var g=toDisplayGroup(c);
+    if(!grouped[g])grouped[g]=[];
+    grouped[g].push(c);
+  }
+  var groupOrder=['member','price','work','user','info','job','other','general'];
+  var groups=Object.keys(grouped).sort(function(a,b){
+    var ai=groupOrder.indexOf(a);var bi=groupOrder.indexOf(b);
+    if(ai===-1&&bi===-1)return a.localeCompare(b);
+    if(ai===-1)return 1;
+    if(bi===-1)return -1;
+    return ai-bi;
+  });
+  var h='';
+  for(var gi=0;gi<groups.length;gi++){
+    var gk=groups[gi];
+    h+='<div class="config-group"><div class="config-group-title">'+(groupTitleMap[gk]||gk)+'</div><div class="config-group-grid">';
+    var cfgList=sortConfigList(gk,grouped[gk]||[]);
+    for(var j=0;j<cfgList.length;j++){
+      var c=cfgList[j];
+      h+='<div class="config-item"><label>'+(safeText(c.label||c.key))+'</label><input id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'"><button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';
+    }
+    h+='</div></div>';
+  }
+  document.getElementById('configGrid').innerHTML=h||'<div class="empty">暂无配置</div>';
 }
 async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});toast('已保存','success');}
 
@@ -716,13 +790,13 @@ function joToggleAll(el){var cbs=document.querySelectorAll('.jo-check:not(:disab
 async function doAssign(jobId){
   var cbs=document.querySelectorAll('.jo-check:checked');
   var ids=[];for(var i=0;i<cbs.length;i++)ids.push(Number(cbs[i].value));
-  if(ids.length===0){showAlert('请至少选择一名工人','warning');return;}
+  if(ids.length===0){toast('请至少选择一名工人','warning');return;}
   var supEl=document.querySelector('input[name="joSupervisor"]:checked');
   var supId=supEl?Number(supEl.value):0;
-  if(!supId){showAlert('请指定一名临时管理员','warning');return;}
-  if(ids.indexOf(supId)===-1){showAlert('管理员必须在入选工人中','warning');return;}
-  await api('/job-orders/'+jobId+'/assign',{method:'POST',body:JSON.stringify({workerIds:ids,supervisorId:supId})});
-  showAlert('分配成功','success');
+  if(!supId){toast('请指定一名临时管理员','warning');return;}
+  if(ids.indexOf(supId)===-1){toast('管理员必须在入选工人中','warning');return;}
+  await api('/job-orders/'+jobId+'/assign',{method:'POST',body:{workerIds:ids,supervisorId:supId}});
+  toast('分配成功','success');
   document.getElementById('joDetailPanel').style.display='none';
   loadJobOrders();
 }

@@ -1,10 +1,18 @@
 <view class="info-card" bindtap="onTapCard">
+  <!-- 置顶标签 -->
+  <view class="promoted-badge" wx:if="{{item.isPromoted}}">
+    <text class="iconfont icon-zhiding"></text>
+    <text>置顶</text>
+  </view>
   <!-- 头部：头像 + 公司名 + 投诉/分享 -->
   <view class="card-header">
     <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" mode="aspectFill" class="avatar-img" />
     <view wx:else class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:{{item.avatarColor || '#3B82F6'}};">{{item.avatarText || (displayName && displayName[0]) || '企'}}</view>
     <view class="card-author">
-      <text class="author-name">{{displayName || item.companyName || '企业用户'}}</text>
+      <view class="author-name-row">
+        <text class="author-name">{{displayName || item.companyName || '企业用户'}}</text>
+        <text class="vip-badge" wx:if="{{item.isMember}}">VIP</text>
+      </view>
       <text class="author-meta" wx:if="{{item.companyMeta && item.time}}">{{item.companyMeta}} · {{item.time}}</text>
       <text class="author-meta" wx:elif="{{item.companyMeta}}">{{item.companyMeta}}</text>
       <text class="author-meta" wx:elif="{{item.time}}">{{item.time}}</text>

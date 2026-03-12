@@ -9,8 +9,8 @@ export class PostController {
 
   @Public()
   @Get()
-  list(@Query() query: any) {
-    return this.postService.list(query);
+  list(@Query() query: any, @CurrentUser('sub') userId: number) {
+    return this.postService.list(query, userId || 0);
   }
 
   @Get('mine')
@@ -37,6 +37,11 @@ export class PostController {
   @Delete(':id')
   remove(@Param('id') id: number, @CurrentUser('sub') userId: number) {
     return this.postService.remove(id, userId);
+  }
+
+  @Get(':id/unlock-preview')
+  previewUnlockCost(@Param('id') id: number, @CurrentUser('sub') userId: number) {
+    return this.postService.previewUnlockCost(id, userId || 0);
   }
 
   @HttpPost(':id/unlock')

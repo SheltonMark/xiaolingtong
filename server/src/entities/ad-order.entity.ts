@@ -21,6 +21,9 @@ export class AdOrder {
   @Column({ length: 256, nullable: true })
   link: string;
 
+  @Column({ length: 16, nullable: true, default: 'internal' })
+  linkType: string;
+
   @Column({ type: 'int' })
   durationDays: number;
 

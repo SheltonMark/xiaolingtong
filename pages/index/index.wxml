@@ -20,7 +20,7 @@
       </view>
       <view class="notify-btn" bindtap="onNotification">
         <text class="notify-icon iconfont icon-tongzhi"></text>
-        <view class="notify-badge">3</view>
+        <view class="notify-badge" wx:if="{{unreadCount > 0}}">{{unreadCount > 99 ? '99+' : unreadCount}}</view>
       </view>
     </view>
     <!-- 企业端 Tab -->
@@ -34,22 +34,30 @@
     </view>
     <!-- 临工端筛选 -->
     <view class="filter-bar" wx:if="{{userRole === 'worker'}}">
-      <view class="filter-item" data-type="jobType" bindtap="onFilterTap">
-        <text class="filter-text">{{filterJobType || '工种'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
-      <view class="filter-item" data-type="salaryType" bindtap="onFilterTap">
-        <text class="filter-text">{{filterSalaryType || '计费方式'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
-      <view class="filter-item" data-type="distance" bindtap="onFilterTap">
-        <text class="filter-text">{{filterDistance || '距离'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
-      <view class="filter-item" data-type="salary" bindtap="onFilterTap">
-        <text class="filter-text">{{filterSalaryRange || '工价'}}</text>
-        <view class="filter-arrow-triangle"></view>
-      </view>
+      <picker mode="selector" range="{{jobTypeOptions}}" value="{{jobTypeIndex}}" bindchange="onJobTypeChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterJobType || '工种'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{salaryTypeOptions}}" value="{{salaryTypeIndex}}" bindchange="onSalaryTypeChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterSalaryType || '计费方式'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{distanceOptions}}" value="{{distanceIndex}}" bindchange="onDistanceChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterDistance || '距离'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
+      <picker mode="selector" range="{{salaryOptions}}" value="{{salaryIndex}}" bindchange="onSalaryChange">
+        <view class="filter-item">
+          <text class="filter-text">{{filterSalaryRange || '工价'}}</text>
+          <view class="filter-arrow-triangle"></view>
+        </view>
+      </picker>
     </view>
   </view>
 
@@ -57,12 +65,26 @@
 
   <!-- ===== 企业端内容 ===== -->
   <view wx:if="{{userRole === 'enterprise'}}">
-    <!-- 广告 Banner（后续从API获取） -->
-    <!-- <view class="banner-wrap">
-      <view class="banner-inner">
-        <image src="" class="banner-img" mode="aspectFill" />
-      </view>
-    </view> -->
+    <!-- 广告 Banner 轮播 -->
+    <view class="banner-wrap">
+      <swiper class="banner-swiper" autoplay circular indicator-dots
+              indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
+        <swiper-item wx:for="{{banners}}" wx:key="id">
+          <!-- 广告图片模式 -->
+          <view class="banner-slide banner-slide-ad" wx:if="{{item.isAd}}" style="position:relative;" bindtap="onAdBannerTap" data-link="{{item.link}}" data-link-type="{{item.linkType}}">
+            <image src="{{item.imageUrl}}" class="banner-img banner-img-ad" mode="aspectFill" />
+            <text class="ad-tag">广告</text>
+          </view>
+          <!-- 默认渐变模式 -->
+          <view class="banner-slide banner-slide-default" wx:else style="background: {{item.bg}};">
+            <view class="banner-content">
+              <text class="banner-title">{{item.title}}</text>
+              <text class="banner-sub">{{item.sub}}</text>
+            </view>
+          </view>
+        </swiper-item>
+      </swiper>
+    </view>
 
     <!-- Tab 0: 采购需求 -->
     <view wx:if="{{currentTab === 0}}">
@@ -172,7 +194,8 @@
               data-id="{{item.id}}" bindtap="onJobTap">
           <view class="job-header">
             <view class="job-header-left">
-              <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
+              <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" class="job-avatar-img" mode="aspectFill" />
+              <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
               <view class="job-company-info">
                 <text class="job-company">{{item.companyName}}</text>
                 <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>
@@ -248,7 +271,8 @@
       <!-- 头部：公司+工资 -->
       <view class="job-header">
         <view class="job-header-left">
-          <view class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
+          <image wx:if="{{item.avatarUrl}}" src="{{item.avatarUrl}}" class="job-avatar-img" mode="aspectFill" />
+          <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
           <view class="job-company-info">
             <text class="job-company">{{item.companyName}}</text>
             <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>

@@ -23,6 +23,7 @@ import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { Notification } from '../../entities/notification.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -53,6 +54,7 @@ export class AdminService {
     @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(Notification) private notiRepo: Repository<Notification>,
     private jwt: JwtService,
   ) {}
 
@@ -200,9 +202,23 @@ export class AdminService {
 
   async auditCert(type: string, id: number, action: string, rejectReason?: string) {
     const repo = type === 'worker' ? this.workerCertRepo : this.entCertRepo;
+    const cert = await repo.findOneBy({ id } as any);
     const update: any = { status: action === 'approve' ? 'approved' : 'rejected', reviewedAt: new Date() };
     if (action === 'reject' && rejectReason) update.rejectReason = rejectReason;
     await repo.update(id, update);
+
+    // 发送通知
+    if (cert && cert.userId) {
+      const typeName = type === 'worker' ? '临工认证' : '企业认证';
+      const title = action === 'approve' ? `${typeName}审核通过` : `${typeName}审核未通过`;
+      const content = action === 'approve'
+        ? `恭喜，您的${typeName}已审核通过！`
+        : `您的${typeName}审核未通过${rejectReason ? '，原因：' + rejectReason : ''}`;
+      await this.notiRepo.save(this.notiRepo.create({
+        userId: cert.userId, type: 'cert' as any, title, content,
+      }));
+    }
+
     return { message: action === 'approve' ? '已通过' : '已驳回' };
   }
 
@@ -537,10 +553,14 @@ export class AdminService {
 
   async initDefaultConfigs() {
     const defaults = [
-      { key: 'member_monthly_price', value: '30', label: '月会员价格(元)', group: 'price' },
-      { key: 'member_yearly_price', value: '298', label: '年会员价格(元)', group: 'price' },
+      { key: 'member_monthly_price', value: '99', label: '月会员价格(元)', group: 'member' },
+      { key: 'member_quarterly_price', value: '238', label: '季度会员价格(元)', group: 'member' },
+      { key: 'member_yearly_price', value: '799', label: '年会员价格(元)', group: 'member' },
       { key: 'view_contact_price', value: '5', label: '查看联系方式价格(灵豆)', group: 'price' },
-      { key: 'top_price_per_day', value: '10', label: '置顶价格(灵豆/天)', group: 'price' },
+      { key: 'top_price_per_day', value: '100', label: '置顶推广价格(灵豆/天)', group: 'price' },
+      { key: 'top_price_3d', value: '250', label: '置顶推广价格(灵豆/3天)', group: 'price' },
+      { key: 'top_price_7d', value: '500', label: '置顶推广价格(灵豆/7天)', group: 'price' },
+      { key: 'top_price_30d', value: '1500', label: '置顶推广价格(灵豆/30天)', group: 'price' },
       { key: 'banner_ad_price', value: '100', label: 'Banner广告价格(元/天)', group: 'price' },
       { key: 'feed_ad_price', value: '50', label: '信息流广告价格(元/天)', group: 'price' },
       { key: 'default_commission_rate', value: '20', label: '默认用工抽成比例(%)', group: 'work' },

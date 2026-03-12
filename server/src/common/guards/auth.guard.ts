@@ -13,14 +13,29 @@ export class AuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const token = this.extractToken(request);
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) return true;
 
-    const request = context.switchToHttp().getRequest();
-    const token = this.extractToken(request);
+    if (isPublic) {
+      // Public routes remain accessible as guest. If token exists, parse it
+      // so downstream handlers can still get current user context.
+      if (token) {
+        try {
+          const payload = await this.jwt.verifyAsync(token, {
+            secret: this.config.get('JWT_SECRET'),
+          });
+          request.user = payload;
+        } catch {
+          // Ignore invalid token on public endpoints.
+        }
+      }
+      return true;
+    }
+
     if (!token) throw new UnauthorizedException('请先登录');
 
     try {

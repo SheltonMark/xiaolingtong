@@ -1,17 +1,20 @@
 <!--pages/cert-enterprise/cert-enterprise.wxml-->
 <view class="cert-page">
   <nav-bar title="企业认证" />
-  <!-- 认证提示 -->
   <view class="tip-banner tip-blue">
     <text class="tip-icon iconfont icon-tishixinxi"></text>
     <text class="tip-text">完成企业认证后，即可发布供需信息、查看联系方式。请确保信息真实有效。</text>
   </view>
 
-  <!-- 表单 -->
   <view class="form-area">
     <view class="form-group">
-      <text class="form-label">企业名称 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入营业执照上的企业全称" data-field="companyName" bindinput="onInput" />
+      <text class="form-label">公司简称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="用于显示的公司名称，如：鑫达贸易" data-field="companyName" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">营业执照全称 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入营业执照上的企业全称" data-field="fullName" bindinput="onInput" />
     </view>
 
     <view class="form-group">
@@ -31,7 +34,12 @@
     </view>
 
     <view class="form-group">
-      <text class="form-label">法人身份证 <text class="required">*</text></text>
+      <text class="form-label">法人姓名</text>
+      <input class="form-input" placeholder="请输入法人姓名（选填）" data-field="legalPerson" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">法人身份证</text>
       <view class="upload-grid">
         <view class="upload-area upload-half" bindtap="onUploadIdFront">
           <image wx:if="{{idFrontImage}}" src="{{idFrontImage}}" mode="aspectFill" class="upload-preview" />
@@ -52,10 +60,6 @@
 
     <view class="form-group">
       <text class="form-label">企业类型 <text class="required">*</text></text>
-      <view class="form-select" bindtap="onSelectType">
-        <text class="select-text {{selectedType ? '' : 'select-placeholder'}}">{{selectedType || '请选择企业类型'}}</text>
-        <text class="select-arrow">▾</text>
-      </view>
       <view class="tag-list">
         <text class="form-tag {{selectedType === item ? 'form-tag-active' : ''}}"
               wx:for="{{typeOptions}}" wx:key="*this" data-tag="{{item}}" bindtap="onTypeTap">{{item}}</text>
@@ -63,11 +67,13 @@
     </view>
 
     <view class="form-group">
-      <text class="form-label">主营品类 <text class="required">*</text></text>
-      <view class="form-select">
-        <text class="select-placeholder">请选择主营品类</text>
-        <text class="select-arrow">▾</text>
-      </view>
+      <text class="form-label">主营品类</text>
+      <picker mode="selector" range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
+        <view class="form-select">
+          <text class="{{selectedCategory ? 'select-text' : 'select-placeholder'}}">{{selectedCategory || '请选择主营品类'}}</text>
+          <text class="select-arrow">▾</text>
+        </view>
+      </picker>
     </view>
 
     <view class="form-group">
@@ -81,11 +87,18 @@
     </view>
 
     <view class="form-group">
-      <text class="form-label">企业地址 <text class="required">*</text></text>
-      <view class="form-select" bindtap="onSelectAddress">
-        <text class="select-placeholder">请选择省/市/区</text>
-        <text class="select-arrow-loc iconfont icon-address"></text>
-      </view>
+      <text class="form-label">所在地区</text>
+      <picker mode="region" bindchange="onRegionChange">
+        <view class="form-select">
+          <text class="{{form.city ? 'select-text' : 'select-placeholder'}}">{{form.city || '请选择省/市/区'}}</text>
+          <text class="select-arrow">▾</text>
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">详细地址</text>
+      <input class="form-input" placeholder="请输入街道、门牌号等详细地址" data-field="addressDetail" bindinput="onInput" />
     </view>
 
     <button class="submit-btn submit-blue" bindtap="onSubmit">提交认证</button>

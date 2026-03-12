@@ -19,6 +19,7 @@
     "pages/exposure-board/exposure-board",
     "pages/report/report",
     "pages/membership/membership",
+    "pages/member-agreement/member-agreement",
     "pages/bean-recharge/bean-recharge",
     "pages/bean-detail/bean-detail",
     "pages/promotion/promotion",
@@ -37,7 +38,8 @@
     "pages/anomaly/anomaly",
     "pages/agreement/agreement",
     "pages/privacy/privacy",
-    "pages/my-invites/my-invites"
+    "pages/my-invites/my-invites",
+    "pages/webview/webview"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

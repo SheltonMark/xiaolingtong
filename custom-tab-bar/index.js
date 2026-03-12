@@ -1,8 +1,11 @@
+const { get } = require('../utils/request')
+const auth = require('../utils/auth')
+
 Component({
   data: {
     selected: 0,
     userRole: 'enterprise',
-    // 企业端 5 个 tab
+    unreadCount: 0,
     entList: [
       { pagePath: '/pages/index/index', text: '首页', isTab: true },
       { pagePath: '/pages/exposure-board/exposure-board', text: '曝光', isTab: true },
@@ -10,7 +13,6 @@ Component({
       { pagePath: '/pages/messages/messages', text: '消息', isTab: true },
       { pagePath: '/pages/mine/mine', text: '我的', isTab: true }
     ],
-    // 临工端 4 个 tab
     workerList: [
       { pagePath: '/pages/index/index', text: '首页', isTab: true },
       { pagePath: '/pages/exposure-board/exposure-board', text: '曝光', isTab: true },
@@ -24,7 +26,25 @@ Component({
     this.setData({ userRole })
   },
 
+  pageLifetimes: {
+    show() { this.loadUnread() }
+  },
+
   methods: {
+    loadUnread() {
+      if (!auth.getToken()) return
+      Promise.all([
+        get('/notifications/unread-count').catch(() => ({ data: { count: 0 } })),
+        get('/conversations').catch(() => ({ data: [] }))
+      ]).then(([notiRes, chatRes]) => {
+        const notiCount = (notiRes.data || notiRes).count || 0
+        const chatList = (chatRes.data || chatRes)
+        const chatCount = Array.isArray(chatList)
+          ? chatList.reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+          : (chatList.list || []).reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+        this.setData({ unreadCount: notiCount + chatCount })
+      })
+    },
     switchTab(e) {
       const data = e.currentTarget.dataset
       const url = data.path

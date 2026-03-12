@@ -17,4 +17,10 @@ export class ConfigController {
   getJobTypes() {
     return this.configService.getActiveJobTypes();
   }
+
+  @Public()
+  @Get('categories')
+  getCategories() {
+    return this.configService.getActiveCategories();
+  }
 }

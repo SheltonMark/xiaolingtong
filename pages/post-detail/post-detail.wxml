@@ -73,13 +73,10 @@
       <text class="bottom-btn-icon iconfont icon-xiaoxi"></text>
       <text>在线聊</text>
     </button>
-    <button class="bottom-btn btn-contact" bindtap="onUnlockContact" wx:if="{{!contactUnlocked}}">
-      <text class="bottom-btn-icon iconfont icon-jiesuo"></text>
-      <text>10灵豆解锁</text>
-    </button>
-    <button class="bottom-btn btn-contact" bindtap="onCallPhone" wx:else>
-      <text class="bottom-btn-icon iconfont icon-shouji"></text>
-      <text>立即联系</text>
+    <!-- 根据 isOwner/isUnlocked 显示不同按钮 -->
+    <button class="bottom-btn btn-contact" bindtap="onContactAction">
+      <text class="bottom-btn-icon iconfont {{isUnlocked ? 'icon-lianxi' : 'icon-jiesuo'}}"></text>
+      <text>{{isUnlocked ? '立即联系' : '解锁联系方式'}}</text>
     </button>
   </view>
 </view>

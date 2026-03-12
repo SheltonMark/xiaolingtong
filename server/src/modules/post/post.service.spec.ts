@@ -11,6 +11,8 @@ import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
+import { Promotion } from '../../entities/promotion.entity';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 
 describe('PostService', () => {
@@ -22,6 +24,8 @@ describe('PostService', () => {
   let keywordRepo: any;
   let entCertRepo: any;
   let jobRepo: any;
+  let sysConfigRepo: any;
+  let promoRepo: any;
 
   beforeEach(async () => {
     postRepo = {
@@ -62,6 +66,19 @@ describe('PostService', () => {
       createQueryBuilder: jest.fn(),
     };
 
+    sysConfigRepo = {
+      findOne: jest.fn().mockResolvedValue(null),
+    };
+
+    promoRepo = {
+      createQueryBuilder: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostService,
@@ -92,6 +109,14 @@ describe('PostService', () => {
         {
           provide: getRepositoryToken(Job),
           useValue: jobRepo,
+        },
+        {
+          provide: getRepositoryToken(SysConfig),
+          useValue: sysConfigRepo,
+        },
+        {
+          provide: getRepositoryToken(Promotion),
+          useValue: promoRepo,
         },
       ],
     }).compile();
@@ -354,6 +379,36 @@ describe('PostService', () => {
       expect(mockPost.viewCount).toBe(1);
       expect(postRepo.save).toHaveBeenCalledWith(mockPost);
       expect(result.contactUnlocked).toBe(false);
+    });
+
+    it('should mark enterprise verified when cert userId is returned as string', async () => {
+      const mockPost = {
+        id: 1,
+        userId: 1,
+        type: 'purchase',
+        content: 'test',
+        viewCount: 0,
+        user: { id: 1 },
+      };
+
+      postRepo.findOne.mockResolvedValue(mockPost);
+      unlockRepo.findOne.mockResolvedValue(null);
+      postRepo.count.mockResolvedValue(3);
+      entCertRepo.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          { userId: '1', companyName: 'Test Company', status: 'approved' },
+        ]),
+      });
+
+      const result = await service.detail(1, 2);
+
+      expect(result.enterpriseVerified).toBe(true);
+      expect(result.verified).toBe(true);
+      expect(result.certStatus).toBe('approved');
+      expect(result.companyName).toBe('Test Company');
     });
 
     it('should return contact unlocked when user has unlocked', async () => {

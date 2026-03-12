@@ -1,15 +1,22 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
+const auth = require('../../utils/auth')
 
 Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
     statusBarHeight: 0,
     currentCity: '东莞', // 当前选择的城市
+    unreadCount: 0, // 未读消息总数
     cityIndex: 0, // picker 当前索引
     cityNames: [], // picker 用的城市名数组
     cities: [], // 可选城市列表
     jobTypes: [], // 可选工种列表
+    banners: [
+      { id: 1, title: '新用户专享', sub: '注册送 50 灵豆', bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' },
+      { id: 2, title: '会员特权', sub: '每日免费查看联系方式', bg: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)' },
+      { id: 3, title: '发布招工', sub: '快速找到靠谱临工', bg: 'linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)' }
+    ],
     // 企业端
     currentTab: 0,
     tabs: ['采购需求', '工厂库存', '代加工', '发布招工'],
@@ -65,7 +72,16 @@ Page({
     filterSalaryType: '',
     filterDistance: '',
     filterSalaryRange: '',
-    sortBy: 'default' // default | salary_asc | salary_desc | distance
+    // picker 选项
+    jobTypeOptions: ['全部'],
+    salaryTypeOptions: ['全部', '按小时', '按件'],
+    distanceOptions: ['全部', '1km内', '3km内', '5km内', '10km内'],
+    salaryOptions: ['全部', '20元以下', '20-30元', '30-50元', '50元以上'],
+    jobTypeIndex: 0,
+    salaryTypeIndex: 0,
+    distanceIndex: 0,
+    salaryIndex: 0,
+    sortBy: 'default'
   },
 
   onLoad() {
@@ -96,7 +112,9 @@ Page({
     this.setData({ userRole, currentCity })
     this.loadCities()
     this.loadJobTypes()
+    this.loadBannerAds()
     this.loadData()
+    this.loadUnreadCount()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
     }
@@ -120,8 +138,32 @@ Page({
   loadJobTypes() {
     get('/config/job-types').then(res => {
       const jobTypes = res.data.list || []
-      this.setData({ jobTypes })
+      const jobTypeOptions = ['全部', ...jobTypes.map(jt => jt.name)]
+      this.setData({ jobTypes, jobTypeOptions })
     }).catch(() => {})
+  },
+
+  loadBannerAds() {
+    get('/ads/active', { slot: 'banner' }).then(res => {
+      const adList = (res.data && res.data.list) || []
+      if (adList.length > 0) {
+        const adBanners = adList.map(ad => ({
+          id: ad.id, imageUrl: ad.imageUrl, link: ad.link, linkType: ad.linkType || 'internal', isAd: true
+        }))
+        this.setData({ banners: adBanners })
+      }
+      // 无广告时保持默认 banners
+    }).catch(() => {})
+  },
+
+  onAdBannerTap(e) {
+    const { link, linkType } = e.currentTarget.dataset
+    if (!link) return
+    if (linkType === 'external') {
+      wx.navigateTo({ url: '/pages/webview/webview?url=' + encodeURIComponent(link) })
+    } else {
+      wx.navigateTo({ url: link })
+    }
   },
 
   loadData() {
@@ -152,7 +194,7 @@ Page({
       } else if (this.data.sortBy === 'salary_asc') {
         list = list.sort((a, b) => a.salary - b.salary)
       }
-      this.setData({ jobList: list })
+      this.setData({ jobList: this._mapJobs(list) })
     }).catch(() => {})
   },
 
@@ -160,16 +202,30 @@ Page({
     return (Array.isArray(list) ? list : []).map(item => {
       const verifiedName = item.companyName || ''
       const companyName = verifiedName || '企业用户'
+      const user = item.user || {}
       return {
         ...item,
         companyName,
         companyMeta: item.industry || '',
-        avatarUrl: normalizeImageUrl((item.user && item.user.avatarUrl) || ''),
+        avatarUrl: normalizeImageUrl((user.avatarUrl) || ''),
         images: normalizeImageList(item.images),
         avatarText: verifiedName ? companyName[0] : '企',
         time: item.createdAt ? item.createdAt.substring(0, 10) : '',
         wechat: item.contactWechat || item.wechat || '',
-        phone: item.contactPhone || item.phone || ''
+        phone: item.contactPhone || item.phone || '',
+        isMember: !!(user.isMember)
+      }
+    })
+  },
+
+  _mapJobs(list) {
+    return (Array.isArray(list) ? list : []).map((item) => {
+      const user = item.user || {}
+      const companyName = item.companyName || user.nickname || '企业用户'
+      return {
+        ...item,
+        companyName,
+        avatarUrl: normalizeImageUrl(item.avatarUrl || user.avatarUrl || '')
       }
     })
   },
@@ -293,13 +349,13 @@ Page({
         }).catch(() => {})
       } else if (currentTab === 3) {
         get('/jobs', params).then(res => {
-          this.setData({ jobListEnterprise: res.data.list || res.data || [] })
+          this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
         }).catch(() => {})
       }
     } else {
       // 临工端
       get('/jobs', params).then(res => {
-        this.setData({ jobList: res.data.list || res.data || [] })
+        this.setData({ jobList: this._mapJobs(res.data.list || res.data || []) })
       }).catch(() => {})
     }
   },
@@ -316,6 +372,21 @@ Page({
     wx.switchTab({ url: '/pages/messages/messages' })
   },
 
+  loadUnreadCount() {
+    if (!auth.getToken()) return
+    Promise.all([
+      get('/notifications/unread-count').catch(() => ({ data: { count: 0 } })),
+      get('/conversations').catch(() => ({ data: [] }))
+    ]).then(([notiRes, chatRes]) => {
+      const notiCount = (notiRes.data || notiRes).count || 0
+      const chatList = (chatRes.data || chatRes)
+      const chatCount = Array.isArray(chatList)
+        ? chatList.reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+        : (chatList.list || []).reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+      this.setData({ unreadCount: notiCount + chatCount })
+    })
+  },
+
   onCardTap(e) {
     const { id } = e.detail
     wx.navigateTo({ url: '/pages/post-detail/post-detail?id=' + id })
@@ -326,52 +397,247 @@ Page({
     wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
   },
 
+  getCurrentUserId() {
+    const app = getApp()
+    const storageUser = wx.getStorageSync('userInfo') || {}
+    const currentUserId = app.globalData.userId
+      || (app.globalData.userInfo && app.globalData.userInfo.id)
+      || storageUser.id
+      || wx.getStorageSync('userId')
+      || 0
+    return Number(currentUserId) || 0
+  },
+
+  getPostOwnerId(item) {
+    if (!item) return 0
+    return Number(item.userId || (item.user && item.user.id) || 0)
+  },
+
+  isOwnerPost(item) {
+    const currentUserId = this.getCurrentUserId()
+    const ownerId = this.getPostOwnerId(item)
+    return !!(currentUserId && ownerId && currentUserId === ownerId)
+  },
+
+  isPostUnlocked(item) {
+    return this.isOwnerPost(item) || !!(item && item.contactUnlocked)
+  },
+
+  getPostItemById(id) {
+    const allItems = this._getAllItems()
+    return allItems.find(i => String(i.id) === String(id))
+  },
+
   onWechat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    // 从列表中找到对应项的微信号
-    const allItems = this._getAllItems()
-    const item = allItems.find(i => String(i.id) === String(id))
-    const wechat = item ? item.wechat : ''
-    if (!wechat) {
-      wx.showToast({ title: '暂无微信号', icon: 'none' })
+    const item = this.getPostItemById(id)
+
+    if (!item) {
+      wx.showToast({ title: '信息不存在', icon: 'none' })
       return
     }
-    wx.showModal({
-      title: '微信号',
-      content: wechat,
-      confirmText: '复制',
-      success: (res) => {
-        if (res.confirm) {
-          wx.setClipboardData({ data: wechat })
-        }
+
+    if (this.isOwnerPost(item)) {
+      wx.showToast({ title: '无需获取自己的微信', icon: 'none' })
+      return
+    }
+
+    if (this.isPostUnlocked(item)) {
+      if (!item.contactWechat) {
+        wx.showToast({ title: '发布者未留微信号', icon: 'none' })
+        return
       }
-    })
+      wx.showModal({
+        title: '微信号',
+        content: item.contactWechat,
+        showCancel: true,
+        cancelText: '关闭',
+        confirmText: '复制',
+        success: (res) => {
+          if (res.confirm) wx.setClipboardData({ data: item.contactWechat })
+        }
+      })
+      return
+    }
+
+    this._unlockContact(id, 'wechat')
   },
 
   onPhone(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const allItems = this._getAllItems()
-    const item = allItems.find(i => String(i.id) === String(id))
-    const phone = item ? item.phone : ''
-    if (!phone) {
-      wx.showToast({ title: '暂无电话号码', icon: 'none' })
+    const item = this.getPostItemById(id)
+
+    if (!item) {
+      wx.showToast({ title: '信息不存在', icon: 'none' })
       return
     }
-    wx.makePhoneCall({ phoneNumber: phone, fail() {} })
+
+    if (this.isOwnerPost(item)) {
+      wx.showToast({ title: '无需获取自己的电话', icon: 'none' })
+      return
+    }
+
+    if (this.isPostUnlocked(item)) {
+      if (!item.contactPhone) {
+        wx.showToast({ title: '发布者未留电话', icon: 'none' })
+        return
+      }
+      wx.makePhoneCall({ phoneNumber: item.contactPhone, fail() {} })
+      return
+    }
+
+    this._unlockContact(id, 'phone')
+  },
+
+  _unlockContact(postId, type) {
+    const app = getApp()
+
+    // 先获取解锁成本预览
+    wx.showLoading({ title: '加载中...' })
+    get('/posts/' + postId + '/unlock-preview').then((response) => {
+      wx.hideLoading()
+      const data = response.data || response
+
+      // 如果已经解锁过了
+      if (data.alreadyUnlocked) {
+        wx.showToast({ title: '已解锁，无需重复解锁', icon: 'none' })
+        return
+      }
+
+      const cost = data.cost || 0
+      const baseCost = data.baseCost || 10
+      const isMember = data.isMember || false
+      const isFree = data.isFree || false
+      const freeRemaining = data.freeRemaining || 0
+      const beanBalance = data.beanBalance || 0
+      const sufficient = data.sufficient
+
+      // 会员免费提示
+      if (isMember && isFree) {
+        wx.showModal({
+          title: '会员免费查看',
+          content: `会员专享：今日还有 ${freeRemaining} 次免费查看机会，确认使用？`,
+          confirmText: '确认',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) this._doUnlockContact(postId, type)
+          }
+        })
+        return
+      }
+
+      // 会员折扣提示
+      if (isMember && !isFree) {
+        wx.showModal({
+          title: '会员折扣',
+          content: `会员专享5折优惠：需要 ${cost} 灵豆（原价 ${baseCost} 灵豆），当前余额 ${beanBalance} 灵豆，确认解锁？`,
+          confirmText: '解锁',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) this._doUnlockContact(postId, type)
+          }
+        })
+        return
+      }
+
+      // 非会员检查灵豆
+      if (!sufficient) {
+        wx.showModal({
+          title: '灵豆不足',
+          content: `当前灵豆余额为 ${beanBalance}，需要 ${cost} 灵豆才能解锁联系方式。`,
+          confirmText: '去充值',
+          cancelText: '取消',
+          success: (res) => {
+            if (res.confirm) {
+              wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
+            }
+          }
+        })
+        return
+      }
+
+      // 非会员确认解锁
+      wx.showModal({
+        title: '解锁联系方式',
+        content: `需要耗费 ${cost} 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？`,
+        confirmText: '解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) this._doUnlockContact(postId, type)
+        }
+      })
+    }).catch((err) => {
+      wx.hideLoading()
+      wx.showToast({ title: err.message || '获取解锁信息失败', icon: 'none' })
+    })
+  },
+
+  _doUnlockContact(postId, type) {
+    const app = getApp()
+    wx.showLoading({ title: '解锁中...' })
+    post('/posts/' + postId + '/unlock').then((response) => {
+      wx.hideLoading()
+      const data = response.data || response
+      if (data.success === false) {
+        wx.showToast({ title: data.message || '解锁失败', icon: 'none' })
+        return
+      }
+      // 更新灵豆余额
+      if (data.beanBalance !== undefined) {
+        app.globalData.beanBalance = data.beanBalance
+      }
+      const cost = data.cost || 0
+      const msg = cost === 0 ? '免费解锁成功' : `解锁成功，已扣 ${cost} 灵豆`
+      wx.showToast({ title: msg, icon: 'success' })
+
+      // 重新加载数据
+      this.loadData()
+
+      // 根据类型执行相应操作
+      setTimeout(() => {
+        if (type === 'wechat') {
+          this.onWechat({ detail: { id: postId } })
+        } else if (type === 'phone') {
+          this.onPhone({ detail: { id: postId } })
+        } else if (type === 'chat') {
+          this.onChat({ detail: { id: postId } })
+        }
+      }, 1500)
+    }).catch((err) => {
+      wx.hideLoading()
+      wx.showToast({ title: err.message || '解锁失败', icon: 'none' })
+    })
   },
 
   onChat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const allItems = this._getAllItems()
-    const item = allItems.find(i => String(i.id) === String(id))
-    const targetUserId = item && (item.userId || (item.user && item.user.id))
+    const item = this.getPostItemById(id)
+    const targetUserId = this.getPostOwnerId(item)
+    const postId = Number(item && item.id) || 0
 
-    if (!targetUserId) {
+    if (!item || !targetUserId) {
       wx.showToast({ title: '暂不支持该条信息直接聊天', icon: 'none' })
       return
     }
 
-    const postId = Number(item && item.id) || 0
+    if (this.isOwnerPost(item)) {
+      wx.showToast({ title: '不能和自己对话', icon: 'none' })
+      return
+    }
+
+    if (!this.isPostUnlocked(item)) {
+      wx.showModal({
+        title: '提示',
+        content: '需要先解锁联系方式才能在线聊天',
+        confirmText: '去解锁',
+        cancelText: '取消',
+        success: (res) => {
+          if (res.confirm) this._unlockContact(id, 'chat')
+        }
+      })
+      return
+    }
+
     post('/conversations/with-user/' + targetUserId, { postId }).then(res => {
       const conversationId = res.data && res.data.id
       if (!conversationId) {
@@ -455,40 +721,28 @@ Page({
     this.loadData()
   },
 
-  onFilterTap(e) {
-    const type = e.currentTarget.dataset.type
-    const actions = []
-
-    if (type === 'jobType') {
-      // 从后台配置获取工种列表
-      if (this.data.jobTypes.length === 0) {
-        wx.showToast({ title: '暂无可选工种', icon: 'none' })
-        return
-      }
-      actions.push('全部', ...this.data.jobTypes.map(jt => jt.name))
-    } else if (type === 'salaryType') {
-      actions.push('全部', '按小时', '按件')
-    } else if (type === 'distance') {
-      actions.push('全部', '1km内', '3km内', '5km内', '10km内')
-    } else if (type === 'salary') {
-      actions.push('全部', '20元以下', '20-30元', '30-50元', '50元以上')
-    }
-
-    wx.showActionSheet({
-      itemList: actions,
-      success: (res) => {
-        const selected = actions[res.tapIndex]
-        if (type === 'jobType') {
-          this.setData({ filterJobType: selected === '全部' ? '' : selected })
-        } else if (type === 'salaryType') {
-          this.setData({ filterSalaryType: selected === '全部' ? '' : selected })
-        } else if (type === 'distance') {
-          this.setData({ filterDistance: selected === '全部' ? '' : selected })
-        } else if (type === 'salary') {
-          this.setData({ filterSalaryRange: selected === '全部' ? '' : selected })
-        }
-        this.loadWorkerJobs()
-      }
-    })
+  onJobTypeChange(e) {
+    const idx = e.detail.value
+    const val = this.data.jobTypeOptions[idx]
+    this.setData({ jobTypeIndex: idx, filterJobType: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
+  },
+  onSalaryTypeChange(e) {
+    const idx = e.detail.value
+    const val = this.data.salaryTypeOptions[idx]
+    this.setData({ salaryTypeIndex: idx, filterSalaryType: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
+  },
+  onDistanceChange(e) {
+    const idx = e.detail.value
+    const val = this.data.distanceOptions[idx]
+    this.setData({ distanceIndex: idx, filterDistance: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
+  },
+  onSalaryChange(e) {
+    const idx = e.detail.value
+    const val = this.data.salaryOptions[idx]
+    this.setData({ salaryIndex: idx, filterSalaryRange: val === '全部' ? '' : val })
+    this.loadWorkerJobs()
   }
 })

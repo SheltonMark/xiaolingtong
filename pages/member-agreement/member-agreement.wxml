@@ -1,0 +1,49 @@
+<view class="doc-page">
+  <nav-bar title="会员协议" showBack="{{true}}" />
+  <view class="doc-card">
+    <text class="doc-main-title">小灵通平台会员服务协议</text>
+    <text class="doc-update">更新日期：2026年03月11日 · 生效日期：2026年03月11日</text>
+
+    <view class="doc-section">
+      <text class="doc-title">一、协议说明</text>
+      <text class="doc-text">1.1 本协议适用于您在小灵通平台购买和使用会员服务的全部行为。</text>
+      <text class="doc-text">1.2 会员服务为付费增值服务，您完成支付即视为已阅读并同意本协议。</text>
+      <text class="doc-text">1.3 本协议与《用户协议》《隐私政策》共同构成平台服务规则。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">二、会员权益</text>
+      <text class="doc-text">2.1 会员权益以会员中心页面实时展示为准，包括但不限于查看优惠、推广折扣、会员标识等。</text>
+      <text class="doc-text">2.2 不同会员套餐的权益范围、有效期和适用对象可能不同，具体以购买页说明为准。</text>
+      <text class="doc-text">2.3 平台有权根据运营策略优化权益内容，并在页面或公告中进行公示。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">三、费用与生效</text>
+      <text class="doc-text">3.1 会员价格以支付页面展示为准，支付成功后即时生效并开始计算有效期。</text>
+      <text class="doc-text">3.2 本平台当前会员到期后默认停止，不自动续费；如后续开通自动续费，会单独征得您的授权。</text>
+      <text class="doc-text">3.3 因用户账户异常、违规或司法要求导致的服务限制，平台不承担额外赔偿责任。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">四、退款规则</text>
+      <text class="doc-text">4.1 会员服务属于已开通即提供的数字化服务，原则上不支持无理由退款。</text>
+      <text class="doc-text">4.2 如发生重复扣费、系统故障等非用户原因问题，您可联系客服核实处理。</text>
+      <text class="doc-text">4.3 经核实应退款的，平台将在确认后按原支付路径退回。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">五、用户承诺</text>
+      <text class="doc-text">5.1 您不得以会员身份从事违法违规活动，不得恶意刷量、欺诈或扰乱平台秩序。</text>
+      <text class="doc-text">5.2 您不得以任何方式转让、出租、出借会员资格或利用会员权益牟取不当利益。</text>
+      <text class="doc-text">5.3 如您违反平台规则，平台有权限制或终止会员服务且不退还剩余费用。</text>
+    </view>
+
+    <view class="doc-section">
+      <text class="doc-title">六、协议变更与终止</text>
+      <text class="doc-text">6.1 平台可根据法律法规及业务发展需要对本协议进行更新，更新后将在相关页面公示。</text>
+      <text class="doc-text">6.2 若您不同意更新内容，可停止使用会员服务；继续使用视为接受更新后的协议。</text>
+      <text class="doc-text">6.3 本协议未尽事宜，按照相关法律法规及平台规则执行。</text>
+    </view>
+  </view>
+</view>

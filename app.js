@@ -9,7 +9,15 @@ App({
     isMember: false,
     beanBalance: 0,
     inviteCode: '',
-    pendingInviteCode: ''
+    pendingInviteCode: '',
+    userId: null,
+
+    // ===== 测试模式开关 =====
+    // 设置为 true 启用测试模式，可以模拟不同用户
+    // 测试完成后务必改回 false！
+    TEST_MODE: false,
+    TEST_USER_ID: null  // 测试模式下模拟的用户ID，null表示使用真实ID
+    // ========================
   },
 
   onLaunch(options) {
@@ -38,6 +46,16 @@ App({
       this.globalData.isMember = user.isMember || false
       this.globalData.beanBalance = user.beanBalance || 0
       this.globalData.inviteCode = user.inviteCode || ''
+
+      // 保存真实userId
+      this.globalData.userId = user.id || null
+
+      // 测试模式：如果设置了TEST_USER_ID，覆盖真实userId
+      if (this.globalData.TEST_MODE && this.globalData.TEST_USER_ID) {
+        console.warn('⚠️ 测试模式已启用，当前模拟用户ID:', this.globalData.TEST_USER_ID)
+        this.globalData.userId = this.globalData.TEST_USER_ID
+      }
+
       if (user.role) wx.setStorageSync('userRole', user.role)
       if (user.avatarUrl) wx.setStorageSync('avatarUrl', user.avatarUrl)
     }).catch(() => {})

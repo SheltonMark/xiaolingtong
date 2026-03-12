@@ -38,9 +38,10 @@
 
   <!-- 系统通知 -->
   <view class="msg-list" wx:if="{{currentTab === 1}}">
-    <view class="msg-card {{item.unread ? 'msg-unread' : ''}}" style="{{item.unread ? 'border-left: 6rpx solid ' + item.borderColor + ';' : ''}}"
+    <view class="msg-card system-card {{item.unread ? 'msg-unread' : ''}}"
           wx:for="{{systemMessages}}" wx:key="id" bindtap="onTapMsg" data-item="{{item}}">
-      <view class="msg-icon-wrap" style="background-color: {{item.iconBg}};">
+      <view class="msg-brace" style="border-color: {{item.accentColor}};"></view>
+      <view class="msg-icon-wrap" style="background-color: {{item.iconBg}}; color: {{item.iconColor}};">
         <text class="msg-icon-text">{{item.icon}}</text>
       </view>
       <view class="msg-body">

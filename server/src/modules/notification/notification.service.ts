@@ -33,4 +33,9 @@ export class NotificationService {
   async create(userId: number, data: Partial<Notification>) {
     return this.notiRepo.save(this.notiRepo.create({ ...data, userId }));
   }
+
+  async unreadCount(userId: number) {
+    const count = await this.notiRepo.count({ where: { userId, isRead: 0 } });
+    return { count };
+  }
 }

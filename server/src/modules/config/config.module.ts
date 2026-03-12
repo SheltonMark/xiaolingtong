@@ -4,9 +4,10 @@ import { ConfigController } from './config.controller';
 import { ConfigService } from './config.service';
 import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
+import { Category } from '../../entities/category.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([OpenCity, JobType])],
+  imports: [TypeOrmModule.forFeature([OpenCity, JobType, Category])],
   controllers: [ConfigController],
   providers: [ConfigService],
 })

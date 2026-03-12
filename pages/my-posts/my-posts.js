@@ -85,7 +85,10 @@ Page({
         expired: item.status === 'expired',
         views: Number(item.viewCount || 0),
         title: item.title || (item.content || '').slice(0, 36) || '未命名发布',
-        desc: item.content || ''
+        desc: item.content || '',
+        isPromoted: !!item.isPromoted,
+        canPromote: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting'),
+        canSettle: item.type === 'job' && item.status === 'pending_settlement'
       }
     })
   },
@@ -108,6 +111,11 @@ Page({
   onPromotePost(e) {
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: '/pages/promotion/promotion?id=' + id })
+  },
+
+  onSetUrgent(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/urgent-job/urgent-job?id=' + id })
   },
 
   onGoSettlement(e) {

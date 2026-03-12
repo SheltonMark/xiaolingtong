@@ -6,6 +6,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class NotificationController {
   constructor(private notiService: NotificationService) {}
 
+  @Get('unread-count')
+  unreadCount(@CurrentUser('sub') userId: number) {
+    return this.notiService.unreadCount(userId);
+  }
+
   @Get()
   list(@CurrentUser('sub') userId: number, @Query() query: any) {
     return this.notiService.list(userId, query);

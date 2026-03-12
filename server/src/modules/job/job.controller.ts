@@ -37,4 +37,10 @@ export class JobController {
   update(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.jobService.update(id, userId, dto);
   }
+
+  @Post(':id/set-urgent')
+  @Roles('enterprise')
+  setUrgent(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: { durationDays: number }) {
+    return this.jobService.setUrgent(id, userId, dto);
+  }
 }

@@ -60,6 +60,9 @@ export class Job {
   @Column({ type: 'tinyint', default: 0 })
   urgent: number;
 
+  @Column({ type: 'datetime', nullable: true })
+  urgentExpireAt: Date;
+
   @Column({ type: 'enum', enum: ['recruiting', 'full', 'working', 'pending_settlement', 'settled', 'closed'], default: 'recruiting' })
   status: string;
 
