@@ -132,13 +132,13 @@ Page({
       const data = res.data || {}
       const detail = this.formatDetail(data)
 
-      // 检查是否已解锁（根据是否有联系方式信息判断）
-      const contactUnlocked = !!(data.contactPhone || data.contactWechat || data.contactName)
-      const contactInfo = contactUnlocked ? {
+      // 使用后端返回的 contactUnlocked 字段
+      const contactUnlocked = !!data.contactUnlocked
+      const contactInfo = {
         name: data.contactName || '',
         phone: data.contactPhone || '',
         wechat: data.contactWechat || ''
-      } : {}
+      }
 
       this.setData({ detail, contactUnlocked, contactInfo })
     }).catch(() => {})

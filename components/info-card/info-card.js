@@ -9,10 +9,23 @@ Component({
   lifetimes: {
     attached() {
       this.updateDisplayName()
+    },
+    ready() {
+      // 页面显示时也更新一次
+      this.updateDisplayName()
+    }
+  },
+  pageLifetimes: {
+    show() {
+      // 页面显示时更新显示名称
+      this.updateDisplayName()
     }
   },
   observers: {
     'item.companyName': function() {
+      this.updateDisplayName()
+    },
+    'item': function() {
       this.updateDisplayName()
     }
   },
