@@ -46,7 +46,7 @@
 .fav-card {
   background-color: #FFFFFF;
   border-radius: 20rpx;
-  padding: 24rpx;
+  padding: 20rpx 24rpx;
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }

@@ -4,7 +4,7 @@
   <!-- Tab栏 -->
   <view class="tab-bar">
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
-          wx:for="{{tabs}}" wx:key="index"
+          wx:for="{{tabs}}" wx:key="*this"
           data-index="{{index}}" bindtap="onTabChange">
       <text>{{item}}</text>
     </view>
