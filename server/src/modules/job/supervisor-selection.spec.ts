@@ -6,6 +6,7 @@ import { Job } from '../../entities/job.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
 import { Keyword } from '../../entities/keyword.entity';
+import { NotificationTriggerService } from '../notification/notification-trigger.service';
 
 describe('SupervisorSelection', () => {
   let service: JobService;
@@ -13,8 +14,18 @@ describe('SupervisorSelection', () => {
   let appRepo: Repository<JobApplication>;
   let userRepo: Repository<User>;
   let keywordRepo: Repository<Keyword>;
+  let notificationTrigger: any;
 
   beforeEach(async () => {
+    notificationTrigger = {
+      notifyApplicationSubmitted: jest.fn(),
+      notifyNewApplication: jest.fn(),
+      notifyApplicationAccepted: jest.fn(),
+      notifyApplicationRejected: jest.fn(),
+      notifyApplicationCancelled: jest.fn(),
+      notifyApplicationCancelledEnterprise: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -49,6 +60,10 @@ describe('SupervisorSelection', () => {
           useValue: {
             find: jest.fn(),
           },
+        },
+        {
+          provide: NotificationTriggerService,
+          useValue: notificationTrigger,
         },
       ],
     }).compile();

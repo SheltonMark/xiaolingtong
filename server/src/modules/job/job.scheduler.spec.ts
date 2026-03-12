@@ -1,3 +1,4 @@
+import { NotificationTriggerService } from '../notification/notification-trigger.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { JobScheduler } from './job.scheduler';
@@ -27,6 +28,17 @@ describe('JobScheduler', () => {
         {
           provide: getRepositoryToken(Job),
           useValue: jobRepository,
+        },
+        {
+          provide: NotificationTriggerService,
+          useValue: {
+            notifyApplicationSubmitted: jest.fn(),
+            notifyNewApplication: jest.fn(),
+            notifyApplicationAccepted: jest.fn(),
+            notifyApplicationRejected: jest.fn(),
+            notifyApplicationCancelled: jest.fn(),
+            notifyApplicationCancelledEnterprise: jest.fn(),
+          },
         },
       ],
     }).compile();

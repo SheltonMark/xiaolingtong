@@ -1,3 +1,4 @@
+import { NotificationTriggerService } from '../notification/notification-trigger.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -48,6 +49,17 @@ describe('TimeConflictCheck', () => {
           provide: getRepositoryToken(Keyword),
           useValue: {
             find: jest.fn(),
+          },
+        },
+        {
+          provide: NotificationTriggerService,
+          useValue: {
+            notifyApplicationSubmitted: jest.fn(),
+            notifyNewApplication: jest.fn(),
+            notifyApplicationAccepted: jest.fn(),
+            notifyApplicationRejected: jest.fn(),
+            notifyApplicationCancelled: jest.fn(),
+            notifyApplicationCancelledEnterprise: jest.fn(),
           },
         },
       ],
