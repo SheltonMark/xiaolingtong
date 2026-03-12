@@ -174,7 +174,8 @@ export class PostService {
 
     const normalizedList = (list || []).map(item => {
       const postId = Number(item.id);
-      const isOwner = userId && item.userId === userId;
+      const itemUserId = Number(item.userId);
+      const isOwner = userId && userId > 0 && itemUserId === userId;
       const isUnlocked = isOwner || unlockedPostIds.has(postId);
 
       // 调试日志
@@ -182,8 +183,7 @@ export class PostService {
         console.log('=== Post 5 解锁状态调试 ===');
         console.log('当前userId:', userId);
         console.log('发布者userId:', item.userId);
-        console.log('userId类型:', typeof userId);
-        console.log('item.userId类型:', typeof item.userId);
+        console.log('发布者userId(转换后):', itemUserId);
         console.log('isOwner:', isOwner);
         console.log('unlockedPostIds.has(5):', unlockedPostIds.has(postId));
         console.log('isUnlocked:', isUnlocked);
@@ -280,8 +280,13 @@ export class PostService {
     const certMap = await this.getEnterpriseCertMap([Number(post.userId)]);
     const normalizedPost = this.buildCompanyInfo(post, certMap);
 
+    // 判断是否已解锁（修复类型比较问题）
+    const postUserId = Number(post.userId);
+    const isOwner = userId && userId > 0 && postUserId === userId;
+    const isUnlocked = !!unlocked || isOwner;
+
     // 如果已解锁，返回联系方式
-    const contactInfo = (unlocked || post.userId === userId) ? {
+    const contactInfo = isUnlocked ? {
       contactName: post.contactName,
       contactPhone: post.contactPhone,
       contactWechat: post.contactWechat,
@@ -291,7 +296,7 @@ export class PostService {
       ...normalizedPost,
       ...contactInfo,
       postCount: userPostCount,
-      contactUnlocked: !!unlocked || post.userId === userId,
+      contactUnlocked: isUnlocked,
     };
   }
 
