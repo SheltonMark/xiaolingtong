@@ -13,7 +13,7 @@
   <!-- 列表 -->
   <view class="post-list">
     <view class="post-card {{item.status === 'offline' ? 'card-offline' : ''}}"
-          wx:for="{{posts}}" wx:key="id"
+          wx:for="{{posts}}" wx:key="uniqueKey"
           wx:if="{{currentTab === 0 || item.typeKey === tabs[currentTab].key}}">
       <view class="post-top">
         <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
