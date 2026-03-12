@@ -1,13 +1,11 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
-import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { User } from '../../entities/user.entity';
-import { BeanTransaction } from '../../entities/bean-transaction.entity';
-import { Notification } from '../../entities/notification.entity';
+import { JobStateMachine } from './job-state-machine';
 
 @Injectable()
 export class JobService {
@@ -15,10 +13,7 @@ export class JobService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
-    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
-    @InjectRepository(Notification) private notiRepo: Repository<Notification>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -129,25 +124,9 @@ export class JobService {
 
     const [list, total] = await qb.getManyAndCount();
 
-    // 获取企业认证信息
-    const userIds = list.map(job => job.userId).filter(Boolean);
-    const certMap = new Map<number, EnterpriseCert>();
-    if (userIds.length > 0) {
-      const certs = await this.entCertRepo.createQueryBuilder('c')
-        .where('c.userId IN (:...userIds)', { userIds })
-        .andWhere('c.status = :status', { status: 'approved' })
-        .orderBy('c.userId', 'ASC')
-        .addOrderBy('c.id', 'DESC')
-        .getMany();
-      for (const cert of certs) {
-        if (!certMap.has(cert.userId)) certMap.set(cert.userId, cert);
-      }
-    }
-
     // 格式化列表数据
     const formattedList = await Promise.all(list.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
-      const cert = certMap.get(job.userId);
 
       // 格式化福利标签
       const benefitTags = (job.benefits || []).map((b: any) => ({
@@ -182,14 +161,7 @@ export class JobService {
         images: job.images || [],
         tags: benefitTags,
         allTags,
-        companyName: cert?.companyName || job.user?.nickname || '企业用户',
-        avatarUrl: job.user?.avatarUrl || '',
-        user: {
-          id: job.user?.id,
-          avatarUrl: job.user?.avatarUrl || '',
-          isMember: job.user?.isMember || 0
-        },
-        isMember: !!(job.user?.isMember),
+        companyName: job.user?.nickname || '企业用户',
         time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
       };
     }));
@@ -280,52 +252,183 @@ export class JobService {
     return this.jobRepo.save(job);
   }
 
-  async setUrgent(jobId: number, userId: number, dto: { durationDays: number }) {
+  async updateApplicationStatus(
+    applicationId: number,
+    newStatus: string,
+    userId: number,
+  ): Promise<JobApplication> {
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId },
+      relations: ['job'],
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (!JobStateMachine.canTransition(application.status, newStatus)) {
+      throw new BadRequestException(
+        `Cannot transition from ${application.status} to ${newStatus}`,
+      );
+    }
+
+    application.status = newStatus;
+    if (newStatus === 'confirmed') {
+      application.confirmedAt = new Date();
+    }
+
+    return this.appRepo.save(application);
+  }
+
+  async acceptApplication(
+    applicationId: number,
+    action: 'accepted' | 'rejected',
+    userId: number,
+  ): Promise<JobApplication> {
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId },
+      relations: ['job'],
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    // 验证权限：只有工作发布者可以接受/拒绝
+    if (application.job.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to accept this application');
+    }
+
+    // 验证状态：只有 pending 状态可以接受/拒绝
+    if (application.status !== 'pending') {
+      throw new BadRequestException('Application is not in pending status');
+    }
+
+    return this.updateApplicationStatus(applicationId, action, userId);
+  }
+
+  async selectSupervisor(
+    jobId: number,
+    workerId: number,
+    userId: number,
+  ): Promise<JobApplication> {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
-    if (!job) throw new BadRequestException('招工信息不存在');
-    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+    if (!job || job.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to manage this job');
+    }
 
-    const user = await this.userRepo.findOneBy({ id: userId });
-    if (!user) throw new BadRequestException('用户不存在');
+    const application = await this.appRepo.findOne({
+      where: { jobId, workerId, status: 'accepted' },
+    });
 
-    const durationDays = Number(dto.durationDays || 0);
-    if (!durationDays || durationDays < 1) throw new BadRequestException('急招时长不能为空');
+    if (!application) {
+      throw new NotFoundException('Application not found or not in accepted status');
+    }
 
-    // 急招价格：30灵豆/天
-    const urgentCostPerDay = 30;
-    const actualCost = urgentCostPerDay * durationDays;
+    // 验证临工资格
+    const worker = await this.userRepo.findOne({ where: { id: workerId } });
+    if (!worker || worker.creditScore < 95 || worker.totalOrders < 10) {
+      throw new BadRequestException('Worker does not meet supervisor requirements');
+    }
 
-    if (user.beanBalance < actualCost) throw new BadRequestException('灵豆不足');
+    // 更新为 confirmed 并标记为管理员
+    application.status = 'confirmed';
+    application.isSupervisor = 1;
+    application.confirmedAt = new Date();
 
-    // 扣除灵豆
-    user.beanBalance -= actualCost;
-    await this.userRepo.save(user);
+    return this.appRepo.save(application);
+  }
 
-    // 设置急招状态和过期时间
-    job.urgent = 1;
-    const expireAt = new Date();
-    expireAt.setDate(expireAt.getDate() + durationDays);
-    job.urgentExpireAt = expireAt;
-    await this.jobRepo.save(job);
+  async confirmAttendance(
+    applicationId: number,
+    workerId: number,
+  ): Promise<JobApplication> {
+    const application = await this.appRepo.findOne({
+      where: { id: applicationId, workerId, status: 'accepted' },
+    });
 
-    // 记录灵豆交易
-    await this.beanTxRepo.save(this.beanTxRepo.create({
-      userId,
-      type: 'urgent',
-      amount: -actualCost,
-      refType: 'job',
-      refId: jobId,
-      remark: `设置急招${durationDays}天`,
-    }));
+    if (!application) {
+      throw new NotFoundException('Application not found or not in accepted status');
+    }
 
-    // 发送通知
-    await this.notiRepo.save(this.notiRepo.create({
-      userId,
-      type: 'urgent' as any,
-      title: '急招设置成功',
-      content: `您的招工信息已设置急招${durationDays}天，消耗${actualCost}灵豆`,
-    }));
+    application.status = 'confirmed';
+    application.confirmedAt = new Date();
 
-    return { message: '设置成功', beanBalance: user.beanBalance, actualCost, durationDays };
+    return this.appRepo.save(application);
+  }
+
+  async getMyApplications(workerId: number) {
+    const applications = await this.appRepo.find({
+      where: { workerId },
+      relations: ['job', 'job.user'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 按状态分类
+    const grouped = {
+      pending: [],
+      accepted: [],
+      confirmed: [],
+      working: [],
+      done: [],
+    };
+
+    applications.forEach((app) => {
+      // 将 pending 和 accepted 都归到 pending 分类
+      if (app.status === 'pending' || app.status === 'accepted') {
+        grouped.pending.push(app);
+      } else if (app.status === 'confirmed') {
+        grouped.confirmed.push(app);
+      } else if (app.status === 'working') {
+        grouped.working.push(app);
+      } else if (app.status === 'done') {
+        grouped.done.push(app);
+      }
+    });
+
+    return grouped;
+  }
+
+  async getApplicationsForEnterprise(jobId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to view this job');
+    }
+
+    const applications = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 按状态分类
+    const grouped = {
+      pending: [],
+      accepted: [],
+      confirmed: [],
+    };
+
+    applications.forEach((app) => {
+      if (app.status === 'pending') {
+        grouped.pending.push({
+          ...app,
+          worker: {
+            id: app.worker.id,
+            name: app.worker.nickname,
+            creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
+          },
+        });
+      } else if (app.status === 'accepted') {
+        grouped.accepted.push(app);
+      } else if (app.status === 'confirmed') {
+        grouped.confirmed.push({
+          ...app,
+          isSupervisor: app.isSupervisor,
+        });
+      }
+    });
+
+    return grouped;
   }
 }

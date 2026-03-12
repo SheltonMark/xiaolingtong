@@ -1,19 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { JobController } from './job.controller';
 import { JobService } from './job.service';
+import { JobScheduler } from './job.scheduler';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
-import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
-import { User } from '../../entities/user.entity';
-import { BeanTransaction } from '../../entities/bean-transaction.entity';
-import { Notification } from '../../entities/notification.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert, User, BeanTransaction, Notification])],
+  imports: [
+    TypeOrmModule.forFeature([Job, Keyword, JobApplication]),
+    ScheduleModule.forRoot(),
+  ],
   controllers: [JobController],
-  providers: [JobService],
+  providers: [JobService, JobScheduler],
   exports: [JobService],
 })
 export class JobModule {}

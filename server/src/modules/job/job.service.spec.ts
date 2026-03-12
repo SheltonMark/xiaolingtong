@@ -8,12 +8,14 @@ import { JobService } from './job.service';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { User } from '../../entities/user.entity';
 
 describe('JobService', () => {
   let service: JobService;
   let jobRepository: any;
   let keywordRepository: any;
   let jobApplicationRepository: any;
+  let userRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -39,6 +41,11 @@ describe('JobService', () => {
       update: jest.fn(),
     };
 
+    userRepository = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -53,6 +60,10 @@ describe('JobService', () => {
         {
           provide: getRepositoryToken(JobApplication),
           useValue: jobApplicationRepository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: userRepository,
         },
       ],
     }).compile();

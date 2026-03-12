@@ -3,6 +3,8 @@ import { JobService } from './job.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { Public } from '../../common/decorators/public.decorator';
+import { AcceptApplicationDto } from './dto/accept-application.dto';
+import { SelectSupervisorDto } from './dto/select-supervisor.dto';
 
 @Controller('jobs')
 export class JobController {
@@ -38,9 +40,48 @@ export class JobController {
     return this.jobService.update(id, userId, dto);
   }
 
-  @Post(':id/set-urgent')
+  @Post(':jobId/applications/:applicationId/accept')
   @Roles('enterprise')
-  setUrgent(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: { durationDays: number }) {
-    return this.jobService.setUrgent(id, userId, dto);
+  acceptApplication(
+    @Param('jobId') jobId: number,
+    @Param('applicationId') applicationId: number,
+    @Body() dto: AcceptApplicationDto,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.acceptApplication(applicationId, dto.action, userId);
+  }
+
+  @Post(':jobId/select-supervisor')
+  @Roles('enterprise')
+  selectSupervisor(
+    @Param('jobId') jobId: number,
+    @Body() dto: SelectSupervisorDto,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.selectSupervisor(jobId, dto.workerId, userId);
+  }
+
+  @Post('applications/:applicationId/confirm-attendance')
+  @Roles('worker')
+  confirmAttendance(
+    @Param('applicationId') applicationId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.confirmAttendance(applicationId, userId);
+  }
+
+  @Get('my-applications')
+  @Roles('worker')
+  getMyApplications(@CurrentUser('sub') userId: number) {
+    return this.jobService.getMyApplications(userId);
+  }
+
+  @Get(':jobId/applications')
+  @Roles('enterprise')
+  getApplicationsForEnterprise(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getApplicationsForEnterprise(jobId, userId);
   }
 }
