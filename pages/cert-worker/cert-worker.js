@@ -10,10 +10,14 @@ Page({
   },
   onInput(e) { this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value }) },
   onSkillTap(e) {
+    console.log('onSkillTap triggered', e)
     const tag = e.currentTarget.dataset.tag
+    console.log('tag:', tag)
     let s = [...this.data.selectedSkills]
     const idx = s.indexOf(tag)
+    console.log('current selectedSkills:', s, 'idx:', idx)
     idx > -1 ? s.splice(idx, 1) : s.push(tag)
+    console.log('new selectedSkills:', s)
     this.setData({ selectedSkills: s })
   },
   onUploadFront() {
