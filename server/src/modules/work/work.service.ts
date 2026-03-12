@@ -128,4 +128,51 @@ export class WorkService {
 
     return log;
   }
+
+  async recordAttendance(applicationId: number, workerId: number): Promise<any> {
+    const app = await this.appRepo.findOne({
+      where: { id: applicationId, workerId }
+    });
+
+    if (!app) throw new Error('Application not found');
+
+    app.attendance = {
+      checkedIn: true,
+      checkedInAt: new Date()
+    };
+
+    return this.appRepo.save(app);
+  }
+
+  async getAttendanceStatus(jobId: number): Promise<any> {
+    const applications = await this.appRepo.find({
+      where: { jobId, status: 'working' }
+    });
+
+    const checkedIn = applications.filter(app => app.attendance?.checkedIn).length;
+    const notCheckedIn = applications.length - checkedIn;
+
+    return {
+      jobId,
+      totalWorkers: applications.length,
+      checkedIn,
+      notCheckedIn,
+      checkInRate: applications.length > 0 ? (checkedIn / applications.length * 100).toFixed(2) : 0
+    };
+  }
+
+  async confirmWorkStart(jobId: number): Promise<any> {
+    const applications = await this.appRepo.find({
+      where: { jobId, status: 'working' }
+    });
+
+    const confirmedCount = applications.filter(app => app.attendance?.checkedIn).length;
+
+    return {
+      jobId,
+      confirmedCount,
+      totalCount: applications.length,
+      status: 'confirmed'
+    };
+  }
 }
