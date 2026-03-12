@@ -237,31 +237,55 @@ Page({
       return
     }
 
-    let content = ''
+    // 如果两者都有，让用户选择
     if (wechat && phone) {
-      content = `微信：${wechat}\n手机：${phone}`
-    } else if (wechat) {
-      content = `微信：${wechat}`
-    } else {
-      content = `手机：${phone}`
-    }
-
-    wx.showModal({
-      title: '联系方式',
-      content: content,
-      showCancel: true,
-      cancelText: '关闭',
-      confirmText: wechat ? '复制微信' : '拨打电话',
-      success: (res) => {
-        if (res.confirm) {
-          if (wechat) {
-            wx.setClipboardData({ data: wechat })
-          } else if (phone) {
+      wx.showActionSheet({
+        itemList: ['查看微信号', '拨打电话'],
+        success: (res) => {
+          if (res.tapIndex === 0) {
+            // 查看微信号
+            wx.showModal({
+              title: '微信号',
+              content: wechat,
+              showCancel: true,
+              cancelText: '关闭',
+              confirmText: '复制',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  wx.setClipboardData({ data: wechat })
+                }
+              }
+            })
+          } else if (res.tapIndex === 1) {
+            // 拨打电话
             wx.makePhoneCall({ phoneNumber: phone, fail() {} })
           }
         }
-      }
-    })
+      })
+      return
+    }
+
+    // 只有微信
+    if (wechat) {
+      wx.showModal({
+        title: '微信号',
+        content: wechat,
+        showCancel: true,
+        cancelText: '关闭',
+        confirmText: '复制',
+        success: (res) => {
+          if (res.confirm) {
+            wx.setClipboardData({ data: wechat })
+          }
+        }
+      })
+      return
+    }
+
+    // 只有电话
+    if (phone) {
+      wx.makePhoneCall({ phoneNumber: phone, fail() {} })
+    }
   },
 
   onCopyWechat() {
