@@ -82,13 +82,18 @@
     </view>
 
     <view class="form-group">
-      <text class="form-label">所在城市</text>
-      <picker mode="selector" range="{{cityNames}}" value="{{cityIndex}}" bindchange="onCityChange">
+      <text class="form-label">所在地区</text>
+      <picker mode="region" bindchange="onRegionChange">
         <view class="form-select">
-          <text class="{{form.address ? 'select-text' : 'select-placeholder'}}">{{form.address || '请选择所在城市'}}</text>
+          <text class="{{form.city ? 'select-text' : 'select-placeholder'}}">{{form.city || '请选择省/市/区'}}</text>
           <text class="select-arrow">▾</text>
         </view>
       </picker>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">详细地址</text>
+      <input class="form-input" placeholder="请输入街道、门牌号等详细地址" data-field="addressDetail" bindinput="onInput" />
     </view>
 
     <button class="submit-btn submit-blue" bindtap="onSubmit">提交认证</button>

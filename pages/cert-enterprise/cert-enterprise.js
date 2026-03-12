@@ -2,7 +2,7 @@ const { get, post, upload } = require('../../utils/request')
 
 Page({
   data: {
-    form: { companyName: '', creditCode: '', legalPerson: '', contactName: '', phone: '', address: '' },
+    form: { companyName: '', creditCode: '', legalPerson: '', contactName: '', phone: '', city: '', addressDetail: '' },
     licenseImage: '',
     idFrontImage: '',
     idBackImage: '',
@@ -10,15 +10,11 @@ Page({
     typeOptions: ['工厂', '工贸一体', '电商', '贸易公司', '门店', '其他'],
     categoryNames: [],
     categoryIndex: -1,
-    selectedCategory: '',
-    // 省市区
-    cityNames: [],
-    cityIndex: 0
+    selectedCategory: ''
   },
 
   onLoad() {
     this._loadCategories()
-    this._loadCities()
   },
 
   _loadCategories() {
@@ -26,14 +22,6 @@ Page({
       const d = res.data || res
       const list = d.list || []
       this.setData({ categoryNames: list.map(c => c.name) })
-    }).catch(() => {})
-  },
-
-  _loadCities() {
-    get('/config/cities').then(res => {
-      const d = res.data || res
-      const list = d.list || []
-      this.setData({ cityNames: list.map(c => c.name) })
     }).catch(() => {})
   },
 
@@ -47,9 +35,9 @@ Page({
     const idx = e.detail.value
     this.setData({ categoryIndex: idx, selectedCategory: this.data.categoryNames[idx] })
   },
-  onCityChange(e) {
-    const idx = e.detail.value
-    this.setData({ cityIndex: idx, 'form.address': this.data.cityNames[idx] })
+  onRegionChange(e) {
+    const region = e.detail.value || []
+    this.setData({ 'form.city': region.join(' ') })
   },
   onUploadLicense() {
     wx.chooseMedia({ count: 1, mediaType: ['image'], success: (res) => {
@@ -89,7 +77,7 @@ Page({
       legalIdBack: idBackImage,
       companyType: selectedType,
       category: selectedCategory,
-      address: form.address
+      address: [form.city, form.addressDetail].filter(Boolean).join(' ')
     }).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '提交成功，等待审核', icon: 'success' })
