@@ -43,4 +43,10 @@ export class JobController {
   setUrgent(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: { durationDays: number }) {
     return this.jobService.setUrgent(id, userId, dto);
   }
+
+  @Get('urgent/pricing')
+  @Roles('enterprise')
+  getUrgentPricing() {
+    return this.jobService.getUrgentPricing();
+  }
 }

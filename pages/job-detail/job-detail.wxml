@@ -73,11 +73,13 @@
       <text class="card-label">招工企业</text>
     </view>
     <view class="company-row">
-      <view class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#10B981;">{{job.company.name[0]}}</view>
+      <image wx:if="{{job.company.avatarUrl}}" src="{{job.company.avatarUrl}}" mode="aspectFill" class="company-avatar-img" />
+      <view wx:else class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#10B981;">{{job.company.name[0]}}</view>
       <view class="comp-info">
         <view class="comp-name-row">
           <text class="comp-name">{{job.company.name}}</text>
-          <text class="cert-badge" wx:if="{{job.company.verified}}">已认证</text>
+          <text class="cert-badge cert-badge-verified" wx:if="{{job.company.verified}}">已认证</text>
+          <text class="cert-badge cert-badge-unverified" wx:else>未认证</text>
         </view>
         <text class="comp-credit">信用分 <text class="text-cta font-semibold">{{job.company.creditScore}}</text> · {{job.location}}</text>
       </view>

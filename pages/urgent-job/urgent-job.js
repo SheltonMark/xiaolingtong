@@ -27,19 +27,46 @@ Page({
   },
 
   _loadPricing() {
-    // 急招价格：30灵豆/天
-    const urgentCostPerDay = 30
-    const options = [
-      { id: 1, name: '1天', days: 1, beans: urgentCostPerDay * 1, desc: `${urgentCostPerDay} 灵豆/天` },
-      { id: 2, name: '3天', days: 3, beans: urgentCostPerDay * 3, desc: `${urgentCostPerDay} 灵豆/天` },
-      { id: 3, name: '7天', days: 7, beans: urgentCostPerDay * 7, desc: `${urgentCostPerDay} 灵豆/天`, tag: '推荐', tagColor: '#F97316' },
-      { id: 4, name: '30天', days: 30, beans: urgentCostPerDay * 30, desc: `${urgentCostPerDay} 灵豆/天`, tag: '最划算', tagColor: '#F43F5E' }
-    ]
+    // 从后端获取急招价格配置
+    get('/jobs/urgent/pricing').then(res => {
+      const list = (res.data && res.data.list) || res.list || []
+      const options = list.map((item, index) => {
+        const opt = {
+          id: index + 1,
+          name: `${item.durationDays}天`,
+          days: item.durationDays,
+          beans: item.beanCost,
+          desc: `${Math.round(item.beanCost / item.durationDays)} 灵豆/天`
+        }
+        if (item.durationDays === 7) {
+          opt.tag = '推荐'
+          opt.tagColor = '#F97316'
+        } else if (item.durationDays === 30) {
+          opt.tag = '最划算'
+          opt.tagColor = '#F43F5E'
+        }
+        return opt
+      })
 
-    this.setData({
-      options,
-      selectedIndex: 2, // 默认选择7天
-      pricingLoaded: true
+      this.setData({
+        options,
+        selectedIndex: options.findIndex(o => o.days === 7) || 0,
+        pricingLoaded: true
+      })
+    }).catch(() => {
+      // 降级：使用默认价格
+      const urgentCostPerDay = 100
+      const options = [
+        { id: 1, name: '1天', days: 1, beans: urgentCostPerDay * 1, desc: `${urgentCostPerDay} 灵豆/天` },
+        { id: 2, name: '3天', days: 3, beans: urgentCostPerDay * 3, desc: `${urgentCostPerDay} 灵豆/天` },
+        { id: 3, name: '7天', days: 7, beans: urgentCostPerDay * 7, desc: `${urgentCostPerDay} 灵豆/天`, tag: '推荐', tagColor: '#F97316' },
+        { id: 4, name: '30天', days: 30, beans: urgentCostPerDay * 30, desc: `${urgentCostPerDay} 灵豆/天`, tag: '最划算', tagColor: '#F43F5E' }
+      ]
+      this.setData({
+        options,
+        selectedIndex: 2,
+        pricingLoaded: true
+      })
     })
   },
 

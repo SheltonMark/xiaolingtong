@@ -8,6 +8,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Injectable()
 export class JobService {
@@ -19,6 +20,7 @@ export class JobService {
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
+    @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -129,6 +131,15 @@ export class JobService {
 
     const [list, total] = await qb.getManyAndCount();
 
+    // 检查并更新过期的急招状态
+    const now = new Date();
+    for (const job of list) {
+      if (job.urgent === 1 && job.urgentExpireAt && new Date(job.urgentExpireAt) < now) {
+        job.urgent = 0;
+        await this.jobRepo.save(job);
+      }
+    }
+
     // 获取企业认证信息
     const userIds = list.map(job => job.userId).filter(Boolean);
     const certMap = new Map<number, EnterpriseCert>();
@@ -204,6 +215,22 @@ export class JobService {
     // 查询报名人数
     const appliedCount = await this.appRepo.count({ where: { jobId: id } });
 
+    // 查询企业认证信息
+    let companyName = job.user?.nickname || '企业用户';
+    let verified = false;
+    let avatarUrl = job.user?.avatarUrl || '';
+
+    if (job.userId) {
+      const cert = await this.entCertRepo.findOne({
+        where: { userId: job.userId, status: 'approved' },
+        order: { id: 'DESC' }
+      });
+      if (cert) {
+        companyName = cert.companyName;
+        verified = true;
+      }
+    }
+
     // 格式化返回数据
     const salaryTypeMap = { hourly: '计时', piece: '计件' };
     const dateRange = job.dateStart && job.dateEnd
@@ -220,8 +247,9 @@ export class JobService {
       hours: job.workHours || '待定',
       cityDistrict: this.extractCityDistrict(job.location),
       company: {
-        name: job.user?.nickname || '企业用户',
-        verified: false,
+        name: companyName,
+        verified,
+        avatarUrl,
         creditScore: job.user?.creditScore || 100,
         contact: job.contactName || '联系人',
         phone: job.contactPhone || job.user?.phone || ''
@@ -237,6 +265,15 @@ export class JobService {
 
     const formattedJobs = await Promise.all(jobs.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+
+      // 检查急招是否过期
+      let isUrgent = job.urgent === 1;
+      if (isUrgent && job.urgentExpireAt && new Date(job.urgentExpireAt) < new Date()) {
+        isUrgent = false;
+        job.urgent = 0;
+        await this.jobRepo.save(job);
+      }
+
       return {
         id: job.id,
         type: 'job',
@@ -249,6 +286,8 @@ export class JobService {
         workHours: job.workHours,
         cityDistrict: this.extractCityDistrict(job.location),
         status: job.status,
+        urgent: isUrgent,
+        urgentExpireAt: job.urgentExpireAt,
         createdAt: job.createdAt,
         viewCount: 0 // TODO: 实现浏览次数统计
       };
@@ -280,6 +319,29 @@ export class JobService {
     return this.jobRepo.save(job);
   }
 
+  private async getConfig(key: string, defaultValue: string): Promise<string> {
+    const row = await this.sysConfigRepo.findOne({ where: { key } });
+    return row ? row.value : defaultValue;
+  }
+
+  async getUrgentPricing() {
+    const [day1, day3, day7, day30] = await Promise.all([
+      this.getConfig('top_price_per_day', '100'),
+      this.getConfig('top_price_3d', '250'),
+      this.getConfig('top_price_7d', '500'),
+      this.getConfig('top_price_30d', '1500'),
+    ]);
+
+    return {
+      list: [
+        { durationDays: 1, beanCost: parseInt(day1, 10) || 100 },
+        { durationDays: 3, beanCost: parseInt(day3, 10) || 250 },
+        { durationDays: 7, beanCost: parseInt(day7, 10) || 500 },
+        { durationDays: 30, beanCost: parseInt(day30, 10) || 1500 },
+      ]
+    };
+  }
+
   async setUrgent(jobId: number, userId: number, dto: { durationDays: number }) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job) throw new BadRequestException('招工信息不存在');
@@ -291,9 +353,11 @@ export class JobService {
     const durationDays = Number(dto.durationDays || 0);
     if (!durationDays || durationDays < 1) throw new BadRequestException('急招时长不能为空');
 
-    // 急招价格：30灵豆/天
-    const urgentCostPerDay = 30;
-    const actualCost = urgentCostPerDay * durationDays;
+    // 从配置获取急招价格（使用置顶价格配置）
+    const pricingData = await this.getUrgentPricing();
+    const pricing = pricingData.list.find((item) => item.durationDays === durationDays);
+    if (!pricing) throw new BadRequestException('不支持的急招时长');
+    const actualCost = pricing.beanCost;
 
     if (user.beanBalance < actualCost) throw new BadRequestException('灵豆不足');
 

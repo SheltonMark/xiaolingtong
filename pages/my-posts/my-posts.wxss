@@ -63,6 +63,10 @@
   font-size: 20rpx; padding: 4rpx 12rpx; border-radius: 6rpx;
   background-color: #FFF7ED; color: #F97316; font-weight: 500;
 }
+.urgent-tag {
+  font-size: 20rpx; padding: 4rpx 12rpx; border-radius: 6rpx;
+  background-color: #FFF1F2; color: #F43F5E; font-weight: 500;
+}
 
 /* 状态标签 */
 .status-tag {

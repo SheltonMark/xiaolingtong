@@ -9,9 +9,10 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert, User, BeanTransaction, Notification])],
+  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert, User, BeanTransaction, Notification, SysConfig])],
   controllers: [JobController],
   providers: [JobService],
   exports: [JobService],
