@@ -38,15 +38,15 @@ export class JobController {
     return this.jobService.update(id, userId, dto);
   }
 
+  @Get('urgent/pricing')
+  @Roles('enterprise')
+  getUrgentPricing(@CurrentUser('sub') userId: number) {
+    return this.jobService.getUrgentPricing(userId);
+  }
+
   @Post(':id/set-urgent')
   @Roles('enterprise')
   setUrgent(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: { durationDays: number }) {
     return this.jobService.setUrgent(id, userId, dto);
-  }
-
-  @Get('urgent/pricing')
-  @Roles('enterprise')
-  getUrgentPricing() {
-    return this.jobService.getUrgentPricing();
   }
 }
