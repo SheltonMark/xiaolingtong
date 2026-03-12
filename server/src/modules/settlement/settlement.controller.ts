@@ -34,3 +34,17 @@ export class SettlementController {
     return this.settlementService.getPaymentRecords(userId);
   }
 }
+
+@Controller('settlements')
+export class SettlementsController {
+  constructor(private settlementService: SettlementService) {}
+
+  @Get(':jobId')
+  @Roles('enterprise')
+  getSettlement(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.settlementService.getSettlement(jobId, userId);
+  }
+}

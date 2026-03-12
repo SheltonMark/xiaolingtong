@@ -105,4 +105,54 @@ describe('SettlementService', () => {
       expect(result[0].totalAmount).toBe(1600); // 100 * 8 * 2
     });
   });
+
+  describe('getSettlement', () => {
+    it('should return settlement with job and applications', async () => {
+      const jobId = 1;
+      const userId = 1;
+
+      const job = {
+        id: jobId,
+        userId,
+        title: 'Job 1',
+        salary: 100,
+        salaryUnit: '元/时',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-20',
+        workHours: '08:00-17:00',
+        status: 'recruiting',
+      } as any;
+
+      const applications = [
+        {
+          id: 1,
+          jobId,
+          status: 'pending',
+          isSupervisor: false,
+          worker: { id: 1, nickname: 'Worker 1', phone: '13800138000', creditScore: 95, totalOrders: 10 },
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          jobId,
+          status: 'accepted',
+          isSupervisor: true,
+          worker: { id: 2, nickname: 'Worker 2', phone: '13800138001', creditScore: 98, totalOrders: 15 },
+          createdAt: new Date(),
+        },
+      ] as any;
+
+      jest.spyOn(jobRepo, 'findOne').mockResolvedValue(job);
+      jest.spyOn(appRepo, 'find').mockResolvedValue(applications);
+
+      const result = await service.getSettlement(jobId, userId);
+
+      expect(result.job.title).toBe('Job 1');
+      expect(result.applications.pending).toHaveLength(1);
+      expect(result.applications.accepted).toHaveLength(1);
+      expect(result.workers).toHaveLength(2);
+      expect(result.workers[0].name).toBe('Worker 1');
+    });
+  });
 });

@@ -125,4 +125,69 @@ export class SettlementService {
   async getPaymentRecords(userId: number) {
     return [];
   }
+
+  async getSettlement(jobId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job || job.userId !== userId) {
+      throw new ForbiddenException('No permission to view this job');
+    }
+
+    const applications = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'DESC' }
+    });
+
+    const grouped = {
+      pending: [],
+      accepted: [],
+      confirmed: [],
+      working: [],
+      done: [],
+      rejected: [],
+      released: [],
+      cancelled: []
+    };
+
+    applications.forEach((app) => {
+      const formatted = {
+        id: app.id,
+        workerId: app.worker.id,
+        workerName: app.worker.nickname,
+        workerPhone: app.worker.phone,
+        workerCredit: app.worker.creditScore,
+        workerOrders: app.worker.totalOrders,
+        status: app.status,
+        appliedAt: app.createdAt,
+        isSupervisor: app.isSupervisor
+      };
+
+      grouped[app.status].push(formatted);
+    });
+
+    return {
+      job: {
+        id: job.id,
+        title: job.title,
+        salary: job.salary,
+        salaryUnit: job.salaryUnit,
+        needCount: job.needCount,
+        dateStart: job.dateStart,
+        dateEnd: job.dateEnd,
+        workHours: job.workHours,
+        status: job.status
+      },
+      applications: grouped,
+      steps: [],
+      workers: applications.map(app => ({
+        id: app.worker.id,
+        name: app.worker.nickname,
+        phone: app.worker.phone,
+        credit: app.worker.creditScore,
+        orders: app.worker.totalOrders,
+        status: app.status
+      })),
+      fees: {}
+    };
+  }
 }
