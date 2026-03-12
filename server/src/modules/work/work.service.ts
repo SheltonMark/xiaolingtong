@@ -175,4 +175,62 @@ export class WorkService {
       status: 'confirmed'
     };
   }
+
+  async recordWorktime(applicationId: number, workerId: number, dto: any): Promise<any> {
+    const log = this.workLogRepo.create({
+      applicationId,
+      workerId,
+      worktimeType: dto.worktimeType,
+      hours: dto.hours,
+      pieces: dto.pieces,
+      amount: dto.amount,
+      photos: dto.photos || [],
+    });
+
+    return this.workLogRepo.save(log);
+  }
+
+  async reportException(applicationId: number, workerId: number, dto: any): Promise<any> {
+    const log = this.workLogRepo.create({
+      applicationId,
+      workerId,
+      anomalyType: dto.anomalyType,
+      description: dto.description,
+      photos: dto.photos || [],
+    });
+
+    await this.workLogRepo.save(log);
+
+    // 信用分扣分
+    const penaltyMap: Record<string, number> = {
+      absent: 5,
+      early_leave: 5,
+      late: 2,
+      injury: 0,
+      fraud: 20,
+    };
+
+    const penalty = penaltyMap[dto.anomalyType] || 0;
+    if (penalty > 0) {
+      await this.userRepo.decrement({ id: workerId }, 'creditScore', penalty);
+    }
+
+    return log;
+  }
+
+  getExceptionTypes(): string[] {
+    return ['absent', 'early_leave', 'late', 'injury', 'fraud'];
+  }
+
+  getPenaltyForException(exceptionType: string): number {
+    const penaltyMap: Record<string, number> = {
+      absent: 5,
+      early_leave: 5,
+      late: 2,
+      injury: 0,
+      fraud: 20,
+    };
+
+    return penaltyMap[exceptionType] || 0;
+  }
 }

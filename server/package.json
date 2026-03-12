@@ -85,6 +85,9 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
+    "testPathIgnorePatterns": [
+      "/test/"
+    ],
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },

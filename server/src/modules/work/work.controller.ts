@@ -30,4 +30,35 @@ export class WorkController {
   recordAnomaly(@CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.workService.recordAnomaly(userId, dto);
   }
+
+  @Post('worktime/:applicationId')
+  recordWorktime(
+    @Param('applicationId') applicationId: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
+    return this.workService.recordWorktime(applicationId, userId, dto);
+  }
+
+  @Post('exception/:applicationId')
+  reportException(
+    @Param('applicationId') applicationId: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
+    return this.workService.reportException(applicationId, userId, dto);
+  }
+
+  @Get('exception-types')
+  getExceptionTypes() {
+    return this.workService.getExceptionTypes();
+  }
+
+  @Get('exception-penalty/:type')
+  getPenaltyForException(@Param('type') type: string) {
+    return {
+      type,
+      penalty: this.workService.getPenaltyForException(type),
+    };
+  }
 }
