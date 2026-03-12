@@ -249,6 +249,7 @@
 .type-orange { color: #F97316; background-color: #FFF7ED; }
 .type-green { color: #10B981; background-color: #ECFDF5; }
 .type-amber { color: #F59E0B; background-color: #FFFBEB; }
+.type-rose { color: #F43F5E; background-color: #FFF1F2; }
 .dynamic-date { font-size: 20rpx; color: #94A3B8; }
 .dynamic-title { font-size: 26rpx; color: #1E293B; font-weight: 500; display: block; margin-bottom: 8rpx; line-height: 1.45; }
 .dynamic-desc {
@@ -286,6 +287,9 @@
 .dynamic-actions {
   display: flex;
   gap: 12rpx;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
 }
 .dynamic-action {
   flex: 1;
@@ -338,15 +342,17 @@
 }
 .fav-type-tag {
   font-size: 20rpx;
-  padding: 4rpx 0;
+  padding: 0 6rpx;
+  border-radius: 6rpx;
   font-weight: 500;
-  line-height: 1.6;
-  flex-shrink: 0;
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  height: 28rpx;
+  line-height: 1;
 }
-.fav-type-post { color: #3B82F6; }
-.fav-type-job { color: #F97316; }
-.fav-type-exposure { color: #F43F5E; }
+.fav-type-post { color: #3B82F6; background-color: #EFF6FF; }
+.fav-type-job { color: #F97316; background-color: #FFF7ED; }
+.fav-type-exposure { color: #F43F5E; background-color: #FFF1F2; }
 .fav-date { font-size: 20rpx; color: #94A3B8; flex-shrink: 0; white-space: nowrap; }
 .fav-title {
   font-size: 26rpx;
@@ -525,22 +531,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8rpx;
+  margin-bottom: 12rpx;
 }
 .fav-type-tag {
   font-size: 20rpx;
-  padding: 4rpx 0;
+  padding: 0 6rpx;
+  border-radius: 6rpx;
   font-weight: 500;
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  height: 28rpx;
+  line-height: 1;
 }
 .fav-type-post {
   color: #3B82F6;
+  background-color: #EFF6FF;
 }
 .fav-type-job {
   color: #F97316;
+  background-color: #FFF7ED;
 }
 .fav-type-exposure {
   color: #F43F5E;
+  background-color: #FFF1F2;
 }
 .fav-date {
   font-size: 20rpx;

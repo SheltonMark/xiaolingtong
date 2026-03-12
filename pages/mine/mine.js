@@ -1,6 +1,35 @@
 const { get, del } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 
+function formatDate(value) {
+  if (!value) return ''
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10)
+    const parsed = new Date(trimmed)
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10)
+    return trimmed.slice(0, 10)
+  }
+  if (typeof value === 'number') {
+    const ts = value < 1e12 ? value * 1000 : value
+    const parsed = new Date(ts)
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
+  }
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
+}
+
+function getFavoriteDate(item) {
+  return formatDate(
+    item.createdAt ||
+    item.favoritedAt ||
+    item.favoriteAt ||
+    item.created_at ||
+    item.updatedAt
+  )
+}
+
 Page({
   data: {
     userRole: 'enterprise',
@@ -114,7 +143,12 @@ Page({
     // 加载我的收藏（只显示3条）
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      this.setData({ favorites: list.slice(0, 3) })
+      // 格式化日期
+      const formatted = list.map(item => ({
+        ...item,
+        displayDate: getFavoriteDate(item)
+      }))
+      this.setData({ favorites: formatted.slice(0, 3) })
     }).catch(() => {})
     // 加载钱包余额（企业端和临工端都需要）
     get('/wallet').then(res => {

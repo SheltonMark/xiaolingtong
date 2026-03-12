@@ -1,5 +1,34 @@
 const { get, post } = require('../../utils/request')
 
+function formatDate(value) {
+  if (!value) return ''
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10)
+    const parsed = new Date(trimmed)
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10)
+    return trimmed.slice(0, 10)
+  }
+  if (typeof value === 'number') {
+    const ts = value < 1e12 ? value * 1000 : value
+    const parsed = new Date(ts)
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
+  }
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
+}
+
+function getFavoriteDate(item) {
+  return formatDate(
+    item.createdAt ||
+    item.favoritedAt ||
+    item.favoriteAt ||
+    item.created_at ||
+    item.updatedAt
+  )
+}
+
 Page({
   data: {
     currentTab: 0,
@@ -20,7 +49,12 @@ Page({
     wx.showLoading({ title: '加载中...' })
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      this.setData({ allFavorites: list })
+      // 格式化日期
+      const formatted = list.map(item => ({
+        ...item,
+        displayDate: getFavoriteDate(item)
+      }))
+      this.setData({ allFavorites: formatted })
       this.filterByTab()
       wx.hideLoading()
     }).catch(() => {

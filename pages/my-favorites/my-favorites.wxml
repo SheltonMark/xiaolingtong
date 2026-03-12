@@ -13,13 +13,11 @@
   <!-- 收藏列表 -->
   <view class="favorites-list">
     <view class="fav-card" wx:for="{{displayList}}" wx:key="id">
-      <view class="fav-top">
-        <text class="fav-type-tag fav-type-{{item.targetType}}">
-          {{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}
-        </text>
-        <text class="fav-date">{{item.createdAt.substring(0, 10)}}</text>
+      <view class="post-top">
+        <text class="type-tag type-{{item.targetType === 'post' ? 'blue' : item.targetType === 'job' ? 'orange' : 'rose'}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+        <text class="post-date" wx:if="{{item.displayDate}}">{{item.displayDate}}</text>
       </view>
-      <text class="fav-title">{{item.title}}</text>
+      <text class="post-title">{{item.title}}</text>
       <text class="fav-content" wx:if="{{item.content}}">{{item.content}}</text>
 
       <!-- 招工信息特殊显示 -->

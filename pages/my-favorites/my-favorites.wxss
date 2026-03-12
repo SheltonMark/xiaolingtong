@@ -1,6 +1,6 @@
 .my-favorites-page {
   min-height: 100vh;
-  background-color: #F8FAFC;
+  background-color: #FFFFFF;
 }
 
 /* Tab栏 - 参考my-posts样式 */
@@ -32,64 +32,69 @@
   left: 50%;
   transform: translateX(-50%);
   width: 48rpx;
-  height: 6rpx;
+  height: 4rpx;
   background-color: #3B82F6;
-  border-radius: 3rpx;
+  border-radius: 4rpx;
 }
 
 /* 收藏列表 */
 .favorites-list {
   padding: 24rpx 32rpx;
+  background-color: #F8FAFC;
 }
 
 /* 收藏卡片 - 添加白色背景卡片样式 */
 .fav-card {
   background-color: #FFFFFF;
   border-radius: 20rpx;
-  padding: 20rpx 24rpx;
+  padding: 24rpx;
   margin-bottom: 16rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
 }
 
-.fav-top {
+.post-top {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8rpx;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
 }
 
-.fav-type-tag {
+.type-tag {
   font-size: 20rpx;
   padding: 4rpx 0;
+  border-radius: 6rpx;
   font-weight: 500;
-  white-space: nowrap;
 }
 
-.fav-type-post {
+.type-blue {
   color: #3B82F6;
+  background-color: #EFF6FF;
 }
 
-.fav-type-job {
+.type-orange {
   color: #F97316;
+  background-color: #FFF7ED;
 }
 
-.fav-type-exposure {
+.type-rose {
   color: #F43F5E;
+  background-color: #FFF1F2;
 }
 
-.fav-date {
+.post-date {
   font-size: 20rpx;
   color: #94A3B8;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
-.fav-title {
+.post-title {
   font-size: 26rpx;
-  color: #1E293B;
   font-weight: 500;
-  line-height: 1.45;
-  margin-bottom: 8rpx;
+  color: #1E293B;
   display: block;
+  margin-bottom: 12rpx;
+  line-height: 1.5;
 }
 
 .fav-content {
