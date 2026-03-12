@@ -1,28 +1,36 @@
-import { Controller, Get, Post, Param } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { SettlementService } from './settlement.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Roles } from '../../common/decorators/roles.decorator';
 
-@Controller('settlements')
+@Controller('settlement')
 export class SettlementController {
   constructor(private settlementService: SettlementService) {}
 
-  @Get(':jobId')
-  detail(@Param('jobId') jobId: number) {
-    return this.settlementService.detail(jobId);
+  @Get('dashboard')
+  @Roles('enterprise')
+  getDashboard(@CurrentUser('sub') userId: number) {
+    return this.settlementService.getSettlementDashboard(userId);
   }
 
-  @Post(':jobId/create')
-  create(@Param('jobId') jobId: number, @CurrentUser('sub') userId: number) {
-    return this.settlementService.createSettlement(jobId, userId);
+  @Get('jobs/:jobId/applications')
+  @Roles('enterprise')
+  getJobApplications(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.settlementService.getJobApplications(jobId, userId);
   }
 
-  @Post(':jobId/pay')
-  pay(@Param('jobId') jobId: number, @CurrentUser('sub') userId: number) {
-    return this.settlementService.pay(jobId, userId);
+  @Get('records')
+  @Roles('enterprise')
+  getSettlementRecords(@CurrentUser('sub') userId: number) {
+    return this.settlementService.getSettlementRecords(userId);
   }
 
-  @Post(':jobId/confirm')
-  confirmByWorker(@Param('jobId') jobId: number, @CurrentUser('sub') userId: number) {
-    return this.settlementService.confirmByWorker(jobId, userId);
+  @Get('payments')
+  @Roles('enterprise')
+  getPaymentRecords(@CurrentUser('sub') userId: number) {
+    return this.settlementService.getPaymentRecords(userId);
   }
 }

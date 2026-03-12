@@ -1,286 +1,108 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ConfigService } from '@nestjs/config';
+import { Repository } from 'typeorm';
 import { SettlementService } from './settlement.service';
-import { Settlement } from '../../entities/settlement.entity';
-import { SettlementItem } from '../../entities/settlement-item.entity';
 import { Job } from '../../entities/job.entity';
 import { JobApplication } from '../../entities/job-application.entity';
-import { WorkLog } from '../../entities/work-log.entity';
-import { Wallet } from '../../entities/wallet.entity';
-import { WalletTransaction } from '../../entities/wallet-transaction.entity';
-import { User } from '../../entities/user.entity';
-import { SysConfig } from '../../entities/sys-config.entity';
-import { PaymentService } from '../payment/payment.service';
 
 describe('SettlementService', () => {
   let service: SettlementService;
-  let settlementRepository: any;
-  let settlementItemRepository: any;
-  let jobRepository: any;
-  let jobApplicationRepository: any;
-  let workLogRepository: any;
-  let walletRepository: any;
-  let walletTransactionRepository: any;
-  let userRepository: any;
-  let sysConfigRepository: any;
-  let paymentService: any;
-  let configService: any;
+  let jobRepo: Repository<Job>;
+  let appRepo: Repository<JobApplication>;
 
   beforeEach(async () => {
-    settlementRepository = {
-      findOne: jest.fn(),
-      find: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
-      update: jest.fn(),
-    };
-
-    settlementItemRepository = {
-      find: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      save: jest.fn(),
-      count: jest.fn(),
-    };
-
-    jobRepository = {
-      findOne: jest.fn(),
-      findOneBy: jest.fn(),
-      update: jest.fn(),
-    };
-
-    jobApplicationRepository = {
-      find: jest.fn(),
-    };
-
-    workLogRepository = {
-      find: jest.fn(),
-    };
-
-    walletRepository = {
-      findOne: jest.fn(),
-      save: jest.fn(),
-      create: jest.fn(),
-    };
-
-    walletTransactionRepository = {
-      save: jest.fn(),
-      create: jest.fn(),
-    };
-
-    userRepository = {
-      findOne: jest.fn(),
-      findOneBy: jest.fn(),
-      update: jest.fn(),
-    };
-
-    sysConfigRepository = {
-      findOne: jest.fn(),
-    };
-
-    paymentService = {
-      generateOutTradeNo: jest.fn((prefix, id) => `${prefix}_${id}_${Date.now()}`),
-      createJsapiOrder: jest.fn().mockResolvedValue({
-        prepayId: 'test_prepay_id',
-      }),
-    };
-
-    configService = {
-      get: jest.fn(),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SettlementService,
         {
-          provide: getRepositoryToken(Settlement),
-          useValue: settlementRepository,
-        },
-        {
-          provide: getRepositoryToken(SettlementItem),
-          useValue: settlementItemRepository,
-        },
-        {
           provide: getRepositoryToken(Job),
-          useValue: jobRepository,
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+          },
         },
         {
           provide: getRepositoryToken(JobApplication),
-          useValue: jobApplicationRepository,
-        },
-        {
-          provide: getRepositoryToken(WorkLog),
-          useValue: workLogRepository,
-        },
-        {
-          provide: getRepositoryToken(Wallet),
-          useValue: walletRepository,
-        },
-        {
-          provide: getRepositoryToken(WalletTransaction),
-          useValue: walletTransactionRepository,
-        },
-        {
-          provide: getRepositoryToken(User),
-          useValue: userRepository,
-        },
-        {
-          provide: getRepositoryToken(SysConfig),
-          useValue: sysConfigRepository,
-        },
-        {
-          provide: PaymentService,
-          useValue: paymentService,
-        },
-        {
-          provide: ConfigService,
-          useValue: configService,
+          useValue: {
+            find: jest.fn(),
+            count: jest.fn(),
+          },
         },
       ],
     }).compile();
 
     service = module.get<SettlementService>(SettlementService);
+    jobRepo = module.get<Repository<Job>>(getRepositoryToken(Job));
+    appRepo = module.get<Repository<JobApplication>>(getRepositoryToken(JobApplication));
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  describe('getSettlementDashboard', () => {
+    it('should return grouped jobs by status', async () => {
+      const userId = 1;
+      const jobs = [
+        { id: 1, userId, status: 'recruiting', title: 'Job 1', salary: 100, salaryUnit: '元/时', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-20', createdAt: new Date() },
+        { id: 2, userId, status: 'full', title: 'Job 2', salary: 150, salaryUnit: '元/时', needCount: 10, dateStart: '2026-03-21', dateEnd: '2026-03-21', createdAt: new Date() },
+      ] as any;
 
-  describe('getConfig', () => {
-    it('should return config from database', async () => {
-      const mockConfig = { id: 1, key: 'commission_rate', value: '0.1' };
+      jest.spyOn(jobRepo, 'find').mockResolvedValue(jobs);
+      jest.spyOn(appRepo, 'count').mockResolvedValue(5);
 
-      sysConfigRepository.findOne.mockResolvedValue(mockConfig);
+      const result = await service.getSettlementDashboard(userId);
 
-      const result = await service['getConfig']('commission_rate');
-
-      expect(result).toBe('0.1');
-    });
-
-    it('should return default value when config not found', async () => {
-      sysConfigRepository.findOne.mockResolvedValue(null);
-
-      const result = await service['getConfig']('commission_rate', '0.15');
-
-      expect(result).toBe('0.15');
+      expect(result.recruiting).toHaveLength(1);
+      expect(result.full).toHaveLength(1);
+      expect(result.recruiting[0].title).toBe('Job 1');
     });
   });
 
-  describe('create', () => {
-    it('should create settlement successfully', async () => {
-      const mockJob = { id: 1, userId: 1, title: 'Test Job', salary: 100, salaryType: 'hourly' };
-      const mockApplications = [
-        { id: 1, workerId: 2, status: 'confirmed', isSupervisor: 0 },
-        { id: 2, workerId: 3, status: 'confirmed', isSupervisor: 0 },
-      ];
-      const mockWorkLogs = [
-        { id: 1, applicationId: 1, hours: 8, pieces: 0, jobId: 1, workerId: 2 },
-        { id: 2, applicationId: 2, hours: 8, pieces: 0, jobId: 1, workerId: 3 },
-      ];
-      const mockSettlement = { id: 1, jobId: 1, enterpriseId: 1, status: 'pending' };
+  describe('getJobApplications', () => {
+    it('should return applications grouped by status', async () => {
+      const jobId = 1;
+      const userId = 1;
 
-      jobRepository.findOneBy.mockResolvedValue(mockJob);
-      settlementRepository.findOne.mockResolvedValue(null);
-      jobApplicationRepository.find.mockResolvedValue(mockApplications);
-      workLogRepository.find.mockResolvedValue(mockWorkLogs);
-      sysConfigRepository.findOne.mockResolvedValue(null);
-      settlementRepository.create.mockReturnValue(mockSettlement);
-      settlementRepository.save.mockResolvedValue(mockSettlement);
-      settlementItemRepository.create.mockReturnValue({});
-      settlementItemRepository.save.mockResolvedValue({});
-      jobRepository.update.mockResolvedValue({});
+      const job = { id: jobId, userId } as any;
+      const applications = [
+        { id: 1, jobId, status: 'pending', worker: { id: 1, nickname: 'Worker 1', phone: '13800138000', creditScore: 95, totalOrders: 10 }, createdAt: new Date() },
+        { id: 2, jobId, status: 'accepted', worker: { id: 2, nickname: 'Worker 2', phone: '13800138001', creditScore: 98, totalOrders: 15 }, createdAt: new Date() },
+      ] as any;
 
-      const result = await service.createSettlement(1, 1);
+      jest.spyOn(jobRepo, 'findOne').mockResolvedValue(job);
+      jest.spyOn(appRepo, 'find').mockResolvedValue(applications);
 
-      expect(result).toBeDefined();
-      expect(result.settlementId).toBe(1);
-      expect(settlementRepository.save).toHaveBeenCalled();
-    });
+      const result = await service.getJobApplications(jobId, userId);
 
-    it('should throw error when job not found', async () => {
-      jobRepository.findOneBy.mockResolvedValue(null);
-
-      await expect(service.createSettlement(1, 999)).rejects.toThrow();
-    });
-
-    it('should throw error when settlement already exists', async () => {
-      const mockJob = { id: 1, userId: 1, title: 'Test Job' };
-      const mockSettlement = { id: 1, jobId: 1, status: 'pending' };
-
-      jobRepository.findOneBy.mockResolvedValue(mockJob);
-      settlementRepository.findOne.mockResolvedValue(mockSettlement);
-
-      await expect(service.createSettlement(1, 1)).rejects.toThrow();
+      expect(result.pending).toHaveLength(1);
+      expect(result.accepted).toHaveLength(1);
+      expect(result.pending[0].workerName).toBe('Worker 1');
     });
   });
 
-  describe('detail', () => {
-    it('should return settlement detail', async () => {
-      const mockSettlement = { id: 1, jobId: 1, userId: 1, status: 'pending' };
+  describe('getSettlementRecords', () => {
+    it('should return settlement records for completed jobs', async () => {
+      const userId = 1;
 
-      settlementRepository.findOne.mockResolvedValue(mockSettlement);
-      settlementItemRepository.find.mockResolvedValue([]);
+      const jobs = [
+        {
+          id: 1,
+          userId,
+          title: 'Job 1',
+          salary: 100,
+          salaryType: 'hourly',
+          applications: [
+            { status: 'done' },
+            { status: 'done' },
+          ],
+          createdAt: new Date(),
+        },
+      ] as any;
 
-      const result = await service.detail(1, 1);
+      jest.spyOn(jobRepo, 'find').mockResolvedValue(jobs);
 
-      expect(result).toBeDefined();
-      expect(result.id).toBe(1);
-    });
+      const result = await service.getSettlementRecords(userId);
 
-    it('should throw error when settlement not found', async () => {
-      settlementRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.detail(1, 999)).rejects.toThrow();
-    });
-  });
-
-  describe('pay', () => {
-    it('should initiate payment successfully', async () => {
-      const mockSettlement = { id: 1, jobId: 1, enterpriseId: 1, status: 'pending', factoryTotal: 1000, totalWorkers: 2 };
-      const mockUser = { id: 1, openid: 'test_openid' };
-
-      settlementRepository.findOne.mockResolvedValue(mockSettlement);
-      userRepository.findOneBy.mockResolvedValue(mockUser);
-      paymentService.createJsapiOrder.mockResolvedValue({
-        prepayId: 'test_prepay_id',
-      });
-
-      const result = await service.pay(1, 1);
-
-      expect(result).toBeDefined();
-      expect(paymentService.createJsapiOrder).toHaveBeenCalled();
-    });
-
-    it('should throw error when settlement not found', async () => {
-      settlementRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.pay(1, 999)).rejects.toThrow();
-    });
-  });
-
-  describe('confirmByWorker', () => {
-    it('should confirm settlement item', async () => {
-      const mockSettlement = { id: 1, jobId: 1, status: 'pending' };
-      const mockItem = { id: 1, settlementId: 1, workerId: 2, status: 'pending', confirmed: 0 };
-
-      settlementRepository.findOne.mockResolvedValue(mockSettlement);
-      settlementItemRepository.findOne.mockResolvedValue(mockItem);
-      settlementItemRepository.save.mockResolvedValue({ ...mockItem, confirmed: 1 });
-
-      const result = await service.confirmByWorker(1, 2);
-
-      expect(result).toBeDefined();
-      expect(settlementItemRepository.save).toHaveBeenCalled();
-    });
-
-    it('should throw error when settlement not found', async () => {
-      settlementRepository.findOne.mockResolvedValue(null);
-
-      await expect(service.confirmByWorker(1, 2)).rejects.toThrow();
+      expect(result).toHaveLength(1);
+      expect(result[0].completedCount).toBe(2);
+      expect(result[0].totalAmount).toBe(1600); // 100 * 8 * 2
     });
   });
 });
