@@ -30,6 +30,11 @@ function getFavoriteDate(item) {
   )
 }
 
+function isGenericCompanyName(name) {
+  const text = String(name || '').trim()
+  return !text || text === '企业' || text === '企业用户'
+}
+
 Page({
   data: {
     userRole: 'enterprise',
@@ -157,12 +162,58 @@ Page({
     }).catch(() => {})
     // 临工端加载接单记录
     if (this.data.userRole === 'worker') {
-      get('/applications').then(res => {
-        const rawList = res.data.list || res.data || []
-        const list = rawList.map(item => this.normalizeApplication(item)).slice(0, 3)
-        this.setData({ myApplications: list })
-      }).catch(() => {})
+      this.loadWorkerApplications()
     }
+  },
+
+  loadWorkerApplications() {
+    get('/applications').then(res => {
+      const rawList = res.data.list || res.data || []
+      const baseList = rawList.map(item => this.normalizeApplication(item))
+      this.enrichApplicationsByJobDetail(baseList).then(list => {
+        this.setData({ myApplications: list.slice(0, 3) })
+      }).catch(() => {
+        this.setData({ myApplications: baseList.slice(0, 3) })
+      })
+    }).catch(() => {})
+  },
+
+  enrichApplicationsByJobDetail(list) {
+    const source = Array.isArray(list) ? list : []
+    const missingNameItems = source.filter(item => item.jobId && isGenericCompanyName(item.company))
+    if (missingNameItems.length === 0) return Promise.resolve(source)
+
+    const requestByJobId = {}
+    const requests = missingNameItems.map(item => {
+      const jobId = item.jobId
+      if (!requestByJobId[jobId]) {
+        requestByJobId[jobId] = get('/jobs/' + jobId)
+          .then(res => ({ jobId, detail: res.data || {} }))
+          .catch(() => ({ jobId, detail: {} }))
+      }
+      return requestByJobId[jobId]
+    })
+
+    return Promise.all(requests).then(results => {
+      const detailMap = {}
+      results.forEach(({ jobId, detail }) => {
+        const company = detail && detail.company ? detail.company : {}
+        detailMap[jobId] = {
+          companyName: company.name || detail.companyName || '',
+          avatarUrl: normalizeImageUrl(company.avatarUrl || detail.avatarUrl || '')
+        }
+      })
+
+      return source.map(item => {
+        const detail = detailMap[item.jobId]
+        if (!detail) return item
+        return {
+          ...item,
+          company: isGenericCompanyName(detail.companyName) ? item.company : detail.companyName,
+          companyAvatarUrl: detail.avatarUrl || item.companyAvatarUrl
+        }
+      })
+    })
   },
 
   normalizeApplication(item) {
