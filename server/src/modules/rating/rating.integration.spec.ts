@@ -6,18 +6,32 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { RatingController } from './rating.controller';
 import { RatingService } from './rating.service';
 import { Rating } from '../../entities/rating.entity';
+import { User } from '../../entities/user.entity';
+import { Job } from '../../entities/job.entity';
 
 describe('RatingModule Integration Tests', () => {
   let controller: RatingController;
   let service: RatingService;
   let ratingRepository: any;
+  let userRepository: any;
+  let jobRepository: any;
 
   beforeEach(async () => {
     ratingRepository = {
       findOne: jest.fn(),
       find: jest.fn(),
+      findAndCount: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+    };
+
+    userRepository = {
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
+
+    jobRepository = {
+      findOne: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -27,6 +41,14 @@ describe('RatingModule Integration Tests', () => {
         {
           provide: getRepositoryToken(Rating),
           useValue: ratingRepository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: userRepository,
+        },
+        {
+          provide: getRepositoryToken(Job),
+          useValue: jobRepository,
         },
       ],
     }).compile();
@@ -117,3 +139,4 @@ describe('RatingModule Integration Tests', () => {
     });
   });
 });
+

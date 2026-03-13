@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   Unique,
@@ -17,35 +18,57 @@ export class Rating {
   id: number;
 
   @Column({ type: 'bigint' })
-  workerId: number;
-
-  @Column({ type: 'bigint' })
-  enterpriseId: number;
-
-  @Column({ type: 'bigint' })
   jobId: number;
 
-  @Column({ type: 'int' })
-  score: number;
+  @Column({ type: 'bigint' })
+  raterId: number; // 评价者 ID
 
-  @Column({ type: 'json', nullable: true })
-  tags: string[];
+  @Column({ type: 'bigint' })
+  ratedId: number; // 被评价者 ID
+
+  @Column({ type: 'varchar', length: 50 })
+  raterRole: 'worker' | 'enterprise'; // 评价者角色
+
+  @Column({ type: 'int', default: 5 })
+  score: number; // 评分 1-5
 
   @Column({ type: 'text', nullable: true })
-  content: string;
+  comment: string; // 评价内容
+
+  @Column({ type: 'json', nullable: true })
+  tags: string[]; // 标签
+
+  @Column({ type: 'boolean', default: false })
+  isAnonymous: boolean; // 是否匿名
+
+  @Column({ type: 'varchar', length: 50, default: 'pending' })
+  status: 'pending' | 'approved' | 'rejected'; // 审核状态
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'workerId' })
-  worker: User;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'enterpriseId' })
-  enterprise: User;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @ManyToOne(() => Job)
   @JoinColumn({ name: 'jobId' })
   job: Job;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'raterId' })
+  rater: User;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'ratedId' })
+  rated: User;
+
+  // Legacy fields for backward compatibility
+  @Column({ type: 'bigint', nullable: true })
+  workerId?: number;
+
+  @Column({ type: 'bigint', nullable: true })
+  enterpriseId?: number;
+
+  @Column({ type: 'text', nullable: true })
+  content?: string;
 }
