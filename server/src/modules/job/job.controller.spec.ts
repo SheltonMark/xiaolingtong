@@ -359,4 +359,135 @@ describe('JobController', () => {
       );
     });
   });
+
+  describe('recordWorkLog', () => {
+    it('should call jobService.recordWorkLog with correct parameters', async () => {
+      const jobId = 1;
+      const workerId = 2;
+      const dto = { date: '2026-03-13', hours: 8, pieces: 100 };
+      const mockResult = { id: 1, jobId, workerId, ...dto };
+
+      jobService.recordWorkLog.mockResolvedValue(mockResult);
+
+      const result = await controller.recordWorkLog(jobId, workerId, dto);
+
+      expect(jobService.recordWorkLog).toHaveBeenCalledWith(
+        jobId,
+        workerId,
+        dto.date,
+        dto.hours,
+        dto.pieces,
+      );
+      expect(result).toEqual(mockResult);
+    });
+
+    it('should propagate BadRequestException on invalid hours', async () => {
+      const jobId = 1;
+      const workerId = 2;
+      const dto = { date: '2026-03-13', hours: 25, pieces: 100 };
+
+      jobService.recordWorkLog.mockRejectedValue(
+        new BadRequestException('Work hours must be between 0 and 24'),
+      );
+
+      await expect(
+        controller.recordWorkLog(jobId, workerId, dto),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('getWorkLogs', () => {
+    it('should call jobService.getWorkLogs with jobId', async () => {
+      const jobId = 1;
+      const userId = 5;
+      const mockResult = [
+        {
+          id: 1,
+          jobId,
+          workerId: 2,
+          date: '2026-03-13',
+          hours: 8,
+          pieces: 100,
+        },
+      ];
+
+      jobService.getWorkLogs.mockResolvedValue(mockResult);
+
+      const result = await controller.getWorkLogs(jobId, userId);
+
+      expect(jobService.getWorkLogs).toHaveBeenCalledWith(jobId);
+      expect(Array.isArray(result)).toBe(true);
+    });
+  });
+
+  describe('confirmWorkLog', () => {
+    it('should call jobService.confirmWorkLog with workLogId', async () => {
+      const workLogId = 1;
+      const userId = 5;
+      const mockResult = {
+        id: workLogId,
+        jobId: 1,
+        workerId: 2,
+        confirmed: true,
+      };
+
+      jobService.confirmWorkLog.mockResolvedValue(mockResult);
+
+      const result = await controller.confirmWorkLog(workLogId, userId);
+
+      expect(jobService.confirmWorkLog).toHaveBeenCalledWith(workLogId);
+      expect(result).toEqual(mockResult);
+    });
+
+    it('should propagate NotFoundException when work log not found', async () => {
+      const workLogId = 999;
+      const userId = 5;
+
+      jobService.confirmWorkLog.mockRejectedValue(
+        new NotFoundException('Work log not found'),
+      );
+
+      await expect(controller.confirmWorkLog(workLogId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('updateWorkLogAnomaly', () => {
+    it('should call jobService.updateWorkLogAnomaly with correct parameters', async () => {
+      const workLogId = 1;
+      const userId = 2;
+      const dto = { anomalyType: 'early_leave', anomalyNote: 'Left early' };
+      const mockResult = { id: workLogId, ...dto };
+
+      jobService.updateWorkLogAnomaly.mockResolvedValue(mockResult);
+
+      const result = await controller.updateWorkLogAnomaly(
+        workLogId,
+        userId,
+        dto,
+      );
+
+      expect(jobService.updateWorkLogAnomaly).toHaveBeenCalledWith(
+        workLogId,
+        dto.anomalyType,
+        dto.anomalyNote,
+      );
+      expect(result).toEqual(mockResult);
+    });
+
+    it('should propagate BadRequestException on invalid anomaly type', async () => {
+      const workLogId = 1;
+      const userId = 2;
+      const dto = { anomalyType: 'invalid_type', anomalyNote: 'Note' };
+
+      jobService.updateWorkLogAnomaly.mockRejectedValue(
+        new BadRequestException('Invalid anomaly type'),
+      );
+
+      await expect(
+        controller.updateWorkLogAnomaly(workLogId, userId, dto),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });

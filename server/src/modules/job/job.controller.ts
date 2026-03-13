@@ -113,4 +113,52 @@ export class JobController {
   ) {
     return this.jobService.getAttendances(jobId, userId);
   }
+
+  @Post(':jobId/work-logs')
+  @Roles('worker')
+  recordWorkLog(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') workerId: number,
+    @Body() dto: any,
+  ) {
+    return this.jobService.recordWorkLog(
+      jobId,
+      workerId,
+      dto.date,
+      dto.hours,
+      dto.pieces,
+    );
+  }
+
+  @Get(':jobId/work-logs')
+  @Roles('enterprise')
+  getWorkLogs(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getWorkLogs(jobId);
+  }
+
+  @Put('work-logs/:workLogId/confirm')
+  @Roles('enterprise')
+  confirmWorkLog(
+    @Param('workLogId') workLogId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.confirmWorkLog(workLogId);
+  }
+
+  @Put('work-logs/:workLogId/anomaly')
+  @Roles('worker')
+  updateWorkLogAnomaly(
+    @Param('workLogId') workLogId: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
+    return this.jobService.updateWorkLogAnomaly(
+      workLogId,
+      dto.anomalyType,
+      dto.anomalyNote,
+    );
+  }
 }
