@@ -375,13 +375,15 @@ export class JobService {
     workerId: number,
     userId: number,
   ): Promise<JobApplication> {
-    // 验证工作存在且属于当前用户
+    // 验证工作存在
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job) {
       throw new ForbiddenException(
         'You do not have permission to manage this job',
       );
     }
+
+    // 验证权限
     if (job.userId !== userId) {
       throw new ForbiddenException(
         'You do not have permission to manage this job',
@@ -407,15 +409,16 @@ export class JobService {
       );
     }
 
-    // 验证工人资格 - 分开处理不同的失败原因
+    // 验证工人资格 - 分别返回不同的错误消息
     if (worker.creditScore < 95) {
       throw new BadRequestException(
-        'Worker does not meet supervisor requirements',
+        'Worker credit score must be at least 95',
       );
     }
+
     if (worker.totalOrders < 10) {
       throw new BadRequestException(
-        'Worker does not meet supervisor requirements',
+        'Worker must have at least 10 completed orders',
       );
     }
 
@@ -423,6 +426,7 @@ export class JobService {
     const existingSupervisor = await this.supervisorRepo.findOne({
       where: { jobId },
     });
+
     if (existingSupervisor) {
       throw new BadRequestException('Supervisor already selected for this job');
     }
