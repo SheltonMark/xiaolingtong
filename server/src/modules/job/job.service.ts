@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
@@ -525,7 +525,7 @@ export class JobService {
     // 获取所有 worker 的认证信息
     const workerIds = applications.map(app => app.worker.id);
     const workerCerts = await this.workerCertRepo.find({
-      where: { userId: workerIds.length > 0 ? workerIds : [0] },
+      where: workerIds.length > 0 ? { userId: In(workerIds) } : { userId: In([0]) },
     });
     const certMap = new Map(workerCerts.map(cert => [cert.userId, cert]));
 
