@@ -562,9 +562,9 @@ export class JobService {
     };
 
     applications.forEach((app) => {
-      // 优先使用认证名字，然后是 nickname，最后是 name
+      // 优先使用认证名字，然后是 nickname
       const cert = certMap.get(app.worker.id);
-      const workerName = cert?.realName || app.worker.nickname || app.worker.name || `用户${app.worker.id}`;
+      const workerName = cert?.realName || app.worker.nickname || `用户${app.worker.id}`;
 
       if (app.status === 'pending') {
         grouped.pending.push({
@@ -573,7 +573,6 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
-            totalOrders: app.worker.totalOrders,
           },
         });
       } else if (app.status === 'accepted') {
@@ -583,7 +582,6 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
-            totalOrders: app.worker.totalOrders,
           },
         });
       } else if (app.status === 'confirmed') {
@@ -593,7 +591,6 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
-            totalOrders: app.worker.totalOrders,
           },
           isSupervisor: app.isSupervisor,
         });
@@ -604,7 +601,6 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
-            totalOrders: app.worker.totalOrders,
           },
         });
       }
