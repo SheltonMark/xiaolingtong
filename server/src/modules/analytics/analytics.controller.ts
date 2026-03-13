@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -10,13 +10,13 @@ export class AnalyticsController {
 
   @Get('jobs/:jobId')
   @UseGuards(AuthGuard('jwt'))
-  async getJobStats(@Param('jobId') jobId: number) {
+  async getJobStats(@Param('jobId', ParseIntPipe) jobId: number) {
     return this.analyticsService.getJobStats(jobId);
   }
 
   @Get('workers/:workerId')
   @UseGuards(AuthGuard('jwt'))
-  async getWorkerStats(@Param('workerId') workerId: number) {
+  async getWorkerStats(@Param('workerId', ParseIntPipe) workerId: number) {
     return this.analyticsService.getWorkerStats(workerId);
   }
 
@@ -34,6 +34,9 @@ export class AnalyticsController {
     @Query('period') period: 'daily' | 'weekly' | 'monthly' = 'daily',
     @Query('date') date?: string,
   ) {
-    return this.analyticsService.getTimelineStats(period, date || new Date().toISOString().split('T')[0]);
+    return this.analyticsService.getTimelineStats(
+      period,
+      date || new Date().toISOString().split('T')[0],
+    );
   }
 }

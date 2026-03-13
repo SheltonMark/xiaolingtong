@@ -28,6 +28,7 @@ import { TasksModule } from './modules/tasks/tasks.module';
 import { ConfigModule } from './modules/config/config.module';
 import { InviteModule } from './modules/invite/invite.module';
 import { DisputeModule } from './modules/dispute/dispute.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { DisputeModule } from './modules/dispute/dispute.module';
     ConfigModule,
     InviteModule,
     DisputeModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

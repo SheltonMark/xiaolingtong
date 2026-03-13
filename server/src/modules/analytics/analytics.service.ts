@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
@@ -31,11 +35,16 @@ export class AnalyticsService {
     }
 
     const ratings = await this.ratingRepo.find({ where: { jobId } });
-    const applications = await this.jobApplicationRepo.find({ where: { jobId } });
+    const applications = await this.jobApplicationRepo.find({
+      where: { jobId },
+    });
 
     const averageRating =
       ratings.length > 0
-        ? Math.round((ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) * 100) / 100
+        ? Math.round(
+            (ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) *
+              100,
+          ) / 100
         : 0;
 
     return {
@@ -55,11 +64,16 @@ export class AnalyticsService {
     }
 
     const workLogs = await this.workLogRepo.find({ where: { workerId } });
-    const ratings = await this.ratingRepo.find({ where: { ratedId: workerId } });
+    const ratings = await this.ratingRepo.find({
+      where: { ratedId: workerId },
+    });
 
     const averageRating =
       ratings.length > 0
-        ? Math.round((ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) * 100) / 100
+        ? Math.round(
+            (ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) *
+              100,
+          ) / 100
         : 0;
 
     // Calculate total income from work logs (simplified - would need job salary info in real scenario)
@@ -76,7 +90,6 @@ export class AnalyticsService {
   }
 
   async getPlatformStats(): Promise<PlatformStatsDto> {
-    const jobs = await this.jobRepo.find();
     const users = await this.userRepo.find();
     const ratings = await this.ratingRepo.find();
 
@@ -88,7 +101,10 @@ export class AnalyticsService {
 
     const averagePlatformRating =
       ratings.length > 0
-        ? Math.round((ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) * 100) / 100
+        ? Math.round(
+            (ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) *
+              100,
+          ) / 100
         : 0;
 
     // Calculate total income from settled jobs (simplified)
@@ -136,7 +152,9 @@ export class AnalyticsService {
     const averageRating =
       periodRatings.length > 0
         ? Math.round(
-            (periodRatings.reduce((sum, r) => sum + r.score, 0) / periodRatings.length) * 100,
+            (periodRatings.reduce((sum, r) => sum + r.score, 0) /
+              periodRatings.length) *
+              100,
           ) / 100
         : 0;
 

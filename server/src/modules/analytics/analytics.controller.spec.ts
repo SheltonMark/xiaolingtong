@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
@@ -92,12 +89,18 @@ describe('AnalyticsController', () => {
         new NotFoundException('Job with ID 999 not found'),
       );
 
-      await expect(controller.getJobStats(999)).rejects.toThrow(NotFoundException);
+      await expect(controller.getJobStats(999)).rejects.toThrow(
+        NotFoundException,
+      );
       expect(analyticsService.getJobStats).toHaveBeenCalledWith(999);
     });
 
     it('should return job stats with zero ratings', async () => {
-      const statsWithoutRatings = { ...mockJobStats, averageRating: 0, totalApplications: 0 };
+      const statsWithoutRatings = {
+        ...mockJobStats,
+        averageRating: 0,
+        totalApplications: 0,
+      };
       analyticsService.getJobStats.mockResolvedValue(statsWithoutRatings);
 
       const result = await controller.getJobStats(2);
@@ -125,12 +128,18 @@ describe('AnalyticsController', () => {
         new NotFoundException('Worker with ID 999 not found'),
       );
 
-      await expect(controller.getWorkerStats(999)).rejects.toThrow(NotFoundException);
+      await expect(controller.getWorkerStats(999)).rejects.toThrow(
+        NotFoundException,
+      );
       expect(analyticsService.getWorkerStats).toHaveBeenCalledWith(999);
     });
 
     it('should return worker stats with zero completed jobs', async () => {
-      const newWorkerStats = { ...mockWorkerStats, completedJobs: 0, totalIncome: 0 };
+      const newWorkerStats = {
+        ...mockWorkerStats,
+        completedJobs: 0,
+        totalIncome: 0,
+      };
       analyticsService.getWorkerStats.mockResolvedValue(newWorkerStats);
 
       const result = await controller.getWorkerStats(2);
@@ -164,7 +173,11 @@ describe('AnalyticsController', () => {
     });
 
     it('should return platform stats with correct user distribution', async () => {
-      const stats = { ...mockPlatformStats, totalWorkers: 350, totalEnterprises: 150 };
+      const stats = {
+        ...mockPlatformStats,
+        totalWorkers: 350,
+        totalEnterprises: 150,
+      };
       analyticsService.getPlatformStats.mockResolvedValue(stats);
 
       const result = await controller.getPlatformStats();
@@ -190,7 +203,10 @@ describe('AnalyticsController', () => {
 
       const result = await controller.getTimelineStats('daily', '2026-03-13');
 
-      expect(analyticsService.getTimelineStats).toHaveBeenCalledWith('daily', '2026-03-13');
+      expect(analyticsService.getTimelineStats).toHaveBeenCalledWith(
+        'daily',
+        '2026-03-13',
+      );
       expect(result.period).toBe('daily');
       expect(result.jobsPublished).toBe(10);
       expect(result.newUsers).toBe(5);
@@ -202,7 +218,10 @@ describe('AnalyticsController', () => {
 
       const result = await controller.getTimelineStats('weekly', '2026-03-13');
 
-      expect(analyticsService.getTimelineStats).toHaveBeenCalledWith('weekly', '2026-03-13');
+      expect(analyticsService.getTimelineStats).toHaveBeenCalledWith(
+        'weekly',
+        '2026-03-13',
+      );
       expect(result.period).toBe('weekly');
     });
 
@@ -212,7 +231,10 @@ describe('AnalyticsController', () => {
 
       const result = await controller.getTimelineStats('monthly', '2026-03-13');
 
-      expect(analyticsService.getTimelineStats).toHaveBeenCalledWith('monthly', '2026-03-13');
+      expect(analyticsService.getTimelineStats).toHaveBeenCalledWith(
+        'monthly',
+        '2026-03-13',
+      );
       expect(result.period).toBe('monthly');
     });
 
@@ -243,13 +265,17 @@ describe('AnalyticsController', () => {
         new BadRequestException('Invalid period: invalid'),
       );
 
-      await expect(controller.getTimelineStats('invalid' as any, '2026-03-13')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        controller.getTimelineStats('invalid' as any, '2026-03-13'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should return timeline stats with zero jobs published', async () => {
-      const emptyStats = { ...mockTimelineStats, jobsPublished: 0, jobsCompleted: 0 };
+      const emptyStats = {
+        ...mockTimelineStats,
+        jobsPublished: 0,
+        jobsCompleted: 0,
+      };
       analyticsService.getTimelineStats.mockResolvedValue(emptyStats);
 
       const result = await controller.getTimelineStats('daily', '2026-03-13');

@@ -112,7 +112,9 @@ describe('AnalyticsService', () => {
       expect(result.title).toBe('Test Job');
       expect(result.averageRating).toBe(4.67);
       expect(result.totalApplications).toBe(3);
-      expect(jobRepository.findOne).toHaveBeenCalledWith({ where: { id: jobId } });
+      expect(jobRepository.findOne).toHaveBeenCalledWith({
+        where: { id: jobId },
+      });
     });
 
     it('should throw NotFoundException when job does not exist', async () => {
@@ -177,7 +179,9 @@ describe('AnalyticsService', () => {
     it('should throw NotFoundException when worker does not exist', async () => {
       userRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getWorkerStats(999)).rejects.toThrow(NotFoundException);
+      await expect(service.getWorkerStats(999)).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should handle worker with no work logs', async () => {
@@ -214,11 +218,7 @@ describe('AnalyticsService', () => {
         { id: 3, role: 'worker', createdAt: new Date() },
       ];
 
-      const mockRatings = [
-        { score: 5 },
-        { score: 4 },
-        { score: 5 },
-      ];
+      const mockRatings = [{ score: 5 }, { score: 4 }, { score: 5 }];
 
       jobRepository.find.mockResolvedValue(mockJobs);
       jobRepository.count.mockResolvedValue(3);
@@ -257,12 +257,16 @@ describe('AnalyticsService', () => {
       const date = '2026-03-13';
 
       const mockJobs = [
-        { id: 1, createdAt: new Date('2026-03-13T10:00:00'), status: 'recruiting' },
-        { id: 2, createdAt: new Date('2026-03-13T14:00:00'), status: 'recruiting' },
-      ];
-
-      const mockSettledJobs = [
-        { id: 3, status: 'settled', updatedAt: new Date('2026-03-13T15:00:00') },
+        {
+          id: 1,
+          createdAt: new Date('2026-03-13T10:00:00'),
+          status: 'recruiting',
+        },
+        {
+          id: 2,
+          createdAt: new Date('2026-03-13T14:00:00'),
+          status: 'recruiting',
+        },
       ];
 
       const mockUsers = [
@@ -358,9 +362,9 @@ describe('AnalyticsService', () => {
     });
 
     it('should throw BadRequestException for invalid period', async () => {
-      await expect(service.getTimelineStats('invalid' as any, '2026-03-13')).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.getTimelineStats('invalid' as any, '2026-03-13'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -396,7 +400,10 @@ describe('AnalyticsService', () => {
 
       const mockUsers = Array(500)
         .fill(null)
-        .map((_, i) => ({ id: i, role: i % 2 === 0 ? 'worker' : 'enterprise' }));
+        .map((_, i) => ({
+          id: i,
+          role: i % 2 === 0 ? 'worker' : 'enterprise',
+        }));
 
       jobRepository.find.mockResolvedValue(mockJobs);
       jobRepository.count.mockResolvedValue(1000);

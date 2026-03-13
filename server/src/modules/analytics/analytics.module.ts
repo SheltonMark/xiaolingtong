@@ -9,7 +9,9 @@ import { Rating } from '../../entities/rating.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, User, WorkLog, Rating, JobApplication])],
+  imports: [
+    TypeOrmModule.forFeature([Job, User, WorkLog, Rating, JobApplication]),
+  ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService],
   exports: [AnalyticsService],
