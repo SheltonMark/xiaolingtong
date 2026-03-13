@@ -534,7 +534,7 @@ export class JobService {
           ...app,
           worker: {
             id: app.worker.id,
-            name: app.worker.nickname,
+            nickname: app.worker.nickname,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },
@@ -544,7 +544,7 @@ export class JobService {
           ...app,
           worker: {
             id: app.worker.id,
-            name: app.worker.nickname,
+            nickname: app.worker.nickname,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },
@@ -554,7 +554,7 @@ export class JobService {
           ...app,
           worker: {
             id: app.worker.id,
-            name: app.worker.nickname,
+            nickname: app.worker.nickname,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },
@@ -565,7 +565,7 @@ export class JobService {
           ...app,
           worker: {
             id: app.worker.id,
-            name: app.worker.nickname,
+            nickname: app.worker.nickname,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },

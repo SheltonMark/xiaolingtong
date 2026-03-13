@@ -75,7 +75,7 @@ Page({
     const workerInfo = app.worker || {}
     return {
       id: app.id,
-      workerName: workerInfo.name || workerInfo.nickname || '未知',
+      workerName: workerInfo.nickname || '未知',
       creditScore: workerInfo.creditScore || 0,
       totalOrders: workerInfo.totalOrders || 0,
       status: app.status
