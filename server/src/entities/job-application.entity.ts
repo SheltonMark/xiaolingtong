@@ -43,6 +43,12 @@ export class JobApplication {
   @Column({ type: 'datetime', nullable: true })
   confirmedAt: Date;
 
+  @Column({ type: 'datetime', nullable: true })
+  acceptedAt: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  rejectedAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

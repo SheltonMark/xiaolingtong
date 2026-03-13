@@ -1,0 +1,192 @@
+src/modules/application/application.service.ts:66:24 - error TS2345: Argument of type '{ jobId: number; jobTitle: string; dateRange: string; workHours: string; status: string; }' is not assignable to parameter of type 'never'.
+
+ 66         conflicts.push({
+                           ~
+ 67           jobId: existingJob.id,
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+...
+ 71           status: app.status,
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 72         });
+    ~~~~~~~~~
+src/modules/application/application.service.ts:172:21 - error TS2345: Argument of type '{ displayStatus: string; statusColor: string; id: number; jobId: number; workerId: number; status: string; isSupervisor: number; confirmedAt: Date; createdAt: Date; updatedAt: Date; job: Job; worker: User; }' is not assignable to parameter of type 'never'.
+
+172         normal.push(item);
+                        ~~~~
+src/modules/application/application.service.ts:174:24 - error TS2345: Argument of type '{ displayStatus: string; statusColor: string; id: number; jobId: number; workerId: number; status: string; isSupervisor: number; confirmedAt: Date; createdAt: Date; updatedAt: Date; job: Job; worker: User; }' is not assignable to parameter of type 'never'.
+
+174         exception.push(item);
+                           ~~~~
+src/modules/application/application.service.ts:207:21 - error TS2345: Argument of type '{ displayStatus: string; statusColor: string; id: number; jobId: number; workerId: number; status: string; isSupervisor: number; confirmedAt: Date; createdAt: Date; updatedAt: Date; job: Job; worker: User; }' is not assignable to parameter of type 'never'.
+
+207         normal.push(item);
+                        ~~~~
+src/modules/application/application.service.ts:209:24 - error TS2345: Argument of type '{ displayStatus: string; statusColor: string; id: number; jobId: number; workerId: number; status: string; isSupervisor: number; confirmedAt: Date; createdAt: Date; updatedAt: Date; job: Job; worker: User; }' is not assignable to parameter of type 'never'.
+
+209         exception.push(item);
+                           ~~~~
+src/modules/application/application.service.ts:239:28 - error TS2339: Property 'name' does not exist on type 'User'.
+
+239           name: app.worker.name,
+                               ~~~~
+src/modules/application/application.service.ts:241:37 - error TS2339: Property 'completedJobs' does not exist on type 'User'.
+
+241           completedJobs: app.worker.completedJobs || 0,
+                                        ~~~~~~~~~~~~~
+src/modules/application/application.service.ts:242:37 - error TS2339: Property 'averageRating' does not exist on type 'User'.
+
+242           averageRating: app.worker.averageRating || 0,
+                                        ~~~~~~~~~~~~~
+src/modules/application/application.service.ts:262:9 - error TS2339: Property 'acceptedAt' does not exist on type 'JobApplication'.
+
+262     app.acceptedAt = new Date();
+            ~~~~~~~~~~
+src/modules/application/application.service.ts:268:23 - error TS2339: Property 'acceptedAt' does not exist on type 'JobApplication'.
+
+268       acceptedAt: app.acceptedAt,
+                          ~~~~~~~~~~
+src/modules/application/application.service.ts:286:9 - error TS2339: Property 'rejectedAt' does not exist on type 'JobApplication'.
+
+286     app.rejectedAt = new Date();
+            ~~~~~~~~~~
+src/modules/application/application.service.ts:292:23 - error TS2339: Property 'rejectedAt' does not exist on type 'JobApplication'.
+
+292       rejectedAt: app.rejectedAt,
+                          ~~~~~~~~~~
+src/modules/dispute/dispute.service.ts:132:5 - error TS2322: Type 'number | null' is not assignable to type 'number'.
+  Type 'null' is not assignable to type 'number'.
+
+132     dispute.compensationAmount = dto.compensationAmount || null;
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/modules/job/job.service.ts:496:30 - error TS2345: Argument of type 'JobApplication' is not assignable to parameter of type 'never'.
+
+496         grouped.pending.push(app);
+                                 ~~~
+src/modules/job/job.service.ts:498:32 - error TS2345: Argument of type 'JobApplication' is not assignable to parameter of type 'never'.
+
+498         grouped.confirmed.push(app);
+                                   ~~~
+src/modules/job/job.service.ts:500:30 - error TS2345: Argument of type 'JobApplication' is not assignable to parameter of type 'never'.
+
+500         grouped.working.push(app);
+                                 ~~~
+src/modules/job/job.service.ts:502:27 - error TS2345: Argument of type 'JobApplication' is not assignable to parameter of type 'never'.
+
+502         grouped.done.push(app);
+                              ~~~
+src/modules/job/job.service.ts:532:30 - error TS2345: Argument of type '{ worker: { id: number; name: string; creditScore: number; totalOrders: number; }; id: number; jobId: number; workerId: number; status: string; isSupervisor: number; confirmedAt: Date; createdAt: Date; updatedAt: Date; job: Job; }' is not assignable to parameter of type 'never'.
+
+532         grouped.pending.push({
+                                 ~
+533           ...app,
+    ~~~~~~~~~~~~~~~~~
+...
+539           },
+    ~~~~~~~~~~~~
+540         });
+    ~~~~~~~~~
+src/modules/job/job.service.ts:542:31 - error TS2345: Argument of type 'JobApplication' is not assignable to parameter of type 'never'.
+
+542         grouped.accepted.push(app);
+                                  ~~~
+src/modules/job/job.service.ts:544:32 - error TS2345: Argument of type '{ isSupervisor: number; id: number; jobId: number; workerId: number; status: string; confirmedAt: Date; createdAt: Date; updatedAt: Date; job: Job; worker: User; }' is not assignable to parameter of type 'never'.
+
+544         grouped.confirmed.push({
+                                   ~
+545           ...app,
+    ~~~~~~~~~~~~~~~~~
+546           isSupervisor: app.isSupervisor,
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+547         });
+    ~~~~~~~~~
+src/modules/rating/rating.controller.ts:5:33 - error TS2307: Cannot find module './rating.dto' or its corresponding type declarations.
+
+5 import { CreateRatingDto } from './rating.dto';
+                                  ~~~~~~~~~~~~~~
+
+Found 21 error(s).
+
+root@VM-0-15-debian:~/xiaolingtong/server#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

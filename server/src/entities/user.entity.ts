@@ -28,6 +28,9 @@ export class User {
   @Column({ length: 64, nullable: true })
   nickname: string;
 
+  @Column({ length: 64, nullable: true })
+  name: string;
+
   @Column({ length: 512, nullable: true })
   avatarUrl: string;
 
@@ -45,6 +48,12 @@ export class User {
 
   @Column({ type: 'int', default: 0 })
   totalOrders: number;
+
+  @Column({ type: 'int', default: 0 })
+  completedJobs: number;
+
+  @Column({ type: 'decimal', precision: 3, scale: 1, default: 0 })
+  averageRating: number;
 
   @Column({ type: 'enum', enum: ['active', 'banned'], default: 'active' })
   status: string;

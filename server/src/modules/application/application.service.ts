@@ -51,7 +51,7 @@ export class ApplicationService {
       relations: ['job'],
     });
 
-    const conflicts = [];
+    const conflicts: any[] = [];
     for (const app of activeApps) {
       const existingJob = app.job;
       // 检查日期是否重叠
@@ -154,8 +154,8 @@ export class ApplicationService {
       order: { createdAt: 'DESC' },
     });
 
-    const normal = [];
-    const exception = [];
+    const normal: any[] = [];
+    const exception: any[] = [];
 
     for (const app of apps) {
       const item = {
@@ -189,8 +189,8 @@ export class ApplicationService {
       order: { createdAt: 'DESC' },
     });
 
-    const normal = [];
-    const exception = [];
+    const normal: any[] = [];
+    const exception: any[] = [];
 
     for (const app of apps) {
       const item = {

@@ -43,7 +43,7 @@ export class Dispute {
   resolutionNotes: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  compensationAmount: number;
+  compensationAmount: number | null;
 
   @ManyToOne(() => Job)
   @JoinColumn({ name: 'jobId' })

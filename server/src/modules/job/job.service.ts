@@ -482,7 +482,7 @@ export class JobService {
     });
 
     // 按状态分类
-    const grouped = {
+    const grouped: any = {
       pending: [],
       accepted: [],
       confirmed: [],
@@ -521,7 +521,7 @@ export class JobService {
     });
 
     // 按状态分类
-    const grouped = {
+    const grouped: any = {
       pending: [],
       accepted: [],
       confirmed: [],

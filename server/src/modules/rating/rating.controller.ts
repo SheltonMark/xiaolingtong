@@ -20,7 +20,9 @@ export class RatingController {
       userId,
       dto.ratedId,
       userRole as 'worker' | 'enterprise',
-      dto,
+      dto.score,
+      dto.comment,
+      dto.tags,
     );
   }
 
