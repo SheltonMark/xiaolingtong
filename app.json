@@ -12,6 +12,7 @@
     "pages/post-job/post-job",
     "pages/post-detail/post-detail",
     "pages/job-detail/job-detail",
+    "pages/job-applications/job-applications",
     "pages/my-posts/my-posts",
     "pages/my-applications/my-applications",
     "pages/category/category",

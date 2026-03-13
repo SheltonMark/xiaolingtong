@@ -1,0 +1,118 @@
+<!--pages/job-applications/job-applications.wxml-->
+<view class="job-applications-page">
+  <nav-bar title="招工详情" />
+
+  <!-- 招工基本信息 -->
+  <view class="job-header">
+    <view class="job-header-top">
+      <text class="job-title">{{job.title}}</text>
+      <view class="status-tag status-bg-{{job.statusColor}}">
+        <text>{{job.statusText}}</text>
+      </view>
+    </view>
+    <view class="job-info-row">
+      <text class="job-info-label">工价：</text>
+      <text class="job-info-value text-cta font-semibold">{{job.salary}}{{job.salaryUnit}}</text>
+    </view>
+    <view class="job-info-row">
+      <text class="job-info-label">人数：</text>
+      <text class="job-info-value">需{{job.needCount}}人 · 已报名{{job.appliedCount}}人</text>
+    </view>
+    <view class="job-info-row" wx:if="{{job.dateRange}}">
+      <text class="job-info-label">日期：</text>
+      <text class="job-info-value">{{job.dateRange}}</text>
+    </view>
+  </view>
+
+  <!-- 应用状态分类 -->
+  <view class="applications-section">
+    <view class="section-header">
+      <text class="section-title">报名者管理</text>
+      <text class="section-count">共{{applications.length}}人</text>
+    </view>
+
+    <!-- 待审核 -->
+    <view class="status-group" wx:if="{{pendingApps.length > 0}}">
+      <view class="status-group-header">
+        <text class="status-group-title">待审核</text>
+        <text class="status-group-count">{{pendingApps.length}}</text>
+      </view>
+      <view class="application-item" wx:for="{{pendingApps}}" wx:key="id">
+        <view class="app-info">
+          <view class="worker-name">{{item.workerName}}</view>
+          <view class="worker-detail">
+            <text class="detail-item">信用分: {{item.creditScore}}</text>
+            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          </view>
+        </view>
+        <view class="app-actions">
+          <view class="action-btn btn-accept" bindtap="onAcceptApplication" data-id="{{item.id}}" data-job-id="{{job.id}}">接受</view>
+          <view class="action-btn btn-reject" bindtap="onRejectApplication" data-id="{{item.id}}" data-job-id="{{job.id}}">拒绝</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 已接受 -->
+    <view class="status-group" wx:if="{{acceptedApps.length > 0}}">
+      <view class="status-group-header">
+        <text class="status-group-title">已接受</text>
+        <text class="status-group-count">{{acceptedApps.length}}</text>
+      </view>
+      <view class="application-item" wx:for="{{acceptedApps}}" wx:key="id">
+        <view class="app-info">
+          <view class="worker-name">{{item.workerName}}</view>
+          <view class="worker-detail">
+            <text class="detail-item">信用分: {{item.creditScore}}</text>
+            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          </view>
+        </view>
+        <view class="app-status">
+          <text class="status-badge status-accepted">待确认</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 已确认 -->
+    <view class="status-group" wx:if="{{confirmedApps.length > 0}}">
+      <view class="status-group-header">
+        <text class="status-group-title">已确认</text>
+        <text class="status-group-count">{{confirmedApps.length}}</text>
+      </view>
+      <view class="application-item" wx:for="{{confirmedApps}}" wx:key="id">
+        <view class="app-info">
+          <view class="worker-name">{{item.workerName}}</view>
+          <view class="worker-detail">
+            <text class="detail-item">信用分: {{item.creditScore}}</text>
+            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          </view>
+        </view>
+        <view class="app-status">
+          <text class="status-badge status-confirmed">已入选</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 已拒绝 -->
+    <view class="status-group" wx:if="{{rejectedApps.length > 0}}">
+      <view class="status-group-header">
+        <text class="status-group-title">已拒绝</text>
+        <text class="status-group-count">{{rejectedApps.length}}</text>
+      </view>
+      <view class="application-item" wx:for="{{rejectedApps}}" wx:key="id">
+        <view class="app-info">
+          <view class="worker-name">{{item.workerName}}</view>
+          <view class="worker-detail">
+            <text class="detail-item">信用分: {{item.creditScore}}</text>
+            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          </view>
+        </view>
+        <view class="app-status">
+          <text class="status-badge status-rejected">已拒绝</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <empty-state wx:if="{{applications.length === 0}}" text="暂无报名者" subText="等待临工报名" />
+  </view>
+</view>

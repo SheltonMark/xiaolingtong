@@ -525,6 +525,7 @@ export class JobService {
       pending: [],
       accepted: [],
       confirmed: [],
+      rejected: [],
     };
 
     applications.forEach((app) => {
@@ -539,11 +540,35 @@ export class JobService {
           },
         });
       } else if (app.status === 'accepted') {
-        grouped.accepted.push(app);
+        grouped.accepted.push({
+          ...app,
+          worker: {
+            id: app.worker.id,
+            name: app.worker.nickname,
+            creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
+          },
+        });
       } else if (app.status === 'confirmed') {
         grouped.confirmed.push({
           ...app,
+          worker: {
+            id: app.worker.id,
+            name: app.worker.nickname,
+            creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
+          },
           isSupervisor: app.isSupervisor,
+        });
+      } else if (app.status === 'rejected') {
+        grouped.rejected.push({
+          ...app,
+          worker: {
+            id: app.worker.id,
+            name: app.worker.nickname,
+            creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
+          },
         });
       }
     });

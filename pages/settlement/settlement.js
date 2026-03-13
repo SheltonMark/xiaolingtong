@@ -94,7 +94,7 @@ Page({
 
   onViewJobDetail(e) {
     const id = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
+    wx.navigateTo({ url: '/pages/job-applications/job-applications?jobId=' + id })
   },
 
   onViewSettlementDetail(e) {
