@@ -25,6 +25,10 @@ describe('JobController', () => {
       checkIn: jest.fn(),
       checkOut: jest.fn(),
       getAttendances: jest.fn(),
+      recordWorkLog: jest.fn(),
+      getWorkLogs: jest.fn(),
+      confirmWorkLog: jest.fn(),
+      updateWorkLogAnomaly: jest.fn(),
     } as jest.Mocked<JobService>;
 
     const module: TestingModule = await Test.createTestingModule({

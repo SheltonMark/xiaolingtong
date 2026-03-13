@@ -11,6 +11,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
 import { Attendance } from '../../entities/attendance.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 
 describe('JobModule Integration Tests', () => {
   let controller: JobController;
@@ -21,6 +22,7 @@ describe('JobModule Integration Tests', () => {
   let userRepository: any;
   let supervisorRepository: any;
   let attendanceRepository: any;
+  let workLogRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -64,6 +66,13 @@ describe('JobModule Integration Tests', () => {
       save: jest.fn(),
     };
 
+    workLogRepository = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [JobController],
       providers: [
@@ -91,6 +100,10 @@ describe('JobModule Integration Tests', () => {
         {
           provide: getRepositoryToken(Attendance),
           useValue: attendanceRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkLog),
+          useValue: workLogRepository,
         },
       ],
     }).compile();

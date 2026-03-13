@@ -12,6 +12,7 @@ import {
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 
 describe('AttendanceManagement', () => {
   let service: JobService;
@@ -19,6 +20,7 @@ describe('AttendanceManagement', () => {
   let userRepository: any;
   let attendanceRepository: any;
   let appRepository: any;
+  let workLogRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -58,6 +60,13 @@ describe('AttendanceManagement', () => {
       save: jest.fn(),
     };
 
+    workLogRepository = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -84,6 +93,10 @@ describe('AttendanceManagement', () => {
         {
           provide: getRepositoryToken(Supervisor),
           useValue: supervisorRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkLog),
+          useValue: workLogRepository,
         },
       ],
     }).compile();

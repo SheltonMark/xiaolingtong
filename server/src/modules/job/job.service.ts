@@ -12,6 +12,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
 import { Attendance } from '../../entities/attendance.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 import { JobStateMachine } from './job-state-machine';
 
 @Injectable()
@@ -24,6 +25,7 @@ export class JobService {
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Supervisor) private supervisorRepo: Repository<Supervisor>,
     @InjectRepository(Attendance) private attendanceRepo: Repository<Attendance>,
+    @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -648,5 +650,82 @@ export class JobService {
       relations: ['worker'],
       order: { createdAt: 'DESC' },
     });
+  }
+
+  async recordWorkLog(
+    jobId: number,
+    workerId: number,
+    date: string,
+    hours: number,
+    pieces: number = 0,
+  ) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    const worker = await this.userRepo.findOne({ where: { id: workerId } });
+    if (!worker) {
+      throw new NotFoundException('Worker not found');
+    }
+
+    if (hours < 0 || hours > 24) {
+      throw new BadRequestException('Work hours must be between 0 and 24');
+    }
+
+    if (pieces < 0) {
+      throw new BadRequestException('Piece count cannot be negative');
+    }
+
+    const workLog = this.workLogRepo.create({
+      jobId,
+      workerId,
+      date,
+      hours,
+      pieces,
+      anomalyType: 'normal',
+    });
+
+    return this.workLogRepo.save(workLog);
+  }
+
+  async getWorkLogs(jobId: number) {
+    return this.workLogRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async confirmWorkLog(workLogId: number) {
+    const workLog = await this.workLogRepo.findOne({ where: { id: workLogId } });
+    if (!workLog) {
+      throw new NotFoundException('Work log not found');
+    }
+
+    return this.workLogRepo.save(workLog);
+  }
+
+  async updateWorkLogAnomaly(
+    workLogId: number,
+    anomalyType: string,
+    anomalyNote?: string,
+  ) {
+    const validAnomalyTypes = ['normal', 'early_leave', 'late', 'injury', 'absent'];
+    if (!validAnomalyTypes.includes(anomalyType)) {
+      throw new BadRequestException('Invalid anomaly type');
+    }
+
+    const workLog = await this.workLogRepo.findOne({ where: { id: workLogId } });
+    if (!workLog) {
+      throw new NotFoundException('Work log not found');
+    }
+
+    workLog.anomalyType = anomalyType;
+    if (anomalyNote) {
+      workLog.anomalyNote = anomalyNote;
+    }
+
+    return this.workLogRepo.save(workLog);
   }
 }
