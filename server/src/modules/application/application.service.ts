@@ -212,4 +212,84 @@ export class ApplicationService {
 
     return { normal, exception };
   }
+
+  /**
+   * 获取工作的所有应聘者列表（企业端）
+   */
+  async getJobApplications(jobId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权查看');
+
+    const apps = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      list: apps.map(app => ({
+        id: app.id,
+        jobId: app.jobId,
+        workerId: app.workerId,
+        status: app.status,
+        appliedAt: app.createdAt,
+        worker: {
+          id: app.worker.id,
+          name: app.worker.name,
+          creditScore: app.worker.creditScore || 0,
+          completedJobs: app.worker.completedJobs || 0,
+          averageRating: app.worker.averageRating || 0,
+        },
+      })),
+    };
+  }
+
+  /**
+   * 企业接受应聘者
+   */
+  async acceptApplication(jobId: number, appId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const app = await this.appRepo.findOne({ where: { id: appId, jobId } });
+    if (!app) throw new BadRequestException('应聘记录不存在');
+    if (app.status !== 'pending')
+      throw new BadRequestException('只能接受待审核的应聘者');
+
+    app.status = 'accepted';
+    app.acceptedAt = new Date();
+    await this.appRepo.save(app);
+
+    return {
+      id: app.id,
+      status: app.status,
+      acceptedAt: app.acceptedAt,
+    };
+  }
+
+  /**
+   * 企业拒绝应聘者
+   */
+  async rejectApplication(jobId: number, appId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const app = await this.appRepo.findOne({ where: { id: appId, jobId } });
+    if (!app) throw new BadRequestException('应聘记录不存在');
+    if (app.status !== 'pending')
+      throw new BadRequestException('只能拒绝待审核的应聘者');
+
+    app.status = 'rejected';
+    app.rejectedAt = new Date();
+    await this.appRepo.save(app);
+
+    return {
+      id: app.id,
+      status: app.status,
+      rejectedAt: app.rejectedAt,
+    };
+  }
 }
