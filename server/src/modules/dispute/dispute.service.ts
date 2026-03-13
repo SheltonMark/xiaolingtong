@@ -140,14 +140,20 @@ export class DisputeService {
   async getDisputesByUser(
     userId: number,
     role: 'complainant' | 'respondent',
+    page: number = 1,
+    pageSize: number = 10,
   ): Promise<Dispute[]> {
     const where =
       role === 'complainant'
         ? { complainantId: userId }
         : { respondentId: userId };
 
+    const skip = (page - 1) * pageSize;
+
     return this.disputeRepo.find({
       where,
+      skip,
+      take: pageSize,
       order: {
         createdAt: 'DESC',
       },
