@@ -98,9 +98,12 @@ describe('Phase 2: API Response Validation - Data Integrity & Structure (e2e)', 
   });
 
   it('should return paginated results with metadata', async () => {
-    const response = await apiClient.get('/wallet/transactions?page=1&pageSize=10', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.get(
+      '/wallet/transactions?page=1&pageSize=10',
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(200);
     const data = response.data.data;

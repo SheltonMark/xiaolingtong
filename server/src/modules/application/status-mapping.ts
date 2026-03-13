@@ -6,7 +6,7 @@ export const STATUS_DISPLAY_MAP = {
   done: { worker: '已完成', enterprise: '已完成', color: 'gray' },
   rejected: { worker: '已拒绝', enterprise: '已拒绝', color: 'red' },
   released: { worker: '已释放', enterprise: '已释放', color: 'orange' },
-  cancelled: { worker: '已取消', enterprise: '已取消', color: 'gray' }
+  cancelled: { worker: '已取消', enterprise: '已取消', color: 'gray' },
 };
 
 export function getWorkerStatusDisplay(status: string): string {

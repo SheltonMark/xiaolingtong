@@ -11,11 +11,13 @@ export class NotificationService {
 
   async list(userId: number, query: any) {
     const { type, page = 1, pageSize = 20 } = query;
-    const qb = this.notiRepo.createQueryBuilder('n')
+    const qb = this.notiRepo
+      .createQueryBuilder('n')
       .where('n.userId = :userId', { userId });
     if (type) qb.andWhere('n.type = :type', { type });
     qb.orderBy('n.createdAt', 'DESC')
-      .skip((page - 1) * pageSize).take(pageSize);
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
     return { list, total, page: +page, pageSize: +pageSize };
   }

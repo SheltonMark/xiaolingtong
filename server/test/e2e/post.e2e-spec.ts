@@ -2,14 +2,18 @@ import { test, expect } from './fixtures/api-client.fixture';
 
 test.describe('Post Module E2E', () => {
   test('should create new post', async ({ apiClient, authToken }) => {
-    const response = await apiClient.post('/posts', {
-      title: 'Test Post',
-      description: 'Test Description',
-      category: 'procurement',
-      budget: 5000,
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.post(
+      '/posts',
+      {
+        title: 'Test Post',
+        description: 'Test Description',
+        category: 'procurement',
+        budget: 5000,
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(201);
     expect(response.data.data).toHaveProperty('postId');
@@ -52,33 +56,45 @@ test.describe('Post Module E2E', () => {
   });
 
   test('should update post', async ({ apiClient, authToken }) => {
-    const createResponse = await apiClient.post('/posts', {
-      title: 'Update Test',
-      description: 'Test',
-      category: 'procurement',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const createResponse = await apiClient.post(
+      '/posts',
+      {
+        title: 'Update Test',
+        description: 'Test',
+        category: 'procurement',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     const postId = createResponse.data.data.postId;
 
-    const response = await apiClient.put(`/posts/${postId}`, {
-      title: 'Updated Title',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.put(
+      `/posts/${postId}`,
+      {
+        title: 'Updated Title',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(200);
   });
 
   test('should delete post', async ({ apiClient, authToken }) => {
-    const createResponse = await apiClient.post('/posts', {
-      title: 'Delete Test',
-      description: 'Test',
-      category: 'procurement',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const createResponse = await apiClient.post(
+      '/posts',
+      {
+        title: 'Delete Test',
+        description: 'Test',
+        category: 'procurement',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     const postId = createResponse.data.data.postId;
 

@@ -71,7 +71,13 @@ describe('WalletService', () => {
   describe('getBalance', () => {
     it('should return existing wallet', async () => {
       const userId = 1;
-      const mockWallet = { id: 1, userId, balance: 1000, totalIncome: 5000, totalWithdraw: 4000 };
+      const mockWallet = {
+        id: 1,
+        userId,
+        balance: 1000,
+        totalIncome: 5000,
+        totalWithdraw: 4000,
+      };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
 
@@ -83,7 +89,13 @@ describe('WalletService', () => {
 
     it('should create wallet if not exists', async () => {
       const userId = 1;
-      const newWallet = { id: 1, userId, balance: 0, totalIncome: 0, totalWithdraw: 0 };
+      const newWallet = {
+        id: 1,
+        userId,
+        balance: 0,
+        totalIncome: 0,
+        totalWithdraw: 0,
+      };
 
       walletRepo.findOne.mockResolvedValue(null);
       walletRepo.create.mockReturnValue(newWallet);
@@ -98,7 +110,13 @@ describe('WalletService', () => {
 
     it('should handle wallet with zero balance', async () => {
       const userId = 1;
-      const mockWallet = { id: 1, userId, balance: 0, totalIncome: 0, totalWithdraw: 0 };
+      const mockWallet = {
+        id: 1,
+        userId,
+        balance: 0,
+        totalIncome: 0,
+        totalWithdraw: 0,
+      };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
 
@@ -127,7 +145,10 @@ describe('WalletService', () => {
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getTransactions(userId, { page: 1, pageSize: 20 });
+      const result = await service.getTransactions(userId, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual(mockTransactions);
       expect(result.total).toBe(2);
@@ -148,9 +169,15 @@ describe('WalletService', () => {
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      await service.getTransactions(userId, { type: 'income', page: 1, pageSize: 20 });
+      await service.getTransactions(userId, {
+        type: 'income',
+        page: 1,
+        pageSize: 20,
+      });
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('t.type = :type', { type: 'income' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('t.type = :type', {
+        type: 'income',
+      });
     });
 
     it('should handle pagination correctly', async () => {
@@ -185,7 +212,10 @@ describe('WalletService', () => {
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getTransactions(userId, { page: 1, pageSize: 20 });
+      const result = await service.getTransactions(userId, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
       expect(result.total).toBe(0);
@@ -196,8 +226,22 @@ describe('WalletService', () => {
     it('should return income transactions', async () => {
       const userId = 1;
       const mockTransactions = [
-        { id: 1, userId, type: 'income', amount: 100, status: 'success', createdAt: new Date() },
-        { id: 2, userId, type: 'income', amount: 200, status: 'success', createdAt: new Date() },
+        {
+          id: 1,
+          userId,
+          type: 'income',
+          amount: 100,
+          status: 'success',
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          userId,
+          type: 'income',
+          amount: 200,
+          status: 'success',
+          createdAt: new Date(),
+        },
       ];
 
       const mockQueryBuilder = {
@@ -230,7 +274,7 @@ describe('WalletService', () => {
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'DATE_FORMAT(t.createdAt, "%Y-%m") = :month',
-        { month: '2026-02' }
+        { month: '2026-02' },
       );
     });
 
@@ -253,9 +297,30 @@ describe('WalletService', () => {
     it('should calculate total amount correctly', async () => {
       const userId = 1;
       const mockTransactions = [
-        { id: 1, userId, type: 'income', amount: 100, status: 'success', createdAt: new Date() },
-        { id: 2, userId, type: 'income', amount: 250, status: 'success', createdAt: new Date() },
-        { id: 3, userId, type: 'income', amount: 150, status: 'success', createdAt: new Date() },
+        {
+          id: 1,
+          userId,
+          type: 'income',
+          amount: 100,
+          status: 'success',
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          userId,
+          type: 'income',
+          amount: 250,
+          status: 'success',
+          createdAt: new Date(),
+        },
+        {
+          id: 3,
+          userId,
+          type: 'income',
+          amount: 150,
+          status: 'success',
+          createdAt: new Date(),
+        },
       ];
 
       const mockQueryBuilder = {
@@ -279,7 +344,13 @@ describe('WalletService', () => {
       const amount = 100;
       const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
       const mockUser = { id: 1, openid: 'test_openid' };
-      const mockTx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
+      const mockTx = {
+        id: 1,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+      };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
       userRepo.findOneBy.mockResolvedValue(mockUser);
@@ -299,13 +370,17 @@ describe('WalletService', () => {
     it('should throw error when amount is zero', async () => {
       const userId = 1;
 
-      await expect(service.withdraw(userId, 0)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(userId, 0)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when amount is negative', async () => {
       const userId = 1;
 
-      await expect(service.withdraw(userId, -100)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(userId, -100)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when wallet not found', async () => {
@@ -314,7 +389,9 @@ describe('WalletService', () => {
 
       walletRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when balance is insufficient', async () => {
@@ -324,7 +401,9 @@ describe('WalletService', () => {
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when user not found', async () => {
@@ -335,7 +414,9 @@ describe('WalletService', () => {
       walletRepo.findOne.mockResolvedValue(mockWallet);
       userRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should handle transfer failure and rollback', async () => {
@@ -343,16 +424,26 @@ describe('WalletService', () => {
       const amount = 100;
       const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
       const mockUser = { id: 1, openid: 'test_openid' };
-      const mockTx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
+      const mockTx = {
+        id: 1,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+      };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
       userRepo.findOneBy.mockResolvedValue(mockUser);
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
       paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
-      paymentService.transferToWallet.mockRejectedValue(new Error('Transfer failed'));
+      paymentService.transferToWallet.mockRejectedValue(
+        new Error('Transfer failed'),
+      );
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        BadRequestException,
+      );
 
       // Verify rollback
       expect(mockWallet.balance).toBe(500);
@@ -366,7 +457,9 @@ describe('WalletService', () => {
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should update wallet balance and total withdraw', async () => {
@@ -374,7 +467,13 @@ describe('WalletService', () => {
       const amount = 100;
       const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 200 };
       const mockUser = { id: 1, openid: 'test_openid' };
-      const mockTx = { id: 1, userId, type: 'withdraw', amount, status: 'pending' };
+      const mockTx = {
+        id: 1,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+      };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
       userRepo.findOneBy.mockResolvedValue(mockUser);

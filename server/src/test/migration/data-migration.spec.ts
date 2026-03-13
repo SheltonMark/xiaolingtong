@@ -74,7 +74,10 @@ describe('Phase 5: Data Migration', () => {
     it('should transform job data format', async () => {
       const backupId = await backupService.createBackup();
 
-      jobService.migrateJobs.mockResolvedValue({ migrated: 50000, transformed: 50000 });
+      jobService.migrateJobs.mockResolvedValue({
+        migrated: 50000,
+        transformed: 50000,
+      });
 
       const result = await jobService.migrateJobs();
 
@@ -163,7 +166,9 @@ describe('Phase 5: Data Migration', () => {
 
       const migration = {
         isComplete: jest.fn().mockReturnValue(true),
-        getProgress: jest.fn().mockReturnValue({ percentage: 100, memoryUsage: 512 }),
+        getProgress: jest
+          .fn()
+          .mockReturnValue({ percentage: 100, memoryUsage: 512 }),
       };
 
       const progress = migration.getProgress();

@@ -81,7 +81,12 @@ describe('UserModule Integration Tests', () => {
 
     it('should handle duplicate submission', async () => {
       const dto = { companyName: 'Test Co', licenseNumber: '123456' };
-      const existing = { id: 1, userId: 1, companyName: 'Old Co', status: 'approved' };
+      const existing = {
+        id: 1,
+        userId: 1,
+        companyName: 'Old Co',
+        status: 'approved',
+      };
       const mockResult = { ...existing, ...dto, status: 'pending' };
 
       enterpriseCertRepository.findOneBy.mockResolvedValue(existing);

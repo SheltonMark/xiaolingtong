@@ -109,7 +109,9 @@ test.describe('Phase 1: Navigation - Deep Linking', () => {
 
   test('should access job detail directly via deep link', async ({ page }) => {
     const jobId = 'test-job-123';
-    await page.goto(`http://localhost:3000/pages/job-detail/job-detail?id=${jobId}`);
+    await page.goto(
+      `http://localhost:3000/pages/job-detail/job-detail?id=${jobId}`,
+    );
 
     await page.waitForSelector('[data-testid="job-title"]');
     const title = page.locator('[data-testid="job-title"]');
@@ -132,16 +134,24 @@ test.describe('Phase 1: Navigation - Deep Linking', () => {
     expect(await balance.isVisible()).toBe(true);
   });
 
-  test('should access my-applications directly via deep link', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/my-applications/my-applications');
+  test('should access my-applications directly via deep link', async ({
+    page,
+  }) => {
+    await page.goto(
+      'http://localhost:3000/pages/my-applications/my-applications',
+    );
 
     await page.waitForSelector('[data-testid="app-card"]');
     const cards = page.locator('[data-testid="app-card"]');
     expect(await cards.count()).toBeGreaterThan(0);
   });
 
-  test('should access withdraw-history directly via deep link', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/withdraw-history/withdraw-history');
+  test('should access withdraw-history directly via deep link', async ({
+    page,
+  }) => {
+    await page.goto(
+      'http://localhost:3000/pages/withdraw-history/withdraw-history',
+    );
 
     await page.waitForSelector('[data-testid="current-balance"]');
     const balance = page.locator('[data-testid="current-balance"]');
@@ -149,7 +159,9 @@ test.describe('Phase 1: Navigation - Deep Linking', () => {
   });
 
   test('should handle invalid job id in deep link', async ({ page }) => {
-    await page.goto('http://localhost:3000/pages/job-detail/job-detail?id=invalid-id');
+    await page.goto(
+      'http://localhost:3000/pages/job-detail/job-detail?id=invalid-id',
+    );
 
     // 应该显示错误或加载失败
     const errorMsg = page.locator('[data-testid="error-message"]');

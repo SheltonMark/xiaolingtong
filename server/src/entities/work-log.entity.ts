@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 import { Job } from './job.entity';
 
@@ -25,7 +32,11 @@ export class WorkLog {
   @Column({ type: 'json', nullable: true })
   photoUrls: string[];
 
-  @Column({ type: 'enum', enum: ['normal', 'early_leave', 'late', 'injury', 'absent'], default: 'normal' })
+  @Column({
+    type: 'enum',
+    enum: ['normal', 'early_leave', 'late', 'injury', 'absent'],
+    default: 'normal',
+  })
   anomalyType: string;
 
   @Column({ length: 256, nullable: true })

@@ -9,8 +9,10 @@ import { WorkerCert } from '../../entities/worker-cert.entity';
 export class UserService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
-    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
+    @InjectRepository(EnterpriseCert)
+    private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkerCert)
+    private workerCertRepo: Repository<WorkerCert>,
   ) {}
 
   async submitEnterpriseCert(userId: number, dto: any) {
@@ -28,7 +30,9 @@ export class UserService {
       Object.assign(existing, dto, { status: 'pending' });
       return this.workerCertRepo.save(existing);
     }
-    return this.workerCertRepo.save(this.workerCertRepo.create({ ...dto, userId }));
+    return this.workerCertRepo.save(
+      this.workerCertRepo.create({ ...dto, userId }),
+    );
   }
 
   async getCertStatus(userId: number, role: string) {

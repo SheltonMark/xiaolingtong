@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('ad_orders')
@@ -30,7 +37,11 @@ export class AdOrder {
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'active', 'expired'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'active', 'expired'],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ type: 'datetime', nullable: true })

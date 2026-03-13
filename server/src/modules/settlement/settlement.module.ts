@@ -15,7 +15,17 @@ import { PaymentModule } from '../payment/payment.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Settlement, SettlementItem, Job, WorkLog, Wallet, WalletTransaction, User, JobApplication, SysConfig]),
+    TypeOrmModule.forFeature([
+      Settlement,
+      SettlementItem,
+      Job,
+      WorkLog,
+      Wallet,
+      WalletTransaction,
+      User,
+      JobApplication,
+      SysConfig,
+    ]),
     PaymentModule,
   ],
   controllers: [SettlementController],

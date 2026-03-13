@@ -113,24 +113,26 @@ describe('JobService', () => {
         { word: 'banned' },
       ]);
 
-      await expect(service['checkKeywords']('This is a normal job')).resolves.not.toThrow();
+      await expect(
+        service['checkKeywords']('This is a normal job'),
+      ).resolves.not.toThrow();
     });
 
     it('should throw error when prohibited keyword found', async () => {
-      keywordRepository.find.mockResolvedValue([
-        { word: 'prohibited' },
-      ]);
+      keywordRepository.find.mockResolvedValue([{ word: 'prohibited' }]);
 
-      await expect(service['checkKeywords']('This is prohibited')).rejects.toThrow(BadRequestException);
+      await expect(
+        service['checkKeywords']('This is prohibited'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should be case sensitive (matches actual implementation)', async () => {
-      keywordRepository.find.mockResolvedValue([
-        { word: 'prohibited' },
-      ]);
+      keywordRepository.find.mockResolvedValue([{ word: 'prohibited' }]);
 
       // The actual implementation is case-sensitive, so PROHIBITED should not match
-      await expect(service['checkKeywords']('This is PROHIBITED')).resolves.not.toThrow();
+      await expect(
+        service['checkKeywords']('This is PROHIBITED'),
+      ).resolves.not.toThrow();
     });
   });
 
@@ -175,7 +177,11 @@ describe('JobService', () => {
 
       keywordRepository.find.mockResolvedValue([]);
 
-      const result = await service.list({ keyword: 'test', page: 1, pageSize: 20 });
+      const result = await service.list({
+        keyword: 'test',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
     });
@@ -284,20 +290,37 @@ describe('JobService', () => {
 
       jobRepository.findOne.mockResolvedValue(mockJob);
 
-      await expect(service.update(1, 1, { title: 'New Title' })).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.update(1, 1, { title: 'New Title' }),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw error when job not found', async () => {
       jobRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.update(1, 1, { title: 'New Title' })).rejects.toThrow();
+      await expect(
+        service.update(1, 1, { title: 'New Title' }),
+      ).rejects.toThrow();
     });
   });
 
   describe('myJobs', () => {
     it('should return user jobs', async () => {
       const mockJobs = [
-        { id: 1, userId: 1, title: 'Job 1', salary: 100, salaryUnit: '元/时', needCount: 5, dateStart: '2026-03-10', dateEnd: '2026-03-20', workHours: '8:00-17:00', location: 'Beijing', status: 'recruiting', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          title: 'Job 1',
+          salary: 100,
+          salaryUnit: '元/时',
+          needCount: 5,
+          dateStart: '2026-03-10',
+          dateEnd: '2026-03-20',
+          workHours: '8:00-17:00',
+          location: 'Beijing',
+          status: 'recruiting',
+          createdAt: new Date(),
+        },
       ];
 
       jobRepository.find.mockResolvedValue(mockJobs);

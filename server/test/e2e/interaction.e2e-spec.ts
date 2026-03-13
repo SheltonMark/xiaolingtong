@@ -2,21 +2,29 @@ import { test, expect } from './fixtures/api-client.fixture';
 
 test.describe('User Interaction E2E', () => {
   test('should add post to favorites', async ({ apiClient, authToken }) => {
-    const postResponse = await apiClient.post('/posts', {
-      title: 'Favorite Test',
-      description: 'Test',
-      category: 'procurement',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const postResponse = await apiClient.post(
+      '/posts',
+      {
+        title: 'Favorite Test',
+        description: 'Test',
+        category: 'procurement',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     const postId = postResponse.data.data.postId;
 
-    const response = await apiClient.post(`/favorites`, {
-      postId,
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.post(
+      `/favorites`,
+      {
+        postId,
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(201);
   });
@@ -32,12 +40,16 @@ test.describe('User Interaction E2E', () => {
   });
 
   test('should send message', async ({ apiClient, authToken }) => {
-    const response = await apiClient.post('/messages', {
-      recipientId: 'user123',
-      content: 'Test message',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.post(
+      '/messages',
+      {
+        recipientId: 'user123',
+        content: 'Test message',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(201);
     expect(response.data.data).toHaveProperty('messageId');
@@ -54,13 +66,17 @@ test.describe('User Interaction E2E', () => {
   });
 
   test('should rate user', async ({ apiClient, authToken }) => {
-    const response = await apiClient.post('/ratings', {
-      targetUserId: 'user123',
-      score: 5,
-      comment: 'Great seller',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.post(
+      '/ratings',
+      {
+        targetUserId: 'user123',
+        score: 5,
+        comment: 'Great seller',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(201);
   });
@@ -76,12 +92,16 @@ test.describe('User Interaction E2E', () => {
   });
 
   test('should update user profile', async ({ apiClient, authToken }) => {
-    const response = await apiClient.put('/users/profile', {
-      nickname: 'Updated Name',
-      bio: 'Updated bio',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.put(
+      '/users/profile',
+      {
+        nickname: 'Updated Name',
+        bio: 'Updated bio',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(200);
   });

@@ -1,4 +1,9 @@
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { extname } from 'path';
@@ -21,24 +26,29 @@ export class UploadController {
   }
 
   @Post()
-  @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: 10 * 1024 * 1024 },
-  }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+    }),
+  )
   async upload(@UploadedFile() file: Express.Multer.File) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     const key = `uploads/${uniqueSuffix}${extname(file.originalname)}`;
 
     await new Promise<void>((resolve, reject) => {
-      this.cos.putObject({
-        Bucket: this.bucket,
-        Region: this.region,
-        Key: key,
-        Body: file.buffer,
-        ContentLength: file.size,
-      }, (err) => {
-        if (err) reject(err);
-        else resolve();
-      });
+      this.cos.putObject(
+        {
+          Bucket: this.bucket,
+          Region: this.region,
+          Key: key,
+          Body: file.buffer,
+          ContentLength: file.size,
+        },
+        (err) => {
+          if (err) reject(err);
+          else resolve();
+        },
+      );
     });
 
     const url = `https://${this.bucket}.cos.${this.region}.myqcloud.com/${key}`;

@@ -156,7 +156,11 @@ describe('Phase 5: Cache Consistency', () => {
     it('should sync user profile cache', async () => {
       const userId = 123;
       const cacheKey = `user:${userId}`;
-      const profileData = { id: userId, name: 'User', email: 'user@example.com' };
+      const profileData = {
+        id: userId,
+        name: 'User',
+        email: 'user@example.com',
+      };
 
       userService.getProfile.mockResolvedValue(profileData);
       cacheService.set.mockResolvedValue(true);

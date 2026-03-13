@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('notifications')
@@ -9,7 +16,10 @@ export class Notification {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['job_apply', 'settlement', 'system', 'promotion', 'invite', 'cert'] })
+  @Column({
+    type: 'enum',
+    enum: ['job_apply', 'settlement', 'system', 'promotion', 'invite', 'cert'],
+  })
   type: string;
 
   @Column({ length: 128 })

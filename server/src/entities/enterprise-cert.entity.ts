@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('enterprise_certs')
@@ -45,7 +52,11 @@ export class EnterpriseCert {
   @Column({ length: 256, nullable: true })
   address: string;
 
-  @Column({ type: 'enum', enum: ['pending', 'approved', 'rejected'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ length: 256, nullable: true })

@@ -81,7 +81,13 @@ describe('JobModule Integration Tests', () => {
   describe('list Integration', () => {
     it('should return jobs with pagination', async () => {
       const mockJobs = [
-        { id: 1, title: 'Job 1', salary: 100, salaryType: 'hourly', location: 'Beijing' },
+        {
+          id: 1,
+          title: 'Job 1',
+          salary: 100,
+          salaryType: 'hourly',
+          location: 'Beijing',
+        },
       ];
 
       jobRepository.createQueryBuilder.mockReturnValue({
@@ -137,7 +143,11 @@ describe('JobModule Integration Tests', () => {
 
       keywordRepository.find.mockResolvedValue([]);
 
-      const result = await controller.list({ keyword: 'test', page: 1, pageSize: 20 });
+      const result = await controller.list({
+        keyword: 'test',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
     });
@@ -145,7 +155,13 @@ describe('JobModule Integration Tests', () => {
 
   describe('detail Integration', () => {
     it('should return job detail', async () => {
-      const mockJob = { id: 1, userId: 1, title: 'Test Job', salary: 100, location: 'Beijing' };
+      const mockJob = {
+        id: 1,
+        userId: 1,
+        title: 'Test Job',
+        salary: 100,
+        location: 'Beijing',
+      };
 
       jobRepository.findOne.mockResolvedValue(mockJob);
       jobApplicationRepository.count.mockResolvedValue(3);
@@ -226,14 +242,29 @@ describe('JobModule Integration Tests', () => {
 
       jobRepository.findOne.mockResolvedValue(mockJob);
 
-      await expect(controller.update(1, 1, { title: 'New Title' })).rejects.toThrow();
+      await expect(
+        controller.update(1, 1, { title: 'New Title' }),
+      ).rejects.toThrow();
     });
   });
 
   describe('myJobs Integration', () => {
     it('should return user jobs', async () => {
       const mockJobs = [
-        { id: 1, userId: 1, title: 'Job 1', salary: 100, salaryUnit: '元/时', needCount: 5, dateStart: '2026-03-10', dateEnd: '2026-03-20', workHours: '8:00-17:00', location: 'Beijing', status: 'recruiting', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          title: 'Job 1',
+          salary: 100,
+          salaryUnit: '元/时',
+          needCount: 5,
+          dateStart: '2026-03-10',
+          dateEnd: '2026-03-20',
+          workHours: '8:00-17:00',
+          location: 'Beijing',
+          status: 'recruiting',
+          createdAt: new Date(),
+        },
       ];
 
       jobRepository.find.mockResolvedValue(mockJobs);

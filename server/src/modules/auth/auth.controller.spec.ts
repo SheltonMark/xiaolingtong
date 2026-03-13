@@ -51,9 +51,7 @@ describe('AuthController', () => {
     it('should throw error when code is empty string', async () => {
       const code = '';
 
-      expect(() => controller.wxLogin(code)).toThrow(
-        BadRequestException,
-      );
+      expect(() => controller.wxLogin(code)).toThrow(BadRequestException);
     });
 
     it('should throw error when code is null', async () => {
@@ -137,9 +135,9 @@ describe('AuthController', () => {
         new BadRequestException('User not authenticated'),
       );
 
-      await expect(
-        controller.chooseRole(userId as any, role),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.chooseRole(userId as any, role)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when service fails', async () => {

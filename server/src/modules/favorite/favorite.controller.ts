@@ -12,7 +12,10 @@ export class FavoriteController {
   }
 
   @Post('toggle')
-  toggle(@CurrentUser('sub') userId: number, @Body() dto: { targetType: string; targetId: number }) {
+  toggle(
+    @CurrentUser('sub') userId: number,
+    @Body() dto: { targetType: string; targetId: number },
+  ) {
     return this.favService.toggle(userId, dto.targetType, dto.targetId);
   }
 }

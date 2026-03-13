@@ -81,9 +81,7 @@ describe('PostController', () => {
         new BadRequestException('Invalid query'),
       );
 
-      await expect(controller.list(query)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(controller.list(query)).rejects.toThrow(BadRequestException);
     });
 
     it('should handle invalid pagination parameters', async () => {
@@ -93,9 +91,7 @@ describe('PostController', () => {
         new BadRequestException('Invalid pagination'),
       );
 
-      await expect(controller.list(query)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(controller.list(query)).rejects.toThrow(BadRequestException);
     });
   });
 

@@ -329,15 +329,15 @@ describe('AdminModule Integration Tests', () => {
         password: 'hashed_password_value',
         isActive: 1,
         role: 'super',
-        nickname: 'Admin'
+        nickname: 'Admin',
       };
 
       // Mock the service to bypass password hashing
       const mockService = {
         login: jest.fn().mockResolvedValue({
           token: 'test_token',
-          admin: { id: 1, username: 'admin', nickname: 'Admin', role: 'super' }
-        })
+          admin: { id: 1, username: 'admin', nickname: 'Admin', role: 'super' },
+        }),
       };
 
       const result = await mockService.login('admin', testPassword);
@@ -350,14 +350,25 @@ describe('AdminModule Integration Tests', () => {
     it('should throw error on invalid credentials', async () => {
       adminRepository.findOne.mockResolvedValue(null);
 
-      await expect(controller.login({ username: 'admin', password: 'wrong' })).rejects.toThrow();
+      await expect(
+        controller.login({ username: 'admin', password: 'wrong' }),
+      ).rejects.toThrow();
     });
 
     it('should throw error when admin is inactive', async () => {
-      const mockAdmin = { id: 1, username: 'admin', password: 'hashed_password', isActive: 0, role: 'super', nickname: 'Admin' };
+      const mockAdmin = {
+        id: 1,
+        username: 'admin',
+        password: 'hashed_password',
+        isActive: 0,
+        role: 'super',
+        nickname: 'Admin',
+      };
       adminRepository.findOne.mockResolvedValue(mockAdmin);
 
-      await expect(controller.login({ username: 'admin', password: 'admin123' })).rejects.toThrow();
+      await expect(
+        controller.login({ username: 'admin', password: 'admin123' }),
+      ).rejects.toThrow();
     });
   });
 
@@ -404,7 +415,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.banUser(1);
 
       expect(result).toBeDefined();
-      expect(userRepository.update).toHaveBeenCalledWith(1, { status: 'banned' });
+      expect(userRepository.update).toHaveBeenCalledWith(1, {
+        status: 'banned',
+      });
     });
   });
 
@@ -415,7 +428,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.unbanUser(1);
 
       expect(result).toBeDefined();
-      expect(userRepository.update).toHaveBeenCalledWith(1, { status: 'active' });
+      expect(userRepository.update).toHaveBeenCalledWith(1, {
+        status: 'active',
+      });
     });
   });
 
@@ -445,7 +460,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.auditPost(1, 'approve');
 
       expect(result).toBeDefined();
-      expect(postRepository.update).toHaveBeenCalledWith(1, { status: 'active' });
+      expect(postRepository.update).toHaveBeenCalledWith(1, {
+        status: 'active',
+      });
     });
 
     it('should reject post', async () => {
@@ -454,7 +471,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.auditPost(1, 'reject');
 
       expect(result).toBeDefined();
-      expect(postRepository.update).toHaveBeenCalledWith(1, { status: 'deleted' });
+      expect(postRepository.update).toHaveBeenCalledWith(1, {
+        status: 'deleted',
+      });
     });
   });
 
@@ -494,7 +513,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.approveExposure(1);
 
       expect(result).toBeDefined();
-      expect(exposureRepository.update).toHaveBeenCalledWith(1, { status: 'approved' });
+      expect(exposureRepository.update).toHaveBeenCalledWith(1, {
+        status: 'approved',
+      });
     });
   });
 
@@ -505,7 +526,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.rejectExposure(1);
 
       expect(result).toBeDefined();
-      expect(exposureRepository.update).toHaveBeenCalledWith(1, { status: 'rejected' });
+      expect(exposureRepository.update).toHaveBeenCalledWith(1, {
+        status: 'rejected',
+      });
     });
   });
 
@@ -533,7 +556,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.handleReport(1, 'resolve');
 
       expect(result).toBeDefined();
-      expect(reportRepository.update).toHaveBeenCalledWith(1, { status: 'handled' });
+      expect(reportRepository.update).toHaveBeenCalledWith(1, {
+        status: 'handled',
+      });
     });
 
     it('should dismiss report', async () => {
@@ -542,7 +567,9 @@ describe('AdminModule Integration Tests', () => {
       const result = await controller.handleReport(1, 'dismiss');
 
       expect(result).toBeDefined();
-      expect(reportRepository.update).toHaveBeenCalledWith(1, { status: 'dismissed' });
+      expect(reportRepository.update).toHaveBeenCalledWith(1, {
+        status: 'dismissed',
+      });
     });
   });
 
@@ -609,7 +636,10 @@ describe('AdminModule Integration Tests', () => {
       noticeRepository.create.mockReturnValue(mockNotice);
       noticeRepository.save.mockResolvedValue(mockNotice);
 
-      const result = await controller.createNotice({ title: 'Notice 1', content: 'Content' });
+      const result = await controller.createNotice({
+        title: 'Notice 1',
+        content: 'Content',
+      });
 
       expect(result).toBeDefined();
       expect(noticeRepository.save).toHaveBeenCalled();
@@ -656,7 +686,10 @@ describe('AdminModule Integration Tests', () => {
       configRepository.findOne.mockResolvedValue(mockConfig);
       configRepository.update.mockResolvedValue({ affected: 1 });
 
-      const result = await controller.updateConfig({ key: 'commission_rate', value: '0.15' });
+      const result = await controller.updateConfig({
+        key: 'commission_rate',
+        value: '0.15',
+      });
 
       expect(result).toBeDefined();
       expect(configRepository.update).toHaveBeenCalled();
@@ -668,7 +701,10 @@ describe('AdminModule Integration Tests', () => {
       configRepository.create.mockReturnValue(mockConfig);
       configRepository.save.mockResolvedValue(mockConfig);
 
-      const result = await controller.updateConfig({ key: 'new_key', value: 'value' });
+      const result = await controller.updateConfig({
+        key: 'new_key',
+        value: 'value',
+      });
 
       expect(result).toBeDefined();
       expect(configRepository.save).toHaveBeenCalled();
@@ -798,7 +834,10 @@ describe('AdminModule Integration Tests', () => {
       adminRepository.create.mockReturnValue(mockAdmin);
       adminRepository.save.mockResolvedValue(mockAdmin);
 
-      const result = await controller.createAdmin({ username: 'newadmin', password: 'pass123' });
+      const result = await controller.createAdmin({
+        username: 'newadmin',
+        password: 'pass123',
+      });
 
       expect(result).toBeDefined();
       expect(adminRepository.save).toHaveBeenCalled();
@@ -807,7 +846,12 @@ describe('AdminModule Integration Tests', () => {
 
   describe('toggleAdmin Integration', () => {
     it('should toggle admin status', async () => {
-      const mockAdmin = { id: 2, username: 'admin', role: 'admin', isActive: 1 };
+      const mockAdmin = {
+        id: 2,
+        username: 'admin',
+        role: 'admin',
+        isActive: 1,
+      };
       adminRepository.findOneBy.mockResolvedValue(mockAdmin);
       adminRepository.update.mockResolvedValue({ affected: 1 });
 

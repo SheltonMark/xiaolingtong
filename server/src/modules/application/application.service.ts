@@ -1,16 +1,25 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
-import { getWorkerStatusDisplay, getEnterpriseStatusDisplay, getStatusColor } from './status-mapping';
+import {
+  getWorkerStatusDisplay,
+  getEnterpriseStatusDisplay,
+  getStatusColor,
+} from './status-mapping';
 
 @Injectable()
 export class ApplicationService {
   constructor(
-    @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(JobApplication)
+    private appRepo: Repository<JobApplication>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
@@ -20,7 +29,12 @@ export class ApplicationService {
    * 检查时间冲突
    * 获取临工所有"已接受"和"已确认"的应用，检查新报名工作时间是否与其重叠
    */
-  private checkTimeOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
+  private checkTimeOverlap(
+    start1: string,
+    end1: string,
+    start2: string,
+    end2: string,
+  ): boolean {
     // 时间重叠判断：
     // 新工作开始时间 < 已有工作结束时间 AND 新工作结束时间 > 已有工作开始时间
     return start1 < end2 && end1 > start2;
@@ -32,22 +46,29 @@ export class ApplicationService {
       where: [
         { workerId, status: 'accepted' },
         { workerId, status: 'confirmed' },
-        { workerId, status: 'working' }
+        { workerId, status: 'working' },
       ],
-      relations: ['job']
+      relations: ['job'],
     });
 
     const conflicts = [];
     for (const app of activeApps) {
       const existingJob = app.job;
       // 检查日期是否重叠
-      if (this.checkTimeOverlap(newJob.dateStart, newJob.dateEnd, existingJob.dateStart, existingJob.dateEnd)) {
+      if (
+        this.checkTimeOverlap(
+          newJob.dateStart,
+          newJob.dateEnd,
+          existingJob.dateStart,
+          existingJob.dateEnd,
+        )
+      ) {
         conflicts.push({
           jobId: existingJob.id,
           jobTitle: existingJob.title,
           dateRange: `${existingJob.dateStart} 至 ${existingJob.dateEnd}`,
           workHours: existingJob.workHours || '未指定',
-          status: app.status
+          status: app.status,
         });
       }
     }
@@ -55,7 +76,7 @@ export class ApplicationService {
     if (conflicts.length > 0) {
       throw new BadRequestException({
         message: '报名时间与已报名工作冲突',
-        conflictWith: conflicts
+        conflictWith: conflicts,
       });
     }
   }
@@ -63,7 +84,8 @@ export class ApplicationService {
   async apply(jobId: number, workerId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job) throw new BadRequestException('招工信息不存在');
-    if (job.status !== 'recruiting') throw new BadRequestException('该岗位已停止招聘');
+    if (job.status !== 'recruiting')
+      throw new BadRequestException('该岗位已停止招聘');
 
     const existing = await this.appRepo.findOne({ where: { jobId, workerId } });
     if (existing) throw new BadRequestException('已报名');
@@ -72,7 +94,9 @@ export class ApplicationService {
     await this.checkTimeConflict(workerId, job);
 
     // 超额报名控制
-    const cfg = await this.configRepo.findOne({ where: { key: 'over_apply_rate' } });
+    const cfg = await this.configRepo.findOne({
+      where: { key: 'over_apply_rate' },
+    });
     const overRate = cfg ? +cfg.value : 0.5;
     const maxApply = Math.ceil(job.needCount * (1 + overRate));
     const currentCount = await this.appRepo.count({ where: { jobId } });
@@ -85,7 +109,8 @@ export class ApplicationService {
   async confirm(jobId: number, workerId: number) {
     const app = await this.appRepo.findOne({ where: { jobId, workerId } });
     if (!app) throw new BadRequestException('未找到报名记录');
-    if (app.status !== 'accepted') throw new BadRequestException('当前状态不可确认');
+    if (app.status !== 'accepted')
+      throw new BadRequestException('当前状态不可确认');
 
     app.status = 'confirmed';
     app.confirmedAt = new Date();
@@ -94,7 +119,8 @@ export class ApplicationService {
 
   async myApplications(workerId: number, query: any) {
     const { status, page = 1, pageSize = 20 } = query;
-    const qb = this.appRepo.createQueryBuilder('a')
+    const qb = this.appRepo
+      .createQueryBuilder('a')
       .leftJoinAndSelect('a.job', 'j')
       .leftJoinAndSelect('j.user', 'u')
       .where('a.workerId = :workerId', { workerId });
@@ -111,8 +137,10 @@ export class ApplicationService {
 
   async cancel(id: number, workerId: number) {
     const app = await this.appRepo.findOne({ where: { id } });
-    if (!app || app.workerId !== workerId) throw new ForbiddenException('无权操作');
-    if (!['pending', 'accepted', 'confirmed'].includes(app.status)) throw new BadRequestException('当前状态不可取消');
+    if (!app || app.workerId !== workerId)
+      throw new ForbiddenException('无权操作');
+    if (!['pending', 'accepted', 'confirmed'].includes(app.status))
+      throw new BadRequestException('当前状态不可取消');
 
     app.status = 'cancelled';
     await this.appRepo.save(app);
@@ -123,7 +151,7 @@ export class ApplicationService {
     const apps = await this.appRepo.find({
       where: { workerId },
       relations: ['job', 'job.user'],
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
 
     const normal = [];
@@ -133,10 +161,14 @@ export class ApplicationService {
       const item = {
         ...app,
         displayStatus: getWorkerStatusDisplay(app.status),
-        statusColor: getStatusColor(app.status)
+        statusColor: getStatusColor(app.status),
       };
 
-      if (['pending', 'accepted', 'confirmed', 'working', 'done'].includes(app.status)) {
+      if (
+        ['pending', 'accepted', 'confirmed', 'working', 'done'].includes(
+          app.status,
+        )
+      ) {
         normal.push(item);
       } else {
         exception.push(item);
@@ -154,7 +186,7 @@ export class ApplicationService {
     const apps = await this.appRepo.find({
       where: { jobId },
       relations: ['job', 'job.user'],
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
 
     const normal = [];
@@ -164,10 +196,14 @@ export class ApplicationService {
       const item = {
         ...app,
         displayStatus: getEnterpriseStatusDisplay(app.status),
-        statusColor: getStatusColor(app.status)
+        statusColor: getStatusColor(app.status),
       };
 
-      if (['pending', 'accepted', 'confirmed', 'working', 'done'].includes(app.status)) {
+      if (
+        ['pending', 'accepted', 'confirmed', 'working', 'done'].includes(
+          app.status,
+        )
+      ) {
         normal.push(item);
       } else {
         exception.push(item);

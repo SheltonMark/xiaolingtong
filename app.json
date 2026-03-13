@@ -29,6 +29,7 @@
     "pages/work-record/work-record",
     "pages/work-session/work-session",
     "pages/settlement/settlement",
+    "pages/settlement-detail/settlement-detail",
     "pages/ad-purchase/ad-purchase",
     "pages/exposure-detail/exposure-detail",
     "pages/chat/chat",

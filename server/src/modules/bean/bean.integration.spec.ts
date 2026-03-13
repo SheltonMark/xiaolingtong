@@ -42,8 +42,12 @@ describe('BeanModule Integration Tests', () => {
     };
 
     paymentService = {
-      generateOutTradeNo: jest.fn((prefix, id) => `${prefix}_${id}_${Date.now()}`),
-      createJsapiOrder: jest.fn().mockResolvedValue({ prepayId: 'test_prepay_id' }),
+      generateOutTradeNo: jest.fn(
+        (prefix, id) => `${prefix}_${id}_${Date.now()}`,
+      ),
+      createJsapiOrder: jest
+        .fn()
+        .mockResolvedValue({ prepayId: 'test_prepay_id' }),
     };
 
     configService = {
@@ -109,7 +113,9 @@ describe('BeanModule Integration Tests', () => {
       const mockUser = { id: 1, openid: 'test_openid', beanBalance: 100 };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       paymentService.generateOutTradeNo.mockReturnValue('BEAN_0_123456');
-      paymentService.createJsapiOrder.mockResolvedValue({ prepayId: 'test_prepay_id' });
+      paymentService.createJsapiOrder.mockResolvedValue({
+        prepayId: 'test_prepay_id',
+      });
 
       const result = await controller.recharge(1, { amount: 100, price: 9.99 });
 
@@ -122,14 +128,18 @@ describe('BeanModule Integration Tests', () => {
     it('should throw error when user not found', async () => {
       userRepository.findOneBy.mockResolvedValue(null);
 
-      await expect(controller.recharge(999, { amount: 100, price: 9.99 })).rejects.toThrow();
+      await expect(
+        controller.recharge(999, { amount: 100, price: 9.99 }),
+      ).rejects.toThrow();
     });
 
     it('should use default API host when not configured', async () => {
       const mockUser = { id: 1, openid: 'test_openid', beanBalance: 100 };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       configService.get.mockReturnValue('https://quanqiutong888.com');
-      paymentService.createJsapiOrder.mockResolvedValue({ prepayId: 'test_prepay_id' });
+      paymentService.createJsapiOrder.mockResolvedValue({
+        prepayId: 'test_prepay_id',
+      });
 
       const result = await controller.recharge(1, { amount: 100, price: 9.99 });
 
@@ -141,7 +151,13 @@ describe('BeanModule Integration Tests', () => {
   describe('getTransactions Integration', () => {
     it('should return paginated bean transactions', async () => {
       const mockTransactions = [
-        { id: 1, userId: 1, amount: 100, type: 'recharge', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          amount: 100,
+          type: 'recharge',
+          createdAt: new Date(),
+        },
       ];
 
       beanTxRepository.createQueryBuilder.mockReturnValue({
@@ -152,7 +168,10 @@ describe('BeanModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockTransactions, 1]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
@@ -168,7 +187,10 @@ describe('BeanModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
       expect(result.total).toBe(0);
@@ -179,14 +201,26 @@ describe('BeanModule Integration Tests', () => {
     it('should return beanBalance with totalIn and totalOut', async () => {
       const mockUser = {
         id: 1,
-        beanBalance: 1000.50,
-        totalIn: 5000.00,
-        totalOut: 4000.00,
+        beanBalance: 1000.5,
+        totalIn: 5000.0,
+        totalOut: 4000.0,
       };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([
-        { id: 1, userId: 1, amount: 5000, type: 'income', createdAt: new Date() },
-        { id: 2, userId: 1, amount: 4000, type: 'expense', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          amount: 5000,
+          type: 'income',
+          createdAt: new Date(),
+        },
+        {
+          id: 2,
+          userId: 1,
+          amount: 4000,
+          type: 'expense',
+          createdAt: new Date(),
+        },
       ]);
 
       const result = await controller.getBalance(1);
@@ -194,7 +228,7 @@ describe('BeanModule Integration Tests', () => {
       expect(result).toHaveProperty('beanBalance');
       expect(result).toHaveProperty('totalIn');
       expect(result).toHaveProperty('totalOut');
-      expect(result.beanBalance).toBe(1000.50);
+      expect(result.beanBalance).toBe(1000.5);
       expect(result.totalIn).toBe(5000);
       expect(result.totalOut).toBe(4000);
     });
@@ -238,12 +272,18 @@ describe('BeanModule Integration Tests', () => {
       const mockUser = {
         id: 1,
         beanBalance: 999999.99,
-        totalIn: 1000000.00,
-        totalOut: 1.00,
+        totalIn: 1000000.0,
+        totalOut: 1.0,
       };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([
-        { id: 1, userId: 1, amount: 1000000, type: 'income', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          amount: 1000000,
+          type: 'income',
+          createdAt: new Date(),
+        },
         { id: 2, userId: 1, amount: 1, type: 'expense', createdAt: new Date() },
       ]);
 

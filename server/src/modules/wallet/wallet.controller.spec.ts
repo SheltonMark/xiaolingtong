@@ -95,7 +95,13 @@ describe('WalletController', () => {
       const mockResult = {
         list: [
           { id: 1, userId, type: 'income', amount: 100, createdAt: new Date() },
-          { id: 2, userId, type: 'withdraw', amount: 50, createdAt: new Date() },
+          {
+            id: 2,
+            userId,
+            type: 'withdraw',
+            amount: 50,
+            createdAt: new Date(),
+          },
         ],
         total: 2,
         page: 1,
@@ -119,9 +125,9 @@ describe('WalletController', () => {
         new BadRequestException('Invalid pagination'),
       );
 
-      await expect(
-        controller.getTransactions(userId, query),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.getTransactions(userId, query)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when user not authenticated', async () => {
@@ -145,9 +151,9 @@ describe('WalletController', () => {
         new BadRequestException('Database error'),
       );
 
-      await expect(
-        controller.getTransactions(userId, query),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.getTransactions(userId, query)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should return empty transaction list', async () => {
@@ -218,9 +224,9 @@ describe('WalletController', () => {
         new BadRequestException('User not authenticated'),
       );
 
-      await expect(
-        controller.getIncome(userId as any, query),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.getIncome(userId as any, query)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when service fails', async () => {
@@ -307,9 +313,9 @@ describe('WalletController', () => {
         new BadRequestException('User not authenticated'),
       );
 
-      await expect(
-        controller.withdraw(userId as any, amount),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.withdraw(userId as any, amount)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when service fails', async () => {

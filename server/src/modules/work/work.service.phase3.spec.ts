@@ -85,7 +85,12 @@ describe('Phase 3: WorkService - Checkin, Logs, and Anomalies', () => {
   describe('checkin', () => {
     it('should create and save a checkin record', async () => {
       const dto = { jobId: 1, type: 'location', lat: 39.9, lng: 116.4 };
-      const checkinEntity = { id: 1, workerId: 5, ...dto, checkInAt: new Date() };
+      const checkinEntity = {
+        id: 1,
+        workerId: 5,
+        ...dto,
+        checkInAt: new Date(),
+      };
 
       checkinRepo.create.mockReturnValue(checkinEntity);
       checkinRepo.save.mockResolvedValue(checkinEntity);
@@ -102,7 +107,12 @@ describe('Phase 3: WorkService - Checkin, Logs, and Anomalies', () => {
 
     it('should update job status to "working" on first checkin', async () => {
       const dto = { jobId: 1, type: 'location', lat: 39.9, lng: 116.4 };
-      const checkinEntity = { id: 1, workerId: 5, ...dto, checkInAt: new Date() };
+      const checkinEntity = {
+        id: 1,
+        workerId: 5,
+        ...dto,
+        checkInAt: new Date(),
+      };
 
       checkinRepo.create.mockReturnValue(checkinEntity);
       checkinRepo.save.mockResolvedValue(checkinEntity);
@@ -117,7 +127,12 @@ describe('Phase 3: WorkService - Checkin, Logs, and Anomalies', () => {
 
     it('should NOT update job status when already "working"', async () => {
       const dto = { jobId: 1, type: 'location', lat: 39.9, lng: 116.4 };
-      const checkinEntity = { id: 1, workerId: 5, ...dto, checkInAt: new Date() };
+      const checkinEntity = {
+        id: 1,
+        workerId: 5,
+        ...dto,
+        checkInAt: new Date(),
+      };
 
       checkinRepo.create.mockReturnValue(checkinEntity);
       checkinRepo.save.mockResolvedValue(checkinEntity);

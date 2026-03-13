@@ -4,7 +4,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JobController } from './job.controller';
 import { JobService } from './job.service';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 
 describe('JobController', () => {
   let controller: JobController;

@@ -13,7 +13,14 @@ import { ChatRealtimeService } from './chat-realtime.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Conversation, ChatMessage, ContactUnlock, Post, EnterpriseCert, WorkerCert]),
+    TypeOrmModule.forFeature([
+      Conversation,
+      ChatMessage,
+      ContactUnlock,
+      Post,
+      EnterpriseCert,
+      WorkerCert,
+    ]),
     AuthModule,
   ],
   controllers: [ChatController],

@@ -77,7 +77,9 @@ describe('NotificationService', () => {
 
       await service.list(1, { type: 'message', page: 1, pageSize: 20 });
 
-      expect(qb.andWhere).toHaveBeenCalledWith('n.type = :type', { type: 'message' });
+      expect(qb.andWhere).toHaveBeenCalledWith('n.type = :type', {
+        type: 'message',
+      });
     });
 
     it('should default page=1 and pageSize=20', async () => {

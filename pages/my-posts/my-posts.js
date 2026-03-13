@@ -120,7 +120,7 @@ Page({
 
   onGoSettlement(e) {
     const jobId = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/pages/settlement/settlement?jobId=' + jobId })
+    wx.navigateTo({ url: '/pages/settlement-detail/settlement-detail?jobId=' + jobId })
   },
 
   onDeletePost(e) {

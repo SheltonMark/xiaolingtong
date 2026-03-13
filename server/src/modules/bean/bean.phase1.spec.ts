@@ -93,13 +93,18 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle negative balance (debt)', async () => {
-      const mockUser = { id: 1, beanBalance: -100.50, totalIn: 0, totalOut: 100.50 };
+      const mockUser = {
+        id: 1,
+        beanBalance: -100.5,
+        totalIn: 0,
+        totalOut: 100.5,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
       const result = await controller.getBalance(1);
 
-      expect(result.beanBalance).toBe(-100.50);
+      expect(result.beanBalance).toBe(-100.5);
       expect(String(result.beanBalance)).toMatch(/^-?\d+\.\d{1,2}$/);
     });
 
@@ -114,7 +119,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle very large balance', async () => {
-      const mockUser = { id: 1, beanBalance: 999999999.99, totalIn: 999999999.99, totalOut: 0 };
+      const mockUser = {
+        id: 1,
+        beanBalance: 999999999.99,
+        totalIn: 999999999.99,
+        totalOut: 0,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -126,7 +136,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
 
   describe('Boundary Values - Precision', () => {
     it('should handle one decimal place', async () => {
-      const mockUser = { id: 1, beanBalance: 100.1, totalIn: 100.1, totalOut: 0 };
+      const mockUser = {
+        id: 1,
+        beanBalance: 100.1,
+        totalIn: 100.1,
+        totalOut: 0,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -136,7 +151,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle three decimal places (rounding)', async () => {
-      const mockUser = { id: 1, beanBalance: 100.125, totalIn: 100.125, totalOut: 0 };
+      const mockUser = {
+        id: 1,
+        beanBalance: 100.125,
+        totalIn: 100.125,
+        totalOut: 0,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -146,7 +166,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle rounding edge case (0.005)', async () => {
-      const mockUser = { id: 1, beanBalance: 100.005, totalIn: 100.005, totalOut: 0 };
+      const mockUser = {
+        id: 1,
+        beanBalance: 100.005,
+        totalIn: 100.005,
+        totalOut: 0,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -156,7 +181,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle rounding edge case (0.995)', async () => {
-      const mockUser = { id: 1, beanBalance: 100.995, totalIn: 100.995, totalOut: 0 };
+      const mockUser = {
+        id: 1,
+        beanBalance: 100.995,
+        totalIn: 100.995,
+        totalOut: 0,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -176,7 +206,10 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
       expect(result.total).toBe(0);
@@ -184,7 +217,13 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
 
     it('should handle single transaction', async () => {
       const mockTransactions = [
-        { id: 1, userId: 1, amount: 100.50, type: 'recharge', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          amount: 100.5,
+          type: 'recharge',
+          createdAt: new Date(),
+        },
       ];
 
       beanTxRepository.createQueryBuilder.mockReturnValue({
@@ -195,20 +234,25 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockTransactions, 1]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toHaveLength(1);
       expect(result.total).toBe(1);
     });
 
     it('should handle maximum page size', async () => {
-      const mockTransactions = Array(100).fill(null).map((_, i) => ({
-        id: i,
-        userId: 1,
-        amount: 100.50,
-        type: 'recharge',
-        createdAt: new Date(),
-      }));
+      const mockTransactions = Array(100)
+        .fill(null)
+        .map((_, i) => ({
+          id: i,
+          userId: 1,
+          amount: 100.5,
+          type: 'recharge',
+          createdAt: new Date(),
+        }));
 
       beanTxRepository.createQueryBuilder.mockReturnValue({
         where: jest.fn().mockReturnThis(),
@@ -218,7 +262,10 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockTransactions, 100]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 100 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 100,
+      });
 
       expect(result.list).toHaveLength(100);
       expect(result.total).toBe(100);
@@ -226,7 +273,13 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
 
     it('should handle zero amount transaction', async () => {
       const mockTransactions = [
-        { id: 1, userId: 1, amount: 0, type: 'adjustment', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          amount: 0,
+          type: 'adjustment',
+          createdAt: new Date(),
+        },
       ];
 
       beanTxRepository.createQueryBuilder.mockReturnValue({
@@ -237,14 +290,23 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockTransactions, 1]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list[0].amount).toBe(0);
     });
 
     it('should handle very large transaction amount', async () => {
       const mockTransactions = [
-        { id: 1, userId: 1, amount: 999999999.99, type: 'recharge', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          amount: 999999999.99,
+          type: 'recharge',
+          createdAt: new Date(),
+        },
       ];
 
       beanTxRepository.createQueryBuilder.mockReturnValue({
@@ -255,14 +317,23 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockTransactions, 1]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list[0].amount).toBe(999999999.99);
     });
 
     it('should handle negative transaction amount', async () => {
       const mockTransactions = [
-        { id: 1, userId: 1, amount: -100.50, type: 'deduction', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          amount: -100.5,
+          type: 'deduction',
+          createdAt: new Date(),
+        },
       ];
 
       beanTxRepository.createQueryBuilder.mockReturnValue({
@@ -273,9 +344,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockTransactions, 1]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
-      expect(result.list[0].amount).toBe(-100.50);
+      expect(result.list[0].amount).toBe(-100.5);
     });
   });
 
@@ -292,7 +366,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle float balance', async () => {
-      const mockUser = { id: 1, beanBalance: 100.50, totalIn: 100.50, totalOut: 0 };
+      const mockUser = {
+        id: 1,
+        beanBalance: 100.5,
+        totalIn: 100.5,
+        totalOut: 0,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -302,7 +381,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle string number conversion', async () => {
-      const mockUser = { id: 1, beanBalance: '100.50', totalIn: '100.50', totalOut: '0' };
+      const mockUser = {
+        id: 1,
+        beanBalance: '100.50',
+        totalIn: '100.50',
+        totalOut: '0',
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -312,7 +396,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle null balance gracefully', async () => {
-      const mockUser = { id: 1, beanBalance: null, totalIn: null, totalOut: null };
+      const mockUser = {
+        id: 1,
+        beanBalance: null,
+        totalIn: null,
+        totalOut: null,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -322,7 +411,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle undefined balance gracefully', async () => {
-      const mockUser = { id: 1, beanBalance: undefined, totalIn: undefined, totalOut: undefined };
+      const mockUser = {
+        id: 1,
+        beanBalance: undefined,
+        totalIn: undefined,
+        totalOut: undefined,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -332,7 +426,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle boolean-like values', async () => {
-      const mockUser = { id: 1, beanBalance: true, totalIn: false, totalOut: 0 };
+      const mockUser = {
+        id: 1,
+        beanBalance: true,
+        totalIn: false,
+        totalOut: 0,
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -342,7 +441,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle array-like values', async () => {
-      const mockUser = { id: 1, beanBalance: [100.50], totalIn: [100.50], totalOut: [0] };
+      const mockUser = {
+        id: 1,
+        beanBalance: [100.5],
+        totalIn: [100.5],
+        totalOut: [0],
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 
@@ -352,7 +456,12 @@ describe('Phase 1: Backend Data - Boundary Value Tests', () => {
     });
 
     it('should handle object-like values', async () => {
-      const mockUser = { id: 1, beanBalance: { value: 100.50 }, totalIn: { value: 100.50 }, totalOut: { value: 0 } };
+      const mockUser = {
+        id: 1,
+        beanBalance: { value: 100.5 },
+        totalIn: { value: 100.5 },
+        totalOut: { value: 0 },
+      };
       userRepository.findOneBy.mockResolvedValue(mockUser);
       beanTxRepository.find.mockResolvedValue([]);
 

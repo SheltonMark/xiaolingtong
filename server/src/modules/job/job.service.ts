@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
@@ -12,7 +17,8 @@ export class JobService {
   constructor(
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
-    @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(JobApplication)
+    private appRepo: Repository<JobApplication>,
     @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
 
@@ -61,7 +67,9 @@ export class JobService {
     if (!fullAddress) return '';
     // 匹配模式：省份 + 地级市 + 区县
     // 例如：广东省东莞市长安镇 -> 东莞·长安
-    const match = fullAddress.match(/(?:.*?[省市])?([^省]+?[市州盟])([^市县区]+?[县区镇乡])/);
+    const match = fullAddress.match(
+      /(?:.*?[省市])?([^省]+?[市州盟])([^市县区]+?[县区镇乡])/,
+    );
     if (match) {
       const city = match[1].replace(/市$/, '');
       const district = match[2].replace(/[县区镇乡]$/, '');
@@ -70,7 +78,9 @@ export class JobService {
     // 如果匹配失败，尝试简单提取
     const simpleMatch = fullAddress.match(/([^省]+?[市州盟])([^市]+)/);
     if (simpleMatch) {
-      return simpleMatch[1].replace(/市$/, '') + '·' + simpleMatch[2].substring(0, 4);
+      return (
+        simpleMatch[1].replace(/市$/, '') + '·' + simpleMatch[2].substring(0, 4)
+      );
     }
     return fullAddress.substring(0, 20);
   }
@@ -79,13 +89,17 @@ export class JobService {
     const salary = Number(dto.salary || dto.price || 0);
     const needCount = Number(dto.needCount || dto.headcount || dto.need || 0);
     const salaryType = this.parseSalaryType(dto.salaryType || dto.salaryMode);
-    const salaryUnit = this.normalizeText(dto.salaryUnit) || (salaryType === 'hourly' ? '元/时' : '元/件');
+    const salaryUnit =
+      this.normalizeText(dto.salaryUnit) ||
+      (salaryType === 'hourly' ? '元/时' : '元/件');
     const location = this.normalizeText(dto.location || dto.address);
     const dateStart = this.normalizeText(dto.dateStart || dto.startDate);
     const dateEnd = this.normalizeText(dto.dateEnd || dto.endDate);
     const startTime = this.normalizeText(dto.startTime);
     const endTime = this.normalizeText(dto.endTime);
-    const workHours = this.normalizeText(dto.workHours) || (startTime && endTime ? `${startTime}-${endTime}` : '');
+    const workHours =
+      this.normalizeText(dto.workHours) ||
+      (startTime && endTime ? `${startTime}-${endTime}` : '');
 
     return {
       title: this.normalizeText(dto.title || dto.jobType),
@@ -107,10 +121,20 @@ export class JobService {
   }
 
   async list(query: any) {
-    const { keyword, salaryType, minSalary, maxSalary, page = 1, pageSize = 20 } = query;
-    const qb = this.jobRepo.createQueryBuilder('j')
+    const {
+      keyword,
+      salaryType,
+      minSalary,
+      maxSalary,
+      page = 1,
+      pageSize = 20,
+    } = query;
+    const qb = this.jobRepo
+      .createQueryBuilder('j')
       .leftJoinAndSelect('j.user', 'u')
-      .where('j.status IN (:...statuses)', { statuses: ['recruiting', 'full'] });
+      .where('j.status IN (:...statuses)', {
+        statuses: ['recruiting', 'full'],
+      });
 
     if (keyword) qb.andWhere('j.title LIKE :kw', { kw: `%${keyword}%` });
     if (salaryType) qb.andWhere('j.salaryType = :salaryType', { salaryType });
@@ -125,52 +149,77 @@ export class JobService {
     const [list, total] = await qb.getManyAndCount();
 
     // 格式化列表数据
-    const formattedList = await Promise.all(list.map(async (job) => {
-      const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+    const formattedList = await Promise.all(
+      list.map(async (job) => {
+        const appliedCount = await this.appRepo.count({
+          where: { jobId: job.id },
+        });
 
-      // 格式化福利标签
-      const benefitTags = (job.benefits || []).map((b: any) => ({
-        label: typeof b === 'string' ? b : b.label,
-        bg: '#ECFDF5',
-        color: '#10B981'
-      }));
+        // 格式化福利标签
+        const benefitTags = (job.benefits || []).map((b: any) => ({
+          label: typeof b === 'string' ? b : b.label,
+          bg: '#ECFDF5',
+          color: '#10B981',
+        }));
 
-      // 添加工作时间标签
-      const timeTags = job.workHours ? [{
-        label: job.workHours,
-        bg: '#EFF6FF',
-        color: '#3B82F6'
-      }] : [];
+        // 添加工作时间标签
+        const timeTags = job.workHours
+          ? [
+              {
+                label: job.workHours,
+                bg: '#EFF6FF',
+                color: '#3B82F6',
+              },
+            ]
+          : [];
 
-      const allTags = [...benefitTags, ...timeTags];
+        const allTags = [...benefitTags, ...timeTags];
 
-      return {
-        id: job.id,
-        title: job.title,
-        salary: job.salary,
-        salaryUnit: job.salaryUnit,
-        need: job.needCount,
-        applied: appliedCount,
-        total: job.needCount,
-        location: job.location,
-        cityDistrict: this.extractCityDistrict(job.location),
-        dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
-        publishDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '',
-        desc: job.description || '',
-        urgent: job.urgent === 1,
-        images: job.images || [],
-        tags: benefitTags,
-        allTags,
-        companyName: job.user?.nickname || '企业用户',
-        time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
-      };
-    }));
+        return {
+          id: job.id,
+          title: job.title,
+          salary: job.salary,
+          salaryUnit: job.salaryUnit,
+          need: job.needCount,
+          applied: appliedCount,
+          total: job.needCount,
+          location: job.location,
+          cityDistrict: this.extractCityDistrict(job.location),
+          dateRange:
+            job.dateStart && job.dateEnd
+              ? `${job.dateStart}~${job.dateEnd}`
+              : '',
+          publishDate: job.createdAt
+            ? new Date(job.createdAt)
+                .toLocaleDateString('zh-CN', {
+                  month: '2-digit',
+                  day: '2-digit',
+                })
+                .replace(/\//g, '-')
+            : '',
+          desc: job.description || '',
+          urgent: job.urgent === 1,
+          images: job.images || [],
+          tags: benefitTags,
+          allTags,
+          companyName: job.user?.nickname || '企业用户',
+          time: job.createdAt
+            ? new Date(job.createdAt)
+                .toLocaleDateString('zh-CN')
+                .replace(/\//g, '-')
+            : '',
+        };
+      }),
+    );
 
     return { list: formattedList, total, page: +page, pageSize: +pageSize };
   }
 
   async detail(id: number) {
-    const job = await this.jobRepo.findOne({ where: { id }, relations: ['user'] });
+    const job = await this.jobRepo.findOne({
+      where: { id },
+      relations: ['user'],
+    });
     if (!job) throw new BadRequestException('招工信息不存在');
 
     // 查询报名人数
@@ -178,9 +227,10 @@ export class JobService {
 
     // 格式化返回数据
     const salaryTypeMap = { hourly: '计时', piece: '计件' };
-    const dateRange = job.dateStart && job.dateEnd
-      ? `${job.dateStart} 至 ${job.dateEnd}`
-      : '待定';
+    const dateRange =
+      job.dateStart && job.dateEnd
+        ? `${job.dateStart} 至 ${job.dateEnd}`
+        : '待定';
 
     return {
       ...job,
@@ -196,35 +246,42 @@ export class JobService {
         verified: false,
         creditScore: job.user?.creditScore || 100,
         contact: job.contactName || '联系人',
-        phone: job.contactPhone || job.user?.phone || ''
-      }
+        phone: job.contactPhone || job.user?.phone || '',
+      },
     };
   }
 
   async myJobs(userId: number) {
     const jobs = await this.jobRepo.find({
       where: { userId },
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
 
-    const formattedJobs = await Promise.all(jobs.map(async (job) => {
-      const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
-      return {
-        id: job.id,
-        type: 'job',
-        title: job.title,
-        salary: job.salary,
-        salaryUnit: job.salaryUnit,
-        needCount: job.needCount,
-        appliedCount,
-        dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
-        workHours: job.workHours,
-        cityDistrict: this.extractCityDistrict(job.location),
-        status: job.status,
-        createdAt: job.createdAt,
-        viewCount: 0 // TODO: 实现浏览次数统计
-      };
-    }));
+    const formattedJobs = await Promise.all(
+      jobs.map(async (job) => {
+        const appliedCount = await this.appRepo.count({
+          where: { jobId: job.id },
+        });
+        return {
+          id: job.id,
+          type: 'job',
+          title: job.title,
+          salary: job.salary,
+          salaryUnit: job.salaryUnit,
+          needCount: job.needCount,
+          appliedCount,
+          dateRange:
+            job.dateStart && job.dateEnd
+              ? `${job.dateStart}~${job.dateEnd}`
+              : '',
+          workHours: job.workHours,
+          cityDistrict: this.extractCityDistrict(job.location),
+          status: job.status,
+          createdAt: job.createdAt,
+          viewCount: 0, // TODO: 实现浏览次数统计
+        };
+      }),
+    );
 
     return { list: formattedJobs };
   }
@@ -233,11 +290,13 @@ export class JobService {
     const payload = this.normalizeCreateDto(dto);
     if (!payload.title) throw new BadRequestException('请输入招工标题');
     if (!(payload.salary > 0)) throw new BadRequestException('请输入正确工价');
-    if (!(payload.needCount > 0)) throw new BadRequestException('请输入招工人数');
+    if (!(payload.needCount > 0))
+      throw new BadRequestException('请输入招工人数');
     if (!payload.location) throw new BadRequestException('请选择工作地点');
     if (!payload.contactName) throw new BadRequestException('请输入联系人');
     if (!payload.contactPhone) throw new BadRequestException('请输入联系电话');
-    if (!payload.dateStart || !payload.dateEnd) throw new BadRequestException('请选择工作日期');
+    if (!payload.dateStart || !payload.dateEnd)
+      throw new BadRequestException('请选择工作日期');
 
     await this.checkKeywords(payload.title + (payload.description || ''));
     const job = this.jobRepo.create({ ...payload, userId });
@@ -296,7 +355,9 @@ export class JobService {
 
     // 验证权限：只有工作发布者可以接受/拒绝
     if (application.job.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to accept this application');
+      throw new ForbiddenException(
+        'You do not have permission to accept this application',
+      );
     }
 
     // 验证状态：只有 pending 状态可以接受/拒绝
@@ -314,7 +375,9 @@ export class JobService {
   ): Promise<JobApplication> {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job || job.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to manage this job');
+      throw new ForbiddenException(
+        'You do not have permission to manage this job',
+      );
     }
 
     const application = await this.appRepo.findOne({
@@ -322,13 +385,17 @@ export class JobService {
     });
 
     if (!application) {
-      throw new NotFoundException('Application not found or not in accepted status');
+      throw new NotFoundException(
+        'Application not found or not in accepted status',
+      );
     }
 
     // 验证临工资格
     const worker = await this.userRepo.findOne({ where: { id: workerId } });
     if (!worker || worker.creditScore < 95 || worker.totalOrders < 10) {
-      throw new BadRequestException('Worker does not meet supervisor requirements');
+      throw new BadRequestException(
+        'Worker does not meet supervisor requirements',
+      );
     }
 
     // 更新为 confirmed 并标记为管理员
@@ -348,7 +415,9 @@ export class JobService {
     });
 
     if (!application) {
-      throw new NotFoundException('Application not found or not in accepted status');
+      throw new NotFoundException(
+        'Application not found or not in accepted status',
+      );
     }
 
     application.status = 'confirmed';
@@ -392,7 +461,9 @@ export class JobService {
   async getApplicationsForEnterprise(jobId: number, userId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job || job.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to view this job');
+      throw new ForbiddenException(
+        'You do not have permission to view this job',
+      );
     }
 
     const applications = await this.appRepo.find({

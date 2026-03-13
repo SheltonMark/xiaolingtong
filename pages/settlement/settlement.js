@@ -1,88 +1,104 @@
-const { get, post } = require('../../utils/request')
+const { get } = require('../../utils/request')
 
 Page({
   data: {
-    viewOnly: false,
-    role: 'enterprise',
-    jobId: '',
-    job: {},
-    steps: [],
-    workers: [],
-    fees: {}
+    currentTab: 0,
+    tabs: [
+      { label: '招工管理', key: 'recruitment' },
+      { label: '工资结算', key: 'settlement' }
+    ],
+    jobs: [],
+    settlements: []
   },
 
-  onLoad(options) {
-    const jobId = options.jobId || ''
-    this.setData({ jobId })
-    if (options.viewOnly === '1') {
-      this.setData({ viewOnly: true })
-    }
-    if (options.role) {
-      this.setData({ role: options.role })
+  onShow() {
+    this.loadData()
+  },
+
+  loadData() {
+    const tab = this.data.tabs[this.data.currentTab]
+    if (tab.key === 'recruitment') {
+      this.loadRecruitmentJobs()
     } else {
-      const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-      if (userRole === 'worker') {
-        this.setData({ role: 'worker', viewOnly: true })
-      }
+      this.loadSettlements()
     }
-    if (jobId) this.loadSettlement(jobId)
   },
 
-  loadSettlement(jobId) {
-    get('/settlements/' + jobId).then(res => {
-      const d = res.data || {}
-      this.setData({
-        job: d.job || {},
-        steps: d.steps || [],
-        workers: d.workers || [],
-        fees: d.fees || {}
-      })
+  loadRecruitmentJobs() {
+    get('/jobs/mine').then(res => {
+      const list = res.data.list || res.data || []
+      this.setData({ jobs: this.mapRecruitmentJobs(list) })
     }).catch(() => {})
   },
 
-  onViewAll() {
-    wx.showToast({ title: '查看全部明细', icon: 'none' })
+  loadSettlements() {
+    get('/jobs/mine').then(res => {
+      const list = res.data.list || res.data || []
+      const settlements = list.filter(job =>
+        ['pending_settlement', 'settled', 'working', 'closed'].includes(job.status)
+      )
+      this.setData({ settlements: this.mapSettlements(settlements) })
+    }).catch(() => {})
   },
 
-  onSubmitSettlement() {
-    wx.showModal({
-      title: '提交结算单',
-      content: '提交后将通知临工确认工时，超时将自动确认',
-      success: (res) => {
-        if (res.confirm) {
-          post('/settlements/' + this.data.jobId + '/confirm').then(() => {
-            wx.showToast({ title: '已提交', icon: 'success' })
-            setTimeout(() => wx.navigateBack(), 1500)
-          }).catch(() => {})
-        }
+  mapRecruitmentJobs(list) {
+    const statusMap = {
+      recruiting: { text: '招工中', color: 'green' },
+      full: { text: '已满员', color: 'amber' },
+      working: { text: '进行中', color: 'green' },
+      pending_settlement: { text: '待结算', color: 'amber' },
+      settled: { text: '已结算', color: 'green' },
+      closed: { text: '已关闭', color: 'gray' }
+    }
+    return (Array.isArray(list) ? list : []).map(item => {
+      const statusMeta = statusMap[item.status] || { text: '招工中', color: 'green' }
+      return {
+        ...item,
+        statusText: statusMeta.text,
+        statusColor: statusMeta.color,
+        dateRange: item.dateRange || '',
+        appliedCount: item.appliedCount || 0,
+        needCount: item.needCount || 0,
+        salary: item.salary || 0,
+        salaryUnit: item.salaryUnit || '元/天'
       }
     })
   },
 
-  onPay() {
-    wx.showModal({
-      title: '确认支付',
-      content: '支付后工资将自动发放至临工钱包',
-      success: (res) => {
-        if (res.confirm) {
-          post('/settlements/' + this.data.jobId + '/pay').then((data) => {
-            if (data.prepay_id) {
-              wx.requestPayment({
-                timeStamp: data.timeStamp,
-                nonceStr: data.nonceStr,
-                package: data.package,
-                signType: data.signType || 'RSA',
-                paySign: data.paySign,
-                success() {
-                  wx.showToast({ title: '支付成功', icon: 'success' })
-                  setTimeout(() => wx.navigateBack(), 1500)
-                },
-                fail() { wx.showToast({ title: '支付取消', icon: 'none' }) }
-              })
-            }
-          }).catch(() => {})
-        }
+  mapSettlements(list) {
+    const statusMap = {
+      pending_settlement: { text: '待结算', color: 'amber' },
+      settled: { text: '已结算', color: 'green' },
+      working: { text: '进行中', color: 'green' },
+      closed: { text: '已关闭', color: 'gray' }
+    }
+    return (Array.isArray(list) ? list : []).map(item => {
+      const statusMeta = statusMap[item.status] || { text: '待结算', color: 'amber' }
+      return {
+        ...item,
+        statusText: statusMeta.text,
+        statusColor: statusMeta.color,
+        dateRange: item.dateRange || '',
+        totalWorkers: item.totalWorkers || 0,
+        totalHours: item.totalHours || 0,
+        factoryTotal: item.factoryTotal || 0
       }
     })
+  },
+
+  onTabChange(e) {
+    this.setData({ currentTab: Number(e.currentTarget.dataset.index) }, () => {
+      this.loadData()
+    })
+  },
+
+  onViewJobDetail(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
+  },
+
+  onViewSettlementDetail(e) {
+    const jobId = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/settlement-detail/settlement-detail?jobId=' + jobId })
   }
 })

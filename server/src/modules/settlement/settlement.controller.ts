@@ -22,7 +22,10 @@ export class SettlementController {
   }
 
   @Post(':jobId/confirm')
-  confirmByWorker(@Param('jobId') jobId: number, @CurrentUser('sub') userId: number) {
+  confirmByWorker(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
     return this.settlementService.confirmByWorker(jobId, userId);
   }
 }

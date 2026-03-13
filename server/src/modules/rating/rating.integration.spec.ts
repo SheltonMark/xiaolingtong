@@ -41,13 +41,27 @@ describe('RatingModule Integration Tests', () => {
 
   describe('create Integration', () => {
     it('should create rating successfully', async () => {
-      const mockRating = { id: 1, workerId: 1, enterpriseId: 2, jobId: 1, score: 5, tags: ['good'], content: 'Great job' };
+      const mockRating = {
+        id: 1,
+        workerId: 1,
+        enterpriseId: 2,
+        jobId: 1,
+        score: 5,
+        tags: ['good'],
+        content: 'Great job',
+      };
 
       ratingRepository.findOne.mockResolvedValue(null);
       ratingRepository.create.mockReturnValue(mockRating);
       ratingRepository.save.mockResolvedValue(mockRating);
 
-      const result = await controller.create(1, { enterpriseId: 2, jobId: 1, score: 5, tags: ['good'], content: 'Great job' });
+      const result = await controller.create(1, {
+        enterpriseId: 2,
+        jobId: 1,
+        score: 5,
+        tags: ['good'],
+        content: 'Great job',
+      });
 
       expect(result).toBeDefined();
       expect(result.score).toBe(5);
@@ -55,21 +69,49 @@ describe('RatingModule Integration Tests', () => {
     });
 
     it('should throw error when already rated', async () => {
-      const mockRating = { id: 1, workerId: 1, enterpriseId: 2, jobId: 1, score: 5 };
+      const mockRating = {
+        id: 1,
+        workerId: 1,
+        enterpriseId: 2,
+        jobId: 1,
+        score: 5,
+      };
 
       ratingRepository.findOne.mockResolvedValue(mockRating);
 
-      await expect(controller.create(1, { enterpriseId: 2, jobId: 1, score: 5, tags: ['good'], content: 'Great job' })).rejects.toThrow();
+      await expect(
+        controller.create(1, {
+          enterpriseId: 2,
+          jobId: 1,
+          score: 5,
+          tags: ['good'],
+          content: 'Great job',
+        }),
+      ).rejects.toThrow();
     });
 
     it('should accept different score values', async () => {
-      const mockRating = { id: 1, workerId: 1, enterpriseId: 2, jobId: 1, score: 3, tags: ['ok'], content: 'Average' };
+      const mockRating = {
+        id: 1,
+        workerId: 1,
+        enterpriseId: 2,
+        jobId: 1,
+        score: 3,
+        tags: ['ok'],
+        content: 'Average',
+      };
 
       ratingRepository.findOne.mockResolvedValue(null);
       ratingRepository.create.mockReturnValue(mockRating);
       ratingRepository.save.mockResolvedValue(mockRating);
 
-      const result = await controller.create(1, { enterpriseId: 2, jobId: 1, score: 3, tags: ['ok'], content: 'Average' });
+      const result = await controller.create(1, {
+        enterpriseId: 2,
+        jobId: 1,
+        score: 3,
+        tags: ['ok'],
+        content: 'Average',
+      });
 
       expect(result.score).toBe(3);
     });

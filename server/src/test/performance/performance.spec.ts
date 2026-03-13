@@ -19,13 +19,11 @@ describe('Performance Benchmarks', () => {
     await app.init();
 
     // Setup: Create test user
-    const response = await app
-      .get('/auth/register')
-      .send({
-        openid: 'perf_test_user',
-        nickname: 'Performance Test',
-        role: 'worker',
-      });
+    const response = await app.get('/auth/register').send({
+      openid: 'perf_test_user',
+      nickname: 'Performance Test',
+      role: 'worker',
+    });
 
     token = response.body.token;
     userId = response.body.userId;
@@ -183,13 +181,10 @@ describe('Performance Benchmarks', () => {
 
     it('should handle 10 concurrent messages', async () => {
       const promises = Array.from({ length: 10 }, () =>
-        app
-          .post('/chat/send')
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            recipientId: 1,
-            content: 'Test message',
-          }),
+        app.post('/chat/send').set('Authorization', `Bearer ${token}`).send({
+          recipientId: 1,
+          content: 'Test message',
+        }),
       );
 
       const start = performance.now();
@@ -243,16 +238,13 @@ describe('Performance Benchmarks', () => {
     it('should maintain performance under high concurrent create load', async () => {
       const concurrency = 10;
       const promises = Array.from({ length: concurrency }, () =>
-        app
-          .post('/jobs')
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            title: 'Test Job',
-            description: 'Test',
-            salary: 100,
-            salaryType: 'hour',
-            requiredWorkers: 5,
-          }),
+        app.post('/jobs').set('Authorization', `Bearer ${token}`).send({
+          title: 'Test Job',
+          description: 'Test',
+          salary: 100,
+          salaryType: 'hour',
+          requiredWorkers: 5,
+        }),
       );
 
       const start = performance.now();
@@ -268,13 +260,10 @@ describe('Performance Benchmarks', () => {
       const concurrency = 10;
       const jobIds = Array.from({ length: concurrency }, (_, i) => i + 1);
       const promises = jobIds.map((jobId) =>
-        app
-          .put(`/jobs/${jobId}`)
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            title: 'Updated Job',
-            salary: 120,
-          }),
+        app.put(`/jobs/${jobId}`).set('Authorization', `Bearer ${token}`).send({
+          title: 'Updated Job',
+          salary: 120,
+        }),
       );
 
       const start = performance.now();

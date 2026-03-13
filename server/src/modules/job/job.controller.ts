@@ -36,7 +36,11 @@ export class JobController {
 
   @Put(':id')
   @Roles('enterprise')
-  update(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
+  update(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
     return this.jobService.update(id, userId, dto);
   }
 

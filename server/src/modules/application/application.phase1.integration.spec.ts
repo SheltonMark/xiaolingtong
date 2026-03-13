@@ -102,7 +102,10 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       jobRepository.findOne.mockResolvedValue(mockJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([]); // No conflicts
-      configRepository.findOne.mockResolvedValue({ key: 'over_apply_rate', value: '0.5' });
+      configRepository.findOne.mockResolvedValue({
+        key: 'over_apply_rate',
+        value: '0.5',
+      });
       appRepository.count.mockResolvedValue(2);
       appRepository.create.mockReturnValue(mockApp);
       appRepository.save.mockResolvedValue(mockApp);
@@ -117,7 +120,10 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       appRepository.save.mockResolvedValue(acceptedApp);
 
       // Simulate enterprise accepting the application
-      const acceptedAppData = await appRepository.save({ ...mockApp, status: 'accepted' });
+      const acceptedAppData = await appRepository.save({
+        ...mockApp,
+        status: 'accepted',
+      });
       expect(acceptedAppData.status).toBe('accepted');
 
       // Step 3: Check time conflict when applying for another job
@@ -135,11 +141,16 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([acceptedApp]); // Conflict detected
 
-      await expect(controller.apply(newJobId, workerId)).rejects.toThrow('报名时间与已报名工作冲突');
+      await expect(controller.apply(newJobId, workerId)).rejects.toThrow(
+        '报名时间与已报名工作冲突',
+      );
 
       // Step 4: Cancel the original application
       appRepository.findOne.mockResolvedValue(acceptedApp);
-      appRepository.save.mockResolvedValue({ ...acceptedApp, status: 'cancelled' });
+      appRepository.save.mockResolvedValue({
+        ...acceptedApp,
+        status: 'cancelled',
+      });
 
       const cancelResult = await controller.cancel(appId, workerId);
       expect(cancelResult).toBeDefined();
@@ -246,7 +257,9 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
 
       appRepository.findOne.mockResolvedValue(mockApp);
 
-      await expect(controller.cancel(appId, workerId)).rejects.toThrow('当前状态不可取消');
+      await expect(controller.cancel(appId, workerId)).rejects.toThrow(
+        '当前状态不可取消',
+      );
     });
   });
 
@@ -263,7 +276,9 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
 
       appRepository.findOne.mockResolvedValue(mockApp);
 
-      await expect(controller.cancel(appId, workerId)).rejects.toThrow('当前状态不可取消');
+      await expect(controller.cancel(appId, workerId)).rejects.toThrow(
+        '当前状态不可取消',
+      );
     });
   });
 
@@ -326,7 +341,10 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       jobRepository.findOne.mockResolvedValue(mockJob);
       appRepository.find.mockResolvedValue(mockApps);
 
-      const result = await service.getApplicationsForEnterpriseGrouped(jobId, userId);
+      const result = await service.getApplicationsForEnterpriseGrouped(
+        jobId,
+        userId,
+      );
 
       // Normal statuses: pending, accepted, confirmed, working, done
       expect(result.normal).toHaveLength(5);
@@ -334,7 +352,9 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       expect(result.exception).toHaveLength(1);
 
       // Verify all applications are accounted for
-      expect(result.normal.length + result.exception.length).toBe(mockApps.length);
+      expect(result.normal.length + result.exception.length).toBe(
+        mockApps.length,
+      );
     });
   });
 
@@ -375,7 +395,10 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       jobRepository.findOne.mockResolvedValue(mockJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([]);
-      configRepository.findOne.mockResolvedValue({ key: 'over_apply_rate', value: '0.5' });
+      configRepository.findOne.mockResolvedValue({
+        key: 'over_apply_rate',
+        value: '0.5',
+      });
       appRepository.count.mockResolvedValue(0);
       appRepository.create.mockReturnValue(mockApp);
       appRepository.save.mockResolvedValue(mockApp);
@@ -384,8 +407,15 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       expect(applyResult.status).toBe('pending');
 
       // Confirm application
-      const confirmedApp = { ...mockApp, status: 'confirmed', confirmedAt: new Date() };
-      appRepository.findOne.mockResolvedValue({ ...mockApp, status: 'accepted' });
+      const confirmedApp = {
+        ...mockApp,
+        status: 'confirmed',
+        confirmedAt: new Date(),
+      };
+      appRepository.findOne.mockResolvedValue({
+        ...mockApp,
+        status: 'accepted',
+      });
       appRepository.save.mockResolvedValue(confirmedApp);
 
       const confirmResult = await controller.confirm(jobId, workerId);
@@ -423,7 +453,13 @@ describe('ApplicationModule Phase 1 Complete Workflow Integration Tests', () => 
       };
 
       const app1 = { id: 1, jobId: 1, workerId, status: 'accepted', job: job1 };
-      const app2 = { id: 2, jobId: 2, workerId, status: 'confirmed', job: job2 };
+      const app2 = {
+        id: 2,
+        jobId: 2,
+        workerId,
+        status: 'confirmed',
+        job: job2,
+      };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);

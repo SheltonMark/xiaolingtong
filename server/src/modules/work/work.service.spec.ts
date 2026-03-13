@@ -83,7 +83,12 @@ describe('WorkService', () => {
   describe('getOrders', () => {
     it('should return user orders', async () => {
       const mockApps = [
-        { id: 1, workerId: 1, isSupervisor: 1, job: { id: 1, status: 'working', user: { id: 2 } } },
+        {
+          id: 1,
+          workerId: 1,
+          isSupervisor: 1,
+          job: { id: 1, status: 'working', user: { id: 2 } },
+        },
       ];
 
       jobApplicationRepository.find.mockResolvedValue(mockApps);
@@ -104,7 +109,12 @@ describe('WorkService', () => {
 
     it('should determine correct stage', async () => {
       const mockApps = [
-        { id: 1, workerId: 1, isSupervisor: 1, job: { id: 1, status: 'pending_settlement', user: { id: 2 } } },
+        {
+          id: 1,
+          workerId: 1,
+          isSupervisor: 1,
+          job: { id: 1, status: 'pending_settlement', user: { id: 2 } },
+        },
       ];
 
       jobApplicationRepository.find.mockResolvedValue(mockApps);

@@ -38,8 +38,22 @@ describe('FavoriteController', () => {
       const userId = 1;
       const mockResult = {
         list: [
-          { id: 1, type: 'post', title: 'Post 1', content: 'Content 1', createdAt: new Date(), targetType: 'post' },
-          { id: 2, type: 'post', title: 'Post 2', content: 'Content 2', createdAt: new Date(), targetType: 'post' },
+          {
+            id: 1,
+            type: 'post',
+            title: 'Post 1',
+            content: 'Content 1',
+            createdAt: new Date(),
+            targetType: 'post',
+          },
+          {
+            id: 2,
+            type: 'post',
+            title: 'Post 2',
+            content: 'Content 2',
+            createdAt: new Date(),
+            targetType: 'post',
+          },
         ],
       };
 
@@ -94,13 +108,9 @@ describe('FavoriteController', () => {
     it('should handle service exception', async () => {
       const userId = 1;
 
-      favoriteService.list.mockRejectedValue(
-        new Error('Database error'),
-      );
+      favoriteService.list.mockRejectedValue(new Error('Database error'));
 
-      await expect(controller.list(userId)).rejects.toThrow(
-        'Database error',
-      );
+      await expect(controller.list(userId)).rejects.toThrow('Database error');
     });
   });
 
@@ -116,7 +126,11 @@ describe('FavoriteController', () => {
 
       const result = await controller.toggle(userId, dto);
 
-      expect(favoriteService.toggle).toHaveBeenCalledWith(userId, dto.targetType, dto.targetId);
+      expect(favoriteService.toggle).toHaveBeenCalledWith(
+        userId,
+        dto.targetType,
+        dto.targetId,
+      );
       expect(result.favorited).toBe(true);
     });
 
@@ -131,7 +145,11 @@ describe('FavoriteController', () => {
 
       const result = await controller.toggle(userId, dto);
 
-      expect(favoriteService.toggle).toHaveBeenCalledWith(userId, dto.targetType, dto.targetId);
+      expect(favoriteService.toggle).toHaveBeenCalledWith(
+        userId,
+        dto.targetType,
+        dto.targetId,
+      );
       expect(result.favorited).toBe(false);
     });
 
@@ -165,9 +183,7 @@ describe('FavoriteController', () => {
       const userId = 1;
       const dto = { targetType: 'post', targetId: 101 };
 
-      favoriteService.toggle.mockRejectedValue(
-        new Error('Database error'),
-      );
+      favoriteService.toggle.mockRejectedValue(new Error('Database error'));
 
       await expect(controller.toggle(userId, dto)).rejects.toThrow(
         'Database error',

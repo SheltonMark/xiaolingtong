@@ -78,13 +78,22 @@ describe('ApplicationModule Integration Tests', () => {
 
   describe('apply Integration', () => {
     it('should apply for job successfully', async () => {
-      const mockJob = { id: 1, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-21' };
+      const mockJob = {
+        id: 1,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-21',
+      };
       const mockApp = { id: 1, jobId: 1, workerId: 1, status: 'pending' };
 
       jobRepository.findOne.mockResolvedValue(mockJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([]); // 无冲突
-      configRepository.findOne.mockResolvedValue({ key: 'over_apply_rate', value: '0.5' });
+      configRepository.findOne.mockResolvedValue({
+        key: 'over_apply_rate',
+        value: '0.5',
+      });
       appRepository.count.mockResolvedValue(2);
       appRepository.create.mockReturnValue(mockApp);
       appRepository.save.mockResolvedValue(mockApp);
@@ -120,19 +129,34 @@ describe('ApplicationModule Integration Tests', () => {
     });
 
     it('should throw error when over-application limit reached', async () => {
-      const mockJob = { id: 1, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-21' };
+      const mockJob = {
+        id: 1,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-21',
+      };
 
       jobRepository.findOne.mockResolvedValue(mockJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([]); // 无冲突
-      configRepository.findOne.mockResolvedValue({ key: 'over_apply_rate', value: '0.5' });
+      configRepository.findOne.mockResolvedValue({
+        key: 'over_apply_rate',
+        value: '0.5',
+      });
       appRepository.count.mockResolvedValue(8); // 5 * (1 + 0.5) = 7.5, ceil = 8
 
       await expect(controller.apply(1, 1)).rejects.toThrow();
     });
 
     it('should use default over-apply rate when config not found', async () => {
-      const mockJob = { id: 1, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-21' };
+      const mockJob = {
+        id: 1,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-21',
+      };
       const mockApp = { id: 1, jobId: 1, workerId: 1, status: 'pending' };
 
       jobRepository.findOne.mockResolvedValue(mockJob);
@@ -151,51 +175,132 @@ describe('ApplicationModule Integration Tests', () => {
 
     // 时间冲突检查测试用例
     it('should throw error when time conflicts with accepted application', async () => {
-      const newJob = { id: 2, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-22' };
-      const existingJob = { id: 1, title: 'Job 1', dateStart: '2026-03-21', dateEnd: '2026-03-23', workHours: '08:00-17:00' };
-      const existingApp = { id: 1, jobId: 1, workerId: 1, status: 'accepted', job: existingJob };
+      const newJob = {
+        id: 2,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+      };
+      const existingJob = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-21',
+        dateEnd: '2026-03-23',
+        workHours: '08:00-17:00',
+      };
+      const existingApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'accepted',
+        job: existingJob,
+      };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([existingApp]); // 有冲突
 
-      await expect(controller.apply(2, 1)).rejects.toThrow('报名时间与已报名工作冲突');
+      await expect(controller.apply(2, 1)).rejects.toThrow(
+        '报名时间与已报名工作冲突',
+      );
     });
 
     it('should throw error when time conflicts with confirmed application', async () => {
-      const newJob = { id: 2, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-22' };
-      const existingJob = { id: 1, title: 'Job 1', dateStart: '2026-03-21', dateEnd: '2026-03-23', workHours: '08:00-17:00' };
-      const existingApp = { id: 1, jobId: 1, workerId: 1, status: 'confirmed', job: existingJob };
+      const newJob = {
+        id: 2,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+      };
+      const existingJob = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-21',
+        dateEnd: '2026-03-23',
+        workHours: '08:00-17:00',
+      };
+      const existingApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'confirmed',
+        job: existingJob,
+      };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([existingApp]); // 有冲突
 
-      await expect(controller.apply(2, 1)).rejects.toThrow('报名时间与已报名工作冲突');
+      await expect(controller.apply(2, 1)).rejects.toThrow(
+        '报名时间与已报名工作冲突',
+      );
     });
 
     it('should throw error when time conflicts with working application', async () => {
-      const newJob = { id: 2, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-22' };
-      const existingJob = { id: 1, title: 'Job 1', dateStart: '2026-03-21', dateEnd: '2026-03-23', workHours: '08:00-17:00' };
-      const existingApp = { id: 1, jobId: 1, workerId: 1, status: 'working', job: existingJob };
+      const newJob = {
+        id: 2,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+      };
+      const existingJob = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-21',
+        dateEnd: '2026-03-23',
+        workHours: '08:00-17:00',
+      };
+      const existingApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'working',
+        job: existingJob,
+      };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([existingApp]); // 有冲突
 
-      await expect(controller.apply(2, 1)).rejects.toThrow('报名时间与已报名工作冲突');
+      await expect(controller.apply(2, 1)).rejects.toThrow(
+        '报名时间与已报名工作冲突',
+      );
     });
 
     it('should allow apply when no time conflict', async () => {
-      const newJob = { id: 2, status: 'recruiting', needCount: 5, dateStart: '2026-03-25', dateEnd: '2026-03-26' };
-      const existingJob = { id: 1, title: 'Job 1', dateStart: '2026-03-20', dateEnd: '2026-03-22', workHours: '08:00-17:00' };
-      const existingApp = { id: 1, jobId: 1, workerId: 1, status: 'accepted', job: existingJob };
+      const newJob = {
+        id: 2,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-25',
+        dateEnd: '2026-03-26',
+      };
+      const existingJob = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+        workHours: '08:00-17:00',
+      };
+      const existingApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'accepted',
+        job: existingJob,
+      };
       const mockApp = { id: 2, jobId: 2, workerId: 1, status: 'pending' };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([existingApp]); // 无冲突（日期不重叠）
-      configRepository.findOne.mockResolvedValue({ key: 'over_apply_rate', value: '0.5' });
+      configRepository.findOne.mockResolvedValue({
+        key: 'over_apply_rate',
+        value: '0.5',
+      });
       appRepository.count.mockResolvedValue(2);
       appRepository.create.mockReturnValue(mockApp);
       appRepository.save.mockResolvedValue(mockApp);
@@ -207,15 +312,36 @@ describe('ApplicationModule Integration Tests', () => {
     });
 
     it('should allow apply when existing application is rejected', async () => {
-      const newJob = { id: 2, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-22' };
-      const existingJob = { id: 1, title: 'Job 1', dateStart: '2026-03-20', dateEnd: '2026-03-22', workHours: '08:00-17:00' };
-      const existingApp = { id: 1, jobId: 1, workerId: 1, status: 'rejected', job: existingJob };
+      const newJob = {
+        id: 2,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+      };
+      const existingJob = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+        workHours: '08:00-17:00',
+      };
+      const existingApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'rejected',
+        job: existingJob,
+      };
       const mockApp = { id: 2, jobId: 2, workerId: 1, status: 'pending' };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([]); // 被拒绝的应用不检查
-      configRepository.findOne.mockResolvedValue({ key: 'over_apply_rate', value: '0.5' });
+      configRepository.findOne.mockResolvedValue({
+        key: 'over_apply_rate',
+        value: '0.5',
+      });
       appRepository.count.mockResolvedValue(2);
       appRepository.create.mockReturnValue(mockApp);
       appRepository.save.mockResolvedValue(mockApp);
@@ -227,15 +353,36 @@ describe('ApplicationModule Integration Tests', () => {
     });
 
     it('should allow apply when existing application is cancelled', async () => {
-      const newJob = { id: 2, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-22' };
-      const existingJob = { id: 1, title: 'Job 1', dateStart: '2026-03-20', dateEnd: '2026-03-22', workHours: '08:00-17:00' };
-      const existingApp = { id: 1, jobId: 1, workerId: 1, status: 'cancelled', job: existingJob };
+      const newJob = {
+        id: 2,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+      };
+      const existingJob = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+        workHours: '08:00-17:00',
+      };
+      const existingApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'cancelled',
+        job: existingJob,
+      };
       const mockApp = { id: 2, jobId: 2, workerId: 1, status: 'pending' };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
       appRepository.find.mockResolvedValue([]); // 已取消的应用不检查
-      configRepository.findOne.mockResolvedValue({ key: 'over_apply_rate', value: '0.5' });
+      configRepository.findOne.mockResolvedValue({
+        key: 'over_apply_rate',
+        value: '0.5',
+      });
       appRepository.count.mockResolvedValue(2);
       appRepository.create.mockReturnValue(mockApp);
       appRepository.save.mockResolvedValue(mockApp);
@@ -247,9 +394,27 @@ describe('ApplicationModule Integration Tests', () => {
     });
 
     it('should return conflict details when time conflicts', async () => {
-      const newJob = { id: 2, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-22' };
-      const existingJob = { id: 1, title: 'Job 1', dateStart: '2026-03-21', dateEnd: '2026-03-23', workHours: '08:00-17:00' };
-      const existingApp = { id: 1, jobId: 1, workerId: 1, status: 'accepted', job: existingJob };
+      const newJob = {
+        id: 2,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+      };
+      const existingJob = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-21',
+        dateEnd: '2026-03-23',
+        workHours: '08:00-17:00',
+      };
+      const existingApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'accepted',
+        job: existingJob,
+      };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
@@ -266,11 +431,41 @@ describe('ApplicationModule Integration Tests', () => {
     });
 
     it('should handle multiple time conflicts', async () => {
-      const newJob = { id: 3, status: 'recruiting', needCount: 5, dateStart: '2026-03-20', dateEnd: '2026-03-25' };
-      const job1 = { id: 1, title: 'Job 1', dateStart: '2026-03-20', dateEnd: '2026-03-22', workHours: '08:00-17:00' };
-      const job2 = { id: 2, title: 'Job 2', dateStart: '2026-03-23', dateEnd: '2026-03-25', workHours: '09:00-18:00' };
-      const app1 = { id: 1, jobId: 1, workerId: 1, status: 'accepted', job: job1 };
-      const app2 = { id: 2, jobId: 2, workerId: 1, status: 'confirmed', job: job2 };
+      const newJob = {
+        id: 3,
+        status: 'recruiting',
+        needCount: 5,
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-25',
+      };
+      const job1 = {
+        id: 1,
+        title: 'Job 1',
+        dateStart: '2026-03-20',
+        dateEnd: '2026-03-22',
+        workHours: '08:00-17:00',
+      };
+      const job2 = {
+        id: 2,
+        title: 'Job 2',
+        dateStart: '2026-03-23',
+        dateEnd: '2026-03-25',
+        workHours: '09:00-18:00',
+      };
+      const app1 = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'accepted',
+        job: job1,
+      };
+      const app2 = {
+        id: 2,
+        jobId: 2,
+        workerId: 1,
+        status: 'confirmed',
+        job: job2,
+      };
 
       jobRepository.findOne.mockResolvedValue(newJob);
       appRepository.findOne.mockResolvedValue(null);
@@ -287,10 +482,20 @@ describe('ApplicationModule Integration Tests', () => {
 
   describe('confirm Integration', () => {
     it('should confirm application successfully', async () => {
-      const mockApp = { id: 1, jobId: 1, workerId: 1, status: 'accepted', confirmedAt: null };
+      const mockApp = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        status: 'accepted',
+        confirmedAt: null,
+      };
 
       appRepository.findOne.mockResolvedValue(mockApp);
-      appRepository.save.mockResolvedValue({ ...mockApp, status: 'confirmed', confirmedAt: new Date() });
+      appRepository.save.mockResolvedValue({
+        ...mockApp,
+        status: 'confirmed',
+        confirmedAt: new Date(),
+      });
 
       const result = await controller.confirm(1, 1);
 
@@ -316,7 +521,13 @@ describe('ApplicationModule Integration Tests', () => {
   describe('myApplications Integration', () => {
     it('should return paginated applications', async () => {
       const mockApps = [
-        { id: 1, jobId: 1, workerId: 1, status: 'pending', job: { id: 1, title: 'Job 1', user: { id: 2 } } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 1,
+          status: 'pending',
+          job: { id: 1, title: 'Job 1', user: { id: 2 } },
+        },
       ];
 
       appRepository.createQueryBuilder.mockReturnValue({
@@ -329,7 +540,10 @@ describe('ApplicationModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockApps, 1]),
       });
 
-      const result = await controller.myApplications(1, { page: 1, pageSize: 20 });
+      const result = await controller.myApplications(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
@@ -338,7 +552,13 @@ describe('ApplicationModule Integration Tests', () => {
 
     it('should filter by status', async () => {
       const mockApps = [
-        { id: 1, jobId: 1, workerId: 1, status: 'confirmed', job: { id: 1, title: 'Job 1', user: { id: 2 } } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 1,
+          status: 'confirmed',
+          job: { id: 1, title: 'Job 1', user: { id: 2 } },
+        },
       ];
 
       appRepository.createQueryBuilder.mockReturnValue({
@@ -351,7 +571,11 @@ describe('ApplicationModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockApps, 1]),
       });
 
-      const result = await controller.myApplications(1, { status: 'confirmed', page: 1, pageSize: 20 });
+      const result = await controller.myApplications(1, {
+        status: 'confirmed',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
@@ -368,7 +592,10 @@ describe('ApplicationModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       });
 
-      const result = await controller.myApplications(1, { page: 1, pageSize: 20 });
+      const result = await controller.myApplications(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
       expect(result.total).toBe(0);
@@ -438,10 +665,38 @@ describe('ApplicationModule Integration Tests', () => {
   describe('getMyApplicationsGrouped Integration', () => {
     it('should group applications by normal and exception status', async () => {
       const mockApps = [
-        { id: 1, jobId: 1, workerId: 1, status: 'pending', createdAt: new Date(), job: { id: 1, user: { id: 2 } } },
-        { id: 2, jobId: 2, workerId: 1, status: 'accepted', createdAt: new Date(), job: { id: 2, user: { id: 3 } } },
-        { id: 3, jobId: 3, workerId: 1, status: 'rejected', createdAt: new Date(), job: { id: 3, user: { id: 4 } } },
-        { id: 4, jobId: 4, workerId: 1, status: 'released', createdAt: new Date(), job: { id: 4, user: { id: 5 } } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 1,
+          status: 'pending',
+          createdAt: new Date(),
+          job: { id: 1, user: { id: 2 } },
+        },
+        {
+          id: 2,
+          jobId: 2,
+          workerId: 1,
+          status: 'accepted',
+          createdAt: new Date(),
+          job: { id: 2, user: { id: 3 } },
+        },
+        {
+          id: 3,
+          jobId: 3,
+          workerId: 1,
+          status: 'rejected',
+          createdAt: new Date(),
+          job: { id: 3, user: { id: 4 } },
+        },
+        {
+          id: 4,
+          jobId: 4,
+          workerId: 1,
+          status: 'released',
+          createdAt: new Date(),
+          job: { id: 4, user: { id: 5 } },
+        },
       ];
 
       appRepository.find.mockResolvedValue(mockApps);
@@ -458,7 +713,14 @@ describe('ApplicationModule Integration Tests', () => {
 
     it('should include displayStatus for each application', async () => {
       const mockApps = [
-        { id: 1, jobId: 1, workerId: 1, status: 'confirmed', createdAt: new Date(), job: { id: 1, user: { id: 2 } } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 1,
+          status: 'confirmed',
+          createdAt: new Date(),
+          job: { id: 1, user: { id: 2 } },
+        },
       ];
 
       appRepository.find.mockResolvedValue(mockApps);
@@ -483,9 +745,30 @@ describe('ApplicationModule Integration Tests', () => {
     it('should group applications by normal and exception status for enterprise', async () => {
       const mockJob = { id: 1, userId: 1, title: 'Job 1' };
       const mockApps = [
-        { id: 1, jobId: 1, workerId: 1, status: 'pending', createdAt: new Date(), job: mockJob },
-        { id: 2, jobId: 1, workerId: 2, status: 'accepted', createdAt: new Date(), job: mockJob },
-        { id: 3, jobId: 1, workerId: 3, status: 'cancelled', createdAt: new Date(), job: mockJob },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 1,
+          status: 'pending',
+          createdAt: new Date(),
+          job: mockJob,
+        },
+        {
+          id: 2,
+          jobId: 1,
+          workerId: 2,
+          status: 'accepted',
+          createdAt: new Date(),
+          job: mockJob,
+        },
+        {
+          id: 3,
+          jobId: 1,
+          workerId: 3,
+          status: 'cancelled',
+          createdAt: new Date(),
+          job: mockJob,
+        },
       ];
 
       jobRepository.findOne.mockResolvedValue(mockJob);
@@ -502,7 +785,9 @@ describe('ApplicationModule Integration Tests', () => {
     it('should throw error when job not found', async () => {
       jobRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getApplicationsForEnterpriseGrouped(999, 1)).rejects.toThrow('招工信息不存在');
+      await expect(
+        service.getApplicationsForEnterpriseGrouped(999, 1),
+      ).rejects.toThrow('招工信息不存在');
     });
 
     it('should throw error when user is not job owner', async () => {
@@ -510,7 +795,9 @@ describe('ApplicationModule Integration Tests', () => {
 
       jobRepository.findOne.mockResolvedValue(mockJob);
 
-      await expect(service.getApplicationsForEnterpriseGrouped(1, 1)).rejects.toThrow('无权查看');
+      await expect(
+        service.getApplicationsForEnterpriseGrouped(1, 1),
+      ).rejects.toThrow('无权查看');
     });
   });
 });

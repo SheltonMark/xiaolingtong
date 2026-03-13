@@ -10,11 +10,17 @@ export class RatingService {
   ) {}
 
   async create(workerId: number, dto: any) {
-    const existing = await this.ratingRepo.findOne({ where: { workerId, jobId: dto.jobId } });
+    const existing = await this.ratingRepo.findOne({
+      where: { workerId, jobId: dto.jobId },
+    });
     if (existing) throw new BadRequestException('已评价过');
     const rating = this.ratingRepo.create({
-      workerId, enterpriseId: dto.enterpriseId, jobId: dto.jobId,
-      score: dto.score, tags: dto.tags, content: dto.content,
+      workerId,
+      enterpriseId: dto.enterpriseId,
+      jobId: dto.jobId,
+      score: dto.score,
+      tags: dto.tags,
+      content: dto.content,
     });
     return this.ratingRepo.save(rating);
   }

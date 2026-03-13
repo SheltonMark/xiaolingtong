@@ -68,9 +68,7 @@ describe('RatingService', () => {
 
       ratingRepo.findOne.mockResolvedValue(existingRating);
 
-      await expect(service.create(1, dto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.create(1, dto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException with "已评价过" message', async () => {
@@ -190,7 +188,8 @@ describe('RatingService', () => {
     });
 
     it('should persist content string correctly', async () => {
-      const content = 'This worker was very professional and completed the job on time.';
+      const content =
+        'This worker was very professional and completed the job on time.';
       const dto = {
         jobId: 1,
         enterpriseId: 1,

@@ -75,9 +75,12 @@ describe('Phase 3: AuthGuard - JWT Token Validation', () => {
       const result = await guard.canActivate(context);
 
       expect(result).toBe(true);
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid.public.token', {
-        secret: 'test-secret-key',
-      });
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith(
+        'valid.public.token',
+        {
+          secret: 'test-secret-key',
+        },
+      );
       expect(request.user).toEqual(payload);
     });
 

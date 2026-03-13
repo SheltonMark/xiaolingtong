@@ -10,7 +10,8 @@ import { SysConfig } from '../../entities/sys-config.entity';
 export class InviteService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(InviteRecord) private inviteRepo: Repository<InviteRecord>,
+    @InjectRepository(InviteRecord)
+    private inviteRepo: Repository<InviteRecord>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
   ) {}
 
@@ -25,7 +26,9 @@ export class InviteService {
 
     let code = this.generateInviteCode();
     for (let i = 0; i < 5; i++) {
-      const exists = await this.userRepo.findOne({ where: { inviteCode: code } });
+      const exists = await this.userRepo.findOne({
+        where: { inviteCode: code },
+      });
       if (!exists) break;
       code = this.generateInviteCode();
     }
@@ -37,19 +40,23 @@ export class InviteService {
     const exists = await this.inviteRepo.findOne({ where: { inviteeId } });
     if (exists) return;
     await this.userRepo.update(inviteeId, { invitedBy: inviterId });
-    await this.inviteRepo.save(this.inviteRepo.create({ inviterId, inviteeId, inviteCode }));
+    await this.inviteRepo.save(
+      this.inviteRepo.create({ inviterId, inviteeId, inviteCode }),
+    );
   }
 
   async getMyInvites(userId: number, query: any) {
     const { page = 1, pageSize = 20 } = query;
-    const qb = this.inviteRepo.createQueryBuilder('r')
+    const qb = this.inviteRepo
+      .createQueryBuilder('r')
       .leftJoinAndSelect('r.invitee', 'u')
       .where('r.inviterId = :userId', { userId })
       .orderBy('r.createdAt', 'DESC')
-      .skip((+page - 1) * +pageSize).take(+pageSize);
+      .skip((+page - 1) * +pageSize)
+      .take(+pageSize);
     const [list, total] = await qb.getManyAndCount();
     return {
-      list: list.map(r => ({
+      list: list.map((r) => ({
         id: r.id,
         inviteeId: r.inviteeId,
         nickname: r.invitee?.nickname || '',
@@ -69,7 +76,9 @@ export class InviteService {
   }
 
   async getCommissionRate(): Promise<number> {
-    const config = await this.configRepo.findOne({ where: { key: 'commission_rate' } });
-    return config ? parseFloat(config.value) || 0.10 : 0.10;
+    const config = await this.configRepo.findOne({
+      where: { key: 'commission_rate' },
+    });
+    return config ? parseFloat(config.value) || 0.1 : 0.1;
   }
 }

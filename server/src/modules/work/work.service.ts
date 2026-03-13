@@ -12,7 +12,8 @@ export class WorkService {
   constructor(
     @InjectRepository(Checkin) private checkinRepo: Repository<Checkin>,
     @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
-    @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(JobApplication)
+    private appRepo: Repository<JobApplication>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(User) private userRepo: Repository<User>,
   ) {}
@@ -38,7 +39,10 @@ export class WorkService {
   }
 
   async getSession(jobId: number) {
-    const job = await this.jobRepo.findOne({ where: { id: jobId }, relations: ['user'] });
+    const job = await this.jobRepo.findOne({
+      where: { id: jobId },
+      relations: ['user'],
+    });
     if (!job) return { job: null };
 
     // 已签到工人
@@ -60,7 +64,9 @@ export class WorkService {
       where: { jobId },
       relations: ['worker'],
     });
-    const confirmedWorkers = workers.filter(w => ['confirmed', 'working', 'done'].includes(w.status));
+    const confirmedWorkers = workers.filter((w) =>
+      ['confirmed', 'working', 'done'].includes(w.status),
+    );
 
     return { job, checkins, logs, workers: confirmedWorkers };
   }
@@ -84,7 +90,10 @@ export class WorkService {
     }
 
     // application 状态改为 working
-    await this.appRepo.update({ jobId: dto.jobId, workerId }, { status: 'working' });
+    await this.appRepo.update(
+      { jobId: dto.jobId, workerId },
+      { status: 'working' },
+    );
 
     return checkin;
   }

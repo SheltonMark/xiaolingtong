@@ -71,7 +71,10 @@ describe('Phase 5: Distributed Transactions', () => {
       const paymentData = { amount: 1000, userId: 1, jobId: 1 };
       const settlementData = { jobId: 1, totalWorkers: 5, factoryTotal: 5000 };
 
-      paymentService.processPayment.mockResolvedValue({ id: 1, status: 'completed' });
+      paymentService.processPayment.mockResolvedValue({
+        id: 1,
+        status: 'completed',
+      });
       settlementService.createSettlement.mockResolvedValue({ id: 1 });
       walletService.updateBalance.mockResolvedValue({ balance: 4000 });
 
@@ -91,7 +94,9 @@ describe('Phase 5: Distributed Transactions', () => {
       const txnId = await transactionManager.begin();
       const paymentData = { amount: 1000, userId: 1, jobId: 1 };
 
-      paymentService.processPayment.mockRejectedValue(new Error('Payment failed'));
+      paymentService.processPayment.mockRejectedValue(
+        new Error('Payment failed'),
+      );
 
       try {
         await paymentService.processPayment(txnId, paymentData);
@@ -138,8 +143,16 @@ describe('Phase 5: Distributed Transactions', () => {
 
       await transactionManager.commit(txnId);
 
-      expect(walletService.decrementBalance).toHaveBeenCalledWith(txnId, fromUserId, amount);
-      expect(walletService.incrementBalance).toHaveBeenCalledWith(txnId, toUserId, amount);
+      expect(walletService.decrementBalance).toHaveBeenCalledWith(
+        txnId,
+        fromUserId,
+        amount,
+      );
+      expect(walletService.incrementBalance).toHaveBeenCalledWith(
+        txnId,
+        toUserId,
+        amount,
+      );
     });
 
     it('should log all transaction steps', async () => {
@@ -160,11 +173,17 @@ describe('Phase 5: Distributed Transactions', () => {
       const txnId = await transactionManager.begin();
       const jobData = { title: 'Test Job', salary: 100 };
 
-      jobService.updateJobStatus.mockResolvedValue({ id: 1, status: 'published' });
+      jobService.updateJobStatus.mockResolvedValue({
+        id: 1,
+        status: 'published',
+      });
       notificationService.send.mockResolvedValue({ id: 1 });
 
       await jobService.updateJobStatus(txnId, 1, 'published');
-      await notificationService.send(txnId, { type: 'job_published', jobId: 1 });
+      await notificationService.send(txnId, {
+        type: 'job_published',
+        jobId: 1,
+      });
 
       await transactionManager.commit(txnId);
 
@@ -281,7 +300,9 @@ describe('Phase 5: Distributed Transactions', () => {
       const txn1 = await transactionManager.begin();
       const txn2 = await transactionManager.begin();
 
-      walletService.updateBalance.mockRejectedValue(new Error('Deadlock detected'));
+      walletService.updateBalance.mockRejectedValue(
+        new Error('Deadlock detected'),
+      );
 
       try {
         await walletService.updateBalance(txn1, 1, 100);

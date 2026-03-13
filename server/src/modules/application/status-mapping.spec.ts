@@ -2,7 +2,7 @@ import {
   STATUS_DISPLAY_MAP,
   getWorkerStatusDisplay,
   getEnterpriseStatusDisplay,
-  getStatusColor
+  getStatusColor,
 } from './status-mapping';
 
 describe('Status Mapping', () => {
@@ -21,7 +21,7 @@ describe('Status Mapping', () => {
     });
 
     it('should have correct structure for each status', () => {
-      Object.values(STATUS_DISPLAY_MAP).forEach(mapping => {
+      Object.values(STATUS_DISPLAY_MAP).forEach((mapping) => {
         expect(mapping).toHaveProperty('worker');
         expect(mapping).toHaveProperty('enterprise');
         expect(mapping).toHaveProperty('color');
