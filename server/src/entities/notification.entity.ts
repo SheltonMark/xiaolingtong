@@ -31,6 +31,12 @@ export class Notification {
   @Column({ length: 256, nullable: true })
   link: string;
 
+  @Column({ type: 'json', nullable: true })
+  data: Record<string, any>;
+
+  @Column({ type: 'varchar', length: 32, default: 'active' })
+  status: string; // active, archived, deleted
+
   @Column({ type: 'tinyint', default: 0 })
   isRead: number;
 

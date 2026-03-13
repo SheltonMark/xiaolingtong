@@ -40,4 +40,21 @@ export class NotificationService {
     const count = await this.notiRepo.count({ where: { userId, isRead: 0 } });
     return { count };
   }
+
+  async sendNotification(userId: number, data: Partial<Notification>) {
+    return this.create(userId, data);
+  }
+
+  async getNotifications(userId: number, query: any) {
+    return this.list(userId, query);
+  }
+
+  async markAsRead(id: number, userId: number) {
+    return this.read(id, userId);
+  }
+
+  async deleteNotification(id: number, userId: number) {
+    await this.notiRepo.update({ id, userId }, { status: 'deleted' });
+    return { message: '通知已删除' };
+  }
 }

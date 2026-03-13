@@ -16,6 +16,7 @@ describe('NotificationService', () => {
       update: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+      count: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -185,6 +186,148 @@ describe('NotificationService', () => {
 
       expect(notiRepo.save).toHaveBeenCalled();
       expect(result).toEqual(savedEntity);
+    });
+  });
+
+  describe('sendNotification', () => {
+    it('should call create with userId and data', async () => {
+      const data = { type: 'job_apply', title: 'New Job', content: 'Job available' };
+      const savedEntity = { id: 3, userId: 1, ...data };
+
+      notiRepo.create.mockReturnValue(savedEntity);
+      notiRepo.save.mockResolvedValue(savedEntity);
+
+      const result = await service.sendNotification(1, data);
+
+      expect(result).toEqual(savedEntity);
+    });
+
+    it('should include data field in notification', async () => {
+      const data = {
+        type: 'settlement',
+        title: 'Settlement',
+        content: 'Settlement completed',
+        data: { amount: 100, orderId: 123 },
+      };
+      const savedEntity = { id: 4, userId: 1, ...data };
+
+      notiRepo.create.mockReturnValue(savedEntity);
+      notiRepo.save.mockResolvedValue(savedEntity);
+
+      const result = await service.sendNotification(1, data);
+
+      expect(result.data).toEqual({ amount: 100, orderId: 123 });
+    });
+  });
+
+  describe('getNotifications', () => {
+    it('should call list with userId and query', async () => {
+      const mockNotifications = [
+        { id: 1, userId: 1, type: 'job_apply', isRead: 0 },
+      ];
+
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockNotifications, 1]),
+      };
+
+      notiRepo.createQueryBuilder.mockReturnValue(qb);
+
+      const result = await service.getNotifications(1, { page: 1, pageSize: 20 });
+
+      expect(result.list).toEqual(mockNotifications);
+      expect(result.total).toBe(1);
+    });
+
+    it('should support pagination in getNotifications', async () => {
+      const qb = {
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      };
+
+      notiRepo.createQueryBuilder.mockReturnValue(qb);
+
+      await service.getNotifications(1, { page: 2, pageSize: 10 });
+
+      expect(qb.skip).toHaveBeenCalledWith(10);
+      expect(qb.take).toHaveBeenCalledWith(10);
+    });
+  });
+
+  describe('markAsRead', () => {
+    it('should call read with id and userId', async () => {
+      notiRepo.update.mockResolvedValue({ affected: 1 });
+
+      const result = await service.markAsRead(1, 1);
+
+      expect(notiRepo.update).toHaveBeenCalledWith(
+        { id: 1, userId: 1 },
+        { isRead: 1 },
+      );
+      expect(result.message).toBe('已读');
+    });
+
+    it('should return success message', async () => {
+      notiRepo.update.mockResolvedValue({ affected: 1 });
+
+      const result = await service.markAsRead(5, 2);
+
+      expect(result).toEqual({ message: '已读' });
+    });
+  });
+
+  describe('deleteNotification', () => {
+    it('should update notification status to deleted', async () => {
+      notiRepo.update.mockResolvedValue({ affected: 1 });
+
+      await service.deleteNotification(1, 1);
+
+      expect(notiRepo.update).toHaveBeenCalledWith(
+        { id: 1, userId: 1 },
+        { status: 'deleted' },
+      );
+    });
+
+    it('should return success message', async () => {
+      notiRepo.update.mockResolvedValue({ affected: 1 });
+
+      const result = await service.deleteNotification(1, 1);
+
+      expect(result).toEqual({ message: '通知已删除' });
+    });
+
+    it('should handle deletion of non-existent notification', async () => {
+      notiRepo.update.mockResolvedValue({ affected: 0 });
+
+      const result = await service.deleteNotification(999, 1);
+
+      expect(result.message).toBe('通知已删除');
+    });
+  });
+
+  describe('unreadCount', () => {
+    it('should return count of unread notifications', async () => {
+      notiRepo.count.mockResolvedValue(5);
+
+      const result = await service.unreadCount(1);
+
+      expect(result).toEqual({ count: 5 });
+    });
+
+    it('should return 0 when no unread notifications', async () => {
+      notiRepo.count.mockResolvedValue(0);
+
+      const result = await service.unreadCount(1);
+
+      expect(result).toEqual({ count: 0 });
     });
   });
 });
