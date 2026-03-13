@@ -1,0 +1,63 @@
+
+src/modules/application/application.service.ts:82:52 - error TS2339: Property 'companyName' does not exist on type 'Job'.
+
+82       const companyName = cert?.companyName || job.companyName || job.user?.nickname || '企业用户';
+                                                      ~~~~~~~~~~~
+src/modules/job/job.controller.ts:71:28 - error TS2339: Property 'acceptApplication' does not exist on type 'JobService'.
+
+71     return this.jobService.acceptApplication(applicationId, dto.action, userId);
+                              ~~~~~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:81:28 - error TS2339: Property 'selectSupervisor' does not exist on type 'JobService'.
+
+81     return this.jobService.selectSupervisor(jobId, dto.workerId, userId);
+                              ~~~~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:90:28 - error TS2339: Property 'confirmAttendance' does not exist on type 'JobService'.
+
+90     return this.jobService.confirmAttendance(applicationId, userId);
+                              ~~~~~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:96:28 - error TS2339: Property 'getMyApplications' does not exist on type 'JobService'.
+
+96     return this.jobService.getMyApplications(userId);
+                              ~~~~~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:105:28 - error TS2339: Property 'getApplicationsForEnterprise' does not exist on type 'JobService'.
+
+105     return this.jobService.getApplicationsForEnterprise(jobId, userId);
+                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:113:28 - error TS2339: Property 'checkIn' does not exist on type 'JobService'.
+
+113     return this.jobService.checkIn(jobId, workerId);
+                               ~~~~~~~
+src/modules/job/job.controller.ts:121:28 - error TS2339: Property 'checkOut' does not exist on type 'JobService'.
+
+121     return this.jobService.checkOut(jobId, workerId);
+                               ~~~~~~~~
+src/modules/job/job.controller.ts:130:28 - error TS2339: Property 'getAttendances' does not exist on type 'JobService'.
+
+130     return this.jobService.getAttendances(jobId, userId);
+                               ~~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:140:28 - error TS2339: Property 'recordWorkLog' does not exist on type 'JobService'.
+
+140     return this.jobService.recordWorkLog(
+                               ~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:155:28 - error TS2339: Property 'getWorkLogs' does not exist on type 'JobService'.
+
+155     return this.jobService.getWorkLogs(jobId);
+                               ~~~~~~~~~~~
+src/modules/job/job.controller.ts:164:28 - error TS2339: Property 'confirmWorkLog' does not exist on type 'JobService'.
+
+164     return this.jobService.confirmWorkLog(workLogId);
+                               ~~~~~~~~~~~~~~
+src/modules/job/job.controller.ts:174:28 - error TS2339: Property 'updateWorkLogAnomaly' does not exist on type 'JobService'.
+
+174     return this.jobService.updateWorkLogAnomaly(
+                               ~~~~~~~~~~~~~~~~~~~~
+src/modules/job/job.module.ts:10:28 - error TS2307: Cannot find module '../../entities/supervisor.entity' or its corresponding type declarations.
+
+10 import { Supervisor } from '../../entities/supervisor.entity';
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/modules/job/job.module.ts:12:28 - error TS2307: Cannot find module '../../entities/attendance.entity' or its corresponding type declarations.
+
+12 import { Attendance } from '../../entities/attendance.entity';
+                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Found 15 error(s).

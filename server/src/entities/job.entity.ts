@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
+import { Supervisor } from './supervisor.entity';
 
 @Entity('jobs')
 export class Job {
@@ -75,4 +76,7 @@ export class Job {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @OneToMany(() => Supervisor, supervisor => supervisor.job)
+  supervisors: Supervisor[];
 }
