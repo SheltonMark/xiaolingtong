@@ -333,4 +333,32 @@ describe('DisputeService', () => {
       expect(result.open).toBeGreaterThan(0);
     });
   });
+
+  describe('updateDisputeStatus', () => {
+    it('should update dispute status successfully', async () => {
+      const updatedDispute = {
+        ...mockDispute,
+        status: 'in_progress',
+      };
+
+      disputeRepository.findOne.mockResolvedValue(mockDispute);
+      disputeRepository.save.mockResolvedValue(updatedDispute);
+
+      const result = await service.updateDisputeStatus(1, 'in_progress');
+
+      expect(disputeRepository.findOne).toHaveBeenCalledWith({
+        where: { id: 1 },
+      });
+      expect(disputeRepository.save).toHaveBeenCalled();
+      expect(result.status).toBe('in_progress');
+    });
+
+    it('should throw error if dispute not found when updating status', async () => {
+      disputeRepository.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.updateDisputeStatus(999, 'in_progress'),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
 });
