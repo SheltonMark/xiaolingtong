@@ -146,23 +146,55 @@ Page({
       this.setData({ messages: messagesWithTime }, () => this.scrollToBottom())
     }).catch(() => {})
   },
+  parseMessageDate(value) {
+    if (value === undefined || value === null || value === '') return null
+    if (typeof value === 'number') {
+      const ts = value < 1e12 ? value * 1000 : value
+      const date = new Date(ts)
+      return isNaN(date.getTime()) ? null : date
+    }
+    const text = String(value).trim()
+    if (!text) return null
+
+    let date = new Date(text)
+    if (isNaN(date.getTime()) && text.includes('-')) {
+      date = new Date(text.replace(/-/g, '/'))
+    }
+    if (isNaN(date.getTime())) return null
+    return date
+  },
   formatMessageTime(timeStr) {
     if (!timeStr) return ''
-    const date = new Date(timeStr)
-    if (isNaN(date.getTime())) return timeStr
+    const date = this.parseMessageDate(timeStr)
+    if (!date) return String(timeStr)
 
     const now = new Date()
-    const isToday = date.toDateString() === now.toDateString()
     const hours = String(date.getHours()).padStart(2, '0')
     const minutes = String(date.getMinutes()).padStart(2, '0')
+    const timeText = `${hours}:${minutes}`
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    const dayDiff = Math.floor((startOfToday - startOfDate) / (24 * 60 * 60 * 1000))
 
-    if (isToday) {
-      return `${hours}:${minutes}`
+    if (dayDiff === 0) {
+      return timeText
+    }
+    if (dayDiff === 1) {
+      return `昨天 ${timeText}`
+    }
+    if (dayDiff > 1 && dayDiff < 7) {
+      const weekdayMap = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      return `${weekdayMap[date.getDay()]} ${timeText}`
     }
 
     const month = date.getMonth() + 1
     const day = date.getDate()
-    return `${month}月${day}日 ${hours}:${minutes}`
+    const sameYear = date.getFullYear() === now.getFullYear()
+    if (sameYear) {
+      return `${month}月${day}日 ${timeText}`
+    }
+
+    return `${date.getFullYear()}年${month}月${day}日 ${timeText}`
   },
 
   normalizeMessage(item = {}) {
@@ -170,11 +202,12 @@ Page({
     const currentUserId = (app.globalData.userInfo && app.globalData.userInfo.id) || 0
     const senderId = Number(item.senderId || 0)
     const from = senderId === Number(currentUserId) ? 'me' : 'other'
+    const rawTime = item.createdAt || item.time || ''
     const base = {
       id: item.id,
       from,
-      time: this.formatMessageTime(item.time || item.createdAt || ''),
-      rawTime: item.createdAt || item.time || '', // 保存原始时间用于计算
+      time: this.formatMessageTime(rawTime),
+      rawTime, // 保存原始时间用于计算
       senderId,
       conversationId: Number(item.conversationId || this.data.conversationId || 0)
     }

@@ -54,6 +54,10 @@
       "desc": "用于按距离筛选并展示附近的零工信息"
     }
   },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
   "tabBar": {
     "custom": true,
     "color": "#94A3B8",
