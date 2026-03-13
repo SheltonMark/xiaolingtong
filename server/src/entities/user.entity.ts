@@ -43,6 +43,9 @@ export class User {
   @Column({ type: 'int', default: 100 })
   creditScore: number;
 
+  @Column({ type: 'int', default: 0 })
+  totalOrders: number;
+
   @Column({ type: 'enum', enum: ['active', 'banned'], default: 'active' })
   status: string;
 
