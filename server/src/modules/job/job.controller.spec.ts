@@ -21,6 +21,7 @@ describe('JobController', () => {
       detail: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      selectSupervisor: jest.fn(),
     } as jest.Mocked<JobService>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -162,6 +163,71 @@ describe('JobController', () => {
       await expect(controller.update(id, userId, dto)).rejects.toThrow(
         ForbiddenException,
       );
+    });
+  });
+
+  describe('selectSupervisor', () => {
+    it('should call jobService.selectSupervisor with correct parameters', async () => {
+      const jobId = 1;
+      const workerId = 2;
+      const userId = 5;
+      const dto = { workerId };
+      const mockResult = {
+        id: 1,
+        jobId,
+        workerId,
+        status: 'confirmed',
+        isSupervisor: 1,
+      };
+
+      jobService.selectSupervisor = jest.fn().mockResolvedValue(mockResult);
+
+      const result = await controller.selectSupervisor(jobId, dto, userId);
+
+      expect(jobService.selectSupervisor).toHaveBeenCalledWith(
+        jobId,
+        workerId,
+        userId,
+      );
+      expect(result).toEqual(mockResult);
+    });
+
+    it('should propagate BadRequestException when supervisor not qualified', async () => {
+      const jobId = 1;
+      const workerId = 3;
+      const userId = 5;
+      const dto = { workerId };
+
+      jobService.selectSupervisor = jest
+        .fn()
+        .mockRejectedValue(
+          new BadRequestException(
+            'Worker does not meet supervisor requirements',
+          ),
+        );
+
+      await expect(
+        controller.selectSupervisor(jobId, dto, userId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should propagate ForbiddenException when not job owner', async () => {
+      const jobId = 1;
+      const workerId = 2;
+      const userId = 5;
+      const dto = { workerId };
+
+      jobService.selectSupervisor = jest
+        .fn()
+        .mockRejectedValue(
+          new ForbiddenException(
+            'You do not have permission to manage this job',
+          ),
+        );
+
+      await expect(
+        controller.selectSupervisor(jobId, dto, userId),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 });
