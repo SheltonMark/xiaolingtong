@@ -43,7 +43,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
         password: config.get('DB_PASSWORD', ''),
         database: config.get('DB_DATABASE', 'xiaolingtong'),
         entities: [__dirname + '/entities/*.entity{.ts,.js}'],
-        synchronize: config.get('NODE_ENV') === 'development',
+        synchronize: true,
         charset: 'utf8mb4',
       }),
     }),
