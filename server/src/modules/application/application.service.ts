@@ -5,6 +5,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { getWorkerStatusDisplay, getEnterpriseStatusDisplay, getStatusColor } from './status-mapping';
 
 @Injectable()
 export class ApplicationService {
@@ -15,6 +16,50 @@ export class ApplicationService {
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
   ) {}
 
+  /**
+   * 检查时间冲突
+   * 获取临工所有"已接受"和"已确认"的应用，检查新报名工作时间是否与其重叠
+   */
+  private checkTimeOverlap(start1: string, end1: string, start2: string, end2: string): boolean {
+    // 时间重叠判断：
+    // 新工作开始时间 < 已有工作结束时间 AND 新工作结束时间 > 已有工作开始时间
+    return start1 < end2 && end1 > start2;
+  }
+
+  private async checkTimeConflict(workerId: number, newJob: Job) {
+    // 获取该临工所有"已接受"和"已确认"的应用
+    const activeApps = await this.appRepo.find({
+      where: [
+        { workerId, status: 'accepted' },
+        { workerId, status: 'confirmed' },
+        { workerId, status: 'working' }
+      ],
+      relations: ['job']
+    });
+
+    const conflicts = [];
+    for (const app of activeApps) {
+      const existingJob = app.job;
+      // 检查日期是否重叠
+      if (this.checkTimeOverlap(newJob.dateStart, newJob.dateEnd, existingJob.dateStart, existingJob.dateEnd)) {
+        conflicts.push({
+          jobId: existingJob.id,
+          jobTitle: existingJob.title,
+          dateRange: `${existingJob.dateStart} 至 ${existingJob.dateEnd}`,
+          workHours: existingJob.workHours || '未指定',
+          status: app.status
+        });
+      }
+    }
+
+    if (conflicts.length > 0) {
+      throw new BadRequestException({
+        message: '报名时间与已报名工作冲突',
+        conflictWith: conflicts
+      });
+    }
+  }
+
   async apply(jobId: number, workerId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job) throw new BadRequestException('招工信息不存在');
@@ -22,6 +67,9 @@ export class ApplicationService {
 
     const existing = await this.appRepo.findOne({ where: { jobId, workerId } });
     if (existing) throw new BadRequestException('已报名');
+
+    // 检查时间冲突
+    await this.checkTimeConflict(workerId, job);
 
     // 超额报名控制
     const cfg = await this.configRepo.findOne({ where: { key: 'over_apply_rate' } });
@@ -69,5 +117,63 @@ export class ApplicationService {
     app.status = 'cancelled';
     await this.appRepo.save(app);
     return { message: '已取消' };
+  }
+
+  async getMyApplicationsGrouped(workerId: number) {
+    const apps = await this.appRepo.find({
+      where: { workerId },
+      relations: ['job', 'job.user'],
+      order: { createdAt: 'DESC' }
+    });
+
+    const normal = [];
+    const exception = [];
+
+    for (const app of apps) {
+      const item = {
+        ...app,
+        displayStatus: getWorkerStatusDisplay(app.status),
+        statusColor: getStatusColor(app.status)
+      };
+
+      if (['pending', 'accepted', 'confirmed', 'working', 'done'].includes(app.status)) {
+        normal.push(item);
+      } else {
+        exception.push(item);
+      }
+    }
+
+    return { normal, exception };
+  }
+
+  async getApplicationsForEnterpriseGrouped(jobId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权查看');
+
+    const apps = await this.appRepo.find({
+      where: { jobId },
+      relations: ['job', 'job.user'],
+      order: { createdAt: 'DESC' }
+    });
+
+    const normal = [];
+    const exception = [];
+
+    for (const app of apps) {
+      const item = {
+        ...app,
+        displayStatus: getEnterpriseStatusDisplay(app.status),
+        statusColor: getStatusColor(app.status)
+      };
+
+      if (['pending', 'accepted', 'confirmed', 'working', 'done'].includes(app.status)) {
+        normal.push(item);
+      } else {
+        exception.push(item);
+      }
+    }
+
+    return { normal, exception };
   }
 }
