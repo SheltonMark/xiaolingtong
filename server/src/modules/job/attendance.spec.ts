@@ -4,7 +4,11 @@ import { JobService } from './job.service';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { Attendance } from '../../entities/attendance.entity';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
@@ -14,6 +18,7 @@ describe('AttendanceManagement', () => {
   let jobRepository: any;
   let userRepository: any;
   let attendanceRepository: any;
+  let appRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -40,7 +45,7 @@ describe('AttendanceManagement', () => {
       find: jest.fn().mockResolvedValue([]),
     };
 
-    const appRepository = {
+    appRepository = {
       findOne: jest.fn(),
       find: jest.fn(),
       count: jest.fn(),
@@ -93,9 +98,11 @@ describe('AttendanceManagement', () => {
 
       const mockJob = { id: jobId, status: 'recruiting' };
       const mockWorker = { id: workerId };
+      const mockApplication = { id: 1, status: 'confirmed' };
 
       jobRepository.findOne.mockResolvedValue(mockJob);
       userRepository.findOne.mockResolvedValue(mockWorker);
+      appRepository.findOne.mockResolvedValue(mockApplication);
       attendanceRepository.findOne.mockResolvedValue(null);
       attendanceRepository.create.mockReturnValue({
         jobId,
@@ -118,16 +125,34 @@ describe('AttendanceManagement', () => {
       expect(attendanceRepository.save).toHaveBeenCalled();
     });
 
+    it('should reject if worker not confirmed', async () => {
+      const jobId = 1;
+      const workerId = 2;
+
+      const mockJob = { id: jobId };
+      const mockWorker = { id: workerId };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      appRepository.findOne.mockResolvedValue(null); // 未确认
+
+      await expect(service.checkIn(jobId, workerId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
     it('should reject if already checked in', async () => {
       const jobId = 1;
       const workerId = 2;
 
       const mockJob = { id: jobId };
       const mockWorker = { id: workerId };
+      const mockApplication = { id: 1, status: 'confirmed' };
       const existingAttendance = { id: 1, status: 'checked_in' };
 
       jobRepository.findOne.mockResolvedValue(mockJob);
       userRepository.findOne.mockResolvedValue(mockWorker);
+      appRepository.findOne.mockResolvedValue(mockApplication);
       attendanceRepository.findOne.mockResolvedValue(existingAttendance);
 
       await expect(service.checkIn(jobId, workerId)).rejects.toThrow(
@@ -228,39 +253,134 @@ describe('AttendanceManagement', () => {
         NotFoundException,
       );
     });
+
+    it('should reject if check-out time before check-in time', async () => {
+      const jobId = 1;
+      const workerId = 2;
+
+      const futureTime = new Date(Date.now() + 1000);
+      const mockAttendance = {
+        id: 1,
+        jobId,
+        workerId,
+        status: 'checked_in',
+        checkInTime: futureTime,
+        checkOutTime: null,
+      };
+
+      attendanceRepository.findOne.mockResolvedValue(mockAttendance);
+
+      await expect(service.checkOut(jobId, workerId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should reject if work hours exceed 24', async () => {
+      const jobId = 1;
+      const workerId = 2;
+
+      const mockAttendance = {
+        id: 1,
+        jobId,
+        workerId,
+        status: 'checked_in',
+        checkInTime: new Date(Date.now() - 25 * 60 * 60 * 1000), // 25 hours ago
+        checkOutTime: null,
+      };
+
+      attendanceRepository.findOne.mockResolvedValue(mockAttendance);
+
+      await expect(service.checkOut(jobId, workerId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should reject if check-in time is invalid', async () => {
+      const jobId = 1;
+      const workerId = 2;
+
+      const mockAttendance = {
+        id: 1,
+        jobId,
+        workerId,
+        status: 'checked_in',
+        checkInTime: null,
+        checkOutTime: null,
+      };
+
+      attendanceRepository.findOne.mockResolvedValue(mockAttendance);
+
+      await expect(service.checkOut(jobId, workerId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
   });
 
   describe('getAttendances', () => {
     it('should get attendances for job', async () => {
       const jobId = 1;
+      const userId = 1;
 
+      const mockJob = { id: jobId, userId };
       const mockAttendances = [
         { id: 1, jobId, workerId: 2, status: 'checked_out', workHours: 8 },
         { id: 2, jobId, workerId: 3, status: 'checked_in', workHours: 0 },
       ];
 
+      jobRepository.findOne.mockResolvedValue(mockJob);
       attendanceRepository.find.mockResolvedValue(mockAttendances);
 
-      const result = await service.getAttendances(jobId);
+      const result = await service.getAttendances(jobId, userId);
 
       expect(result).toHaveLength(2);
       expect(result[0].status).toBe('checked_out');
       expect(result[1].status).toBe('checked_in');
     });
 
+    it('should reject if not job owner', async () => {
+      const jobId = 1;
+      const userId = 1;
+      const otherUserId = 2;
+
+      const mockJob = { id: jobId, userId };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+
+      await expect(
+        service.getAttendances(jobId, otherUserId),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw NotFoundException if job not found', async () => {
+      const jobId = 1;
+      const userId = 1;
+
+      jobRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.getAttendances(jobId, userId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
     it('should return empty array if no attendances', async () => {
       const jobId = 1;
+      const userId = 1;
 
+      const mockJob = { id: jobId, userId };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
       attendanceRepository.find.mockResolvedValue([]);
 
-      const result = await service.getAttendances(jobId);
+      const result = await service.getAttendances(jobId, userId);
 
       expect(result).toHaveLength(0);
     });
 
     it('should include worker relations', async () => {
       const jobId = 1;
+      const userId = 1;
 
+      const mockJob = { id: jobId, userId };
       const mockAttendances = [
         {
           id: 1,
@@ -271,12 +391,14 @@ describe('AttendanceManagement', () => {
         },
       ];
 
+      jobRepository.findOne.mockResolvedValue(mockJob);
       attendanceRepository.find.mockResolvedValue(mockAttendances);
 
-      const result = await service.getAttendances(jobId);
+      const result = await service.getAttendances(jobId, userId);
 
       expect(result[0].worker).toBeDefined();
       expect(result[0].worker.nickname).toBe('Worker 1');
     });
   });
 });
+

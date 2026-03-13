@@ -550,17 +550,27 @@ export class JobService {
   }
 
   async checkIn(jobId: number, workerId: number): Promise<Attendance> {
+    // 验证工作存在
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job) {
       throw new NotFoundException('Job not found');
     }
 
+    // 验证工人存在
     const worker = await this.userRepo.findOne({ where: { id: workerId } });
     if (!worker) {
       throw new NotFoundException('Worker not found');
     }
 
-    // 检查是否已签到
+    // 验证工人已确认出勤（应用状态为 confirmed）
+    const application = await this.appRepo.findOne({
+      where: { jobId, workerId, status: 'confirmed' },
+    });
+    if (!application) {
+      throw new BadRequestException('Worker not confirmed for this job');
+    }
+
+    // 检查是否已签到（防止重复签到）
     const existing = await this.attendanceRepo.findOne({
       where: { jobId, workerId, status: 'checked_in' },
     });
@@ -588,11 +598,30 @@ export class JobService {
       throw new NotFoundException('No active check-in found');
     }
 
-    const checkOutTime = new Date();
-    const workHours =
-      (checkOutTime.getTime() - attendance.checkInTime.getTime()) /
-      (1000 * 60 * 60);
+    // 验证签到时间有效
+    if (!attendance.checkInTime) {
+      throw new BadRequestException('Invalid check-in time');
+    }
 
+    // 计算工作小时数
+    const checkOutTime = new Date();
+    const timeDiff = checkOutTime.getTime() - attendance.checkInTime.getTime();
+
+    // 检查时间是否为负（系统时间不同步）
+    if (timeDiff < 0) {
+      throw new BadRequestException(
+        'Check-out time cannot be before check-in time',
+      );
+    }
+
+    const workHours = timeDiff / (1000 * 60 * 60);
+
+    // 设置最大工作小时数限制（24 小时）
+    if (workHours > 24) {
+      throw new BadRequestException('Work hours cannot exceed 24 hours');
+    }
+
+    // 更新考勤记录
     attendance.status = 'checked_out';
     attendance.checkOutTime = checkOutTime;
     attendance.workHours = Math.round(workHours * 100) / 100;
@@ -600,7 +629,20 @@ export class JobService {
     return this.attendanceRepo.save(attendance);
   }
 
-  async getAttendances(jobId: number): Promise<Attendance[]> {
+  async getAttendances(jobId: number, userId: number): Promise<Attendance[]> {
+    // 验证工作存在且属于当前用户
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    if (job.userId !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to view attendances for this job',
+      );
+    }
+
+    // 返回考勤记录
     return this.attendanceRepo.find({
       where: { jobId },
       relations: ['worker'],
