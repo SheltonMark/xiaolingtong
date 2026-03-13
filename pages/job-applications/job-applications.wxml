@@ -5,7 +5,6 @@
   <!-- 招工基本信息 -->
   <view class="job-header">
     <view class="job-header-top">
-      <text class="job-title">{{job.title}}</text>
       <view class="status-tag status-bg-{{job.statusColor}}">
         <text>{{job.statusText}}</text>
       </view>
