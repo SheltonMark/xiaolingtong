@@ -13,6 +13,7 @@ import { User } from '../../entities/user.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
 import { Attendance } from '../../entities/attendance.entity';
 import { WorkLog } from '../../entities/work-log.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import { JobStateMachine } from './job-state-machine';
 
 @Injectable()
@@ -26,6 +27,7 @@ export class JobService {
     @InjectRepository(Supervisor) private supervisorRepo: Repository<Supervisor>,
     @InjectRepository(Attendance) private attendanceRepo: Repository<Attendance>,
     @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
+    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -520,6 +522,13 @@ export class JobService {
       order: { createdAt: 'DESC' },
     });
 
+    // 获取所有 worker 的认证信息
+    const workerIds = applications.map(app => app.worker.id);
+    const workerCerts = await this.workerCertRepo.find({
+      where: { userId: workerIds.length > 0 ? workerIds : [0] },
+    });
+    const certMap = new Map(workerCerts.map(cert => [cert.userId, cert]));
+
     // 按状态分类
     const grouped: any = {
       pending: [],
@@ -529,7 +538,10 @@ export class JobService {
     };
 
     applications.forEach((app) => {
-      const workerName = app.worker.nickname || app.worker.name || `用户${app.worker.id}`;
+      // 优先使用认证名字，然后是 nickname，最后是 name
+      const cert = certMap.get(app.worker.id);
+      const workerName = cert?.realName || app.worker.nickname || app.worker.name || `用户${app.worker.id}`;
+
       if (app.status === 'pending') {
         grouped.pending.push({
           ...app,

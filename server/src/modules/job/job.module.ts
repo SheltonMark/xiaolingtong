@@ -11,6 +11,7 @@ import { Supervisor } from '../../entities/supervisor.entity';
 import { User } from '../../entities/user.entity';
 import { Attendance } from '../../entities/attendance.entity';
 import { WorkLog } from '../../entities/work-log.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { WorkLog } from '../../entities/work-log.entity';
       User,
       Attendance,
       WorkLog,
+      WorkerCert,
     ]),
     ScheduleModule.forRoot(),
   ],

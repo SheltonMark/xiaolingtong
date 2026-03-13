@@ -12,6 +12,7 @@ import { User } from '../../entities/user.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
 import { Attendance } from '../../entities/attendance.entity';
 import { WorkLog } from '../../entities/work-log.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import { NotificationService } from '../notification/notification.service';
 import { Notification } from '../../entities/notification.entity';
 
@@ -26,6 +27,7 @@ describe('JobModule Phase 2 Integration Tests - Complete Workflow', () => {
   let supervisorRepository: any;
   let attendanceRepository: any;
   let workLogRepository: any;
+  let workerCertRepository: any;
   let notificationRepository: any;
 
   // Mock data
@@ -115,6 +117,10 @@ describe('JobModule Phase 2 Integration Tests - Complete Workflow', () => {
       save: jest.fn(),
     };
 
+    workerCertRepository = {
+      find: jest.fn(),
+    };
+
     notificationRepository = {
       create: jest.fn(),
       save: jest.fn(),
@@ -153,6 +159,10 @@ describe('JobModule Phase 2 Integration Tests - Complete Workflow', () => {
         {
           provide: getRepositoryToken(WorkLog),
           useValue: workLogRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkerCert),
+          useValue: workerCertRepository,
         },
         {
           provide: getRepositoryToken(Notification),
@@ -895,6 +905,7 @@ describe('JobModule Phase 2 Integration Tests - Complete Workflow', () => {
 
       jobRepository.findOne.mockResolvedValue(mockJob);
       jobApplicationRepository.find.mockResolvedValue(mockApplications);
+      workerCertRepository.find.mockResolvedValue([]);
 
       const applications = await service.getApplicationsForEnterprise(1, mockEnterprise.id);
       expect(applications).toBeDefined();
