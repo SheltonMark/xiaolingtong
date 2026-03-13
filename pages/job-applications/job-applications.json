@@ -1,6 +1,8 @@
 {
-  "navigationBarTitleText": "招工详情",
-  "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black",
-  "backgroundColor": "#f5f5f5"
+  "navigationStyle": "custom",
+  "backgroundColor": "#f5f5f5",
+  "usingComponents": {
+    "nav-bar": "/components/nav-bar/nav-bar",
+    "empty-state": "/components/empty-state/empty-state"
+  }
 }
