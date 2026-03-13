@@ -1,4 +1,10 @@
-import { WebSocketGateway, WebSocketServer, SubscribeMessage, MessageBody, ConnectedSocket } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+  MessageBody,
+  ConnectedSocket,
+} from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 
@@ -14,9 +20,15 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(@ConnectedSocket() client: Socket, @MessageBody() data: any) {
+  async handleMessage(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: any,
+  ) {
     const { conversationId, senderId, content, type } = data;
-    const msg = await this.chatService.sendMessage(conversationId, senderId, { content, type });
+    const msg = await this.chatService.sendMessage(conversationId, senderId, {
+      content,
+      type,
+    });
 
     // 广播给会话中的对方
     this.server.to(`user_${data.receiverId}`).emit('newMessage', msg);

@@ -54,7 +54,7 @@ Page({
       { icon: '\ue624', label: '灵豆充值', bg: '#FFF7ED', iconColor: '#F97316', url: '/pages/bean-recharge/bean-recharge' },
       { icon: '\ue786', label: '企业认证', bg: '#ECFDF5', iconColor: '#10B981', url: '/pages/cert-enterprise/cert-enterprise' },
       { icon: '\ue619', label: '我要招工', bg: '#FFF1F2', iconColor: '#F43F5E', url: '/pages/post-job/post-job' },
-      { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' },
+      { icon: '\ue611', label: '招工管理', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' },
       { icon: '\ue661', label: '我的邀请', bg: '#F0F9FF', iconColor: '#0EA5E9', url: '/pages/my-invites/my-invites' },
       { icon: '\ue63b', label: '广告投放', bg: '#F3E8FF', iconColor: '#8B5CF6', url: '/pages/ad-purchase/ad-purchase' }
     ],

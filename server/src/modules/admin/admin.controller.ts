@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Put, Delete, Param, Query, Body, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Query,
+  Body,
+  UseGuards,
+} from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { Public } from '../../common/decorators/public.decorator';
 
@@ -84,13 +94,25 @@ export class AdminController {
   }
 
   @Put('certs/:type/:id/audit')
-  auditCert(@Param('type') type: string, @Param('id') id: number, @Body() body: { action: string; rejectReason?: string }) {
-    return this.adminService.auditCert(type, id, body.action, body.rejectReason);
+  auditCert(
+    @Param('type') type: string,
+    @Param('id') id: number,
+    @Body() body: { action: string; rejectReason?: string },
+  ) {
+    return this.adminService.auditCert(
+      type,
+      id,
+      body.action,
+      body.rejectReason,
+    );
   }
 
   // 用户信用分
   @Put('users/:id/credit')
-  updateUserCredit(@Param('id') id: number, @Body('creditScore') creditScore: number) {
+  updateUserCredit(
+    @Param('id') id: number,
+    @Body('creditScore') creditScore: number,
+  ) {
     return this.adminService.updateUserCredit(id, creditScore);
   }
 
@@ -225,8 +247,14 @@ export class AdminController {
   }
 
   @Post('categories')
-  addCategory(@Body() body: { name: string; parentId?: number; level?: number }) {
-    return this.adminService.addCategory(body.name, body.parentId || 0, body.level || 1);
+  addCategory(
+    @Body() body: { name: string; parentId?: number; level?: number },
+  ) {
+    return this.adminService.addCategory(
+      body.name,
+      body.parentId || 0,
+      body.level || 1,
+    );
   }
 
   @Put('categories/:id/toggle')
@@ -257,12 +285,18 @@ export class AdminController {
   }
 
   @Post('job-orders/:id/assign')
-  assignWorkers(@Param('id') id: number, @Body() body: { workerIds: number[]; supervisorId: number }) {
+  assignWorkers(
+    @Param('id') id: number,
+    @Body() body: { workerIds: number[]; supervisorId: number },
+  ) {
     return this.adminService.assignWorkers(id, body);
   }
 
   @Put('job-orders/:id/commission')
-  adjustCommission(@Param('id') id: number, @Body('commissionRate') rate: number) {
+  adjustCommission(
+    @Param('id') id: number,
+    @Body('commissionRate') rate: number,
+  ) {
     return this.adminService.adjustCommission(id, rate);
   }
 }

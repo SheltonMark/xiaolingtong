@@ -23,7 +23,8 @@ export class PromotionService {
     @InjectRepository(Promotion) private promoRepo: Repository<Promotion>,
     @InjectRepository(AdOrder) private adRepo: Repository<AdOrder>,
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(BeanTransaction)
+    private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
     private paymentService: PaymentService,
@@ -36,7 +37,11 @@ export class PromotionService {
   }
 
   private isMemberActive(user: User): boolean {
-    return !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date());
+    return !!(
+      user.isMember &&
+      user.memberExpireAt &&
+      new Date(user.memberExpireAt) > new Date()
+    );
   }
 
   private async getTopBasePricing() {
@@ -57,12 +62,15 @@ export class PromotionService {
 
   private async buildTopPricingForUser(user: User): Promise<TopPricingItem[]> {
     const baseList = await this.getTopBasePricing();
-    const memberDiscount = parseFloat(await this.getConfig('member_promote_discount', '0.8')) || 0.8;
+    const memberDiscount =
+      parseFloat(await this.getConfig('member_promote_discount', '0.8')) || 0.8;
     const isMember = this.isMemberActive(user);
 
     return baseList.map((item) => {
       const originalBeanCost = item.beanCost;
-      const beanCost = isMember ? Math.ceil(originalBeanCost * memberDiscount) : originalBeanCost;
+      const beanCost = isMember
+        ? Math.ceil(originalBeanCost * memberDiscount)
+        : originalBeanCost;
       return {
         durationDays: item.durationDays,
         beanCost,
@@ -90,11 +98,14 @@ export class PromotionService {
     if (!postId) throw new BadRequestException('帖子ID不能为空');
 
     const pricingList = await this.buildTopPricingForUser(user);
-    const pricing = pricingList.find((item) => item.durationDays === durationDays);
+    const pricing = pricingList.find(
+      (item) => item.durationDays === durationDays,
+    );
     if (!pricing) throw new BadRequestException('不支持的置顶时长');
     const actualCost = pricing.beanCost;
 
-    if (user.beanBalance < actualCost) throw new BadRequestException('灵豆不足');
+    if (user.beanBalance < actualCost)
+      throw new BadRequestException('灵豆不足');
 
     user.beanBalance -= actualCost;
     await this.userRepo.save(user);
@@ -104,26 +115,43 @@ export class PromotionService {
     endAt.setDate(endAt.getDate() + durationDays);
 
     const promo = this.promoRepo.create({
-      userId, postId, beanCost: actualCost,
-      durationDays, boostType: dto.boostType || 'top',
-      startAt, endAt,
+      userId,
+      postId,
+      beanCost: actualCost,
+      durationDays,
+      boostType: dto.boostType || 'top',
+      startAt,
+      endAt,
     });
     await this.promoRepo.save(promo);
 
-    await this.beanTxRepo.save(this.beanTxRepo.create({
-      userId, type: 'promote', amount: -actualCost,
-      refType: 'promotion', refId: promo.id,
-      remark: this.isMemberActive(user) ? '信息推广(会员折扣)' : '信息推广',
-    }));
+    await this.beanTxRepo.save(
+      this.beanTxRepo.create({
+        userId,
+        type: 'promote',
+        amount: -actualCost,
+        refType: 'promotion',
+        refId: promo.id,
+        remark: this.isMemberActive(user) ? '信息推广(会员折扣)' : '信息推广',
+      }),
+    );
 
     // 通知
-    await this.notiRepo.save(this.notiRepo.create({
-      userId, type: 'promotion' as any,
-      title: '置顶推广成功',
-      content: `您的信息已置顶${durationDays}天，消耗${actualCost}灵豆`,
-    }));
+    await this.notiRepo.save(
+      this.notiRepo.create({
+        userId,
+        type: 'promotion' as any,
+        title: '置顶推广成功',
+        content: `您的信息已置顶${durationDays}天，消耗${actualCost}灵豆`,
+      }),
+    );
 
-    return { message: '推广成功', beanBalance: user.beanBalance, actualCost, durationDays };
+    return {
+      message: '推广成功',
+      beanBalance: user.beanBalance,
+      actualCost,
+      durationDays,
+    };
   }
 
   async purchaseAd(userId: number, dto: any) {
@@ -137,9 +165,14 @@ export class PromotionService {
     }
 
     const ad = this.adRepo.create({
-      userId, slot: dto.slot, title: dto.title,
-      imageUrl: dto.imageUrl, link: dto.link, linkType: dto.linkType || 'internal',
-      durationDays: dto.durationDays, price: actualPrice,
+      userId,
+      slot: dto.slot,
+      title: dto.title,
+      imageUrl: dto.imageUrl,
+      link: dto.link,
+      linkType: dto.linkType || 'internal',
+      durationDays: dto.durationDays,
+      price: actualPrice,
       status: 'pending',
     });
     await this.adRepo.save(ad);
@@ -173,9 +206,14 @@ export class PromotionService {
   }
 
   async getAdPricing() {
-    const bannerPrice = parseFloat(await this.getConfig('banner_ad_price', '100'));
+    const bannerPrice = parseFloat(
+      await this.getConfig('banner_ad_price', '100'),
+    );
     const feedPrice = parseFloat(await this.getConfig('feed_ad_price', '50'));
-    const dailyFreeViews = parseInt(await this.getConfig('member_daily_free_views', '5'), 10);
+    const dailyFreeViews = parseInt(
+      await this.getConfig('member_daily_free_views', '5'),
+      10,
+    );
     return { bannerPrice, feedPrice, dailyFreeViews };
   }
 }

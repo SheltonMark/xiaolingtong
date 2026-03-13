@@ -67,9 +67,12 @@ describe('Phase 2: Data Formatting - Date, Currency, Numbers (e2e)', () => {
   });
 
   it('should format transaction amounts consistently', async () => {
-    const response = await apiClient.get('/wallet/transactions?page=1&pageSize=10', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.get(
+      '/wallet/transactions?page=1&pageSize=10',
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(200);
     const transactions = response.data.data.list || [];

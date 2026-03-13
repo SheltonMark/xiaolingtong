@@ -41,12 +41,23 @@ describe('ReportModule Integration Tests', () => {
 
   describe('create Integration', () => {
     it('should create report successfully', async () => {
-      const mockReport = { id: 1, reporterId: 1, targetId: 2, reason: 'Spam', description: 'Spamming content', status: 'pending' };
+      const mockReport = {
+        id: 1,
+        reporterId: 1,
+        targetId: 2,
+        reason: 'Spam',
+        description: 'Spamming content',
+        status: 'pending',
+      };
 
       reportRepository.create.mockReturnValue(mockReport);
       reportRepository.save.mockResolvedValue(mockReport);
 
-      const result = await controller.create(1, { targetId: 2, reason: 'Spam', description: 'Spamming content' });
+      const result = await controller.create(1, {
+        targetId: 2,
+        reason: 'Spam',
+        description: 'Spamming content',
+      });
 
       expect(result).toBeDefined();
       expect(result.reporterId).toBe(1);
@@ -55,23 +66,45 @@ describe('ReportModule Integration Tests', () => {
     });
 
     it('should handle different report reasons', async () => {
-      const mockReport = { id: 1, reporterId: 1, targetId: 2, reason: 'Fraud', description: 'Fraudulent activity', status: 'pending' };
+      const mockReport = {
+        id: 1,
+        reporterId: 1,
+        targetId: 2,
+        reason: 'Fraud',
+        description: 'Fraudulent activity',
+        status: 'pending',
+      };
 
       reportRepository.create.mockReturnValue(mockReport);
       reportRepository.save.mockResolvedValue(mockReport);
 
-      const result = await controller.create(1, { targetId: 2, reason: 'Fraud', description: 'Fraudulent activity' });
+      const result = await controller.create(1, {
+        targetId: 2,
+        reason: 'Fraud',
+        description: 'Fraudulent activity',
+      });
 
       expect(result.reason).toBe('Fraud');
     });
 
     it('should handle harassment reports', async () => {
-      const mockReport = { id: 1, reporterId: 1, targetId: 2, reason: 'Harassment', description: 'Harassing messages', status: 'pending' };
+      const mockReport = {
+        id: 1,
+        reporterId: 1,
+        targetId: 2,
+        reason: 'Harassment',
+        description: 'Harassing messages',
+        status: 'pending',
+      };
 
       reportRepository.create.mockReturnValue(mockReport);
       reportRepository.save.mockResolvedValue(mockReport);
 
-      const result = await controller.create(1, { targetId: 2, reason: 'Harassment', description: 'Harassing messages' });
+      const result = await controller.create(1, {
+        targetId: 2,
+        reason: 'Harassment',
+        description: 'Harassing messages',
+      });
 
       expect(result.reason).toBe('Harassment');
     });

@@ -11,7 +11,17 @@ import { Notification } from '../../entities/notification.entity';
 import { PaymentModule } from '../payment/payment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Promotion, AdOrder, User, BeanTransaction, SysConfig, Notification]), PaymentModule],
+  imports: [
+    TypeOrmModule.forFeature([
+      Promotion,
+      AdOrder,
+      User,
+      BeanTransaction,
+      SysConfig,
+      Notification,
+    ]),
+    PaymentModule,
+  ],
   controllers: [PromotionController],
   providers: [PromotionService],
 })

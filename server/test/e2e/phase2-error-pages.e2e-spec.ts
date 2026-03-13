@@ -39,9 +39,12 @@ describe('Phase 2: Error Handling & Recovery - API Error Responses (e2e)', () =>
   });
 
   it('should return 403 for unauthorized access', async () => {
-    const response = await apiClient.get('/chat/messages/99999?page=1&pageSize=10', {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.get(
+      '/chat/messages/99999?page=1&pageSize=10',
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(403);
   });

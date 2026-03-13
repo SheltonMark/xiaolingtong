@@ -13,7 +13,19 @@ import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Post, ContactUnlock, User, BeanTransaction, Keyword, EnterpriseCert, Job, SysConfig, Promotion])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Post,
+      ContactUnlock,
+      User,
+      BeanTransaction,
+      Keyword,
+      EnterpriseCert,
+      Job,
+      SysConfig,
+      Promotion,
+    ]),
+  ],
   controllers: [PostController],
   providers: [PostService],
 })

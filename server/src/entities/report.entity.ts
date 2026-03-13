@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('reports')
@@ -24,7 +31,11 @@ export class Report {
   @Column({ type: 'json', nullable: true })
   images: string[];
 
-  @Column({ type: 'enum', enum: ['pending', 'handled', 'dismissed'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'handled', 'dismissed'],
+    default: 'pending',
+  })
   status: string;
 
   @CreateDateColumn()

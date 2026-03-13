@@ -17,7 +17,8 @@ export class AuthService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
-    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(BeanTransaction)
+    private beanTxRepo: Repository<BeanTransaction>,
     private jwt: JwtService,
     private config: ConfigService,
     private inviteService: InviteService,
@@ -35,7 +36,8 @@ export class AuthService {
     } else {
       const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
       const { data } = await axios.get(url);
-      if (data.errcode) throw new BadRequestException(data.errmsg || '微信登录失败');
+      if (data.errcode)
+        throw new BadRequestException(data.errmsg || '微信登录失败');
       openid = data.openid;
     }
 
@@ -55,7 +57,11 @@ export class AuthService {
       if (inviteCode) {
         const inviter = await this.userRepo.findOne({ where: { inviteCode } });
         if (inviter && inviter.id !== user.id) {
-          await this.inviteService.recordInvite(inviter.id, user.id, inviteCode);
+          await this.inviteService.recordInvite(
+            inviter.id,
+            user.id,
+            inviteCode,
+          );
           user.invitedBy = inviter.id;
         }
       }
@@ -85,11 +91,18 @@ export class AuthService {
 
     // 首次选角色：发放新人灵豆
     if (isFirstRole) {
-      await this.userRepo.update(userId, { beanBalance: () => 'beanBalance + 3' });
-      await this.beanTxRepo.save(this.beanTxRepo.create({
-        userId, type: 'invite_reward', amount: 3,
-        refType: 'welcome', remark: '新用户注册奖励',
-      }));
+      await this.userRepo.update(userId, {
+        beanBalance: () => 'beanBalance + 3',
+      });
+      await this.beanTxRepo.save(
+        this.beanTxRepo.create({
+          userId,
+          type: 'invite_reward',
+          amount: 3,
+          refType: 'welcome',
+          remark: '新用户注册奖励',
+        }),
+      );
 
       // 通知邀请人
       if (user.invitedBy) {
@@ -117,7 +130,7 @@ export class AuthService {
     if (user.role === 'enterprise') {
       const cert = await this.userRepo.manager.findOne(EnterpriseCert, {
         where: { userId },
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC' },
       });
       if (cert) {
         certStatus = cert.status;
@@ -126,7 +139,7 @@ export class AuthService {
     } else if (user.role === 'worker') {
       const cert = await this.userRepo.manager.findOne(WorkerCert, {
         where: { userId },
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC' },
       });
       if (cert) {
         certStatus = cert.status;

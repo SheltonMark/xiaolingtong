@@ -23,7 +23,15 @@ describe('JobStateMachine', () => {
   });
 
   it('should return next possible states', () => {
-    expect(JobStateMachine.getNextState('pending')).toEqual(['accepted', 'rejected', 'cancelled']);
-    expect(JobStateMachine.getNextState('confirmed')).toEqual(['working', 'released', 'cancelled']);
+    expect(JobStateMachine.getNextState('pending')).toEqual([
+      'accepted',
+      'rejected',
+      'cancelled',
+    ]);
+    expect(JobStateMachine.getNextState('confirmed')).toEqual([
+      'working',
+      'released',
+      'cancelled',
+    ]);
   });
 });

@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('exposures')
@@ -30,7 +37,11 @@ export class Exposure {
   @Column({ type: 'int', default: 0 })
   viewCount: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'approved', 'rejected'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+  })
   status: string;
 
   @CreateDateColumn()

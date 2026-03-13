@@ -12,12 +12,20 @@ export class ChatController {
   }
 
   @Get(':id/messages')
-  messages(@Param('id') id: number, @CurrentUser('sub') userId: number, @Query() query: any) {
+  messages(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Query() query: any,
+  ) {
     return this.chatService.getMessages(id, userId, query);
   }
 
   @Post(':id/send')
-  send(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
+  send(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
     return this.chatService.sendMessage(id, userId, dto);
   }
 
@@ -27,6 +35,10 @@ export class ChatController {
     @Param('userId') userId: number,
     @Body() body: { postId?: number | string },
   ) {
-    return this.chatService.getOrCreateConversation(currentUserId, userId, body?.postId);
+    return this.chatService.getOrCreateConversation(
+      currentUserId,
+      userId,
+      body?.postId,
+    );
   }
 }

@@ -196,9 +196,17 @@ describe('PaymentModule Integration Tests', () => {
     });
 
     it('should handle member payment success', async () => {
-      const mockOrder = { id: 1, userId: 1, payStatus: 'pending', durationDays: 30 };
+      const mockOrder = {
+        id: 1,
+        userId: 1,
+        payStatus: 'pending',
+        durationDays: 30,
+      };
       memberOrderRepository.findOne.mockResolvedValue(mockOrder);
-      memberOrderRepository.save.mockResolvedValue({ ...mockOrder, payStatus: 'paid' });
+      memberOrderRepository.save.mockResolvedValue({
+        ...mockOrder,
+        payStatus: 'paid',
+      });
       userRepository.update.mockResolvedValue({ affected: 1 });
 
       const result = await service.handlePaySuccess('MBR_1_123456_abc', {
@@ -240,7 +248,13 @@ describe('PaymentModule Integration Tests', () => {
     });
 
     it('should handle settlement payment success', async () => {
-      const mockSettlement = { id: 1, status: 'pending', jobId: 1, supervisorId: 2, supervisorFee: 100 };
+      const mockSettlement = {
+        id: 1,
+        status: 'pending',
+        jobId: 1,
+        supervisorId: 2,
+        supervisorFee: 100,
+      };
       const mockItems = [
         { id: 1, workerId: 3, workerPay: 500, settlementId: 1 },
       ];
@@ -252,7 +266,10 @@ describe('PaymentModule Integration Tests', () => {
       walletRepository.save.mockResolvedValue({ userId: 3, balance: 500 });
       walletTxRepository.save.mockResolvedValue({ id: 1 });
       userRepository.increment.mockResolvedValue({ affected: 1 });
-      settlementRepository.save.mockResolvedValue({ ...mockSettlement, status: 'distributed' });
+      settlementRepository.save.mockResolvedValue({
+        ...mockSettlement,
+        status: 'distributed',
+      });
       jobRepository.update.mockResolvedValue({ affected: 1 });
 
       const result = await service.handlePaySuccess('STL_1_123456_abc', {
@@ -275,7 +292,11 @@ describe('PaymentModule Integration Tests', () => {
 
     it('should prevent duplicate bean payment processing', async () => {
       const mockUser = { id: 1, openid: 'test_openid' };
-      const mockTx = { id: 1, refType: 'recharge', remark: 'BEAN_0_123456_abc' };
+      const mockTx = {
+        id: 1,
+        refType: 'recharge',
+        remark: 'BEAN_0_123456_abc',
+      };
 
       userRepository.findOne.mockResolvedValue(mockUser);
       beanTxRepository.findOne.mockResolvedValue(mockTx);

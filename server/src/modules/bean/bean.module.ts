@@ -8,7 +8,10 @@ import { BeanOrder } from '../../entities/bean-order.entity';
 import { PaymentModule } from '../payment/payment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, BeanTransaction, BeanOrder]), PaymentModule],
+  imports: [
+    TypeOrmModule.forFeature([User, BeanTransaction, BeanOrder]),
+    PaymentModule,
+  ],
   controllers: [BeanController],
   providers: [BeanService],
 })

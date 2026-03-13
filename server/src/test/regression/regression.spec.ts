@@ -87,8 +87,15 @@ describe('Phase 5: Regression Test Suite', () => {
     it('should verify job posting and application', async () => {
       const jobData = { title: 'Test Job', salary: 100, requiredWorkers: 5 };
 
-      jobService.create.mockResolvedValue({ id: 1, ...jobData, status: 'published' });
-      jobService.apply.mockResolvedValue({ applicationId: 1, status: 'pending' });
+      jobService.create.mockResolvedValue({
+        id: 1,
+        ...jobData,
+        status: 'published',
+      });
+      jobService.apply.mockResolvedValue({
+        applicationId: 1,
+        status: 'pending',
+      });
 
       const job = await jobService.create(jobData);
       expect(job.status).toBe('published');
@@ -256,7 +263,10 @@ describe('Phase 5: Regression Test Suite', () => {
       const userId = 1;
       const resourceOwnerId = 1;
 
-      const isAuthorized = securityChecker.checkAuthorization(userId, resourceOwnerId);
+      const isAuthorized = securityChecker.checkAuthorization(
+        userId,
+        resourceOwnerId,
+      );
 
       expect(isAuthorized).toBe(true);
     });

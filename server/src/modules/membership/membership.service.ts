@@ -27,13 +27,19 @@ export class MembershipService {
     private config: ConfigService,
   ) {}
 
-  private async getConfigNumber(key: string, defaultValue: number): Promise<number> {
+  private async getConfigNumber(
+    key: string,
+    defaultValue: number,
+  ): Promise<number> {
     const row = await this.configRepo.findOne({ where: { key } });
     const parsed = Number(row ? row.value : defaultValue);
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : defaultValue;
   }
 
-  private async getConfigInt(key: string, defaultValue: number): Promise<number> {
+  private async getConfigInt(
+    key: string,
+    defaultValue: number,
+  ): Promise<number> {
     const n = await this.getConfigNumber(key, defaultValue);
     return Math.max(0, Math.round(n));
   }
@@ -46,13 +52,34 @@ export class MembershipService {
     ]);
 
     return [
-      { key: 'monthly', name: '月度会员', unit: '月', durationDays: 30, price: monthlyPrice },
-      { key: 'quarterly', name: '季度会员', unit: '季', durationDays: 90, price: quarterlyPrice },
-      { key: 'yearly', name: '年度会员', unit: '年', durationDays: 365, price: yearlyPrice },
+      {
+        key: 'monthly',
+        name: '月度会员',
+        unit: '月',
+        durationDays: 30,
+        price: monthlyPrice,
+      },
+      {
+        key: 'quarterly',
+        name: '季度会员',
+        unit: '季',
+        durationDays: 90,
+        price: quarterlyPrice,
+      },
+      {
+        key: 'yearly',
+        name: '年度会员',
+        unit: '年',
+        durationDays: 365,
+        price: yearlyPrice,
+      },
     ];
   }
 
-  private resolvePlan(dto: any, plans: MembershipPlan[]): MembershipPlan | undefined {
+  private resolvePlan(
+    dto: any,
+    plans: MembershipPlan[],
+  ): MembershipPlan | undefined {
     const planKey = String(dto?.planKey || '').trim();
     if (planKey) {
       return plans.find((p) => p.key === planKey);

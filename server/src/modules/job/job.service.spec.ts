@@ -9,6 +9,9 @@ import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
+import { Supervisor } from '../../entities/supervisor.entity';
+import { Attendance } from '../../entities/attendance.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 
 describe('JobService', () => {
   let service: JobService;
@@ -16,6 +19,9 @@ describe('JobService', () => {
   let keywordRepository: any;
   let jobApplicationRepository: any;
   let userRepository: any;
+  let supervisorRepository: any;
+  let attendanceRepository: any;
+  let workLogRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -46,6 +52,26 @@ describe('JobService', () => {
       find: jest.fn(),
     };
 
+    supervisorRepository = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    attendanceRepository = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    workLogRepository = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -64,6 +90,18 @@ describe('JobService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: userRepository,
+        },
+        {
+          provide: getRepositoryToken(Supervisor),
+          useValue: supervisorRepository,
+        },
+        {
+          provide: getRepositoryToken(Attendance),
+          useValue: attendanceRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkLog),
+          useValue: workLogRepository,
         },
       ],
     }).compile();
@@ -113,24 +151,26 @@ describe('JobService', () => {
         { word: 'banned' },
       ]);
 
-      await expect(service['checkKeywords']('This is a normal job')).resolves.not.toThrow();
+      await expect(
+        service['checkKeywords']('This is a normal job'),
+      ).resolves.not.toThrow();
     });
 
     it('should throw error when prohibited keyword found', async () => {
-      keywordRepository.find.mockResolvedValue([
-        { word: 'prohibited' },
-      ]);
+      keywordRepository.find.mockResolvedValue([{ word: 'prohibited' }]);
 
-      await expect(service['checkKeywords']('This is prohibited')).rejects.toThrow(BadRequestException);
+      await expect(
+        service['checkKeywords']('This is prohibited'),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should be case sensitive (matches actual implementation)', async () => {
-      keywordRepository.find.mockResolvedValue([
-        { word: 'prohibited' },
-      ]);
+      keywordRepository.find.mockResolvedValue([{ word: 'prohibited' }]);
 
       // The actual implementation is case-sensitive, so PROHIBITED should not match
-      await expect(service['checkKeywords']('This is PROHIBITED')).resolves.not.toThrow();
+      await expect(
+        service['checkKeywords']('This is PROHIBITED'),
+      ).resolves.not.toThrow();
     });
   });
 
@@ -175,7 +215,11 @@ describe('JobService', () => {
 
       keywordRepository.find.mockResolvedValue([]);
 
-      const result = await service.list({ keyword: 'test', page: 1, pageSize: 20 });
+      const result = await service.list({
+        keyword: 'test',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
     });
@@ -284,20 +328,37 @@ describe('JobService', () => {
 
       jobRepository.findOne.mockResolvedValue(mockJob);
 
-      await expect(service.update(1, 1, { title: 'New Title' })).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.update(1, 1, { title: 'New Title' }),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw error when job not found', async () => {
       jobRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.update(1, 1, { title: 'New Title' })).rejects.toThrow();
+      await expect(
+        service.update(1, 1, { title: 'New Title' }),
+      ).rejects.toThrow();
     });
   });
 
   describe('myJobs', () => {
     it('should return user jobs', async () => {
       const mockJobs = [
-        { id: 1, userId: 1, title: 'Job 1', salary: 100, salaryUnit: '元/时', needCount: 5, dateStart: '2026-03-10', dateEnd: '2026-03-20', workHours: '8:00-17:00', location: 'Beijing', status: 'recruiting', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          title: 'Job 1',
+          salary: 100,
+          salaryUnit: '元/时',
+          needCount: 5,
+          dateStart: '2026-03-10',
+          dateEnd: '2026-03-20',
+          workHours: '8:00-17:00',
+          location: 'Beijing',
+          status: 'recruiting',
+          createdAt: new Date(),
+        },
       ];
 
       jobRepository.find.mockResolvedValue(mockJobs);
@@ -315,6 +376,116 @@ describe('JobService', () => {
       const result = await service.myJobs(1);
 
       expect(result.list).toEqual([]);
+    });
+  });
+
+  describe('checkIn', () => {
+    it('should check in successfully', async () => {
+      const mockJob = { id: 1, userId: 1 };
+      const mockWorker = { id: 2, creditScore: 100 };
+      const mockApplication = { id: 1, jobId: 1, workerId: 2, status: 'confirmed' };
+      const mockAttendance = {
+        id: 1,
+        jobId: 1,
+        workerId: 2,
+        status: 'checked_in',
+        checkInTime: new Date(),
+      };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      jobApplicationRepository.findOne.mockResolvedValue(mockApplication);
+      attendanceRepository.findOne.mockResolvedValue(null);
+      attendanceRepository.create.mockReturnValue(mockAttendance);
+      attendanceRepository.save.mockResolvedValue(mockAttendance);
+
+      const result = await service.checkIn(1, 2);
+
+      expect(result.status).toBe('checked_in');
+      expect(attendanceRepository.save).toHaveBeenCalled();
+    });
+
+    it('should throw error when already checked in', async () => {
+      const mockJob = { id: 1, userId: 1 };
+      const mockWorker = { id: 2, creditScore: 100 };
+      const mockApplication = { id: 1, jobId: 1, workerId: 2, status: 'confirmed' };
+      const mockExisting = { id: 1, jobId: 1, workerId: 2, status: 'checked_in' };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      jobApplicationRepository.findOne.mockResolvedValue(mockApplication);
+      attendanceRepository.findOne.mockResolvedValue(mockExisting);
+
+      await expect(service.checkIn(1, 2)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw error when worker not confirmed', async () => {
+      const mockJob = { id: 1, userId: 1 };
+      const mockWorker = { id: 2, creditScore: 100 };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      jobApplicationRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.checkIn(1, 2)).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('checkOut', () => {
+    it('should check out successfully', async () => {
+      const checkInTime = new Date(Date.now() - 3600000); // 1 hour ago
+      const mockAttendance = {
+        id: 1,
+        jobId: 1,
+        workerId: 2,
+        status: 'checked_in',
+        checkInTime,
+      };
+
+      attendanceRepository.findOne.mockResolvedValue(mockAttendance);
+      attendanceRepository.save.mockResolvedValue({
+        ...mockAttendance,
+        status: 'checked_out',
+        checkOutTime: new Date(),
+        workHours: 1,
+      });
+
+      const result = await service.checkOut(1, 2);
+
+      expect(result.status).toBe('checked_out');
+      expect(result).toHaveProperty('workHours');
+      expect(attendanceRepository.save).toHaveBeenCalled();
+    });
+
+    it('should throw error when not checked in', async () => {
+      attendanceRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.checkOut(1, 2)).rejects.toThrow();
+    });
+  });
+
+  describe('getAttendances', () => {
+    it('should get attendances for job', async () => {
+      const mockJob = { id: 1, userId: 1 };
+      const mockAttendances = [
+        { id: 1, jobId: 1, workerId: 2, status: 'checked_out', workHours: 8 },
+      ];
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      attendanceRepository.find.mockResolvedValue(mockAttendances);
+
+      const result = await service.getAttendances(1, 1);
+
+      expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(1);
+    });
+
+    it('should throw error when not job owner', async () => {
+      const mockJob = { id: 1, userId: 2 };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+
+      await expect(service.getAttendances(1, 1)).rejects.toThrow(ForbiddenException);
     });
   });
 });

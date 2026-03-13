@@ -118,7 +118,10 @@ describe('WalletModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([[{ id: 1 }], 1]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result).toBeDefined();
     });
@@ -133,7 +136,10 @@ describe('WalletModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
       });
 
-      const result = await controller.getTransactions(1, { page: 1, pageSize: 20 });
+      const result = await controller.getTransactions(1, {
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list).toEqual([]);
     });
@@ -164,7 +170,13 @@ describe('WalletModule Integration Tests', () => {
     it('should withdraw successfully', async () => {
       const mockWallet = { id: 1, userId: 1, balance: 1000 };
       const mockUser = { id: 1, openid: 'test_openid' };
-      const mockTx = { id: 1, userId: 1, type: 'withdraw', amount: 100, status: 'pending' };
+      const mockTx = {
+        id: 1,
+        userId: 1,
+        type: 'withdraw',
+        amount: 100,
+        status: 'pending',
+      };
 
       walletRepository.findOne.mockResolvedValue(mockWallet);
       userRepository.findOneBy.mockResolvedValue(mockUser);

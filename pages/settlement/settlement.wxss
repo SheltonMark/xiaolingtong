@@ -1,53 +1,161 @@
-.st-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 40rpx; }
-.st-card { background-color: #ffffff; margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 32rpx; }
-.st-job-header { display: flex; align-items: flex-start; gap: 16rpx; margin-bottom: 20rpx; }
-.st-avatar-img {
-  width: 72rpx; height: 72rpx; border-radius: 50%; flex-shrink: 0;
+.settlement-page {
+  min-height: 100vh;
+  background-color: #F5F5F5;
 }
-.st-job-info { display: flex; flex-direction: column; }
-.st-company { font-size: 28rpx; font-weight: 600; color: #1E293B; }
-.st-date { font-size: 22rpx; color: #94A3B8; margin-top: 4rpx; }
-.st-summary { display: flex; background-color: #F8FAFC; border-radius: 16rpx; padding: 20rpx; }
-.st-sum-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
-.st-sum-val { font-size: 28rpx; font-weight: 700; color: #1E293B; }
-.st-sum-label { font-size: 20rpx; color: #94A3B8; }
-.card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 20rpx; }
 
-/* 步骤 */
-.step-list { display: flex; flex-direction: column; gap: 20rpx; }
-.step-item { display: flex; align-items: center; gap: 16rpx; }
-.step-dot {
-  width: 48rpx; height: 48rpx; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22rpx; flex-shrink: 0;
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  background-color: #ffffff;
+  padding: 0 24rpx;
+  border-bottom: 1rpx solid #F1F5F9;
 }
-.dot-done { background-color: #ECFDF5; color: #10B981; }
-.dot-pending { background-color: #FFFBEB; color: #F59E0B; }
-.step-content { display: flex; flex-direction: column; }
-.step-label { font-size: 24rpx; color: #1E293B; }
-.step-time { font-size: 20rpx; color: #94A3B8; }
 
-/* 表格 */
-.table-header { display: flex; padding: 12rpx 0; border-bottom: 1rpx solid #E2E8F0; }
-.th { font-size: 20rpx; color: #94A3B8; font-weight: 500; }
-.table-row { display: flex; padding: 16rpx 0; border-bottom: 1rpx solid #F1F5F9; }
-.table-row:last-of-type { border-bottom: none; }
-.td { font-size: 22rpx; color: #1E293B; }
-.view-all { display: block; text-align: center; font-size: 24rpx; color: #3B82F6; margin-top: 20rpx; }
-
-/* 费用 */
-.fee-list { display: flex; flex-direction: column; gap: 16rpx; }
-.fee-row { display: flex; align-items: center; justify-content: space-between; }
-.fee-label { font-size: 24rpx; color: #64748B; }
-.fee-value { font-size: 24rpx; color: #1E293B; }
-.fee-minus { color: #64748B; }
-.fee-divider { height: 1rpx; background-color: #E2E8F0; margin: 8rpx 0; }
-.fee-total .fee-label { font-size: 26rpx; font-weight: 600; color: #1E293B; }
-.fee-total .fee-value { font-size: 32rpx; font-weight: 700; }
-
-/* 底部 */
-.st-bottom {
-  margin: 24rpx 32rpx; padding: 32rpx;
-  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 24rpx;
+  color: #64748B;
+  position: relative;
 }
-.st-hint { display: block; text-align: center; font-size: 20rpx; color: #94A3B8; margin-top: 12rpx; }
+
+.tab-active {
+  color: #3B82F6;
+  font-weight: 600;
+}
+
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background-color: #3B82F6;
+  border-radius: 4rpx;
+}
+
+/* List Container */
+.list-container {
+  padding: 24rpx 32rpx;
+  padding-bottom: 40rpx;
+}
+
+/* Job Card */
+.job-card,
+.settlement-card {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.job-title,
+.settlement-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #1E293B;
+  flex: 1;
+}
+
+/* Status Tag */
+.status-tag {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.status-bg-green { background-color: #ECFDF5; color: #10B981; }
+.status-bg-amber { background-color: #FFFBEB; color: #F59E0B; }
+.status-bg-gray { background-color: #F1F5F9; color: #94A3B8; }
+
+/* Job Info */
+.job-info-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8rpx;
+}
+
+.job-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.job-info-label {
+  font-size: 22rpx;
+  color: #64748B;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+
+.job-info-value {
+  font-size: 22rpx;
+  color: #1E293B;
+  flex: 1;
+}
+
+/* Settlement Info */
+.settlement-info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.settlement-info-label {
+  font-size: 22rpx;
+  color: #64748B;
+  width: 100rpx;
+  flex-shrink: 0;
+}
+
+.settlement-info-value {
+  font-size: 22rpx;
+  color: #1E293B;
+  flex: 1;
+}
+
+/* Settlement Summary */
+.settlement-summary {
+  display: flex;
+  background-color: #F8FAFC;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  gap: 20rpx;
+}
+
+.summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.summary-val {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.summary-label {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+/* Utility Classes */
+.text-cta { color: #F97316; }
+.text-warm { color: #F59E0B; }
+.font-semibold { font-weight: 600; }

@@ -45,8 +45,12 @@ describe('MembershipModule Integration Tests', () => {
     };
 
     paymentService = {
-      generateOutTradeNo: jest.fn((prefix, id) => `${prefix}_${id}_${Date.now()}`),
-      createJsapiOrder: jest.fn().mockResolvedValue({ prepayId: 'test_prepay_id' }),
+      generateOutTradeNo: jest.fn(
+        (prefix, id) => `${prefix}_${id}_${Date.now()}`,
+      ),
+      createJsapiOrder: jest
+        .fn()
+        .mockResolvedValue({ prepayId: 'test_prepay_id' }),
     };
 
     configService = {
@@ -91,7 +95,14 @@ describe('MembershipModule Integration Tests', () => {
   describe('subscribe Integration', () => {
     it('should create membership subscription', async () => {
       const mockUser = { id: 1, openid: 'test_openid' };
-      const mockOrder = { id: 1, userId: 1, planName: 'Premium', price: 99.99, durationDays: 30, payStatus: 'pending' };
+      const mockOrder = {
+        id: 1,
+        userId: 1,
+        planName: 'Premium',
+        price: 99.99,
+        durationDays: 30,
+        payStatus: 'pending',
+      };
 
       userRepository.findOneBy.mockResolvedValue(mockUser);
       configRepository.findOne.mockImplementation(({ where }) => {
@@ -106,7 +117,9 @@ describe('MembershipModule Integration Tests', () => {
       orderRepository.create.mockReturnValue(mockOrder);
       orderRepository.save.mockResolvedValue(mockOrder);
       paymentService.generateOutTradeNo.mockReturnValue('MBR_1_123456');
-      paymentService.createJsapiOrder.mockResolvedValue({ prepayId: 'test_prepay_id' });
+      paymentService.createJsapiOrder.mockResolvedValue({
+        prepayId: 'test_prepay_id',
+      });
 
       const result = await controller.subscribe(1, { planKey: 'monthly' });
 
@@ -119,12 +132,21 @@ describe('MembershipModule Integration Tests', () => {
     it('should throw error when user not found', async () => {
       userRepository.findOneBy.mockResolvedValue(null);
 
-      await expect(controller.subscribe(999, { planKey: 'monthly' })).rejects.toThrow();
+      await expect(
+        controller.subscribe(999, { planKey: 'monthly' }),
+      ).rejects.toThrow();
     });
 
     it('should generate correct trade number', async () => {
       const mockUser = { id: 1, openid: 'test_openid' };
-      const mockOrder = { id: 5, userId: 1, planName: 'Premium', price: 99.99, durationDays: 30, payStatus: 'pending' };
+      const mockOrder = {
+        id: 5,
+        userId: 1,
+        planName: 'Premium',
+        price: 99.99,
+        durationDays: 30,
+        payStatus: 'pending',
+      };
 
       userRepository.findOneBy.mockResolvedValue(mockUser);
       configRepository.findOne.mockImplementation(({ where }) => {
@@ -139,11 +161,16 @@ describe('MembershipModule Integration Tests', () => {
       orderRepository.create.mockReturnValue(mockOrder);
       orderRepository.save.mockResolvedValue(mockOrder);
       paymentService.generateOutTradeNo.mockReturnValue('MBR_5_123456');
-      paymentService.createJsapiOrder.mockResolvedValue({ prepayId: 'test_prepay_id' });
+      paymentService.createJsapiOrder.mockResolvedValue({
+        prepayId: 'test_prepay_id',
+      });
 
       const result = await controller.subscribe(1, { planKey: 'monthly' });
 
-      expect(paymentService.generateOutTradeNo).toHaveBeenCalledWith('MBR', mockOrder.id);
+      expect(paymentService.generateOutTradeNo).toHaveBeenCalledWith(
+        'MBR',
+        mockOrder.id,
+      );
       expect(result.orderId).toBe(5);
     });
   });

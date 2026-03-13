@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 import { Job } from './job.entity';
 
@@ -34,10 +41,14 @@ export class Settlement {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   supervisorFee: number;
 
-  @Column({ type: 'decimal', precision: 5, scale: 4, default: 0.20 })
+  @Column({ type: 'decimal', precision: 5, scale: 4, default: 0.2 })
   commissionRate: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'paid', 'distributed', 'completed'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'paid', 'distributed', 'completed'],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ type: 'datetime', nullable: true })

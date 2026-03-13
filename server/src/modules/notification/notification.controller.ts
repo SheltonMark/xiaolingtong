@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Query } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -6,14 +6,19 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class NotificationController {
   constructor(private notiService: NotificationService) {}
 
-  @Get('unread-count')
-  unreadCount(@CurrentUser('sub') userId: number) {
-    return this.notiService.unreadCount(userId);
-  }
-
   @Get()
   list(@CurrentUser('sub') userId: number, @Query() query: any) {
     return this.notiService.list(userId, query);
+  }
+
+  @Post(':id/read')
+  read(@Param('id') id: number, @CurrentUser('sub') userId: number) {
+    return this.notiService.read(id, userId);
+  }
+
+  @Delete(':id')
+  delete(@Param('id') id: number, @CurrentUser('sub') userId: number) {
+    return this.notiService.deleteNotification(id, userId);
   }
 
   @Post('read-all')
@@ -21,8 +26,8 @@ export class NotificationController {
     return this.notiService.readAll(userId);
   }
 
-  @Put(':id/read')
-  read(@Param('id') id: number, @CurrentUser('sub') userId: number) {
-    return this.notiService.read(id, userId);
+  @Get('unread-count')
+  unreadCount(@CurrentUser('sub') userId: number) {
+    return this.notiService.unreadCount(userId);
   }
 }

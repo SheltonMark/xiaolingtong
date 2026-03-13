@@ -103,7 +103,11 @@ describe('ExposureModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockExposures, 0]),
       });
 
-      const result = await controller.list({ category: 'fraud', page: 1, pageSize: 20 });
+      const result = await controller.list({
+        category: 'fraud',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(0);
@@ -139,11 +143,19 @@ describe('ExposureModule Integration Tests', () => {
         images: [],
         viewCount: 0,
         createdAt: new Date(),
-        publisher: { id: 1, nickname: 'User 1', role: 'enterprise', avatarUrl: 'avatar.jpg' },
+        publisher: {
+          id: 1,
+          nickname: 'User 1',
+          role: 'enterprise',
+          avatarUrl: 'avatar.jpg',
+        },
       };
 
       exposureRepository.findOne.mockResolvedValue(mockExposure);
-      exposureRepository.save.mockResolvedValue({ ...mockExposure, viewCount: 1 });
+      exposureRepository.save.mockResolvedValue({
+        ...mockExposure,
+        viewCount: 1,
+      });
       commentRepository.find.mockResolvedValue([]);
       exposureRepository.manager.findOne.mockResolvedValue(null);
 
@@ -165,11 +177,21 @@ describe('ExposureModule Integration Tests', () => {
         images: [],
         viewCount: 0,
         createdAt: new Date(),
-        publisher: { id: 1, nickname: 'User 1', role: 'worker', avatarUrl: 'avatar.jpg' },
+        publisher: {
+          id: 1,
+          nickname: 'User 1',
+          role: 'worker',
+          avatarUrl: 'avatar.jpg',
+        },
       };
 
       const mockComments = [
-        { id: 1, content: 'Comment 1', createdAt: new Date(), user: { nickname: 'User 2', avatarUrl: 'avatar2.jpg' } },
+        {
+          id: 1,
+          content: 'Comment 1',
+          createdAt: new Date(),
+          user: { nickname: 'User 2', avatarUrl: 'avatar2.jpg' },
+        },
       ];
 
       exposureRepository.findOne.mockResolvedValue(mockExposure);
@@ -193,7 +215,12 @@ describe('ExposureModule Integration Tests', () => {
   describe('create Integration', () => {
     it('should create exposure successfully for verified enterprise', async () => {
       const mockUser = { id: 1, role: 'enterprise' };
-      const mockCert = { id: 1, userId: 1, status: 'approved', companyName: 'Company A' };
+      const mockCert = {
+        id: 1,
+        userId: 1,
+        status: 'approved',
+        companyName: 'Company A',
+      };
       const mockExposure = {
         id: 1,
         publisherId: 1,
@@ -206,16 +233,24 @@ describe('ExposureModule Integration Tests', () => {
         status: 'pending',
       };
 
-      exposureRepository.manager.findOne.mockImplementation((entity, options) => {
-        if (entity.name === 'User') return Promise.resolve(mockUser);
-        if (entity.name === 'EnterpriseCert') return Promise.resolve(mockCert);
-        return Promise.resolve(null);
-      });
+      exposureRepository.manager.findOne.mockImplementation(
+        (entity, options) => {
+          if (entity.name === 'User') return Promise.resolve(mockUser);
+          if (entity.name === 'EnterpriseCert')
+            return Promise.resolve(mockCert);
+          return Promise.resolve(null);
+        },
+      );
 
       exposureRepository.create.mockReturnValue(mockExposure);
       exposureRepository.save.mockResolvedValue(mockExposure);
 
-      const result = await controller.create(1, { company: 'Company A', contact: 'John', amount: 5000, description: 'Unpaid wages' });
+      const result = await controller.create(1, {
+        company: 'Company A',
+        contact: 'John',
+        amount: 5000,
+        description: 'Unpaid wages',
+      });
 
       expect(result).toBeDefined();
       expect(exposureRepository.save).toHaveBeenCalled();
@@ -223,7 +258,12 @@ describe('ExposureModule Integration Tests', () => {
 
     it('should create exposure successfully for verified worker', async () => {
       const mockUser = { id: 1, role: 'worker' };
-      const mockCert = { id: 1, userId: 1, status: 'approved', realName: 'John' };
+      const mockCert = {
+        id: 1,
+        userId: 1,
+        status: 'approved',
+        realName: 'John',
+      };
       const mockExposure = {
         id: 1,
         publisherId: 1,
@@ -236,16 +276,23 @@ describe('ExposureModule Integration Tests', () => {
         status: 'pending',
       };
 
-      exposureRepository.manager.findOne.mockImplementation((entity, options) => {
-        if (entity.name === 'User') return Promise.resolve(mockUser);
-        if (entity.name === 'WorkerCert') return Promise.resolve(mockCert);
-        return Promise.resolve(null);
-      });
+      exposureRepository.manager.findOne.mockImplementation(
+        (entity, options) => {
+          if (entity.name === 'User') return Promise.resolve(mockUser);
+          if (entity.name === 'WorkerCert') return Promise.resolve(mockCert);
+          return Promise.resolve(null);
+        },
+      );
 
       exposureRepository.create.mockReturnValue(mockExposure);
       exposureRepository.save.mockResolvedValue(mockExposure);
 
-      const result = await controller.create(1, { company: 'Company A', contact: 'John', amount: 5000, description: 'Unpaid wages' });
+      const result = await controller.create(1, {
+        company: 'Company A',
+        contact: 'John',
+        amount: 5000,
+        description: 'Unpaid wages',
+      });
 
       expect(result).toBeDefined();
       expect(exposureRepository.save).toHaveBeenCalled();
@@ -254,24 +301,45 @@ describe('ExposureModule Integration Tests', () => {
     it('should throw error when user not verified', async () => {
       const mockUser = { id: 1, role: 'enterprise' };
 
-      exposureRepository.manager.findOne.mockImplementation((entity, options) => {
-        if (entity.name === 'User') return Promise.resolve(mockUser);
-        return Promise.resolve(null);
-      });
+      exposureRepository.manager.findOne.mockImplementation(
+        (entity, options) => {
+          if (entity.name === 'User') return Promise.resolve(mockUser);
+          return Promise.resolve(null);
+        },
+      );
 
-      await expect(controller.create(1, { company: 'Company A', contact: 'John', amount: 5000, description: 'Unpaid wages' })).rejects.toThrow();
+      await expect(
+        controller.create(1, {
+          company: 'Company A',
+          contact: 'John',
+          amount: 5000,
+          description: 'Unpaid wages',
+        }),
+      ).rejects.toThrow();
     });
 
     it('should throw error when user not found', async () => {
       exposureRepository.manager.findOne.mockResolvedValue(null);
 
-      await expect(controller.create(999, { company: 'Company A', contact: 'John', amount: 5000, description: 'Unpaid wages' })).rejects.toThrow();
+      await expect(
+        controller.create(999, {
+          company: 'Company A',
+          contact: 'John',
+          amount: 5000,
+          description: 'Unpaid wages',
+        }),
+      ).rejects.toThrow();
     });
   });
 
   describe('comment Integration', () => {
     it('should add comment to exposure', async () => {
-      const mockComment = { id: 1, exposureId: 1, userId: 1, content: 'Great exposure!' };
+      const mockComment = {
+        id: 1,
+        exposureId: 1,
+        userId: 1,
+        content: 'Great exposure!',
+      };
 
       commentRepository.create.mockReturnValue(mockComment);
       commentRepository.save.mockResolvedValue(mockComment);

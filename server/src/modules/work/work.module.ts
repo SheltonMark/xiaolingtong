@@ -9,7 +9,9 @@ import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Checkin, WorkLog, JobApplication, Job, User])],
+  imports: [
+    TypeOrmModule.forFeature([Checkin, WorkLog, JobApplication, Job, User]),
+  ],
   controllers: [WorkController],
   providers: [WorkService],
 })

@@ -29,15 +29,20 @@ export class PaymentService {
 
   constructor(
     private config: ConfigService,
-    @InjectRepository(MemberOrder) private memberOrderRepo: Repository<MemberOrder>,
+    @InjectRepository(MemberOrder)
+    private memberOrderRepo: Repository<MemberOrder>,
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(BeanTransaction)
+    private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(BeanOrder) private beanOrderRepo: Repository<BeanOrder>,
     @InjectRepository(AdOrder) private adOrderRepo: Repository<AdOrder>,
-    @InjectRepository(Settlement) private settlementRepo: Repository<Settlement>,
-    @InjectRepository(SettlementItem) private settlementItemRepo: Repository<SettlementItem>,
+    @InjectRepository(Settlement)
+    private settlementRepo: Repository<Settlement>,
+    @InjectRepository(SettlementItem)
+    private settlementItemRepo: Repository<SettlementItem>,
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
-    @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
+    @InjectRepository(WalletTransaction)
+    private walletTxRepo: Repository<WalletTransaction>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
@@ -79,7 +84,9 @@ export class PaymentService {
   generateOutTradeNo(prefix: string, orderId?: number) {
     const ts = Date.now().toString();
     const rand = crypto.randomBytes(4).toString('hex');
-    return orderId ? `${prefix}_${orderId}_${ts}_${rand}` : `${prefix}_0_${ts}_${rand}`;
+    return orderId
+      ? `${prefix}_${orderId}_${ts}_${rand}`
+      : `${prefix}_0_${ts}_${rand}`;
   }
 
   /** JSAPI 下单（小程序支付） */
@@ -90,7 +97,9 @@ export class PaymentService {
     openid: string;
     notifyUrl: string;
   }) {
-    this.logger.log(`JSAPI下单请求: outTradeNo=${params.outTradeNo}, totalFee=${params.totalFee}, openid=${params.openid}, notifyUrl=${params.notifyUrl}`);
+    this.logger.log(
+      `JSAPI下单请求: outTradeNo=${params.outTradeNo}, totalFee=${params.totalFee}, openid=${params.openid}, notifyUrl=${params.notifyUrl}`,
+    );
     try {
       const result = await this.pay.transactions_jsapi({
         description: params.description,
@@ -106,13 +115,19 @@ export class PaymentService {
         const payParams = result.data;
         // 从 package 字段提取 prepay_id 供前端判断下单是否成功
         const match = payParams.package?.match(/prepay_id=(.+)/);
-        return { ...payParams, prepay_id: match ? match[1] : payParams.package };
+        return {
+          ...payParams,
+          prepay_id: match ? match[1] : payParams.package,
+        };
       }
       // 非 200 时返回错误信息
       this.logger.error(`JSAPI下单失败: ${JSON.stringify(result)}`);
       throw new Error(result?.error || '微信支付下单失败');
     } catch (e) {
-      this.logger.error(`JSAPI下单异常: ${e.message}`, e.response?.data ? JSON.stringify(e.response.data) : e.stack);
+      this.logger.error(
+        `JSAPI下单异常: ${e.message}`,
+        e.response?.data ? JSON.stringify(e.response.data) : e.stack,
+      );
       throw e;
     }
   }
@@ -150,12 +165,14 @@ export class PaymentService {
       batch_remark: params.remark,
       total_amount: params.amount,
       total_num: 1,
-      transfer_detail_list: [{
-        out_detail_no: params.outDetailNo,
-        transfer_amount: params.amount,
-        transfer_remark: params.remark,
-        openid: params.openid,
-      }],
+      transfer_detail_list: [
+        {
+          out_detail_no: params.outDetailNo,
+          transfer_amount: params.amount,
+          transfer_remark: params.remark,
+          openid: params.openid,
+        },
+      ],
     });
     this.logger.log(`转账: ${params.outDetailNo}, amount: ${params.amount}`);
     return result;
@@ -172,10 +189,14 @@ export class PaymentService {
     const prefix = outTradeNo.split('_')[0];
 
     switch (prefix) {
-      case 'MBR': return this.handleMemberPay(outTradeNo, result);
-      case 'BEAN': return this.handleBeanPay(outTradeNo, result);
-      case 'AD': return this.handleAdPay(outTradeNo, result);
-      case 'STL': return this.handleSettlementPay(outTradeNo, result);
+      case 'MBR':
+        return this.handleMemberPay(outTradeNo, result);
+      case 'BEAN':
+        return this.handleBeanPay(outTradeNo, result);
+      case 'AD':
+        return this.handleAdPay(outTradeNo, result);
+      case 'STL':
+        return this.handleSettlementPay(outTradeNo, result);
       default:
         this.logger.warn(`未知订单前缀: ${prefix}, outTradeNo: ${outTradeNo}`);
     }
@@ -183,7 +204,9 @@ export class PaymentService {
 
   /** 会员支付回调 */
   private async handleMemberPay(outTradeNo: string, result: any) {
-    const order = await this.memberOrderRepo.findOne({ where: { id: this.extractId(outTradeNo) } });
+    const order = await this.memberOrderRepo.findOne({
+      where: { id: this.extractId(outTradeNo) },
+    });
     if (!order || order.payStatus === 'paid') return;
     order.payStatus = 'paid';
     order.paidAt = new Date();
@@ -194,7 +217,12 @@ export class PaymentService {
     let startFrom = now;
 
     // 如果用户已是会员且未过期，从现有到期时间开始累加
-    if (user && user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > now) {
+    if (
+      user &&
+      user.isMember &&
+      user.memberExpireAt &&
+      new Date(user.memberExpireAt) > now
+    ) {
       startFrom = new Date(user.memberExpireAt);
     }
 
@@ -202,14 +230,20 @@ export class PaymentService {
     expireAt.setDate(expireAt.getDate() + order.durationDays);
     order.expireAt = expireAt;
     await this.memberOrderRepo.save(order);
-    await this.userRepo.update(order.userId, { isMember: 1, memberExpireAt: expireAt });
+    await this.userRepo.update(order.userId, {
+      isMember: 1,
+      memberExpireAt: expireAt,
+    });
 
     // 通知
-    await this.notiRepo.save(this.notiRepo.create({
-      userId: order.userId, type: 'system' as any,
-      title: '会员开通成功',
-      content: `您已成功开通会员，有效期至${expireAt.toISOString().substring(0, 10)}`,
-    }));
+    await this.notiRepo.save(
+      this.notiRepo.create({
+        userId: order.userId,
+        type: 'system' as any,
+        title: '会员开通成功',
+        content: `您已成功开通会员，有效期至${expireAt.toISOString().substring(0, 10)}`,
+      }),
+    );
   }
 
   /** 灵豆充值回调 */
@@ -224,7 +258,9 @@ export class PaymentService {
         // 这种情况可能发生在数据库迁移或订单保存失败的情况下
         const openid = result.payer?.openid;
         if (!openid) {
-          this.logger.error(`灵豆充值失败: 无法获取 openid, outTradeNo: ${outTradeNo}`);
+          this.logger.error(
+            `灵豆充值失败: 无法获取 openid, outTradeNo: ${outTradeNo}`,
+          );
           return;
         }
 
@@ -235,7 +271,9 @@ export class PaymentService {
         }
 
         // 防重复：检查是否已处理
-        const exists = await this.beanTxRepo.findOne({ where: { refType: 'recharge', remark: outTradeNo } });
+        const exists = await this.beanTxRepo.findOne({
+          where: { refType: 'recharge', remark: outTradeNo },
+        });
         if (exists) {
           this.logger.log(`灵豆充值已处理: ${outTradeNo}`);
           return;
@@ -247,23 +285,31 @@ export class PaymentService {
         const beanAmount = Math.round(totalFen / 10);
 
         if (beanAmount <= 0) {
-          this.logger.error(`灵豆充值失败: 灵豆数量无效, totalFen: ${totalFen}`);
+          this.logger.error(
+            `灵豆充值失败: 灵豆数量无效, totalFen: ${totalFen}`,
+          );
           return;
         }
 
         // 更新用户灵豆余额
-        await this.userRepo.update(user.id, { beanBalance: () => `beanBalance + ${beanAmount}` });
+        await this.userRepo.update(user.id, {
+          beanBalance: () => `beanBalance + ${beanAmount}`,
+        });
 
         // 记录交易
-        await this.beanTxRepo.save(this.beanTxRepo.create({
-          userId: user.id,
-          type: 'income',
-          amount: beanAmount,
-          refType: 'recharge',
-          remark: outTradeNo,
-        }));
+        await this.beanTxRepo.save(
+          this.beanTxRepo.create({
+            userId: user.id,
+            type: 'income',
+            amount: beanAmount,
+            refType: 'recharge',
+            remark: outTradeNo,
+          }),
+        );
 
-        this.logger.log(`灵豆充值成功(备用方案): ${outTradeNo}, 用户: ${user.id}, 灵豆: ${beanAmount}`);
+        this.logger.log(
+          `灵豆充值成功(备用方案): ${outTradeNo}, 用户: ${user.id}, 灵豆: ${beanAmount}`,
+        );
         return;
       }
 
@@ -279,79 +325,114 @@ export class PaymentService {
       }
 
       // 防重复：检查是否已处理
-      const exists = await this.beanTxRepo.findOne({ where: { refType: 'recharge', remark: outTradeNo } });
+      const exists = await this.beanTxRepo.findOne({
+        where: { refType: 'recharge', remark: outTradeNo },
+      });
       if (exists) {
         this.logger.log(`灵豆充值已处理: ${outTradeNo}`);
         return;
       }
 
       // 更新用户灵豆余额
-      await this.userRepo.update(user.id, { beanBalance: () => `beanBalance + ${order.beanAmount}` });
+      await this.userRepo.update(user.id, {
+        beanBalance: () => `beanBalance + ${order.beanAmount}`,
+      });
 
       // 记录交易（type 必须是 'income' 以便 getBalance 能正确统计）
-      await this.beanTxRepo.save(this.beanTxRepo.create({
-        userId: user.id,
-        type: 'income',
-        amount: order.beanAmount,
-        refType: 'recharge',
-        remark: outTradeNo,
-      }));
+      await this.beanTxRepo.save(
+        this.beanTxRepo.create({
+          userId: user.id,
+          type: 'income',
+          amount: order.beanAmount,
+          refType: 'recharge',
+          remark: outTradeNo,
+        }),
+      );
 
       // 更新订单状态
       order.payStatus = 'paid';
       order.paidAt = new Date();
       await this.beanOrderRepo.save(order);
 
-      this.logger.log(`灵豆充值成功: ${outTradeNo}, 用户: ${user.id}, 灵豆: ${order.beanAmount}`);
+      this.logger.log(
+        `灵豆充值成功: ${outTradeNo}, 用户: ${user.id}, 灵豆: ${order.beanAmount}`,
+      );
 
       // 通知
-      await this.notiRepo.save(this.notiRepo.create({
-        userId: user.id, type: 'system' as any,
-        title: '灵豆充值成功',
-        content: `成功充值${order.beanAmount}灵豆，当前余额${user.beanBalance + order.beanAmount}灵豆`,
-      }));
+      await this.notiRepo.save(
+        this.notiRepo.create({
+          userId: user.id,
+          type: 'system' as any,
+          title: '灵豆充值成功',
+          content: `成功充值${order.beanAmount}灵豆，当前余额${user.beanBalance + order.beanAmount}灵豆`,
+        }),
+      );
 
       // 充值返佣
       await this.processCommission(user, order.totalFee, order.id);
     } catch (e) {
-      this.logger.error(`灵豆充值异常: ${outTradeNo}, 错误: ${e.message}`, e.stack);
+      this.logger.error(
+        `灵豆充值异常: ${outTradeNo}, 错误: ${e.message}`,
+        e.stack,
+      );
     }
   }
 
   /** 充值返佣：邀请人获得充值金额的一定比例 */
-  private async processCommission(user: User, totalFeeFen: number, orderId: number) {
+  private async processCommission(
+    user: User,
+    totalFeeFen: number,
+    orderId: number,
+  ) {
     try {
       if (!user.invitedBy) return;
       const inviter = await this.userRepo.findOneBy({ id: user.invitedBy });
       if (!inviter || inviter.role !== 'enterprise') return;
 
-      const config = await this.sysConfigRepo.findOne({ where: { key: 'commission_rate' } });
-      const rate = config ? parseFloat(config.value) || 0.10 : 0.10;
+      const config = await this.sysConfigRepo.findOne({
+        where: { key: 'commission_rate' },
+      });
+      const rate = config ? parseFloat(config.value) || 0.1 : 0.1;
       const amountYuan = totalFeeFen / 100;
       const commission = Math.round(amountYuan * rate * 100) / 100;
       if (commission <= 0) return;
 
-      let wallet = await this.walletRepo.findOne({ where: { userId: inviter.id } });
+      let wallet = await this.walletRepo.findOne({
+        where: { userId: inviter.id },
+      });
       if (!wallet) {
-        wallet = await this.walletRepo.save(this.walletRepo.create({ userId: inviter.id }));
+        wallet = await this.walletRepo.save(
+          this.walletRepo.create({ userId: inviter.id }),
+        );
       }
       wallet.balance = +wallet.balance + commission;
       wallet.totalIncome = +wallet.totalIncome + commission;
       await this.walletRepo.save(wallet);
 
-      await this.walletTxRepo.save(this.walletTxRepo.create({
-        userId: inviter.id, type: 'commission', amount: commission,
-        refType: 'bean_recharge', refId: orderId,
-        status: 'success', remark: '邀请返佣',
-      }));
+      await this.walletTxRepo.save(
+        this.walletTxRepo.create({
+          userId: inviter.id,
+          type: 'commission',
+          amount: commission,
+          refType: 'bean_recharge',
+          refId: orderId,
+          status: 'success',
+          remark: '邀请返佣',
+        }),
+      );
 
-      await this.notiRepo.save(this.notiRepo.create({
-        userId: inviter.id, type: 'invite' as any,
-        title: '返佣到账',
-        content: `您邀请的用户充值了${amountYuan}元，您获得${commission}元返佣`,
-      }));
+      await this.notiRepo.save(
+        this.notiRepo.create({
+          userId: inviter.id,
+          type: 'invite' as any,
+          title: '返佣到账',
+          content: `您邀请的用户充值了${amountYuan}元，您获得${commission}元返佣`,
+        }),
+      );
 
-      this.logger.log(`返佣成功: 邀请人${inviter.id}, 金额${commission}元, 订单${orderId}`);
+      this.logger.log(
+        `返佣成功: 邀请人${inviter.id}, 金额${commission}元, 订单${orderId}`,
+      );
     } catch (e) {
       this.logger.error(`返佣异常: ${e.message}`, e.stack);
     }
@@ -365,14 +446,21 @@ export class PaymentService {
     const startAt = new Date();
     const endAt = new Date();
     endAt.setDate(endAt.getDate() + order.durationDays);
-    await this.adOrderRepo.update(orderId, { status: 'active', startAt, endAt });
+    await this.adOrderRepo.update(orderId, {
+      status: 'active',
+      startAt,
+      endAt,
+    });
 
     // 通知
-    await this.notiRepo.save(this.notiRepo.create({
-      userId: order.userId, type: 'system' as any,
-      title: '广告投放已生效',
-      content: `您的广告已开始投放，有效期至${endAt.toISOString().substring(0, 10)}`,
-    }));
+    await this.notiRepo.save(
+      this.notiRepo.create({
+        userId: order.userId,
+        type: 'system' as any,
+        title: '广告投放已生效',
+        content: `您的广告已开始投放，有效期至${endAt.toISOString().substring(0, 10)}`,
+      }),
+    );
   }
 
   /** 用工结算支付回调 */
@@ -385,9 +473,13 @@ export class PaymentService {
     await this.settlementRepo.save(stl);
 
     // 分发工资到各临工钱包
-    const items = await this.settlementItemRepo.find({ where: { settlementId: stl.id } });
+    const items = await this.settlementItemRepo.find({
+      where: { settlementId: stl.id },
+    });
     for (const item of items) {
-      let wallet = await this.walletRepo.findOne({ where: { userId: item.workerId } });
+      let wallet = await this.walletRepo.findOne({
+        where: { userId: item.workerId },
+      });
       if (!wallet) {
         wallet = this.walletRepo.create({ userId: item.workerId });
         wallet = await this.walletRepo.save(wallet);
@@ -396,26 +488,37 @@ export class PaymentService {
       wallet.totalIncome = +wallet.totalIncome + +item.workerPay;
       await this.walletRepo.save(wallet);
 
-      await this.walletTxRepo.save(this.walletTxRepo.create({
-        userId: item.workerId, type: 'income', amount: item.workerPay,
-        refType: 'settlement', refId: stl.id, status: 'success',
-        remark: '工资结算',
-      }));
+      await this.walletTxRepo.save(
+        this.walletTxRepo.create({
+          userId: item.workerId,
+          type: 'income',
+          amount: item.workerPay,
+          refType: 'settlement',
+          refId: stl.id,
+          status: 'success',
+          remark: '工资结算',
+        }),
+      );
 
       // 完工信用分 +2
       await this.userRepo.increment({ id: item.workerId }, 'creditScore', 2);
 
       // 通知临工工资到账
-      await this.notiRepo.save(this.notiRepo.create({
-        userId: item.workerId, type: 'settlement' as any,
-        title: '工资到账',
-        content: `您有一笔工资¥${item.workerPay}已到账，信用分+2`,
-      }));
+      await this.notiRepo.save(
+        this.notiRepo.create({
+          userId: item.workerId,
+          type: 'settlement' as any,
+          title: '工资到账',
+          content: `您有一笔工资¥${item.workerPay}已到账，信用分+2`,
+        }),
+      );
     }
 
     // 分发管理员服务费
     if (stl.supervisorId && +stl.supervisorFee > 0) {
-      let supWallet = await this.walletRepo.findOne({ where: { userId: stl.supervisorId } });
+      let supWallet = await this.walletRepo.findOne({
+        where: { userId: stl.supervisorId },
+      });
       if (!supWallet) {
         supWallet = this.walletRepo.create({ userId: stl.supervisorId });
         supWallet = await this.walletRepo.save(supWallet);
@@ -424,11 +527,17 @@ export class PaymentService {
       supWallet.totalIncome = +supWallet.totalIncome + +stl.supervisorFee;
       await this.walletRepo.save(supWallet);
 
-      await this.walletTxRepo.save(this.walletTxRepo.create({
-        userId: stl.supervisorId, type: 'income', amount: stl.supervisorFee,
-        refType: 'settlement', refId: stl.id, status: 'success',
-        remark: '管理员服务费',
-      }));
+      await this.walletTxRepo.save(
+        this.walletTxRepo.create({
+          userId: stl.supervisorId,
+          type: 'income',
+          amount: stl.supervisorFee,
+          refType: 'settlement',
+          refId: stl.id,
+          status: 'success',
+          remark: '管理员服务费',
+        }),
+      );
     }
 
     stl.status = 'distributed';

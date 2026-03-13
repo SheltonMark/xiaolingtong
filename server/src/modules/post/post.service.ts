@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThanOrEqual, In } from 'typeorm';
 import { Post } from '../../entities/post.entity';
@@ -15,11 +19,14 @@ import { Promotion } from '../../entities/promotion.entity';
 export class PostService {
   constructor(
     @InjectRepository(Post) private postRepo: Repository<Post>,
-    @InjectRepository(ContactUnlock) private unlockRepo: Repository<ContactUnlock>,
+    @InjectRepository(ContactUnlock)
+    private unlockRepo: Repository<ContactUnlock>,
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(BeanTransaction)
+    private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
-    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(EnterpriseCert)
+    private entCertRepo: Repository<EnterpriseCert>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
     @InjectRepository(Promotion) private promoRepo: Repository<Promotion>,
@@ -44,9 +51,15 @@ export class PostService {
     return String(value).trim();
   }
 
-  private composePostContent(type: string, title: string, description: string, fields: Record<string, any>) {
+  private composePostContent(
+    type: string,
+    title: string,
+    description: string,
+    fields: Record<string, any>,
+  ) {
     const safeFields = fields || {};
-    const joinSegments = (segments: string[]) => segments.filter(Boolean).join('，');
+    const joinSegments = (segments: string[]) =>
+      segments.filter(Boolean).join('，');
 
     const productName = this.normalizeText(title || safeFields.productName);
     const processType = this.normalizeText(safeFields.processType || title);
@@ -62,18 +75,21 @@ export class PostService {
     const processDesc = this.normalizeText(safeFields.processDesc);
     const extraDesc = this.normalizeText(description);
 
-    const budgetText = priceMin && priceMax
-      ? `预算${priceMin}-${priceMax}元`
-      : priceMin
-        ? `预算${priceMin}元起`
-        : priceMax
-          ? `预算${priceMax}元以内`
-          : '';
+    const budgetText =
+      priceMin && priceMax
+        ? `预算${priceMin}-${priceMax}元`
+        : priceMin
+          ? `预算${priceMin}元起`
+          : priceMax
+            ? `预算${priceMax}元以内`
+            : '';
 
     let autoContent = '';
     if (type === 'purchase') {
       autoContent = joinSegments([
-        productName ? `采购${productName}${quantity ? `${quantity}个` : ''}` : '',
+        productName
+          ? `采购${productName}${quantity ? `${quantity}个` : ''}`
+          : '',
         spec ? `规格：${spec}` : '',
         deliveryDays ? `交期：${deliveryDays}` : '',
         budgetText,
@@ -107,7 +123,8 @@ export class PostService {
     const certMap = new Map<number, EnterpriseCert>();
     if (!uniqueIds.length) return certMap;
 
-    const certs = await this.entCertRepo.createQueryBuilder('c')
+    const certs = await this.entCertRepo
+      .createQueryBuilder('c')
       .where('c.userId IN (:...userIds)', { userIds: uniqueIds })
       .orderBy('c.userId', 'ASC')
       .addOrderBy('c.id', 'DESC')
@@ -140,50 +157,51 @@ export class PostService {
   private async getPromotedPostIds(postIds: number[]): Promise<Set<number>> {
     if (!postIds.length) return new Set();
     const now = new Date();
-    const promos = await this.promoRepo.createQueryBuilder('pr')
+    const promos = await this.promoRepo
+      .createQueryBuilder('pr')
       .select('pr.postId')
       .where('pr.postId IN (:...postIds)', { postIds })
       .andWhere('pr.boostType = :type', { type: 'top' })
       .andWhere('pr.startAt <= :now', { now })
       .andWhere('pr.endAt >= :now', { now })
       .getMany();
-    return new Set(promos.map(p => Number(p.postId)));
+    return new Set(promos.map((p) => Number(p.postId)));
   }
 
   async list(query: any, userId?: number) {
     const { type, industry, keyword, page = 1, pageSize = 20 } = query;
-    const qb = this.postRepo.createQueryBuilder('p')
+    const qb = this.postRepo
+      .createQueryBuilder('p')
       .leftJoinAndSelect('p.user', 'u')
       .where('p.status = :status', { status: 'active' });
 
     if (type) qb.andWhere('p.type = :type', { type });
     if (industry) qb.andWhere('p.industry = :industry', { industry });
-    if (keyword) {
-      qb.andWhere(
-        '(p.title LIKE :kw OR p.content LIKE :kw)',
-        { kw: `%${keyword}%` }
-      );
-    }
+    if (keyword) qb.andWhere('p.content LIKE :kw', { kw: `%${keyword}%` });
 
     qb.orderBy('p.createdAt', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
-    const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
-    const promotedIds = await this.getPromotedPostIds((list || []).map(item => Number(item.id)));
+    const certMap = await this.getEnterpriseCertMap(
+      (list || []).map((item) => Number(item.userId)),
+    );
+    const promotedIds = await this.getPromotedPostIds(
+      (list || []).map((item) => Number(item.id)),
+    );
 
     // 查询当前用户已解锁的信息
-    const postIds = list.map(item => Number(item.id));
+    const postIds = list.map((item) => Number(item.id));
     const unlockedPostIds = new Set<number>();
     if (userId && postIds.length > 0) {
       const unlocks = await this.unlockRepo.find({
         where: { userId, postId: In(postIds) },
       });
-      unlocks.forEach(unlock => unlockedPostIds.add(Number(unlock.postId)));
+      unlocks.forEach((unlock) => unlockedPostIds.add(Number(unlock.postId)));
     }
 
-    const normalizedList = (list || []).map(item => {
+    const normalizedList = (list || []).map((item) => {
       const postId = Number(item.id);
       const itemUserId = Number(item.userId);
       const isOwner = userId && userId > 0 && itemUserId === userId;
@@ -211,7 +229,9 @@ export class PostService {
     });
 
     // 置顶帖排前面
-    normalizedList.sort((a, b) => (b.isPromoted ? 1 : 0) - (a.isPromoted ? 1 : 0));
+    normalizedList.sort(
+      (a, b) => (b.isPromoted ? 1 : 0) - (a.isPromoted ? 1 : 0),
+    );
 
     return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }
@@ -221,13 +241,14 @@ export class PostService {
 
     // 如果指定了 type=job，只返回招工信息
     if (type === 'job') {
-      const qb = this.jobRepo.createQueryBuilder('j')
+      const qb = this.jobRepo
+        .createQueryBuilder('j')
         .where('j.userId = :userId', { userId })
         .orderBy('j.createdAt', 'DESC')
         .skip((page - 1) * pageSize)
         .take(pageSize);
       const [list, total] = await qb.getManyAndCount();
-      const jobList = list.map(job => ({
+      const jobList = list.map((job) => ({
         id: job.id,
         type: 'job',
         title: job.title,
@@ -235,13 +256,14 @@ export class PostService {
         status: job.status === 'recruiting' ? 'active' : 'expired',
         viewCount: 0,
         createdAt: job.createdAt,
-        expireAt: job.dateEnd
+        expireAt: job.dateEnd,
       }));
       return { list: jobList, total, page: +page, pageSize: +pageSize };
     }
 
     // 否则返回 posts
-    const qb = this.postRepo.createQueryBuilder('p')
+    const qb = this.postRepo
+      .createQueryBuilder('p')
       .where('p.userId = :userId', { userId })
       .andWhere('p.status != :del', { del: 'deleted' });
 
@@ -252,9 +274,13 @@ export class PostService {
       .take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
-    const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
-    const promotedIds = await this.getPromotedPostIds((list || []).map(item => Number(item.id)));
-    const normalizedList = (list || []).map(item => ({
+    const certMap = await this.getEnterpriseCertMap(
+      (list || []).map((item) => Number(item.userId)),
+    );
+    const promotedIds = await this.getPromotedPostIds(
+      (list || []).map((item) => Number(item.id)),
+    );
+    const normalizedList = (list || []).map((item) => ({
       ...this.buildCompanyInfo(item, certMap),
       isPromoted: promotedIds.has(Number(item.id)),
       contactUnlocked: true, // 自己的信息始终已解锁
@@ -266,19 +292,18 @@ export class PostService {
   }
 
   async detail(id: number, userId: number) {
-    // 验证ID
-    const postId = Number(id);
-    if (!postId || isNaN(postId) || postId <= 0) {
-      throw new BadRequestException('无效的信息ID');
-    }
-
-    const post = await this.postRepo.findOne({ where: { id: postId }, relations: ['user'] });
+    const post = await this.postRepo.findOne({
+      where: { id },
+      relations: ['user'],
+    });
     if (!post) throw new BadRequestException('信息不存在');
 
     post.viewCount++;
     await this.postRepo.save(post);
 
-    const unlocked = await this.unlockRepo.findOne({ where: { userId, postId: postId } });
+    const unlocked = await this.unlockRepo.findOne({
+      where: { userId, postId: id },
+    });
     const userPostCount = await this.postRepo.count({
       where: { userId: post.userId, status: 'active' as any },
     });
@@ -289,7 +314,12 @@ export class PostService {
     console.log('post.userId:', post.userId);
     console.log('certMap size:', certMap.size);
     const cert = certMap.get(Number(post.userId));
-    console.log('cert:', cert ? { id: cert.id, status: cert.status, companyName: cert.companyName } : null);
+    console.log(
+      'cert:',
+      cert
+        ? { id: cert.id, status: cert.status, companyName: cert.companyName }
+        : null,
+    );
     console.log('========================');
 
     const normalizedPost = this.buildCompanyInfo(post, certMap);
@@ -300,11 +330,13 @@ export class PostService {
     const isUnlocked = !!unlocked || isOwner;
 
     // 如果已解锁，返回联系方式
-    const contactInfo = isUnlocked ? {
-      contactName: post.contactName,
-      contactPhone: post.contactPhone,
-      contactWechat: post.contactWechat,
-    } : {};
+    const contactInfo = isUnlocked
+      ? {
+          contactName: post.contactName,
+          contactPhone: post.contactPhone,
+          contactWechat: post.contactWechat,
+        }
+      : {};
 
     return {
       ...normalizedPost,
@@ -330,7 +362,12 @@ export class PostService {
       ...structuredFields
     } = dto;
 
-    const content = this.composePostContent(type, title, description, structuredFields);
+    const content = this.composePostContent(
+      type,
+      title,
+      description,
+      structuredFields,
+    );
     const phoneVisible = showPhone !== false;
     const wechatVisible = showWechat !== false;
     const normalizedContactName = this.normalizeText(contactName) || null;
@@ -345,13 +382,18 @@ export class PostService {
       title,
       industry: category,
       content,
-      expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : undefined,
+      expireAt: validityDays
+        ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000)
+        : undefined,
     };
-    if (Object.keys(structuredFields).length) postData.fields = structuredFields;
+    if (Object.keys(structuredFields).length)
+      postData.fields = structuredFields;
     if (images && images.length) postData.images = images;
     if (normalizedContactName) postData.contactName = normalizedContactName;
-    if (phoneVisible && normalizedContactPhone) postData.contactPhone = normalizedContactPhone;
-    if (wechatVisible && normalizedContactWechat) postData.contactWechat = normalizedContactWechat;
+    if (phoneVisible && normalizedContactPhone)
+      postData.contactPhone = normalizedContactPhone;
+    if (wechatVisible && normalizedContactWechat)
+      postData.contactWechat = normalizedContactWechat;
 
     const post = this.postRepo.create(postData);
     return this.postRepo.save(post);
@@ -359,7 +401,8 @@ export class PostService {
 
   async update(id: number, userId: number, dto: any) {
     const post = await this.postRepo.findOne({ where: { id } });
-    if (!post || post.userId !== userId) throw new ForbiddenException('无权操作');
+    if (!post || post.userId !== userId)
+      throw new ForbiddenException('无权操作');
     await this.checkKeywords((dto.content || '') + (dto.title || ''));
     Object.assign(post, dto);
     return this.postRepo.save(post);
@@ -367,7 +410,8 @@ export class PostService {
 
   async remove(id: number, userId: number) {
     const post = await this.postRepo.findOne({ where: { id } });
-    if (!post || post.userId !== userId) throw new ForbiddenException('无权操作');
+    if (!post || post.userId !== userId)
+      throw new ForbiddenException('无权操作');
     post.status = 'deleted';
     await this.postRepo.save(post);
     return { message: '已删除' };
@@ -376,21 +420,30 @@ export class PostService {
   async previewUnlockCost(postId: number, userId: number) {
     const post = await this.postRepo.findOne({ where: { id: postId } });
     if (!post) throw new BadRequestException('信息不存在');
-    if (post.userId === userId) return { alreadyUnlocked: true, cost: 0, isFree: true };
+    if (post.userId === userId)
+      return { alreadyUnlocked: true, cost: 0, isFree: true };
 
-    const existing = await this.unlockRepo.findOne({ where: { userId, postId } });
+    const existing = await this.unlockRepo.findOne({
+      where: { userId, postId },
+    });
     if (existing) return { alreadyUnlocked: true, cost: 0, isFree: true };
 
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
 
     // 读取配置
-    const baseCost = parseInt(await this.getConfig('unlock_contact_cost', '10')) || 10;
-    const dailyFree = parseInt(await this.getConfig('member_daily_free_views', '5')) || 5;
-    const discount = parseFloat(await this.getConfig('member_view_discount', '0.5')) || 0.5;
+    const baseCost =
+      parseInt(await this.getConfig('unlock_contact_cost', '10')) || 10;
+    const dailyFree =
+      parseInt(await this.getConfig('member_daily_free_views', '5')) || 5;
+    const discount =
+      parseFloat(await this.getConfig('member_view_discount', '0.5')) || 0.5;
 
     // 判断会员状态
-    const isMember = user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date();
+    const isMember =
+      user.isMember &&
+      user.memberExpireAt &&
+      new Date(user.memberExpireAt) > new Date();
 
     let actualCost = baseCost;
     let isFree = false;
@@ -433,19 +486,27 @@ export class PostService {
     if (!post) throw new BadRequestException('信息不存在');
     if (post.userId === userId) return { unlocked: true, cost: 0 };
 
-    const existing = await this.unlockRepo.findOne({ where: { userId, postId } });
+    const existing = await this.unlockRepo.findOne({
+      where: { userId, postId },
+    });
     if (existing) return { unlocked: true, cost: 0 };
 
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
 
     // 读取配置
-    const baseCost = parseInt(await this.getConfig('unlock_contact_cost', '10')) || 10;
-    const dailyFree = parseInt(await this.getConfig('member_daily_free_views', '5')) || 5;
-    const discount = parseFloat(await this.getConfig('member_view_discount', '0.5')) || 0.5;
+    const baseCost =
+      parseInt(await this.getConfig('unlock_contact_cost', '10')) || 10;
+    const dailyFree =
+      parseInt(await this.getConfig('member_daily_free_views', '5')) || 5;
+    const discount =
+      parseFloat(await this.getConfig('member_view_discount', '0.5')) || 0.5;
 
     // 判断会员状态
-    const isMember = user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date();
+    const isMember =
+      user.isMember &&
+      user.memberExpireAt &&
+      new Date(user.memberExpireAt) > new Date();
 
     let actualCost = baseCost;
     let freeUsed = false;
@@ -478,18 +539,30 @@ export class PostService {
       user.beanBalance -= actualCost;
       await this.userRepo.save(user);
 
-      await this.beanTxRepo.save(this.beanTxRepo.create({
-        userId, type: 'unlock_contact', amount: -actualCost,
-        refType: 'post', refId: postId,
-        remark: isMember ? '解锁联系方式(会员折扣)' : '解锁联系方式',
-      }));
+      await this.beanTxRepo.save(
+        this.beanTxRepo.create({
+          userId,
+          type: 'unlock_contact',
+          amount: -actualCost,
+          refType: 'post',
+          refId: postId,
+          remark: isMember ? '解锁联系方式(会员折扣)' : '解锁联系方式',
+        }),
+      );
     }
 
-    await this.unlockRepo.save(this.unlockRepo.create({ userId, postId, beanCost: actualCost }));
+    await this.unlockRepo.save(
+      this.unlockRepo.create({ userId, postId, beanCost: actualCost }),
+    );
 
     post.contactUnlockCount++;
     await this.postRepo.save(post);
 
-    return { unlocked: true, cost: actualCost, beanBalance: user.beanBalance, freeUsed };
+    return {
+      unlocked: true,
+      cost: actualCost,
+      beanBalance: user.beanBalance,
+      freeUsed,
+    };
   }
 }

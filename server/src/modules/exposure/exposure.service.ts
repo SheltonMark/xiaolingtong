@@ -11,21 +11,24 @@ import { User } from '../../entities/user.entity';
 export class ExposureService {
   constructor(
     @InjectRepository(Exposure) private expRepo: Repository<Exposure>,
-    @InjectRepository(ExposureComment) private commentRepo: Repository<ExposureComment>,
+    @InjectRepository(ExposureComment)
+    private commentRepo: Repository<ExposureComment>,
   ) {}
 
   async list(query: any) {
     const { category, page = 1, pageSize = 20 } = query;
-    const qb = this.expRepo.createQueryBuilder('e')
+    const qb = this.expRepo
+      .createQueryBuilder('e')
       .leftJoinAndSelect('e.publisher', 'u')
       .where('e.status = :status', { status: 'approved' });
     if (category) qb.andWhere('e.category = :category', { category });
     qb.orderBy('e.createdAt', 'DESC')
-      .skip((page - 1) * pageSize).take(pageSize);
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
 
     // 格式化列表数据
-    const formattedList = list.map(item => ({
+    const formattedList = list.map((item) => ({
       id: item.id,
       company: item.companyName || '',
       contact: item.personName || '',
@@ -36,29 +39,46 @@ export class ExposureService {
       date: this.formatDate(item.createdAt),
       comments: 0, // 评论数需要单独查询
       avatarText: this.getCategoryText(item.category)[0],
-      avatarColor: this.getAvatarColor(item.category)
+      avatarColor: this.getAvatarColor(item.category),
     }));
 
     return { list: formattedList, total, page: +page, pageSize: +pageSize };
   }
 
   private getCategoryText(category: string): string {
-    const map = { 'false_info': '虚假信息', 'fraud': '欺诈行为', 'wage_theft': '欠薪欠款' };
+    const map = {
+      false_info: '虚假信息',
+      fraud: '欺诈行为',
+      wage_theft: '欠薪欠款',
+    };
     return map[category] || '曝光';
   }
 
   private getAvatarColor(category: string): string {
-    const map = { 'false_info': '#F59E0B', 'fraud': '#EF4444', 'wage_theft': '#F43F5E' };
+    const map = {
+      false_info: '#F59E0B',
+      fraud: '#EF4444',
+      wage_theft: '#F43F5E',
+    };
     return map[category] || '#64748B';
   }
 
   private formatDate(date: Date): string {
     const d = new Date(date);
-    return d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-');
+    return d
+      .toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      })
+      .replace(/\//g, '-');
   }
 
   async detail(id: number) {
-    const exp = await this.expRepo.findOne({ where: { id }, relations: ['publisher'] });
+    const exp = await this.expRepo.findOne({
+      where: { id },
+      relations: ['publisher'],
+    });
     if (!exp) throw new BadRequestException('曝光信息不存在');
     exp.viewCount++;
     await this.expRepo.save(exp);
@@ -76,13 +96,13 @@ export class ExposureService {
       if (role === 'enterprise') {
         const cert = await this.expRepo.manager.findOne(EnterpriseCert, {
           where: { userId: exp.publisher.id, status: 'approved' },
-          order: { createdAt: 'DESC' }
+          order: { createdAt: 'DESC' },
         });
         if (cert) publisherName = cert.companyName;
       } else if (role === 'worker') {
         const cert = await this.expRepo.manager.findOne(WorkerCert, {
           where: { userId: exp.publisher.id, status: 'approved' },
-          order: { createdAt: 'DESC' }
+          order: { createdAt: 'DESC' },
         });
         if (cert) publisherName = cert.realName;
       }
@@ -104,32 +124,34 @@ export class ExposureService {
         name: publisherName,
         avatarUrl: publisherAvatar,
       },
-      comments: comments.map(c => ({
+      comments: comments.map((c) => ({
         id: c.id,
         content: c.content,
         createdAt: c.createdAt,
         user: {
           nickname: c.user?.nickname || '',
           avatarUrl: c.user?.avatarUrl || '',
-        }
-      }))
+        },
+      })),
     };
   }
 
   async create(publisherId: number, dto: any) {
     // Check if user is verified
-    const user = await this.expRepo.manager.findOne(User, { where: { id: publisherId } });
+    const user = await this.expRepo.manager.findOne(User, {
+      where: { id: publisherId },
+    });
     if (!user) throw new BadRequestException('用户不存在');
 
     let isVerified = false;
     if (user.role === 'enterprise') {
       const cert = await this.expRepo.manager.findOne(EnterpriseCert, {
-        where: { userId: publisherId, status: 'approved' }
+        where: { userId: publisherId, status: 'approved' },
       });
       isVerified = !!cert;
     } else if (user.role === 'worker') {
       const cert = await this.expRepo.manager.findOne(WorkerCert, {
-        where: { userId: publisherId, status: 'approved' }
+        where: { userId: publisherId, status: 'approved' },
       });
       isVerified = !!cert;
     }
@@ -146,7 +168,7 @@ export class ExposureService {
       amount: dto.amount,
       description: dto.description,
       images: dto.images,
-      status: 'pending'
+      status: 'pending',
     });
     return this.expRepo.save(exp);
   }

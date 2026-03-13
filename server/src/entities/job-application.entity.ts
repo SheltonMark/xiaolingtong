@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 import { Job } from './job.entity';
 
@@ -13,7 +21,20 @@ export class JobApplication {
   @Column({ type: 'bigint' })
   workerId: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'accepted', 'confirmed', 'working', 'done', 'rejected', 'released', 'cancelled'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: [
+      'pending',
+      'accepted',
+      'confirmed',
+      'working',
+      'done',
+      'rejected',
+      'released',
+      'cancelled',
+    ],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ type: 'tinyint', default: 0 })
@@ -21,6 +42,12 @@ export class JobApplication {
 
   @Column({ type: 'datetime', nullable: true })
   confirmedAt: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  acceptedAt: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  rejectedAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;

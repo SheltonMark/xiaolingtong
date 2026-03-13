@@ -131,7 +131,14 @@ describe('PostService', () => {
   describe('list', () => {
     it('should return posts with pagination', async () => {
       const mockPosts = [
-        { id: 1, userId: 1, type: 'purchase', content: 'test', status: 'active', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          type: 'purchase',
+          content: 'test',
+          status: 'active',
+          createdAt: new Date(),
+        },
       ];
       const mockQueryBuilder = {
         leftJoinAndSelect: jest.fn().mockReturnThis(),
@@ -180,7 +187,9 @@ describe('PostService', () => {
 
       await service.list({ type: 'purchase', page: 1, pageSize: 20 });
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.type = :type', { type: 'purchase' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.type = :type', {
+        type: 'purchase',
+      });
     });
 
     it('should filter posts by industry', async () => {
@@ -204,7 +213,10 @@ describe('PostService', () => {
 
       await service.list({ industry: 'electronics', page: 1, pageSize: 20 });
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.industry = :industry', { industry: 'electronics' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'p.industry = :industry',
+        { industry: 'electronics' },
+      );
     });
 
     it('should search posts by keyword', async () => {
@@ -228,7 +240,10 @@ describe('PostService', () => {
 
       await service.list({ keyword: 'test', page: 1, pageSize: 20 });
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.content LIKE :kw', { kw: '%test%' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'p.content LIKE :kw',
+        { kw: '%test%' },
+      );
     });
 
     it('should return empty list when no posts found', async () => {
@@ -260,7 +275,14 @@ describe('PostService', () => {
   describe('myPosts', () => {
     it('should return user posts with pagination', async () => {
       const mockPosts = [
-        { id: 1, userId: 1, type: 'purchase', content: 'test', status: 'active', createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          type: 'purchase',
+          content: 'test',
+          status: 'active',
+          createdAt: new Date(),
+        },
       ];
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
@@ -287,7 +309,15 @@ describe('PostService', () => {
 
     it('should return job posts when type is job', async () => {
       const mockJobs = [
-        { id: 1, userId: 1, title: 'test job', description: 'test', status: 'recruiting', createdAt: new Date(), dateEnd: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          title: 'test job',
+          description: 'test',
+          status: 'recruiting',
+          createdAt: new Date(),
+          dateEnd: new Date(),
+        },
       ];
       const mockQueryBuilder = {
         where: jest.fn().mockReturnThis(),
@@ -299,7 +329,11 @@ describe('PostService', () => {
 
       jobRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.myPosts(1, { type: 'job', page: 1, pageSize: 20 });
+      const result = await service.myPosts(1, {
+        type: 'job',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result.list[0].type).toBe('job');
       expect(result.total).toBe(1);
@@ -325,7 +359,9 @@ describe('PostService', () => {
 
       await service.myPosts(1, { type: 'purchase', page: 1, pageSize: 20 });
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.type = :type', { type: 'purchase' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.type = :type', {
+        type: 'purchase',
+      });
     });
 
     it('should exclude deleted posts', async () => {
@@ -348,7 +384,10 @@ describe('PostService', () => {
 
       await service.myPosts(1, { page: 1, pageSize: 20 });
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.status != :del', { del: 'deleted' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
+        'p.status != :del',
+        { del: 'deleted' },
+      );
     });
   });
 
@@ -398,9 +437,11 @@ describe('PostService', () => {
         where: jest.fn().mockReturnThis(),
         orderBy: jest.fn().mockReturnThis(),
         addOrderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([
-          { userId: '1', companyName: 'Test Company', status: 'approved' },
-        ]),
+        getMany: jest
+          .fn()
+          .mockResolvedValue([
+            { userId: '1', companyName: 'Test Company', status: 'approved' },
+          ]),
       });
 
       const result = await service.detail(1, 2);
@@ -506,7 +547,9 @@ describe('PostService', () => {
 
       keywordRepo.find.mockResolvedValue([{ word: 'forbidden' }]);
 
-      await expect(service.create(1, { ...dto, title: 'forbidden product' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.create(1, { ...dto, title: 'forbidden product' }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should set expireAt when validityDays provided', async () => {
@@ -553,7 +596,12 @@ describe('PostService', () => {
 
   describe('update', () => {
     it('should update post successfully', async () => {
-      const mockPost = { id: 1, userId: 1, type: 'purchase', content: 'old content' };
+      const mockPost = {
+        id: 1,
+        userId: 1,
+        type: 'purchase',
+        content: 'old content',
+      };
       const updateDto = { content: 'new content' };
 
       postRepo.findOne.mockResolvedValue(mockPost);
@@ -569,24 +617,40 @@ describe('PostService', () => {
     it('should throw error when post not found', async () => {
       postRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.update(999, 1, {})).rejects.toThrow(ForbiddenException);
+      await expect(service.update(999, 1, {})).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw error when user is not post owner', async () => {
-      const mockPost = { id: 1, userId: 1, type: 'purchase', content: 'old content' };
+      const mockPost = {
+        id: 1,
+        userId: 1,
+        type: 'purchase',
+        content: 'old content',
+      };
 
       postRepo.findOne.mockResolvedValue(mockPost);
 
-      await expect(service.update(1, 2, {})).rejects.toThrow(ForbiddenException);
+      await expect(service.update(1, 2, {})).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw error when content contains forbidden keyword', async () => {
-      const mockPost = { id: 1, userId: 1, type: 'purchase', content: 'old content' };
+      const mockPost = {
+        id: 1,
+        userId: 1,
+        type: 'purchase',
+        content: 'old content',
+      };
 
       postRepo.findOne.mockResolvedValue(mockPost);
       keywordRepo.find.mockResolvedValue([{ word: 'forbidden' }]);
 
-      await expect(service.update(1, 1, { content: 'forbidden content' })).rejects.toThrow(BadRequestException);
+      await expect(
+        service.update(1, 1, { content: 'forbidden content' }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
@@ -663,7 +727,9 @@ describe('PostService', () => {
     it('should throw error when post not found', async () => {
       postRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.unlockContact(999, 1)).rejects.toThrow(BadRequestException);
+      await expect(service.unlockContact(999, 1)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when user has insufficient beans', async () => {
@@ -674,7 +740,9 @@ describe('PostService', () => {
       unlockRepo.findOne.mockResolvedValue(null);
       userRepo.findOneBy.mockResolvedValue(mockUser);
 
-      await expect(service.unlockContact(1, 1)).rejects.toThrow(BadRequestException);
+      await expect(service.unlockContact(1, 1)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when user not found', async () => {
@@ -684,7 +752,9 @@ describe('PostService', () => {
       unlockRepo.findOne.mockResolvedValue(null);
       userRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.unlockContact(1, 1)).rejects.toThrow(BadRequestException);
+      await expect(service.unlockContact(1, 1)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

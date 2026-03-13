@@ -25,7 +25,11 @@ export class ExposureController {
   }
 
   @Post(':id/comment')
-  comment(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body('content') content: string) {
+  comment(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body('content') content: string,
+  ) {
     return this.exposureService.comment(id, userId, content);
   }
 }

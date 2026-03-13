@@ -139,7 +139,9 @@ describe('AuthModule Integration Tests', () => {
     });
 
     it('should throw BadRequestException when code is null', () => {
-      expect(() => controller.wxLogin(null as any)).toThrow(BadRequestException);
+      expect(() => controller.wxLogin(null as any)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should handle database error during login', async () => {
@@ -183,13 +185,17 @@ describe('AuthModule Integration Tests', () => {
     });
 
     it('should throw BadRequestException when role is null', () => {
-      expect(() => controller.chooseRole(1, null as any)).toThrow(BadRequestException);
+      expect(() => controller.chooseRole(1, null as any)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should handle database error during role update', async () => {
       userRepository.update.mockRejectedValue(new Error('Update failed'));
 
-      await expect(controller.chooseRole(1, 'worker')).rejects.toThrow('Update failed');
+      await expect(controller.chooseRole(1, 'worker')).rejects.toThrow(
+        'Update failed',
+      );
     });
 
     it('should update role to worker', async () => {
@@ -319,7 +325,9 @@ describe('AuthModule Integration Tests', () => {
       const userId = 1;
       userRepository.findOne.mockRejectedValue(new Error('Database error'));
 
-      await expect(controller.getProfile(userId)).rejects.toThrow('Database error');
+      await expect(controller.getProfile(userId)).rejects.toThrow(
+        'Database error',
+      );
     });
   });
 

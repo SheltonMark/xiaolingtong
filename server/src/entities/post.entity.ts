@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('posts')
@@ -45,7 +53,11 @@ export class Post {
   @Column({ type: 'int', default: 0 })
   contactUnlockCount: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'active', 'expired', 'deleted'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'active', 'expired', 'deleted'],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ type: 'datetime', nullable: true })

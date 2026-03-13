@@ -16,24 +16,24 @@ export class ConfigService {
   async getActiveCities() {
     const cities = await this.cityRepo.find({
       where: { isActive: 1 },
-      order: { name: 'ASC' }
+      order: { name: 'ASC' },
     });
-    return { list: cities.map(c => ({ id: c.id, name: c.name })) };
+    return { list: cities.map((c) => ({ id: c.id, name: c.name })) };
   }
 
   async getActiveJobTypes() {
     const jobTypes = await this.jobTypeRepo.find({
       where: { isActive: 1 },
-      order: { name: 'ASC' }
+      order: { name: 'ASC' },
     });
-    return { list: jobTypes.map(jt => ({ id: jt.id, name: jt.name })) };
+    return { list: jobTypes.map((jt) => ({ id: jt.id, name: jt.name })) };
   }
 
   async getActiveCategories() {
     const categories = await this.categoryRepo.find({
       where: { isActive: 1 },
-      order: { sort: 'ASC' }
+      order: { sort: 'ASC' },
     });
-    return { list: categories.map(c => ({ id: c.id, name: c.name })) };
+    return { list: categories.map((c) => ({ id: c.id, name: c.name })) };
   }
 }

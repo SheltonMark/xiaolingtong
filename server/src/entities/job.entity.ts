@@ -64,7 +64,18 @@ export class Job {
   @Column({ type: 'datetime', nullable: true })
   urgentExpireAt: Date;
 
-  @Column({ type: 'enum', enum: ['recruiting', 'full', 'working', 'pending_settlement', 'settled', 'closed'], default: 'recruiting' })
+  @Column({
+    type: 'enum',
+    enum: [
+      'recruiting',
+      'full',
+      'working',
+      'pending_settlement',
+      'settled',
+      'closed',
+    ],
+    default: 'recruiting',
+  })
   status: string;
 
   @CreateDateColumn()

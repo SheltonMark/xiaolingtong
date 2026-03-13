@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('member_orders')
@@ -18,7 +25,11 @@ export class MemberOrder {
   @Column({ type: 'int' })
   durationDays: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'paid', 'refunded'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'paid', 'refunded'],
+    default: 'pending',
+  })
   payStatus: string;
 
   @Column({ type: 'datetime', nullable: true })

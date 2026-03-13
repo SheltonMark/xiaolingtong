@@ -319,30 +319,6 @@ export class JobService {
     return this.jobRepo.save(job);
   }
 
-  async getUrgentPricing(userId: number) {
-    // Return urgent pricing options
-    return {
-      options: [
-        { days: 1, price: 50 },
-        { days: 3, price: 120 },
-        { days: 7, price: 250 },
-      ],
-    };
-  }
-
-  async setUrgent(id: number, userId: number, dto: any) {
-    const job = await this.jobRepo.findOne({ where: { id } });
-    if (!job || job.userId !== userId) throw new ForbiddenException('无权操作');
-
-    const days = dto.days || 1;
-    const urgentExpireAt = new Date();
-    urgentExpireAt.setDate(urgentExpireAt.getDate() + days);
-
-    job.urgent = 1;
-    job.urgentExpireAt = urgentExpireAt;
-    return this.jobRepo.save(job);
-  }
-
   async updateApplicationStatus(
     applicationId: number,
     newStatus: string,
@@ -443,6 +419,12 @@ export class JobService {
     if (worker.creditScore < 95) {
       throw new BadRequestException(
         'Worker credit score must be at least 95',
+      );
+    }
+
+    if (worker.totalOrders < 10) {
+      throw new BadRequestException(
+        'Worker must have at least 10 completed orders',
       );
     }
 
@@ -556,9 +538,9 @@ export class JobService {
     };
 
     applications.forEach((app) => {
-      // 优先使用认证名字，然后是 nickname
+      // 优先使用认证名字，然后是 nickname，最后是 name
       const cert = certMap.get(app.worker.id);
-      const workerName = cert?.realName || app.worker.nickname || `用户${app.worker.id}`;
+      const workerName = cert?.realName || app.worker.nickname || app.worker.name || `用户${app.worker.id}`;
 
       if (app.status === 'pending') {
         grouped.pending.push({
@@ -567,6 +549,7 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
           },
         });
       } else if (app.status === 'accepted') {
@@ -576,6 +559,7 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
           },
         });
       } else if (app.status === 'confirmed') {
@@ -585,6 +569,7 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
           },
           isSupervisor: app.isSupervisor,
         });
@@ -595,6 +580,7 @@ export class JobService {
             id: app.worker.id,
             nickname: workerName,
             creditScore: app.worker.creditScore,
+            totalOrders: app.worker.totalOrders,
           },
         });
       }

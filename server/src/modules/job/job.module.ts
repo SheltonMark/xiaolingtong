@@ -12,10 +12,6 @@ import { User } from '../../entities/user.entity';
 import { Attendance } from '../../entities/attendance.entity';
 import { WorkLog } from '../../entities/work-log.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
-import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
-import { BeanTransaction } from '../../entities/bean-transaction.entity';
-import { Notification } from '../../entities/notification.entity';
-import { SysConfig } from '../../entities/sys-config.entity';
 
 @Module({
   imports: [
@@ -28,10 +24,6 @@ import { SysConfig } from '../../entities/sys-config.entity';
       Attendance,
       WorkLog,
       WorkerCert,
-      EnterpriseCert,
-      BeanTransaction,
-      Notification,
-      SysConfig,
     ]),
     ScheduleModule.forRoot(),
   ],

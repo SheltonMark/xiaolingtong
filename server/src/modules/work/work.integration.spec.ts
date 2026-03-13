@@ -89,7 +89,12 @@ describe('WorkModule Integration Tests', () => {
   describe('getOrders Integration', () => {
     it('should return user orders with correct stage', async () => {
       const mockApps = [
-        { id: 1, workerId: 1, isSupervisor: 1, job: { id: 1, status: 'working', user: { id: 2 } } },
+        {
+          id: 1,
+          workerId: 1,
+          isSupervisor: 1,
+          job: { id: 1, status: 'working', user: { id: 2 } },
+        },
       ];
 
       jobApplicationRepository.find.mockResolvedValue(mockApps);
@@ -111,7 +116,12 @@ describe('WorkModule Integration Tests', () => {
 
     it('should determine settlement stage correctly', async () => {
       const mockApps = [
-        { id: 1, workerId: 1, isSupervisor: 1, job: { id: 1, status: 'pending_settlement', user: { id: 2 } } },
+        {
+          id: 1,
+          workerId: 1,
+          isSupervisor: 1,
+          job: { id: 1, status: 'pending_settlement', user: { id: 2 } },
+        },
       ];
 
       jobApplicationRepository.find.mockResolvedValue(mockApps);
@@ -123,7 +133,12 @@ describe('WorkModule Integration Tests', () => {
 
     it('should determine done stage for settled jobs', async () => {
       const mockApps = [
-        { id: 1, workerId: 1, isSupervisor: 1, job: { id: 1, status: 'settled', user: { id: 2 } } },
+        {
+          id: 1,
+          workerId: 1,
+          isSupervisor: 1,
+          job: { id: 1, status: 'settled', user: { id: 2 } },
+        },
       ];
 
       jobApplicationRepository.find.mockResolvedValue(mockApps);
@@ -135,7 +150,12 @@ describe('WorkModule Integration Tests', () => {
 
     it('should determine done stage for closed jobs', async () => {
       const mockApps = [
-        { id: 1, workerId: 1, isSupervisor: 1, job: { id: 1, status: 'closed', user: { id: 2 } } },
+        {
+          id: 1,
+          workerId: 1,
+          isSupervisor: 1,
+          job: { id: 1, status: 'closed', user: { id: 2 } },
+        },
       ];
 
       jobApplicationRepository.find.mockResolvedValue(mockApps);
@@ -150,13 +170,32 @@ describe('WorkModule Integration Tests', () => {
     it('should return job session with checkins and logs', async () => {
       const mockJob = { id: 1, title: 'Test Job', user: { id: 2 } };
       const mockCheckins = [
-        { id: 1, jobId: 1, workerId: 2, checkInAt: new Date(), worker: { id: 2 } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 2,
+          checkInAt: new Date(),
+          worker: { id: 2 },
+        },
       ];
       const mockLogs = [
-        { id: 1, jobId: 1, workerId: 2, date: '2026-03-06', hours: 8, worker: { id: 2 } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 2,
+          date: '2026-03-06',
+          hours: 8,
+          worker: { id: 2 },
+        },
       ];
       const mockWorkers = [
-        { id: 1, jobId: 1, workerId: 2, status: 'confirmed', worker: { id: 2 } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 2,
+          status: 'confirmed',
+          worker: { id: 2 },
+        },
       ];
 
       jobRepository.findOne.mockResolvedValue(mockJob);
@@ -184,7 +223,13 @@ describe('WorkModule Integration Tests', () => {
     it('should filter workers by status', async () => {
       const mockJob = { id: 1, title: 'Test Job', user: { id: 2 } };
       const mockWorkers = [
-        { id: 1, jobId: 1, workerId: 2, status: 'confirmed', worker: { id: 2 } },
+        {
+          id: 1,
+          jobId: 1,
+          workerId: 2,
+          status: 'confirmed',
+          worker: { id: 2 },
+        },
         { id: 2, jobId: 1, workerId: 3, status: 'rejected', worker: { id: 3 } },
         { id: 3, jobId: 1, workerId: 4, status: 'working', worker: { id: 4 } },
       ];
@@ -197,13 +242,22 @@ describe('WorkModule Integration Tests', () => {
       const result = await controller.getSession(1);
 
       expect(result.workers).toHaveLength(2);
-      expect(result.workers.every(w => ['confirmed', 'working', 'done'].includes(w.status))).toBe(true);
+      expect(
+        result.workers.every((w) =>
+          ['confirmed', 'working', 'done'].includes(w.status),
+        ),
+      ).toBe(true);
     });
   });
 
   describe('checkin Integration', () => {
     it('should create checkin successfully', async () => {
-      const mockCheckin = { id: 1, jobId: 1, workerId: 1, checkInAt: new Date() };
+      const mockCheckin = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        checkInAt: new Date(),
+      };
       const mockJob = { id: 1, status: 'full' };
 
       checkinRepository.create.mockReturnValue(mockCheckin);
@@ -212,14 +266,24 @@ describe('WorkModule Integration Tests', () => {
       jobRepository.update.mockResolvedValue({ affected: 1 });
       jobApplicationRepository.update.mockResolvedValue({ affected: 1 });
 
-      const result = await controller.checkin(1, { jobId: 1, type: 'location', lat: 0, lng: 0 });
+      const result = await controller.checkin(1, {
+        jobId: 1,
+        type: 'location',
+        lat: 0,
+        lng: 0,
+      });
 
       expect(result).toBeDefined();
       expect(checkinRepository.save).toHaveBeenCalled();
     });
 
     it('should update job status to working on first checkin', async () => {
-      const mockCheckin = { id: 1, jobId: 1, workerId: 1, checkInAt: new Date() };
+      const mockCheckin = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        checkInAt: new Date(),
+      };
       const mockJob = { id: 1, status: 'full' };
 
       checkinRepository.create.mockReturnValue(mockCheckin);
@@ -230,11 +294,18 @@ describe('WorkModule Integration Tests', () => {
 
       await controller.checkin(1, { jobId: 1, type: 'location' });
 
-      expect(jobRepository.update).toHaveBeenCalledWith(1, { status: 'working' });
+      expect(jobRepository.update).toHaveBeenCalledWith(1, {
+        status: 'working',
+      });
     });
 
     it('should update application status to working', async () => {
-      const mockCheckin = { id: 1, jobId: 1, workerId: 1, checkInAt: new Date() };
+      const mockCheckin = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        checkInAt: new Date(),
+      };
       const mockJob = { id: 1, status: 'full' };
 
       checkinRepository.create.mockReturnValue(mockCheckin);
@@ -247,14 +318,20 @@ describe('WorkModule Integration Tests', () => {
 
       expect(jobApplicationRepository.update).toHaveBeenCalledWith(
         { jobId: 1, workerId: 1 },
-        { status: 'working' }
+        { status: 'working' },
       );
     });
   });
 
   describe('submitLog Integration', () => {
     it('should submit work log successfully', async () => {
-      const mockLog = { id: 1, jobId: 1, workerId: 1, date: '2026-03-06', hours: 8 };
+      const mockLog = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        date: '2026-03-06',
+        hours: 8,
+      };
 
       workLogRepository.create.mockReturnValue(mockLog);
       workLogRepository.save.mockResolvedValue(mockLog);
@@ -266,7 +343,13 @@ describe('WorkModule Integration Tests', () => {
     });
 
     it('should use current date if not provided', async () => {
-      const mockLog = { id: 1, jobId: 1, workerId: 1, date: expect.any(String), hours: 8 };
+      const mockLog = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        date: expect.any(String),
+        hours: 8,
+      };
 
       workLogRepository.create.mockReturnValue(mockLog);
       workLogRepository.save.mockResolvedValue(mockLog);
@@ -278,7 +361,7 @@ describe('WorkModule Integration Tests', () => {
           jobId: 1,
           workerId: 1,
           hours: 8,
-        })
+        }),
       );
     });
   });
@@ -291,7 +374,10 @@ describe('WorkModule Integration Tests', () => {
       workLogRepository.save.mockResolvedValue(mockLog);
       userRepository.decrement.mockResolvedValue({ affected: 1 });
 
-      const result = await controller.recordAnomaly(1, { jobId: 1, anomalyType: 'absent' });
+      const result = await controller.recordAnomaly(1, {
+        jobId: 1,
+        anomalyType: 'absent',
+      });
 
       expect(result).toBeDefined();
       expect(workLogRepository.save).toHaveBeenCalled();
@@ -306,19 +392,35 @@ describe('WorkModule Integration Tests', () => {
 
       await controller.recordAnomaly(1, { jobId: 1, anomalyType: 'absent' });
 
-      expect(userRepository.decrement).toHaveBeenCalledWith({ id: 1 }, 'creditScore', 5);
+      expect(userRepository.decrement).toHaveBeenCalledWith(
+        { id: 1 },
+        'creditScore',
+        5,
+      );
     });
 
     it('should deduct credit score for early_leave', async () => {
-      const mockLog = { id: 1, jobId: 1, workerId: 1, anomalyType: 'early_leave' };
+      const mockLog = {
+        id: 1,
+        jobId: 1,
+        workerId: 1,
+        anomalyType: 'early_leave',
+      };
 
       workLogRepository.create.mockReturnValue(mockLog);
       workLogRepository.save.mockResolvedValue(mockLog);
       userRepository.decrement.mockResolvedValue({ affected: 1 });
 
-      await controller.recordAnomaly(1, { jobId: 1, anomalyType: 'early_leave' });
+      await controller.recordAnomaly(1, {
+        jobId: 1,
+        anomalyType: 'early_leave',
+      });
 
-      expect(userRepository.decrement).toHaveBeenCalledWith({ id: 1 }, 'creditScore', 5);
+      expect(userRepository.decrement).toHaveBeenCalledWith(
+        { id: 1 },
+        'creditScore',
+        5,
+      );
     });
 
     it('should deduct credit score for late', async () => {
@@ -330,7 +432,11 @@ describe('WorkModule Integration Tests', () => {
 
       await controller.recordAnomaly(1, { jobId: 1, anomalyType: 'late' });
 
-      expect(userRepository.decrement).toHaveBeenCalledWith({ id: 1 }, 'creditScore', 2);
+      expect(userRepository.decrement).toHaveBeenCalledWith(
+        { id: 1 },
+        'creditScore',
+        2,
+      );
     });
 
     it('should deduct credit score for fraud', async () => {
@@ -342,7 +448,11 @@ describe('WorkModule Integration Tests', () => {
 
       await controller.recordAnomaly(1, { jobId: 1, anomalyType: 'fraud' });
 
-      expect(userRepository.decrement).toHaveBeenCalledWith({ id: 1 }, 'creditScore', 20);
+      expect(userRepository.decrement).toHaveBeenCalledWith(
+        { id: 1 },
+        'creditScore',
+        20,
+      );
     });
 
     it('should not deduct credit score for injury', async () => {
@@ -363,9 +473,17 @@ describe('WorkModule Integration Tests', () => {
       workLogRepository.save.mockResolvedValue(mockLog);
       userRepository.decrement.mockResolvedValue({ affected: 1 });
 
-      await controller.recordAnomaly(1, { jobId: 1, targetWorkerId: 2, anomalyType: 'absent' });
+      await controller.recordAnomaly(1, {
+        jobId: 1,
+        targetWorkerId: 2,
+        anomalyType: 'absent',
+      });
 
-      expect(userRepository.decrement).toHaveBeenCalledWith({ id: 2 }, 'creditScore', 5);
+      expect(userRepository.decrement).toHaveBeenCalledWith(
+        { id: 2 },
+        'creditScore',
+        5,
+      );
     });
   });
 });

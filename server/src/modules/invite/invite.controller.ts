@@ -8,7 +8,9 @@ export class InviteController {
 
   @Get('code')
   getCode(@CurrentUser('sub') userId: number) {
-    return this.inviteService.ensureInviteCode(userId).then(code => ({ inviteCode: code }));
+    return this.inviteService
+      .ensureInviteCode(userId)
+      .then((code) => ({ inviteCode: code }));
   }
 
   @Get('records')

@@ -1,4 +1,13 @@
-import { Controller, Get, Post as HttpPost, Put, Delete, Param, Query, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post as HttpPost,
+  Put,
+  Delete,
+  Param,
+  Query,
+  Body,
+} from '@nestjs/common';
 import { PostService } from './post.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -30,7 +39,11 @@ export class PostController {
   }
 
   @Put(':id')
-  update(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
+  update(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
     return this.postService.update(id, userId, dto);
   }
 
@@ -40,7 +53,10 @@ export class PostController {
   }
 
   @Get(':id/unlock-preview')
-  previewUnlockCost(@Param('id') id: number, @CurrentUser('sub') userId: number) {
+  previewUnlockCost(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+  ) {
     return this.postService.previewUnlockCost(id, userId || 0);
   }
 

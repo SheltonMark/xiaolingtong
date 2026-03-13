@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('wallet_transactions')
@@ -9,7 +16,10 @@ export class WalletTransaction {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['income', 'withdraw', 'refund', 'commission'] })
+  @Column({
+    type: 'enum',
+    enum: ['income', 'withdraw', 'refund', 'commission'],
+  })
   type: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
@@ -21,7 +31,11 @@ export class WalletTransaction {
   @Column({ type: 'bigint', nullable: true })
   refId: number;
 
-  @Column({ type: 'enum', enum: ['pending', 'success', 'failed'], default: 'pending' })
+  @Column({
+    type: 'enum',
+    enum: ['pending', 'success', 'failed'],
+    default: 'pending',
+  })
   status: string;
 
   @Column({ length: 128, nullable: true })

@@ -2,13 +2,17 @@ import { test, expect } from './fixtures/api-client.fixture';
 
 test.describe('Payment Module E2E', () => {
   test('should create payment order', async ({ apiClient, authToken }) => {
-    const response = await apiClient.post('/payments/orders', {
-      amount: 100,
-      description: 'Test Payment',
-      type: 'unlock_post',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.post(
+      '/payments/orders',
+      {
+        amount: 100,
+        description: 'Test Payment',
+        type: 'unlock_post',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(201);
     expect(response.data.data).toHaveProperty('orderId');
@@ -37,22 +41,30 @@ test.describe('Payment Module E2E', () => {
 
   test('should unlock post with beans', async ({ apiClient, authToken }) => {
     // 先创建一个 post
-    const postResponse = await apiClient.post('/posts', {
-      title: 'Unlock Test',
-      description: 'Test',
-      category: 'procurement',
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const postResponse = await apiClient.post(
+      '/posts',
+      {
+        title: 'Unlock Test',
+        description: 'Test',
+        category: 'procurement',
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     const postId = postResponse.data.data.postId;
 
     // 解锁 post
-    const response = await apiClient.post(`/posts/${postId}/unlock`, {
-      beanAmount: 10,
-    }, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.post(
+      `/posts/${postId}/unlock`,
+      {
+        beanAmount: 10,
+      },
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(200);
   });
