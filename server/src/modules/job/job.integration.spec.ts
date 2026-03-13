@@ -10,6 +10,7 @@ import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
+import { Attendance } from '../../entities/attendance.entity';
 
 describe('JobModule Integration Tests', () => {
   let controller: JobController;
@@ -19,6 +20,7 @@ describe('JobModule Integration Tests', () => {
   let jobApplicationRepository: any;
   let userRepository: any;
   let supervisorRepository: any;
+  let attendanceRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -55,6 +57,13 @@ describe('JobModule Integration Tests', () => {
       save: jest.fn(),
     };
 
+    attendanceRepository = {
+      findOne: jest.fn(),
+      find: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [JobController],
       providers: [
@@ -78,6 +87,10 @@ describe('JobModule Integration Tests', () => {
         {
           provide: getRepositoryToken(Supervisor),
           useValue: supervisorRepository,
+        },
+        {
+          provide: getRepositoryToken(Attendance),
+          useValue: attendanceRepository,
         },
       ],
     }).compile();

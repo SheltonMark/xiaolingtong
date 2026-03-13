@@ -88,4 +88,29 @@ export class JobController {
   ) {
     return this.jobService.getApplicationsForEnterprise(jobId, userId);
   }
+
+  @Post(':jobId/check-in')
+  checkIn(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') workerId: number,
+  ) {
+    return this.jobService.checkIn(jobId, workerId);
+  }
+
+  @Post(':jobId/check-out')
+  checkOut(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') workerId: number,
+  ) {
+    return this.jobService.checkOut(jobId, workerId);
+  }
+
+  @Get(':jobId/attendances')
+  @Roles('enterprise')
+  getAttendances(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getAttendances(jobId, userId);
+  }
 }

@@ -22,6 +22,9 @@ describe('JobController', () => {
       create: jest.fn(),
       update: jest.fn(),
       selectSupervisor: jest.fn(),
+      checkIn: jest.fn(),
+      checkOut: jest.fn(),
+      getAttendances: jest.fn(),
     } as jest.Mocked<JobService>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -228,6 +231,128 @@ describe('JobController', () => {
       await expect(
         controller.selectSupervisor(jobId, dto, userId),
       ).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('checkIn', () => {
+    it('should call jobService.checkIn with jobId and workerId', async () => {
+      const jobId = 1;
+      const workerId = 2;
+      const mockResult = {
+        id: 1,
+        jobId,
+        workerId,
+        status: 'checked_in',
+        checkInTime: new Date(),
+      };
+
+      jobService.checkIn.mockResolvedValue(mockResult);
+
+      const result = await controller.checkIn(jobId, workerId);
+
+      expect(jobService.checkIn).toHaveBeenCalledWith(jobId, workerId);
+      expect(result.status).toBe('checked_in');
+    });
+
+    it('should propagate BadRequestException when already checked in', async () => {
+      const jobId = 1;
+      const workerId = 2;
+
+      jobService.checkIn.mockRejectedValue(
+        new BadRequestException('Already checked in'),
+      );
+
+      await expect(controller.checkIn(jobId, workerId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should propagate BadRequestException when worker not confirmed', async () => {
+      const jobId = 1;
+      const workerId = 2;
+
+      jobService.checkIn.mockRejectedValue(
+        new BadRequestException('Worker not confirmed for this job'),
+      );
+
+      await expect(controller.checkIn(jobId, workerId)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('checkOut', () => {
+    it('should call jobService.checkOut with jobId and workerId', async () => {
+      const jobId = 1;
+      const workerId = 2;
+      const mockResult = {
+        id: 1,
+        jobId,
+        workerId,
+        status: 'checked_out',
+        checkInTime: new Date(),
+        checkOutTime: new Date(),
+        workHours: 8,
+      };
+
+      jobService.checkOut.mockResolvedValue(mockResult);
+
+      const result = await controller.checkOut(jobId, workerId);
+
+      expect(jobService.checkOut).toHaveBeenCalledWith(jobId, workerId);
+      expect(result.status).toBe('checked_out');
+      expect(result).toHaveProperty('workHours');
+    });
+
+    it('should propagate NotFoundException when not checked in', async () => {
+      const jobId = 1;
+      const workerId = 2;
+
+      jobService.checkOut.mockRejectedValue(
+        new NotFoundException('No active check-in found'),
+      );
+
+      await expect(controller.checkOut(jobId, workerId)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('getAttendances', () => {
+    it('should call jobService.getAttendances with jobId and userId', async () => {
+      const jobId = 1;
+      const userId = 5;
+      const mockResult = [
+        {
+          id: 1,
+          jobId,
+          workerId: 2,
+          status: 'checked_out',
+          workHours: 8,
+        },
+      ];
+
+      jobService.getAttendances.mockResolvedValue(mockResult);
+
+      const result = await controller.getAttendances(jobId, userId);
+
+      expect(jobService.getAttendances).toHaveBeenCalledWith(jobId, userId);
+      expect(Array.isArray(result)).toBe(true);
+    });
+
+    it('should propagate ForbiddenException when not job owner', async () => {
+      const jobId = 1;
+      const userId = 5;
+
+      jobService.getAttendances.mockRejectedValue(
+        new ForbiddenException(
+          'You do not have permission to view attendances for this job',
+        ),
+      );
+
+      await expect(controller.getAttendances(jobId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });
