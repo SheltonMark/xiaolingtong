@@ -529,12 +529,13 @@ export class JobService {
     };
 
     applications.forEach((app) => {
+      const workerName = app.worker.nickname || app.worker.name || `用户${app.worker.id}`;
       if (app.status === 'pending') {
         grouped.pending.push({
           ...app,
           worker: {
             id: app.worker.id,
-            nickname: app.worker.nickname,
+            nickname: workerName,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },
@@ -544,7 +545,7 @@ export class JobService {
           ...app,
           worker: {
             id: app.worker.id,
-            nickname: app.worker.nickname,
+            nickname: workerName,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },
@@ -554,7 +555,7 @@ export class JobService {
           ...app,
           worker: {
             id: app.worker.id,
-            nickname: app.worker.nickname,
+            nickname: workerName,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },
@@ -565,7 +566,7 @@ export class JobService {
           ...app,
           worker: {
             id: app.worker.id,
-            nickname: app.worker.nickname,
+            nickname: workerName,
             creditScore: app.worker.creditScore,
             totalOrders: app.worker.totalOrders,
           },
