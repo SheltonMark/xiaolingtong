@@ -17,7 +17,8 @@
     <text class="tip-icon iconfont icon-tishixinxi"></text>
     <view class="tip-content">
       <text class="tip-title">灵豆用途</text>
-      <text class="tip-text">查看供需信息联系方式时消耗灵豆，已查看过的信息再次查看不重复扣费。开通VIP会员可免费无限查看。</text>
+      <text class="tip-text">• 查看供需信息联系方式时消耗灵豆，已查看过的信息再次查看不重复扣费</text>
+      <text class="tip-text">• 帮找转发给好友，若好友解锁，可获得丰厚的灵豆奖励</text>
     </view>
   </view>
 

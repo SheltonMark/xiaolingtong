@@ -1,11 +1,14 @@
-import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { User } from '../../entities/user.entity';
-import { JobStateMachine } from './job-state-machine';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { Notification } from '../../entities/notification.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 @Injectable()
 export class JobService {
@@ -13,7 +16,11 @@ export class JobService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(Notification) private notiRepo: Repository<Notification>,
+    @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -28,6 +35,12 @@ export class JobService {
   private normalizeText(value: any): string {
     if (value === undefined || value === null) return '';
     return String(value).trim();
+  }
+
+  private parseCoordinate(value: any): number | undefined {
+    if (value === undefined || value === null || value === '') return undefined;
+    const num = Number(value);
+    return Number.isFinite(num) ? num : undefined;
   }
 
   private parseSalaryType(value: any): 'hourly' | 'piece' {
@@ -81,6 +94,8 @@ export class JobService {
     const salaryType = this.parseSalaryType(dto.salaryType || dto.salaryMode);
     const salaryUnit = this.normalizeText(dto.salaryUnit) || (salaryType === 'hourly' ? '元/时' : '元/件');
     const location = this.normalizeText(dto.location || dto.address);
+    const lat = this.parseCoordinate(dto.lat ?? dto.latitude);
+    const lng = this.parseCoordinate(dto.lng ?? dto.longitude);
     const dateStart = this.normalizeText(dto.dateStart || dto.startDate);
     const dateEnd = this.normalizeText(dto.dateEnd || dto.endDate);
     const startTime = this.normalizeText(dto.startTime);
@@ -94,6 +109,8 @@ export class JobService {
       salaryUnit,
       needCount,
       location,
+      lat,
+      lng,
       contactName: this.normalizeText(dto.contactName || dto.contact),
       contactPhone: this.normalizeText(dto.contactPhone || dto.phone),
       dateStart,
@@ -112,7 +129,12 @@ export class JobService {
       .leftJoinAndSelect('j.user', 'u')
       .where('j.status IN (:...statuses)', { statuses: ['recruiting', 'full'] });
 
-    if (keyword) qb.andWhere('j.title LIKE :kw', { kw: `%${keyword}%` });
+    if (keyword) {
+      qb.andWhere(
+        '(j.title LIKE :kw OR j.description LIKE :kw OR j.companyName LIKE :kw)',
+        { kw: `%${keyword}%` }
+      );
+    }
     if (salaryType) qb.andWhere('j.salaryType = :salaryType', { salaryType });
     if (minSalary) qb.andWhere('j.salary >= :minSalary', { minSalary });
     if (maxSalary) qb.andWhere('j.salary <= :maxSalary', { maxSalary });
@@ -124,9 +146,34 @@ export class JobService {
 
     const [list, total] = await qb.getManyAndCount();
 
+    // 检查并更新过期的急招状态
+    const now = new Date();
+    for (const job of list) {
+      if (job.urgent === 1 && job.urgentExpireAt && new Date(job.urgentExpireAt) < now) {
+        job.urgent = 0;
+        await this.jobRepo.save(job);
+      }
+    }
+
+    // 获取企业认证信息
+    const userIds = list.map(job => job.userId).filter(Boolean);
+    const certMap = new Map<number, EnterpriseCert>();
+    if (userIds.length > 0) {
+      const certs = await this.entCertRepo.createQueryBuilder('c')
+        .where('c.userId IN (:...userIds)', { userIds })
+        .andWhere('c.status = :status', { status: 'approved' })
+        .orderBy('c.userId', 'ASC')
+        .addOrderBy('c.id', 'DESC')
+        .getMany();
+      for (const cert of certs) {
+        if (!certMap.has(cert.userId)) certMap.set(cert.userId, cert);
+      }
+    }
+
     // 格式化列表数据
     const formattedList = await Promise.all(list.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+      const cert = certMap.get(job.userId);
 
       // 格式化福利标签
       const benefitTags = (job.benefits || []).map((b: any) => ({
@@ -153,6 +200,8 @@ export class JobService {
         applied: appliedCount,
         total: job.needCount,
         location: job.location,
+        lat: this.parseCoordinate(job.lat) ?? null,
+        lng: this.parseCoordinate(job.lng) ?? null,
         cityDistrict: this.extractCityDistrict(job.location),
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
         publishDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '',
@@ -161,7 +210,14 @@ export class JobService {
         images: job.images || [],
         tags: benefitTags,
         allTags,
-        companyName: job.user?.nickname || '企业用户',
+        companyName: cert?.companyName || job.user?.nickname || '企业用户',
+        avatarUrl: job.user?.avatarUrl || '',
+        user: {
+          id: job.user?.id,
+          avatarUrl: job.user?.avatarUrl || '',
+          isMember: job.user?.isMember || 0
+        },
+        isMember: !!(job.user?.isMember),
         time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
       };
     }));
@@ -175,6 +231,22 @@ export class JobService {
 
     // 查询报名人数
     const appliedCount = await this.appRepo.count({ where: { jobId: id } });
+
+    // 查询企业认证信息
+    let companyName = job.user?.nickname || '企业用户';
+    let verified = false;
+    let avatarUrl = job.user?.avatarUrl || '';
+
+    if (job.userId) {
+      const cert = await this.entCertRepo.findOne({
+        where: { userId: job.userId, status: 'approved' },
+        order: { id: 'DESC' }
+      });
+      if (cert) {
+        companyName = cert.companyName;
+        verified = true;
+      }
+    }
 
     // 格式化返回数据
     const salaryTypeMap = { hourly: '计时', piece: '计件' };
@@ -192,8 +264,9 @@ export class JobService {
       hours: job.workHours || '待定',
       cityDistrict: this.extractCityDistrict(job.location),
       company: {
-        name: job.user?.nickname || '企业用户',
-        verified: false,
+        name: companyName,
+        verified,
+        avatarUrl,
         creditScore: job.user?.creditScore || 100,
         contact: job.contactName || '联系人',
         phone: job.contactPhone || job.user?.phone || ''
@@ -209,6 +282,15 @@ export class JobService {
 
     const formattedJobs = await Promise.all(jobs.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+
+      // 检查急招是否过期
+      let isUrgent = job.urgent === 1;
+      if (isUrgent && job.urgentExpireAt && new Date(job.urgentExpireAt) < new Date()) {
+        isUrgent = false;
+        job.urgent = 0;
+        await this.jobRepo.save(job);
+      }
+
       return {
         id: job.id,
         type: 'job',
@@ -221,6 +303,8 @@ export class JobService {
         workHours: job.workHours,
         cityDistrict: this.extractCityDistrict(job.location),
         status: job.status,
+        urgent: isUrgent,
+        urgentExpireAt: job.urgentExpireAt,
         createdAt: job.createdAt,
         viewCount: 0 // TODO: 实现浏览次数统计
       };
@@ -252,183 +336,103 @@ export class JobService {
     return this.jobRepo.save(job);
   }
 
-  async updateApplicationStatus(
-    applicationId: number,
-    newStatus: string,
-    userId: number,
-  ): Promise<JobApplication> {
-    const application = await this.appRepo.findOne({
-      where: { id: applicationId },
-      relations: ['job'],
-    });
-
-    if (!application) {
-      throw new NotFoundException('Application not found');
-    }
-
-    if (!JobStateMachine.canTransition(application.status, newStatus)) {
-      throw new BadRequestException(
-        `Cannot transition from ${application.status} to ${newStatus}`,
-      );
-    }
-
-    application.status = newStatus;
-    if (newStatus === 'confirmed') {
-      application.confirmedAt = new Date();
-    }
-
-    return this.appRepo.save(application);
+  private async getConfig(key: string, defaultValue: string): Promise<string> {
+    const row = await this.sysConfigRepo.findOne({ where: { key } });
+    return row ? row.value : defaultValue;
   }
 
-  async acceptApplication(
-    applicationId: number,
-    action: 'accepted' | 'rejected',
-    userId: number,
-  ): Promise<JobApplication> {
-    const application = await this.appRepo.findOne({
-      where: { id: applicationId },
-      relations: ['job'],
-    });
-
-    if (!application) {
-      throw new NotFoundException('Application not found');
-    }
-
-    // 验证权限：只有工作发布者可以接受/拒绝
-    if (application.job.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to accept this application');
-    }
-
-    // 验证状态：只有 pending 状态可以接受/拒绝
-    if (application.status !== 'pending') {
-      throw new BadRequestException('Application is not in pending status');
-    }
-
-    return this.updateApplicationStatus(applicationId, action, userId);
+  private isMemberActive(user: User): boolean {
+    return !!(user.isMember && user.memberExpireAt && new Date(user.memberExpireAt) > new Date());
   }
 
-  async selectSupervisor(
-    jobId: number,
-    workerId: number,
-    userId: number,
-  ): Promise<JobApplication> {
+  private async getUrgentBasePricing() {
+    const [day1, day3, day7, day30] = await Promise.all([
+      this.getConfig('top_price_per_day', '100'),
+      this.getConfig('top_price_3d', '250'),
+      this.getConfig('top_price_7d', '500'),
+      this.getConfig('top_price_30d', '1500'),
+    ]);
+
+    return [
+      { durationDays: 1, beanCost: parseInt(day1, 10) || 100 },
+      { durationDays: 3, beanCost: parseInt(day3, 10) || 250 },
+      { durationDays: 7, beanCost: parseInt(day7, 10) || 500 },
+      { durationDays: 30, beanCost: parseInt(day30, 10) || 1500 },
+    ];
+  }
+
+  private async buildUrgentPricingForUser(user: User) {
+    const baseList = await this.getUrgentBasePricing();
+    const memberDiscount = parseFloat(await this.getConfig('member_promote_discount', '0.8')) || 0.8;
+    const isMember = this.isMemberActive(user);
+
+    return baseList.map((item) => {
+      const originalBeanCost = item.beanCost;
+      const beanCost = isMember ? Math.ceil(originalBeanCost * memberDiscount) : originalBeanCost;
+      return {
+        durationDays: item.durationDays,
+        beanCost,
+        originalBeanCost,
+        isDiscounted: isMember && beanCost < originalBeanCost,
+      };
+    });
+  }
+
+  async getUrgentPricing(userId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new BadRequestException('用户不存在');
+    const list = await this.buildUrgentPricingForUser(user);
+    return { list };
+  }
+
+  async setUrgent(jobId: number, userId: number, dto: { durationDays: number }) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
-    if (!job || job.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to manage this job');
-    }
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
-    const application = await this.appRepo.findOne({
-      where: { jobId, workerId, status: 'accepted' },
-    });
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new BadRequestException('用户不存在');
 
-    if (!application) {
-      throw new NotFoundException('Application not found or not in accepted status');
-    }
+    const durationDays = Number(dto.durationDays || 0);
+    if (!durationDays || durationDays < 1) throw new BadRequestException('急招时长不能为空');
 
-    // 验证临工资格
-    const worker = await this.userRepo.findOne({ where: { id: workerId } });
-    if (!worker || worker.creditScore < 95 || worker.totalOrders < 10) {
-      throw new BadRequestException('Worker does not meet supervisor requirements');
-    }
+    // 从配置获取急招价格（使用置顶价格配置），并应用会员折扣
+    const pricingList = await this.buildUrgentPricingForUser(user);
+    const pricing = pricingList.find((item) => item.durationDays === durationDays);
+    if (!pricing) throw new BadRequestException('不支持的急招时长');
+    const actualCost = pricing.beanCost;
 
-    // 更新为 confirmed 并标记为管理员
-    application.status = 'confirmed';
-    application.isSupervisor = 1;
-    application.confirmedAt = new Date();
+    if (user.beanBalance < actualCost) throw new BadRequestException('灵豆不足');
 
-    return this.appRepo.save(application);
-  }
+    // 扣除灵豆
+    user.beanBalance -= actualCost;
+    await this.userRepo.save(user);
 
-  async confirmAttendance(
-    applicationId: number,
-    workerId: number,
-  ): Promise<JobApplication> {
-    const application = await this.appRepo.findOne({
-      where: { id: applicationId, workerId, status: 'accepted' },
-    });
+    // 设置急招状态和过期时间
+    job.urgent = 1;
+    const expireAt = new Date();
+    expireAt.setDate(expireAt.getDate() + durationDays);
+    job.urgentExpireAt = expireAt;
+    await this.jobRepo.save(job);
 
-    if (!application) {
-      throw new NotFoundException('Application not found or not in accepted status');
-    }
+    // 记录灵豆交易
+    await this.beanTxRepo.save(this.beanTxRepo.create({
+      userId,
+      type: 'promote',
+      amount: -actualCost,
+      refType: 'job',
+      refId: jobId,
+      remark: this.isMemberActive(user) ? `设置急招${durationDays}天(会员折扣)` : `设置急招${durationDays}天`,
+    }));
 
-    application.status = 'confirmed';
-    application.confirmedAt = new Date();
+    // 发送通知
+    await this.notiRepo.save(this.notiRepo.create({
+      userId,
+      type: 'promotion' as any,
+      title: '急招设置成功',
+      content: `您的招工信息已设置急招${durationDays}天，消耗${actualCost}灵豆`,
+    }));
 
-    return this.appRepo.save(application);
-  }
-
-  async getMyApplications(workerId: number) {
-    const applications = await this.appRepo.find({
-      where: { workerId },
-      relations: ['job', 'job.user'],
-      order: { createdAt: 'DESC' },
-    });
-
-    // 按状态分类
-    const grouped = {
-      pending: [],
-      accepted: [],
-      confirmed: [],
-      working: [],
-      done: [],
-    };
-
-    applications.forEach((app) => {
-      // 将 pending 和 accepted 都归到 pending 分类
-      if (app.status === 'pending' || app.status === 'accepted') {
-        grouped.pending.push(app);
-      } else if (app.status === 'confirmed') {
-        grouped.confirmed.push(app);
-      } else if (app.status === 'working') {
-        grouped.working.push(app);
-      } else if (app.status === 'done') {
-        grouped.done.push(app);
-      }
-    });
-
-    return grouped;
-  }
-
-  async getApplicationsForEnterprise(jobId: number, userId: number) {
-    const job = await this.jobRepo.findOne({ where: { id: jobId } });
-    if (!job || job.userId !== userId) {
-      throw new ForbiddenException('You do not have permission to view this job');
-    }
-
-    const applications = await this.appRepo.find({
-      where: { jobId },
-      relations: ['worker'],
-      order: { createdAt: 'DESC' },
-    });
-
-    // 按状态分类
-    const grouped = {
-      pending: [],
-      accepted: [],
-      confirmed: [],
-    };
-
-    applications.forEach((app) => {
-      if (app.status === 'pending') {
-        grouped.pending.push({
-          ...app,
-          worker: {
-            id: app.worker.id,
-            name: app.worker.nickname,
-            creditScore: app.worker.creditScore,
-            totalOrders: app.worker.totalOrders,
-          },
-        });
-      } else if (app.status === 'accepted') {
-        grouped.accepted.push(app);
-      } else if (app.status === 'confirmed') {
-        grouped.confirmed.push({
-          ...app,
-          isSupervisor: app.isSupervisor,
-        });
-      }
-    });
-
-    return grouped;
+    return { message: '设置成功', beanBalance: user.beanBalance, actualCost, durationDays };
   }
 }

@@ -158,7 +158,12 @@ export class PostService {
 
     if (type) qb.andWhere('p.type = :type', { type });
     if (industry) qb.andWhere('p.industry = :industry', { industry });
-    if (keyword) qb.andWhere('p.content LIKE :kw', { kw: `%${keyword}%` });
+    if (keyword) {
+      qb.andWhere(
+        '(p.title LIKE :kw OR p.content LIKE :kw)',
+        { kw: `%${keyword}%` }
+      );
+    }
 
     qb.orderBy('p.createdAt', 'DESC')
       .skip((page - 1) * pageSize)
@@ -261,13 +266,19 @@ export class PostService {
   }
 
   async detail(id: number, userId: number) {
-    const post = await this.postRepo.findOne({ where: { id }, relations: ['user'] });
+    // 验证ID
+    const postId = Number(id);
+    if (!postId || isNaN(postId) || postId <= 0) {
+      throw new BadRequestException('无效的信息ID');
+    }
+
+    const post = await this.postRepo.findOne({ where: { id: postId }, relations: ['user'] });
     if (!post) throw new BadRequestException('信息不存在');
 
     post.viewCount++;
     await this.postRepo.save(post);
 
-    const unlocked = await this.unlockRepo.findOne({ where: { userId, postId: id } });
+    const unlocked = await this.unlockRepo.findOne({ where: { userId, postId: postId } });
     const userPostCount = await this.postRepo.count({
       where: { userId: post.userId, status: 'active' as any },
     });

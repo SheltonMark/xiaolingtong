@@ -5,6 +5,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 
 @Injectable()
 export class ApplicationService {
@@ -13,6 +14,7 @@ export class ApplicationService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
+    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
   ) {}
 
   async apply(jobId: number, workerId: number) {
@@ -58,7 +60,37 @@ export class ApplicationService {
       .take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+
+    const userIds = list.map(app => app.job?.userId).filter(Boolean);
+    const certMap = new Map<number, EnterpriseCert>();
+    if (userIds.length > 0) {
+      const certs = await this.entCertRepo.createQueryBuilder('c')
+        .where('c.userId IN (:...userIds)', { userIds })
+        .andWhere('c.status = :status', { status: 'approved' })
+        .orderBy('c.userId', 'ASC')
+        .addOrderBy('c.id', 'DESC')
+        .getMany();
+      for (const cert of certs) {
+        if (!certMap.has(cert.userId)) certMap.set(cert.userId, cert);
+      }
+    }
+
+    const formattedList = list.map(app => {
+      const job = app.job;
+      if (!job) return app;
+      const cert = certMap.get(job.userId);
+      const companyName = cert?.companyName || job.companyName || job.user?.nickname || '企业用户';
+      return {
+        ...app,
+        job: {
+          ...job,
+          companyName,
+          avatarUrl: job.user?.avatarUrl || ''
+        }
+      };
+    });
+
+    return { list: formattedList, total, page: +page, pageSize: +pageSize };
   }
 
   async cancel(id: number, workerId: number) {

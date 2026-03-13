@@ -27,19 +27,41 @@ Page({
   },
 
   _loadPricing() {
-    // 急招价格：30灵豆/天
-    const urgentCostPerDay = 30
-    const options = [
-      { id: 1, name: '1天', days: 1, beans: urgentCostPerDay * 1, desc: `${urgentCostPerDay} 灵豆/天` },
-      { id: 2, name: '3天', days: 3, beans: urgentCostPerDay * 3, desc: `${urgentCostPerDay} 灵豆/天` },
-      { id: 3, name: '7天', days: 7, beans: urgentCostPerDay * 7, desc: `${urgentCostPerDay} 灵豆/天`, tag: '推荐', tagColor: '#F97316' },
-      { id: 4, name: '30天', days: 30, beans: urgentCostPerDay * 30, desc: `${urgentCostPerDay} 灵豆/天`, tag: '最划算', tagColor: '#F43F5E' }
-    ]
+    // 从后端获取急招价格配置（包含会员折扣）
+    get('/jobs/urgent/pricing').then(res => {
+      const d = res.data || res
+      const list = Array.isArray(d.list) ? d.list : []
+      const options = list
+        .map((item, index) => {
+          const days = Number(item.durationDays || 0)
+          const beans = Number(item.beanCost || 0)
+          const originBeans = Number(item.originalBeanCost || beans)
+          const dailyCost = days > 0 ? Math.ceil(beans / days) : beans
+          const tag = TAG_MAP[days] || {}
+          const desc = item.isDiscounted
+            ? `会员折后 ${beans} 灵豆（原价 ${originBeans}）`
+            : `约 ${dailyCost} 灵豆/天`
+          return {
+            id: index + 1,
+            name: `${days}天`,
+            desc,
+            beans,
+            days,
+            tag: tag.text || '',
+            tagColor: tag.color || ''
+          }
+        })
+        .filter(item => item.days > 0 && item.beans >= 0)
+        .sort((a, b) => a.days - b.days)
 
-    this.setData({
-      options,
-      selectedIndex: 2, // 默认选择7天
-      pricingLoaded: true
+      this.setData({
+        options,
+        selectedIndex: options.findIndex(o => o.days === 7) >= 0 ? options.findIndex(o => o.days === 7) : 0,
+        pricingLoaded: options.length > 0
+      })
+    }).catch(() => {
+      this.setData({ options: [], pricingLoaded: false })
+      wx.showToast({ title: '价格加载失败', icon: 'none' })
     })
   },
 

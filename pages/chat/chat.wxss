@@ -162,9 +162,6 @@
 }
 .msg-time-text { font-size: 20rpx; color: #94A3B8; margin-top: 8rpx; }
 .msg-time-right { text-align: right; }
-.msg-sender-name { font-size: 22rpx; color: #64748B; margin-bottom: 6rpx; font-weight: 500; }
-.msg-date-text { font-size: 20rpx; color: #94A3B8; margin-bottom: 8rpx; }
-.msg-date-right { text-align: right; }
 
 .chat-bottom { 
   position: fixed;

@@ -13,11 +13,12 @@
   <!-- 列表 -->
   <view class="post-list">
     <view class="post-card {{item.status === 'offline' ? 'card-offline' : ''}}"
-          wx:for="{{posts}}" wx:key="id"
+          wx:for="{{posts}}" wx:key="uniqueKey"
           wx:if="{{currentTab === 0 || item.typeKey === tabs[currentTab].key}}">
       <view class="post-top">
         <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
         <text class="promote-tag" wx:if="{{item.isPromoted}}">置顶中</text>
+        <text class="urgent-tag" wx:if="{{item.urgent}}">急招中</text>
         <view class="status-tag status-bg-{{item.statusColor}}">
           <text>{{item.statusText}}</text>
         </view>

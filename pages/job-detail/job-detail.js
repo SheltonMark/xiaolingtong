@@ -1,5 +1,6 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageList } = require('../../utils/image')
+const { calculateDistanceForList, getUserLocation } = require('../../utils/distance')
 
 Page({
   data: {
@@ -18,12 +19,27 @@ Page({
   loadJob(id) {
     get('/jobs/' + id).then(res => {
       const job = res.data || {}
-      this.setData({
-        job: {
-          ...job,
-          images: normalizeImageList(job.images)
-        }
-      })
+      const jobData = {
+        ...job,
+        images: normalizeImageList(job.images)
+      }
+      this.setData({ job: jobData })
+
+      // 计算距离：优先使用 lat/lng，缺失时自动使用地址地理编码
+      getUserLocation()
+        .then(userLocation => calculateDistanceForList(userLocation, [jobData]))
+        .then((listWithDistance) => {
+          const jobWithDistance = Array.isArray(listWithDistance) ? listWithDistance[0] : null
+          if (!jobWithDistance || !jobWithDistance.distanceText) return
+          this.setData({
+            'job.distance': jobWithDistance.distance,
+            'job.distanceText': jobWithDistance.distanceText
+          })
+        })
+        .catch(() => {
+          // 定位失败或距离不可用时，不阻断详情页展示
+        })
+
       // 加载收藏状态
       this.loadFavStatus(id)
     }).catch(() => {})
@@ -32,7 +48,10 @@ Page({
   loadFavStatus(id) {
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      const isFav = list.some(item => item.targetType === 'job' && item.targetId === id)
+      const isFav = list.some(item => {
+        // 后端返回的是完整对象，id字段就是targetId
+        return item.targetType === 'job' && String(item.id) === String(id)
+      })
       this.setData({ isFav })
     }).catch(() => {})
   },
@@ -81,6 +100,8 @@ Page({
     post('/favorites/toggle', { targetType: 'job', targetId: id }).then(() => {
       this.setData({ isFav: !this.data.isFav })
       wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
+      // 重新加载收藏状态以确保同步
+      setTimeout(() => this.loadFavStatus(id), 500)
     }).catch(() => {})
   },
 

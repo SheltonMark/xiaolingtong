@@ -7,7 +7,8 @@ Page({
       title: '', jobType: '', price: '', headcount: '',
       content: '', startDate: '', endDate: '',
       startTime: '08:00', endTime: '18:00', address: '',
-      contactName: '', contactPhone: ''
+      contactName: '', contactPhone: '',
+      lat: null, lng: null
     },
     jobTypes: ['电子组装', '包装工', '搬运工', '缝纫工', '焊接工', '质检员', '普工', '其他'],
     benefits: [
@@ -53,7 +54,11 @@ Page({
   onChooseLocation() {
     wx.chooseLocation({
       success: (res) => {
-        this.setData({ 'form.address': res.address || res.name })
+        this.setData({
+          'form.address': res.address || res.name,
+          'form.lat': res.latitude,
+          'form.lng': res.longitude
+        })
       },
       fail() {}
     })
@@ -112,6 +117,8 @@ Page({
       dateEnd: form.endDate,
       workHours: `${form.startTime || '08:00'}-${form.endTime || '18:00'}`,
       location: form.address,
+      lat: form.lat,
+      lng: form.lng,
       contactName: form.contactName,
       contactPhone: form.contactPhone,
       benefits: selectedBenefits,

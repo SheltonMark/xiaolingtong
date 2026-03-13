@@ -1,0 +1,161 @@
+.my-favorites-page {
+  min-height: 100vh;
+  background-color: #FFFFFF;
+}
+
+/* Tab栏 - 参考my-posts样式 */
+.tab-bar {
+  display: flex;
+  background-color: #ffffff;
+  padding: 0 24rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 24rpx;
+  color: #64748B;
+  position: relative;
+}
+
+.tab-active {
+  color: #3B82F6;
+  font-weight: 600;
+}
+
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background-color: #3B82F6;
+  border-radius: 4rpx;
+}
+
+/* 收藏列表 */
+.favorites-list {
+  padding: 24rpx 32rpx;
+  background-color: #F8FAFC;
+}
+
+/* 收藏卡片 - 添加白色背景卡片样式 */
+.fav-card {
+  background-color: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.post-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.type-tag {
+  font-size: 20rpx;
+  padding: 4rpx 0;
+  border-radius: 6rpx;
+  font-weight: 500;
+}
+
+.type-blue {
+  color: #3B82F6;
+  background-color: #EFF6FF;
+}
+
+.type-orange {
+  color: #F97316;
+  background-color: #FFF7ED;
+}
+
+.type-rose {
+  color: #F43F5E;
+  background-color: #FFF1F2;
+}
+
+.post-date {
+  font-size: 20rpx;
+  color: #94A3B8;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.post-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #1E293B;
+  display: block;
+  margin-bottom: 12rpx;
+  line-height: 1.5;
+}
+
+.fav-content {
+  font-size: 24rpx;
+  color: #64748B;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  margin-bottom: 12rpx;
+}
+
+.fav-meta {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 12rpx;
+}
+
+.fav-meta-item {
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+.fav-images {
+  display: flex;
+  gap: 8rpx;
+  flex-wrap: wrap;
+}
+
+.fav-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+}
+
+/* 操作按钮 */
+.fav-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+
+.fav-action {
+  flex: 1;
+  text-align: center;
+  padding: 12rpx 0;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.action-view {
+  background-color: #EFF6FF;
+  color: #3B82F6;
+}
+
+.action-delete {
+  background-color: #FFF1F2;
+  color: #F43F5E;
+}

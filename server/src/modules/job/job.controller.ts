@@ -36,8 +36,28 @@ export class JobController {
 
   @Put(':id')
   @Roles('enterprise')
-  update(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
+  update(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
     return this.jobService.update(id, userId, dto);
+  }
+
+  @Get('urgent/pricing')
+  @Roles('enterprise')
+  getUrgentPricing(@CurrentUser('sub') userId: number) {
+    return this.jobService.getUrgentPricing(userId);
+  }
+
+  @Post(':id/set-urgent')
+  @Roles('enterprise')
+  setUrgent(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
+    return this.jobService.setUrgent(id, userId, dto);
   }
 
   @Post(':jobId/applications/:applicationId/accept')
@@ -83,5 +103,78 @@ export class JobController {
     @CurrentUser('sub') userId: number,
   ) {
     return this.jobService.getApplicationsForEnterprise(jobId, userId);
+  }
+
+  @Post(':jobId/check-in')
+  checkIn(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') workerId: number,
+  ) {
+    return this.jobService.checkIn(jobId, workerId);
+  }
+
+  @Post(':jobId/check-out')
+  checkOut(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') workerId: number,
+  ) {
+    return this.jobService.checkOut(jobId, workerId);
+  }
+
+  @Get(':jobId/attendances')
+  @Roles('enterprise')
+  getAttendances(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getAttendances(jobId, userId);
+  }
+
+  @Post(':jobId/work-logs')
+  @Roles('worker')
+  recordWorkLog(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') workerId: number,
+    @Body() dto: any,
+  ) {
+    return this.jobService.recordWorkLog(
+      jobId,
+      workerId,
+      dto.date,
+      dto.hours,
+      dto.pieces,
+    );
+  }
+
+  @Get(':jobId/work-logs')
+  @Roles('enterprise')
+  getWorkLogs(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getWorkLogs(jobId);
+  }
+
+  @Put('work-logs/:workLogId/confirm')
+  @Roles('enterprise')
+  confirmWorkLog(
+    @Param('workLogId') workLogId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.confirmWorkLog(workLogId);
+  }
+
+  @Put('work-logs/:workLogId/anomaly')
+  @Roles('worker')
+  updateWorkLogAnomaly(
+    @Param('workLogId') workLogId: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
+    return this.jobService.updateWorkLogAnomaly(
+      workLogId,
+      dto.anomalyType,
+      dto.anomalyNote,
+    );
   }
 }
