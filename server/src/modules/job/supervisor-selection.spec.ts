@@ -9,6 +9,7 @@ import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Keyword } from '../../entities/keyword.entity';
+import { Supervisor } from '../../entities/supervisor.entity';
 
 describe('SupervisorSelection', () => {
   let service: JobService;
@@ -16,6 +17,7 @@ describe('SupervisorSelection', () => {
   let userRepository: any;
   let jobApplicationRepository: any;
   let keywordRepository: any;
+  let supervisorRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -46,6 +48,12 @@ describe('SupervisorSelection', () => {
       find: jest.fn(),
     };
 
+    supervisorRepository = {
+      findOne: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -64,6 +72,10 @@ describe('SupervisorSelection', () => {
         {
           provide: getRepositoryToken(Keyword),
           useValue: keywordRepository,
+        },
+        {
+          provide: getRepositoryToken(Supervisor),
+          useValue: supervisorRepository,
         },
       ],
     }).compile();
@@ -99,6 +111,22 @@ describe('SupervisorSelection', () => {
       jobRepository.findOne.mockResolvedValue(mockJob);
       jobApplicationRepository.findOne.mockResolvedValue(mockApplication);
       userRepository.findOne.mockResolvedValue(mockWorker);
+      supervisorRepository.findOne.mockResolvedValue(null);
+      supervisorRepository.create.mockReturnValue({
+        jobId,
+        supervisorId: workerId,
+        status: 'active',
+        supervisoryFee: 0,
+        managedWorkerCount: 0,
+      });
+      supervisorRepository.save.mockResolvedValue({
+        id: 1,
+        jobId,
+        supervisorId: workerId,
+        status: 'active',
+        supervisoryFee: 0,
+        managedWorkerCount: 0,
+      });
       jobApplicationRepository.save.mockResolvedValue({
         ...mockApplication,
         status: 'confirmed',
@@ -111,6 +139,14 @@ describe('SupervisorSelection', () => {
       expect(result).toBeDefined();
       expect(result.status).toBe('confirmed');
       expect(result.isSupervisor).toBe(1);
+      expect(supervisorRepository.create).toHaveBeenCalledWith({
+        jobId,
+        supervisorId: workerId,
+        status: 'active',
+        supervisoryFee: 0,
+        managedWorkerCount: 0,
+      });
+      expect(supervisorRepository.save).toHaveBeenCalled();
       expect(jobApplicationRepository.save).toHaveBeenCalled();
     });
 
@@ -255,6 +291,22 @@ describe('SupervisorSelection', () => {
       jobRepository.findOne.mockResolvedValue(mockJob);
       jobApplicationRepository.findOne.mockResolvedValue(mockApplication);
       userRepository.findOne.mockResolvedValue(mockWorker);
+      supervisorRepository.findOne.mockResolvedValue(null);
+      supervisorRepository.create.mockReturnValue({
+        jobId,
+        supervisorId: workerId,
+        status: 'active',
+        supervisoryFee: 0,
+        managedWorkerCount: 0,
+      });
+      supervisorRepository.save.mockResolvedValue({
+        id: 1,
+        jobId,
+        supervisorId: workerId,
+        status: 'active',
+        supervisoryFee: 0,
+        managedWorkerCount: 0,
+      });
       jobApplicationRepository.save.mockResolvedValue({
         ...mockApplication,
         status: 'confirmed',

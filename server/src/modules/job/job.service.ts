@@ -10,6 +10,7 @@ import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
+import { Supervisor } from '../../entities/supervisor.entity';
 import { JobStateMachine } from './job-state-machine';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class JobService {
     @InjectRepository(JobApplication)
     private appRepo: Repository<JobApplication>,
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(Supervisor) private supervisorRepo: Repository<Supervisor>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -373,13 +375,20 @@ export class JobService {
     workerId: number,
     userId: number,
   ): Promise<JobApplication> {
+    // 验证工作存在且属于当前用户
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
-    if (!job || job.userId !== userId) {
+    if (!job) {
+      throw new ForbiddenException(
+        'You do not have permission to manage this job',
+      );
+    }
+    if (job.userId !== userId) {
       throw new ForbiddenException(
         'You do not have permission to manage this job',
       );
     }
 
+    // 验证应用存在且状态为 accepted
     const application = await this.appRepo.findOne({
       where: { jobId, workerId, status: 'accepted' },
     });
@@ -390,15 +399,46 @@ export class JobService {
       );
     }
 
-    // 验证临工资格
+    // 验证工人存在
     const worker = await this.userRepo.findOne({ where: { id: workerId } });
-    if (!worker || worker.creditScore < 95 || worker.totalOrders < 10) {
+    if (!worker) {
       throw new BadRequestException(
         'Worker does not meet supervisor requirements',
       );
     }
 
-    // 更新为 confirmed 并标记为管理员
+    // 验证工人资格 - 分开处理不同的失败原因
+    if (worker.creditScore < 95) {
+      throw new BadRequestException(
+        'Worker does not meet supervisor requirements',
+      );
+    }
+    if (worker.totalOrders < 10) {
+      throw new BadRequestException(
+        'Worker does not meet supervisor requirements',
+      );
+    }
+
+    // 检查是否已有主管
+    const existingSupervisor = await this.supervisorRepo.findOne({
+      where: { jobId },
+    });
+    if (existingSupervisor) {
+      throw new BadRequestException('Supervisor already selected for this job');
+    }
+
+    // 创建 Supervisor 记录
+    const supervisor = this.supervisorRepo.create({
+      jobId,
+      supervisorId: workerId,
+      status: 'active',
+      supervisoryFee: 0,
+      managedWorkerCount: 0,
+    });
+
+    await this.supervisorRepo.save(supervisor);
+
+    // 更新应用状态为 confirmed 并标记为主管
     application.status = 'confirmed';
     application.isSupervisor = 1;
     application.confirmedAt = new Date();
