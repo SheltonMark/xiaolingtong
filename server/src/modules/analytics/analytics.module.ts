@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AnalyticsService } from './analytics.service';
+import { AnalyticsController } from './analytics.controller';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { WorkLog } from '../../entities/work-log.entity';
@@ -9,6 +10,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Job, User, WorkLog, Rating, JobApplication])],
+  controllers: [AnalyticsController],
   providers: [AnalyticsService],
   exports: [AnalyticsService],
 })
