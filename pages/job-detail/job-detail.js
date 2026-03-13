@@ -1,6 +1,6 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageList } = require('../../utils/image')
-const { calculateDistance, getUserLocation, formatDistance } = require('../../utils/distance')
+const { calculateDistanceForList, getUserLocation } = require('../../utils/distance')
 
 Page({
   data: {
@@ -25,22 +25,20 @@ Page({
       }
       this.setData({ job: jobData })
 
-      // 计算距离（后端使用 lat 和 lng 字段）
-      if (job.lat && job.lng) {
-        getUserLocation().then(userLocation => {
-          return calculateDistance(userLocation, {
-            latitude: job.lat,
-            longitude: job.lng
-          })
-        }).then(distance => {
+      // 计算距离：优先使用 lat/lng，缺失时自动使用地址地理编码
+      getUserLocation()
+        .then(userLocation => calculateDistanceForList(userLocation, [jobData]))
+        .then((listWithDistance) => {
+          const jobWithDistance = Array.isArray(listWithDistance) ? listWithDistance[0] : null
+          if (!jobWithDistance || !jobWithDistance.distanceText) return
           this.setData({
-            'job.distance': distance,
-            'job.distanceText': formatDistance(distance)
+            'job.distance': jobWithDistance.distance,
+            'job.distanceText': jobWithDistance.distanceText
           })
-        }).catch(() => {
-          // 获取位置失败，不显示距离
         })
-      }
+        .catch(() => {
+          // 定位失败或距离不可用时，不阻断详情页展示
+        })
 
       // 加载收藏状态
       this.loadFavStatus(id)
@@ -48,21 +46,14 @@ Page({
   },
 
   loadFavStatus(id) {
-    console.log('[job-detail] loadFavStatus called with id:', id)
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      console.log('[job-detail] favorites list:', list)
       const isFav = list.some(item => {
         // 后端返回的是完整对象，id字段就是targetId
-        const match = item.targetType === 'job' && String(item.id) === String(id)
-        console.log('[job-detail] checking item:', item, 'match:', match)
-        return match
+        return item.targetType === 'job' && String(item.id) === String(id)
       })
-      console.log('[job-detail] isFav result:', isFav)
       this.setData({ isFav })
-    }).catch(err => {
-      console.error('[job-detail] loadFavStatus error:', err)
-    })
+    }).catch(() => {})
   },
 
   onSwiperChange(e) {
@@ -106,16 +97,12 @@ Page({
   },
   onToggleFav() {
     const id = this.data.job.id
-    console.log('[job-detail] onToggleFav called with id:', id, 'current isFav:', this.data.isFav)
-    post('/favorites/toggle', { targetType: 'job', targetId: id }).then((res) => {
-      console.log('[job-detail] toggle response:', res)
+    post('/favorites/toggle', { targetType: 'job', targetId: id }).then(() => {
       this.setData({ isFav: !this.data.isFav })
       wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
       // 重新加载收藏状态以确保同步
       setTimeout(() => this.loadFavStatus(id), 500)
-    }).catch(err => {
-      console.error('[job-detail] toggle error:', err)
-    })
+    }).catch(() => {})
   },
 
   onShareJob() {

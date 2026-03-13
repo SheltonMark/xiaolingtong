@@ -2,6 +2,7 @@ const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 const auth = require('../../utils/auth')
 const { calculateDistanceForList, getUserLocation, filterByDistance } = require('../../utils/distance')
+const DISTANCE_DEBUG = false
 
 Page({
   data: {
@@ -117,7 +118,11 @@ Page({
     this.loadCities()
     this.loadJobTypes()
     this.loadBannerAds()
-    this.loadData()
+    if (userRole === 'worker') {
+      this.autoLocateAndLoadWorkerJobs()
+    } else {
+      this.loadData()
+    }
     this.loadUnreadCount()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
@@ -179,6 +184,48 @@ Page({
     }
   },
 
+  autoLocateAndLoadWorkerJobs() {
+    if (this.data.userLocation) {
+      this.loadWorkerJobs()
+      return
+    }
+
+    wx.showLoading({ title: '获取位置中...' })
+    getUserLocation().then((location) => {
+      wx.hideLoading()
+      if (DISTANCE_DEBUG) {
+        console.log('[distance-debug][index] auto user location success', location)
+      }
+      this.setData({ userLocation: location })
+      this.loadWorkerJobs()
+    }).catch((error) => {
+      wx.hideLoading()
+      if (DISTANCE_DEBUG) {
+        console.warn('[distance-debug][index] auto user location failed', error)
+      }
+      const errMsg = String((error && error.errMsg) || '')
+      const denied = errMsg.includes('auth deny') || errMsg.includes('auth denied') || errMsg.includes('scope.userLocation')
+      if (denied) {
+        this.showLocationPermissionModal()
+      }
+      this.loadWorkerJobs()
+    })
+  },
+
+  showLocationPermissionModal() {
+    wx.showModal({
+      title: '需要位置权限',
+      content: '按距离筛选和距离展示需要获取您的位置信息，请在设置中开启位置权限',
+      confirmText: '去设置',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          wx.openSetting()
+        }
+      }
+    })
+  },
+
   loadWorkerJobs() {
     const params = {}
     if (this.data.filterJobType) params.keyword = this.data.filterJobType
@@ -193,13 +240,47 @@ Page({
     get('/jobs', params).then(res => {
       let list = res.data.list || res.data || []
       list = this._mapJobs(list)
+      if (DISTANCE_DEBUG) {
+        const sample = list.slice(0, 3).map(item => ({
+          id: item.id,
+          title: item.title,
+          lat: item.lat,
+          lng: item.lng,
+          location: item.location
+        }))
+        console.log('[distance-debug][index] jobs loaded', {
+          total: list.length,
+          hasUserLocation: !!this.data.userLocation,
+          filterDistance: this.data.filterDistance,
+          sample
+        })
+      }
 
       // 如果有用户位置，计算距离
       if (this.data.userLocation) {
         calculateDistanceForList(this.data.userLocation, list).then(listWithDistance => {
+          if (DISTANCE_DEBUG) {
+            const withDistance = listWithDistance.filter(item => !!item.distanceText).length
+            const sample = listWithDistance.slice(0, 3).map(item => ({
+              id: item.id,
+              distance: item.distance,
+              distanceText: item.distanceText
+            }))
+            console.log('[distance-debug][index] distances calculated', {
+              total: listWithDistance.length,
+              withDistance,
+              sample
+            })
+          }
           // 按距离筛选
           if (this.data.filterDistance) {
             listWithDistance = filterByDistance(listWithDistance, this.data.filterDistance)
+            if (DISTANCE_DEBUG) {
+              console.log('[distance-debug][index] after filterByDistance', {
+                filterDistance: this.data.filterDistance,
+                remaining: listWithDistance.length
+              })
+            }
           }
           // 排序
           if (this.data.sortBy === 'salary_desc') {
@@ -214,7 +295,10 @@ Page({
             })
           }
           this.setData({ jobList: listWithDistance })
-        }).catch(() => {
+        }).catch((error) => {
+          if (DISTANCE_DEBUG) {
+            console.warn('[distance-debug][index] calculateDistanceForList failed', error)
+          }
           this.setData({ jobList: list })
         })
       } else {
@@ -792,7 +876,11 @@ Page({
     getApp().globalData.userRole = newRole
     wx.setStorageSync('userRole', newRole)
     this.setData({ userRole: newRole })
-    this.loadData()
+    if (newRole === 'worker') {
+      this.autoLocateAndLoadWorkerJobs()
+    } else {
+      this.loadData()
+    }
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole: newRole })
     }
@@ -829,12 +917,22 @@ Page({
   onDistanceChange(e) {
     const idx = e.detail.value
     const val = this.data.distanceOptions[idx]
+    if (DISTANCE_DEBUG) {
+      console.log('[distance-debug][index] onDistanceChange', {
+        idx,
+        val,
+        hasUserLocation: !!this.data.userLocation
+      })
+    }
 
     // 如果选择了距离筛选（非"全部"），需要获取用户位置
     if (val !== '全部' && !this.data.userLocation) {
       wx.showLoading({ title: '获取位置中...' })
       getUserLocation().then(location => {
         wx.hideLoading()
+        if (DISTANCE_DEBUG) {
+          console.log('[distance-debug][index] user location success', location)
+        }
         this.setData({
           userLocation: location,
           distanceIndex: idx,
@@ -843,17 +941,10 @@ Page({
         this.loadWorkerJobs()
       }).catch(error => {
         wx.hideLoading()
-        wx.showModal({
-          title: '需要位置权限',
-          content: '按距离筛选需要获取您的位置信息，请在设置中开启位置权限',
-          confirmText: '去设置',
-          cancelText: '取消',
-          success: (res) => {
-            if (res.confirm) {
-              wx.openSetting()
-            }
-          }
-        })
+        if (DISTANCE_DEBUG) {
+          console.warn('[distance-debug][index] user location failed', error)
+        }
+        this.showLocationPermissionModal()
         // 重置为"全部"
         this.setData({ distanceIndex: 0, filterDistance: '' })
       })

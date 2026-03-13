@@ -180,14 +180,18 @@ Page({
     }
 
     const statusInfo = statusMap[item.status] || { text: '待确认', bg: 'amber', tabKey: '待确认' }
+    const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
+    const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
+    const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
 
     return {
       id: item.id,
       jobId: job.id,
-      company: user.nickname || user.companyName || '企业',
+      company,
+      companyAvatarUrl,
       title: job.title || '',
       salary: job.salary || 0,
-      salaryUnit: job.salaryUnit || '元/天',
+      salaryUnit,
       location: job.location || '',
       description: job.description || '',
       date: job.dateRange || '',

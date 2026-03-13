@@ -37,6 +37,12 @@ export class JobService {
     return String(value).trim();
   }
 
+  private parseCoordinate(value: any): number | undefined {
+    if (value === undefined || value === null || value === '') return undefined;
+    const num = Number(value);
+    return Number.isFinite(num) ? num : undefined;
+  }
+
   private parseSalaryType(value: any): 'hourly' | 'piece' {
     const text = this.normalizeText(value);
     if (!text) return 'hourly';
@@ -88,6 +94,8 @@ export class JobService {
     const salaryType = this.parseSalaryType(dto.salaryType || dto.salaryMode);
     const salaryUnit = this.normalizeText(dto.salaryUnit) || (salaryType === 'hourly' ? '元/时' : '元/件');
     const location = this.normalizeText(dto.location || dto.address);
+    const lat = this.parseCoordinate(dto.lat ?? dto.latitude);
+    const lng = this.parseCoordinate(dto.lng ?? dto.longitude);
     const dateStart = this.normalizeText(dto.dateStart || dto.startDate);
     const dateEnd = this.normalizeText(dto.dateEnd || dto.endDate);
     const startTime = this.normalizeText(dto.startTime);
@@ -101,6 +109,8 @@ export class JobService {
       salaryUnit,
       needCount,
       location,
+      lat,
+      lng,
       contactName: this.normalizeText(dto.contactName || dto.contact),
       contactPhone: this.normalizeText(dto.contactPhone || dto.phone),
       dateStart,
@@ -190,6 +200,8 @@ export class JobService {
         applied: appliedCount,
         total: job.needCount,
         location: job.location,
+        lat: this.parseCoordinate(job.lat) ?? null,
+        lng: this.parseCoordinate(job.lng) ?? null,
         cityDistrict: this.extractCityDistrict(job.location),
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
         publishDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '',

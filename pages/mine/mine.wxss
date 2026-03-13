@@ -421,6 +421,12 @@
   align-items: center;
   gap: 12rpx;
 }
+.app-company-avatar-img {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
 .text-avatar {
   display: flex;
   align-items: center;

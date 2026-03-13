@@ -49,6 +49,11 @@
     "backgroundColor": "#F8FAFC",
     "backgroundTextStyle": "dark"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于按距离筛选并展示附近的零工信息"
+    }
+  },
   "tabBar": {
     "custom": true,
     "color": "#94A3B8",

@@ -210,7 +210,7 @@
           </view>
           <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
           <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
-            <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
+            <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:for-index="tagIndex" wx:key="tagIndex" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
           </view>
           <text class="job-desc">{{item.desc}}</text>
           <view class="job-progress">
@@ -288,7 +288,7 @@
       <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
       <!-- 福利标签 + 工作时间 -->
       <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
-        <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
+        <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:for-index="tagIndex" wx:key="tagIndex" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
       </view>
       <!-- 描述 -->
       <text class="job-desc">{{item.desc}}</text>
