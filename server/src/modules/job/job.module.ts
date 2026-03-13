@@ -9,10 +9,18 @@ import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
 import { User } from '../../entities/user.entity';
+import { Attendance } from '../../entities/attendance.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Job, Keyword, JobApplication, Supervisor, User]),
+    TypeOrmModule.forFeature([
+      Job,
+      Keyword,
+      JobApplication,
+      Supervisor,
+      User,
+      Attendance,
+    ]),
     ScheduleModule.forRoot(),
   ],
   controllers: [JobController],

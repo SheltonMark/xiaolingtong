@@ -11,6 +11,7 @@ import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { User } from '../../entities/user.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
+import { Attendance } from '../../entities/attendance.entity';
 import { JobStateMachine } from './job-state-machine';
 
 @Injectable()
@@ -22,6 +23,7 @@ export class JobService {
     private appRepo: Repository<JobApplication>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Supervisor) private supervisorRepo: Repository<Supervisor>,
+    @InjectRepository(Attendance) private attendanceRepo: Repository<Attendance>,
   ) {}
 
   private async checkKeywords(text: string) {
@@ -545,5 +547,64 @@ export class JobService {
     });
 
     return grouped;
+  }
+
+  async checkIn(jobId: number, workerId: number): Promise<Attendance> {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) {
+      throw new NotFoundException('Job not found');
+    }
+
+    const worker = await this.userRepo.findOne({ where: { id: workerId } });
+    if (!worker) {
+      throw new NotFoundException('Worker not found');
+    }
+
+    // 检查是否已签到
+    const existing = await this.attendanceRepo.findOne({
+      where: { jobId, workerId, status: 'checked_in' },
+    });
+
+    if (existing) {
+      throw new BadRequestException('Already checked in');
+    }
+
+    const attendance = this.attendanceRepo.create({
+      jobId,
+      workerId,
+      status: 'checked_in',
+      checkInTime: new Date(),
+    });
+
+    return this.attendanceRepo.save(attendance);
+  }
+
+  async checkOut(jobId: number, workerId: number): Promise<Attendance> {
+    const attendance = await this.attendanceRepo.findOne({
+      where: { jobId, workerId, status: 'checked_in' },
+    });
+
+    if (!attendance) {
+      throw new NotFoundException('No active check-in found');
+    }
+
+    const checkOutTime = new Date();
+    const workHours =
+      (checkOutTime.getTime() - attendance.checkInTime.getTime()) /
+      (1000 * 60 * 60);
+
+    attendance.status = 'checked_out';
+    attendance.checkOutTime = checkOutTime;
+    attendance.workHours = Math.round(workHours * 100) / 100;
+
+    return this.attendanceRepo.save(attendance);
+  }
+
+  async getAttendances(jobId: number): Promise<Attendance[]> {
+    return this.attendanceRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'DESC' },
+    });
   }
 }
