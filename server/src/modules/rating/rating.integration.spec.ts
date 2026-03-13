@@ -8,6 +8,7 @@ import { RatingService } from './rating.service';
 import { Rating } from '../../entities/rating.entity';
 import { User } from '../../entities/user.entity';
 import { Job } from '../../entities/job.entity';
+import { CreateRatingDto } from './rating.dto';
 
 describe('RatingModule Integration Tests', () => {
   let controller: RatingController;
@@ -23,6 +24,7 @@ describe('RatingModule Integration Tests', () => {
       findAndCount: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
 
     userRepository = {
@@ -61,82 +63,164 @@ describe('RatingModule Integration Tests', () => {
     jest.clearAllMocks();
   });
 
-  describe('create Integration', () => {
-    it('should create rating successfully', async () => {
+  describe('createRating Integration', () => {
+    it('should create rating successfully via controller', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      const mockRated = { id: 2, nickname: 'Enterprise' };
+      const dto: CreateRatingDto = {
+        jobId: 1,
+        ratedId: 2,
+        score: 5,
+        comment: 'Great job',
+        tags: ['good'],
+      };
       const mockRating = {
         id: 1,
-        workerId: 1,
-        enterpriseId: 2,
         jobId: 1,
+        raterId: 1,
+        ratedId: 2,
+        raterRole: 'worker',
         score: 5,
+        comment: 'Great job',
         tags: ['good'],
-        content: 'Great job',
+        isAnonymous: false,
+        status: 'pending',
       };
 
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockImplementation(({ where: { id } }) => {
+        if (id === 1) return Promise.resolve(mockRater);
+        if (id === 2) return Promise.resolve(mockRated);
+        return Promise.resolve(null);
+      });
       ratingRepository.findOne.mockResolvedValue(null);
       ratingRepository.create.mockReturnValue(mockRating);
       ratingRepository.save.mockResolvedValue(mockRating);
 
-      const result = await controller.create(1, {
-        enterpriseId: 2,
-        jobId: 1,
-        score: 5,
-        tags: ['good'],
-        content: 'Great job',
-      });
+      const result = await controller.create(1, 'worker', dto);
 
       expect(result).toBeDefined();
       expect(result.score).toBe(5);
+      expect(result.status).toBe('pending');
       expect(ratingRepository.save).toHaveBeenCalled();
     });
 
     it('should throw error when already rated', async () => {
-      const mockRating = {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      const mockRated = { id: 2, nickname: 'Enterprise' };
+      const existingRating = {
         id: 1,
-        workerId: 1,
-        enterpriseId: 2,
         jobId: 1,
+        raterId: 1,
+        ratedId: 2,
+      };
+      const dto: CreateRatingDto = {
+        jobId: 1,
+        ratedId: 2,
         score: 5,
+        comment: 'Great job',
+        tags: ['good'],
       };
 
-      ratingRepository.findOne.mockResolvedValue(mockRating);
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockImplementation(({ where: { id } }) => {
+        if (id === 1) return Promise.resolve(mockRater);
+        if (id === 2) return Promise.resolve(mockRated);
+        return Promise.resolve(null);
+      });
+      ratingRepository.findOne.mockResolvedValue(existingRating);
 
-      await expect(
-        controller.create(1, {
-          enterpriseId: 2,
-          jobId: 1,
-          score: 5,
-          tags: ['good'],
-          content: 'Great job',
-        }),
-      ).rejects.toThrow();
+      await expect(controller.create(1, 'worker', dto)).rejects.toThrow();
     });
 
     it('should accept different score values', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      const mockRated = { id: 2, nickname: 'Enterprise' };
+      const dto: CreateRatingDto = {
+        jobId: 1,
+        ratedId: 2,
+        score: 3,
+        comment: 'Average',
+        tags: ['ok'],
+      };
       const mockRating = {
         id: 1,
-        workerId: 1,
-        enterpriseId: 2,
         jobId: 1,
+        raterId: 1,
+        ratedId: 2,
+        raterRole: 'worker',
         score: 3,
+        comment: 'Average',
         tags: ['ok'],
-        content: 'Average',
+        isAnonymous: false,
+        status: 'pending',
       };
 
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockImplementation(({ where: { id } }) => {
+        if (id === 1) return Promise.resolve(mockRater);
+        if (id === 2) return Promise.resolve(mockRated);
+        return Promise.resolve(null);
+      });
       ratingRepository.findOne.mockResolvedValue(null);
       ratingRepository.create.mockReturnValue(mockRating);
       ratingRepository.save.mockResolvedValue(mockRating);
 
-      const result = await controller.create(1, {
-        enterpriseId: 2,
-        jobId: 1,
-        score: 3,
-        tags: ['ok'],
-        content: 'Average',
-      });
+      const result = await controller.create(1, 'worker', dto);
 
       expect(result.score).toBe(3);
     });
+
+    it('should validate rater and rated are different', async () => {
+      const dto: CreateRatingDto = {
+        jobId: 1,
+        ratedId: 1,
+        score: 5,
+      };
+
+      await expect(controller.create(1, 'worker', dto)).rejects.toThrow();
+    });
+
+    it('should support enterprise role rating', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 2, nickname: 'Enterprise' };
+      const mockRated = { id: 1, nickname: 'Worker' };
+      const dto: CreateRatingDto = {
+        jobId: 1,
+        ratedId: 1,
+        score: 4,
+        comment: 'Good worker',
+      };
+      const mockRating = {
+        id: 1,
+        jobId: 1,
+        raterId: 2,
+        ratedId: 1,
+        raterRole: 'enterprise',
+        score: 4,
+        comment: 'Good worker',
+        tags: [],
+        isAnonymous: false,
+        status: 'pending',
+      };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockImplementation(({ where: { id } }) => {
+        if (id === 1) return Promise.resolve(mockRated);
+        if (id === 2) return Promise.resolve(mockRater);
+        return Promise.resolve(null);
+      });
+      ratingRepository.findOne.mockResolvedValue(null);
+      ratingRepository.create.mockReturnValue(mockRating);
+      ratingRepository.save.mockResolvedValue(mockRating);
+
+      const result = await controller.create(2, 'enterprise', dto);
+
+      expect(result.raterRole).toBe('enterprise');
+      expect(result.raterId).toBe(2);
+    });
   });
 });
-

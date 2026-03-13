@@ -94,8 +94,49 @@
     </view>
   </view>
 
-  <!-- 底部占位 -->
-  <view style="height: calc(120rpx + env(safe-area-inset-bottom));"></view>
+  <!-- 应聘者列表（仅企业可见） -->
+  <view class="detail-card" wx:if="{{userRole === 'enterprise' && showApplications}}">
+    <view class="card-header-row">
+      <text class="card-icon iconfont icon-renyuan"></text>
+      <text class="card-label">应聘者列表 ({{applications.length}})</text>
+    </view>
+    <view class="applications-list" wx:if="{{applications.length > 0}}">
+      <view class="app-item" wx:for="{{applications}}" wx:key="id">
+        <view class="app-header">
+          <view class="app-user-info">
+            <text class="app-user-name">{{item.worker.name}}</text>
+            <view class="status-tag status-bg-{{item.statusColor}}">
+              <text>{{item.statusText}}</text>
+            </view>
+          </view>
+          <text class="app-time">{{item.appliedAt}}</text>
+        </view>
+        <view class="app-details">
+          <view class="app-detail-row">
+            <text class="app-label">信用分：</text>
+            <text class="app-value text-cta">{{item.worker.creditScore}}</text>
+          </view>
+          <view class="app-detail-row">
+            <text class="app-label">完成工作：</text>
+            <text class="app-value">{{item.worker.completedJobs}}个</text>
+          </view>
+          <view class="app-detail-row" wx:if="{{item.worker.averageRating}}">
+            <text class="app-label">平均评分：</text>
+            <text class="app-value text-cta">{{item.worker.averageRating}}⭐</text>
+          </view>
+        </view>
+        <view class="app-actions" wx:if="{{item.status === 'pending'}}">
+          <button class="app-btn app-btn-accept" data-app-id="{{item.id}}" bindtap="onAcceptApplication">接受</button>
+          <button class="app-btn app-btn-reject" data-app-id="{{item.id}}" bindtap="onRejectApplication">拒绝</button>
+        </view>
+      </view>
+    </view>
+    <view class="empty-state" wx:else>
+      <text>暂无应聘者</text>
+    </view>
+  </view>
+
+
 
   <!-- 底部操作栏（仅临工可见） -->
   <view class="bottom-bar" wx:if="{{userRole === 'worker'}}">

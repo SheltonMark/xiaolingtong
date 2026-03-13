@@ -12,7 +12,7 @@ import { User } from './user.entity';
 import { Job } from './job.entity';
 
 @Entity('ratings')
-@Unique(['workerId', 'jobId'])
+@Unique(['jobId', 'raterId', 'ratedId'])
 export class Rating {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   id: number;
@@ -61,14 +61,4 @@ export class Rating {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'ratedId' })
   rated: User;
-
-  // Legacy fields for backward compatibility
-  @Column({ type: 'bigint', nullable: true })
-  workerId?: number;
-
-  @Column({ type: 'bigint', nullable: true })
-  enterpriseId?: number;
-
-  @Column({ type: 'text', nullable: true })
-  content?: string;
 }

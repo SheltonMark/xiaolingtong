@@ -6,7 +6,10 @@ Page({
     userRole: 'worker',
     swiperCurrent: 0,
     isFav: false,
-    job: {}
+    job: {},
+    applications: [],
+    showApplications: false,
+    applicationsLoading: false
   },
 
   onLoad(options) {
@@ -26,7 +29,56 @@ Page({
       })
       // 加载收藏状态
       this.loadFavStatus(id)
+      // 如果是企业端，加载应聘者列表
+      if (this.data.userRole === 'enterprise') {
+        this.loadApplications(id)
+      }
     }).catch(() => {})
+  },
+
+  loadApplications(jobId) {
+    this.setData({ applicationsLoading: true })
+    get('/jobs/' + jobId + '/applications').then(res => {
+      const applications = res.data.list || res.data || []
+      this.setData({
+        applications: applications.map(app => ({
+          ...app,
+          statusText: this.getApplicationStatusText(app.status),
+          statusColor: this.getApplicationStatusColor(app.status)
+        })),
+        showApplications: true
+      })
+    }).catch(() => {
+      this.setData({ showApplications: false })
+    }).finally(() => {
+      this.setData({ applicationsLoading: false })
+    })
+  },
+
+  getApplicationStatusText(status) {
+    const statusMap = {
+      pending: '待审核',
+      accepted: '已接受',
+      confirmed: '已确认',
+      rejected: '已拒绝',
+      cancelled: '已取消',
+      working: '进行中',
+      done: '已完成'
+    }
+    return statusMap[status] || status
+  },
+
+  getApplicationStatusColor(status) {
+    const colorMap = {
+      pending: 'amber',
+      accepted: 'green',
+      confirmed: 'green',
+      rejected: 'red',
+      cancelled: 'gray',
+      working: 'blue',
+      done: 'gray'
+    }
+    return colorMap[status] || 'gray'
   },
 
   loadFavStatus(id) {
@@ -47,7 +99,43 @@ Page({
     // 重新加载收藏状态
     if (this.data.job.id) {
       this.loadFavStatus(this.data.job.id)
+      // 如果是企业端，重新加载应聘者列表
+      if (userRole === 'enterprise') {
+        this.loadApplications(this.data.job.id)
+      }
     }
+  },
+
+  onAcceptApplication(e) {
+    const appId = e.currentTarget.dataset.appId
+    wx.showModal({
+      title: '确认接受',
+      content: '接受该应聘者的报名？',
+      success: (res) => {
+        if (res.confirm) {
+          post('/jobs/' + this.data.job.id + '/applications/' + appId + '/accept').then(() => {
+            wx.showToast({ title: '已接受', icon: 'success' })
+            this.loadApplications(this.data.job.id)
+          }).catch(() => {})
+        }
+      }
+    })
+  },
+
+  onRejectApplication(e) {
+    const appId = e.currentTarget.dataset.appId
+    wx.showModal({
+      title: '确认拒绝',
+      content: '拒绝该应聘者的报名？',
+      success: (res) => {
+        if (res.confirm) {
+          post('/jobs/' + this.data.job.id + '/applications/' + appId + '/reject').then(() => {
+            wx.showToast({ title: '已拒绝', icon: 'success' })
+            this.loadApplications(this.data.job.id)
+          }).catch(() => {})
+        }
+      }
+    })
   },
 
   onApply() {

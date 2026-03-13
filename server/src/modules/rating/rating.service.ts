@@ -1,46 +1,36 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Rating } from '../../entities/rating.entity';
 import { User } from '../../entities/user.entity';
 import { Job } from '../../entities/job.entity';
+import { CreateRatingDto } from './rating.dto';
 
 @Injectable()
 export class RatingService {
+  private readonly logger = new Logger(RatingService.name);
+
   constructor(
     @InjectRepository(Rating) private ratingRepo: Repository<Rating>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
   ) {}
 
-  async create(workerId: number, dto: any) {
-    const existing = await this.ratingRepo.findOne({
-      where: { workerId, jobId: dto.jobId },
-    });
-    if (existing) throw new BadRequestException('已评价过');
-    const rating = this.ratingRepo.create({
-      workerId,
-      enterpriseId: dto.enterpriseId,
-      jobId: dto.jobId,
-      score: dto.score,
-      tags: dto.tags,
-      content: dto.content,
-    });
-    return this.ratingRepo.save(rating);
-  }
-
   async createRating(
     jobId: number,
     raterId: number,
     ratedId: number,
     raterRole: 'worker' | 'enterprise',
-    score: number,
-    comment?: string,
-    tags?: string[],
+    dto: CreateRatingDto,
   ): Promise<Rating> {
     // Validate score range
-    if (score < 1 || score > 5) {
+    if (dto.score < 1 || dto.score > 5) {
       throw new BadRequestException('评分必须在1-5之间');
+    }
+
+    // Validate rater and rated are different
+    if (raterId === ratedId) {
+      throw new BadRequestException('不能评价自己');
     }
 
     // Verify job exists
@@ -74,13 +64,19 @@ export class RatingService {
       raterId,
       ratedId,
       raterRole,
-      score,
-      comment,
-      tags: tags || [],
+      score: dto.score,
+      comment: dto.comment,
+      tags: dto.tags || [],
+      isAnonymous: dto.isAnonymous || false,
       status: 'pending',
     });
 
-    return this.ratingRepo.save(rating);
+    try {
+      return await this.ratingRepo.save(rating);
+    } catch (error) {
+      this.logger.error(`Failed to create rating: ${error.message}`, error.stack);
+      throw new BadRequestException('创建评价失败');
+    }
   }
 
   async getRatings(
@@ -107,8 +103,30 @@ export class RatingService {
     rating.status = 'approved';
     const updated = await this.ratingRepo.save(rating);
 
-    // Update user's average rating
-    await this.updateUserAverageRating(rating.ratedId);
+    // Use QueryBuilder to calculate average rating in one query (fix N+1)
+    const result = await this.ratingRepo
+      .createQueryBuilder('r')
+      .select('AVG(r.score)', 'avgScore')
+      .addSelect('COUNT(*)', 'count')
+      .where('r.ratedId = :ratedId', { ratedId: rating.ratedId })
+      .andWhere('r.status = :status', { status: 'approved' })
+      .getRawOne();
+
+    // Update user's credit score based on average rating
+    const user = await this.userRepo.findOne({ where: { id: rating.ratedId } });
+    if (user) {
+      const avgScore = parseFloat(result.avgScore) || 0;
+      user.creditScore = Math.min(100, Math.max(0, Math.round(avgScore * 10)));
+      try {
+        await this.userRepo.save(user);
+      } catch (error) {
+        this.logger.warn(
+          `Failed to update user credit score for user ${rating.ratedId}: ${error.message}`,
+        );
+      }
+    } else {
+      this.logger.warn(`User ${rating.ratedId} not found when updating credit score`);
+    }
 
     return updated;
   }
@@ -121,27 +139,6 @@ export class RatingService {
 
     rating.status = 'rejected';
     return this.ratingRepo.save(rating);
-  }
-
-  private async updateUserAverageRating(userId: number): Promise<void> {
-    const ratings = await this.ratingRepo.find({
-      where: { ratedId: userId, status: 'approved' },
-    });
-
-    if (ratings.length === 0) {
-      return;
-    }
-
-    const averageScore = Math.round(
-      (ratings.reduce((sum, r) => sum + r.score, 0) / ratings.length) * 10,
-    ) / 10;
-
-    // Update user's credit score based on average rating
-    const user = await this.userRepo.findOne({ where: { id: userId } });
-    if (user) {
-      user.creditScore = Math.min(100, Math.max(0, Math.round(averageScore * 10)));
-      await this.userRepo.save(user);
-    }
   }
 }
 

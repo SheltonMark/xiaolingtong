@@ -143,3 +143,107 @@ page {
   font-size: 26rpx; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
 }
+
+/* 应聘者列表 */
+.applications-list {
+  display: flex; flex-direction: column; gap: 16rpx;
+}
+
+.app-item {
+  border: 1rpx solid #E2E8F0; border-radius: 12rpx; padding: 16rpx;
+  background-color: #F8FAFC;
+}
+
+.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.app-user-info {
+  display: flex; align-items: center; gap: 12rpx;
+}
+
+.app-user-name {
+  font-size: 26rpx; font-weight: 600; color: #1E293B;
+}
+
+.app-time {
+  font-size: 20rpx; color: #94A3B8;
+}
+
+.app-details {
+  display: flex; flex-direction: column; gap: 8rpx;
+  margin-bottom: 12rpx; padding-bottom: 12rpx;
+  border-bottom: 1rpx solid #E2E8F0;
+}
+
+.app-detail-row {
+  display: flex; align-items: center; gap: 8rpx;
+}
+
+.app-label {
+  font-size: 22rpx; color: #64748B; min-width: 100rpx;
+}
+
+.app-value {
+  font-size: 22rpx; color: #1E293B;
+}
+
+.app-actions {
+  display: flex; gap: 12rpx;
+}
+
+.app-btn {
+  flex: 1; height: 56rpx; border-radius: 8rpx;
+  font-size: 22rpx; font-weight: 600;
+  border: none; padding: 0; margin: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.app-btn-accept {
+  background-color: #10B981; color: #fff;
+}
+
+.app-btn-reject {
+  background-color: #EF4444; color: #fff;
+}
+
+.app-btn::after {
+  border: none;
+}
+
+.empty-state {
+  text-align: center; padding: 40rpx 24rpx;
+  color: #94A3B8; font-size: 24rpx;
+}
+
+/* 状态标签 */
+.status-tag {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 4rpx 12rpx; border-radius: 6rpx; font-size: 20rpx;
+}
+
+.status-bg-amber {
+  background-color: #FEF3C7; color: #D97706;
+}
+
+.status-bg-green {
+  background-color: #DCFCE7; color: #16A34A;
+}
+
+.status-bg-red {
+  background-color: #FEE2E2; color: #DC2626;
+}
+
+.status-bg-gray {
+  background-color: #F3F4F6; color: #6B7280;
+}
+
+.status-bg-blue {
+  background-color: #DBEAFE; color: #2563EB;
+}
+
+.text-cta {
+  color: #F97316;
+}
+
