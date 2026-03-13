@@ -319,6 +319,30 @@ export class JobService {
     return this.jobRepo.save(job);
   }
 
+  async getUrgentPricing(userId: number) {
+    // Return urgent pricing options
+    return {
+      options: [
+        { days: 1, price: 50 },
+        { days: 3, price: 120 },
+        { days: 7, price: 250 },
+      ],
+    };
+  }
+
+  async setUrgent(id: number, userId: number, dto: any) {
+    const job = await this.jobRepo.findOne({ where: { id } });
+    if (!job || job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const days = dto.days || 1;
+    const urgentExpireAt = new Date();
+    urgentExpireAt.setDate(urgentExpireAt.getDate() + days);
+
+    job.urgent = 1;
+    job.urgentExpireAt = urgentExpireAt;
+    return this.jobRepo.save(job);
+  }
+
   async updateApplicationStatus(
     applicationId: number,
     newStatus: string,
