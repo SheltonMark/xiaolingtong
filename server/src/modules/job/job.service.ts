@@ -542,7 +542,7 @@ export class JobService {
       relations: ['job'],
     });
 
-    const conflicts = [];
+    const conflicts: any[] = [];
     for (const app of applications) {
       const existingJob = app.job;
 
@@ -759,7 +759,6 @@ export class JobService {
         id: worker.id,
         nickname: worker.nickname,
         phone: worker.phone,
-        location: worker.location,
         avatarUrl: worker.avatarUrl,
         creditScore: worker.creditScore,
         totalOrders: totalOrders,
@@ -770,7 +769,7 @@ export class JobService {
       },
       certification: {
         realName: cert?.realName || '未认证',
-        idNumber: cert?.idNumber ? cert.idNumber.replace(/(.{6})(.*)(.{4})/, '$1****$3') : '未认证',
+        idNumber: cert?.idNo ? cert.idNo.replace(/(.{6})(.*)(.{4})/, '$1****$3') : '未认证',
         status: cert?.status || 'pending',
       },
     };
