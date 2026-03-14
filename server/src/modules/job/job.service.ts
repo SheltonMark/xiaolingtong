@@ -559,6 +559,10 @@ export class JobService {
       accepted: [],
       confirmed: [],
       rejected: [],
+      released: [],
+      cancelled: [],
+      working: [],
+      done: [],
     };
 
     applications.forEach((app) => {
@@ -591,6 +595,26 @@ export class JobService {
         });
       } else if (app.status === 'rejected') {
         grouped.rejected.push({
+          ...app,
+          worker: workerData,
+        });
+      } else if (app.status === 'released') {
+        grouped.released.push({
+          ...app,
+          worker: workerData,
+        });
+      } else if (app.status === 'cancelled') {
+        grouped.cancelled.push({
+          ...app,
+          worker: workerData,
+        });
+      } else if (app.status === 'working') {
+        grouped.working.push({
+          ...app,
+          worker: workerData,
+        });
+      } else if (app.status === 'done') {
+        grouped.done.push({
           ...app,
           worker: workerData,
         });

@@ -52,18 +52,26 @@ Page({
     this.setData({ loading: true })
     get('/jobs/' + jobId + '/applications').then(res => {
       const data = res.data || {}
-      // 后端返回分组数据：{ pending: [], accepted: [], confirmed: [], rejected: [] }
+      // 后端返回分组数据：{ pending: [], accepted: [], confirmed: [], rejected: [], released: [], cancelled: [], working: [], done: [] }
       const pending = (data.pending || []).map(app => this.formatApplication(app))
       const accepted = (data.accepted || []).map(app => this.formatApplication(app))
       const confirmed = (data.confirmed || []).map(app => this.formatApplication(app))
       const rejected = (data.rejected || []).map(app => this.formatApplication(app))
+      const released = (data.released || []).map(app => this.formatApplication(app))
+      const cancelled = (data.cancelled || []).map(app => this.formatApplication(app))
+      const working = (data.working || []).map(app => this.formatApplication(app))
+      const done = (data.done || []).map(app => this.formatApplication(app))
 
       this.setData({
-        applications: [...pending, ...accepted, ...confirmed, ...rejected],
+        applications: [...pending, ...accepted, ...confirmed, ...rejected, ...released, ...cancelled, ...working, ...done],
         pendingApps: pending,
         acceptedApps: accepted,
         confirmedApps: confirmed,
         rejectedApps: rejected,
+        releasedApps: released,
+        cancelledApps: cancelled,
+        workingApps: working,
+        doneApps: done,
         loading: false
       })
     }).catch((err) => {
