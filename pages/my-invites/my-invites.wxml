@@ -20,6 +20,15 @@
     </view>
   </view>
 
+  <!-- 邀请说明 -->
+  <view class="invite-tip">
+    <text class="tip-icon iconfont icon-tishixinxi"></text>
+    <view class="tip-content">
+      <text class="tip-title">邀请奖励</text>
+      <text class="tip-text">邀请好友注册认证，有机会获得返佣奖励</text>
+    </view>
+  </view>
+
   <!-- 邀请记录列表 -->
   <view class="section-header">
     <text class="section-title">邀请记录</text>

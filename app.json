@@ -13,9 +13,10 @@
     "pages/post-detail/post-detail",
     "pages/job-detail/job-detail",
     "pages/job-applications/job-applications",
+    "pages/applicant-detail/applicant-detail",
     "pages/my-posts/my-posts",
     "pages/my-applications/my-applications",
-    "pages/category/category",
+    "pages/my-favorites/my-favorites",
     "pages/exposure/exposure",
     "pages/exposure-board/exposure-board",
     "pages/report/report",
@@ -24,6 +25,7 @@
     "pages/bean-recharge/bean-recharge",
     "pages/bean-detail/bean-detail",
     "pages/promotion/promotion",
+    "pages/urgent-job/urgent-job",
     "pages/wallet/wallet",
     "pages/income/income",
     "pages/checkin/checkin",
@@ -50,6 +52,15 @@
     "backgroundColor": "#F8FAFC",
     "backgroundTextStyle": "dark"
   },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于按距离筛选并展示附近的零工信息"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
   "tabBar": {
     "custom": true,
     "color": "#94A3B8",

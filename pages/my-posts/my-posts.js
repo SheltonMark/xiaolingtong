@@ -75,6 +75,7 @@ Page({
       const expireAt = item.expireAt ? item.expireAt.substring(0, 10) : ''
       return {
         ...item,
+        uniqueKey: `${item.type}-${item.id}`, // 添加唯一key，避免posts和jobs的id冲突
         typeKey: item.type,
         type: typeMeta.label,
         typeColor: typeMeta.color,

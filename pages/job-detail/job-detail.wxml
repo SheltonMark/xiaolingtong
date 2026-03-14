@@ -22,7 +22,7 @@
     <text class="jd-title">{{job.title}} · 需{{job.need}}人</text>
     <view class="location-row">
       <text class="loc-icon iconfont icon-address"></text>
-      <text class="loc-text">{{job.location}}</text>
+      <text class="loc-text">{{job.location}}<text wx:if="{{job.distanceText}}" class="distance-text"> · 距您{{job.distanceText}}</text></text>
     </view>
   </view>
 
@@ -73,11 +73,13 @@
       <text class="card-label">招工企业</text>
     </view>
     <view class="company-row">
-      <view class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#10B981;">{{job.company.name[0]}}</view>
+      <image wx:if="{{job.company.avatarUrl}}" src="{{job.company.avatarUrl}}" mode="aspectFill" class="company-avatar-img" />
+      <view wx:else class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#10B981;">{{job.company.name[0]}}</view>
       <view class="comp-info">
         <view class="comp-name-row">
           <text class="comp-name">{{job.company.name}}</text>
-          <text class="cert-badge" wx:if="{{job.company.verified}}">已认证</text>
+          <text class="cert-badge cert-badge-verified" wx:if="{{job.company.verified}}">已认证</text>
+          <text class="cert-badge cert-badge-unverified" wx:else>未认证</text>
         </view>
         <text class="comp-credit">信用分 <text class="text-cta font-semibold">{{job.company.creditScore}}</text> · {{job.location}}</text>
       </view>
@@ -97,8 +99,8 @@
   <!-- 底部占位 -->
   <view style="height: calc(120rpx + env(safe-area-inset-bottom));"></view>
 
-  <!-- 底部操作栏（仅临工可见） -->
-  <view class="bottom-bar" wx:if="{{userRole === 'worker'}}">
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar">
     <view class="bar-left">
       <view class="bar-icon-btn" bindtap="onToggleFav">
         <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
@@ -110,9 +112,14 @@
         <button class="share-overlay" open-type="share"></button>
       </view>
     </view>
-    <view class="bar-right">
+    <!-- 临工端显示报名按钮 -->
+    <view class="bar-right" wx:if="{{userRole === 'worker'}}">
       <view class="bar-btn-phone" bindtap="onCallPhone">电话</view>
       <view class="bar-btn-apply" bindtap="onApply">立即报名</view>
+    </view>
+    <!-- 企业端显示电话按钮 -->
+    <view class="bar-right" wx:else>
+      <view class="bar-btn-phone" style="flex: 1;" bindtap="onCallPhone">联系电话</view>
     </view>
   </view>
 

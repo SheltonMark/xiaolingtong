@@ -106,6 +106,21 @@ Page({
       const rawList = (res.data && res.data.list) || []
       const list = rawList.map(item => this.normalizeMessage(item))
 
+      // 添加时间分组逻辑：每5分钟显示一次时间
+      let lastDisplayTime = null
+      const messagesWithTime = list.map(msg => {
+        const msgTime = new Date(msg.rawTime || '')
+        let showTime = false
+        // 第一条消息或距离上次显示时间超过5分钟，则显示时间
+        if (!lastDisplayTime || isNaN(msgTime.getTime()) || (msgTime - lastDisplayTime) >= 5 * 60 * 1000) {
+          showTime = true
+          if (!isNaN(msgTime.getTime())) {
+            lastDisplayTime = msgTime
+          }
+        }
+        return { ...msg, showTime }
+      })
+
       // 从后端返回的 otherUser 获取对方信息
       const otherUser = res.data && res.data.otherUser
       if (otherUser) {
@@ -128,23 +143,58 @@ Page({
         }
       }
 
-      // 设置时间提示为第一条消息的时间
-      const timeMarkText = rawList.length > 0 ? this.formatMessageTime(rawList[0].time || '') : this.formatMessageTime(new Date().toISOString())
-      this.setData({ messages: list, timeMarkText }, () => this.scrollToBottom())
+      this.setData({ messages: messagesWithTime }, () => this.scrollToBottom())
     }).catch(() => {})
+  },
+  parseMessageDate(value) {
+    if (value === undefined || value === null || value === '') return null
+    if (typeof value === 'number') {
+      const ts = value < 1e12 ? value * 1000 : value
+      const date = new Date(ts)
+      return isNaN(date.getTime()) ? null : date
+    }
+    const text = String(value).trim()
+    if (!text) return null
+
+    let date = new Date(text)
+    if (isNaN(date.getTime()) && text.includes('-')) {
+      date = new Date(text.replace(/-/g, '/'))
+    }
+    if (isNaN(date.getTime())) return null
+    return date
   },
   formatMessageTime(timeStr) {
     if (!timeStr) return ''
-    const date = new Date(timeStr)
-    if (isNaN(date.getTime())) return timeStr
+    const date = this.parseMessageDate(timeStr)
+    if (!date) return String(timeStr)
+
+    const now = new Date()
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
+    const timeText = `${hours}:${minutes}`
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const startOfDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+    const dayDiff = Math.floor((startOfToday - startOfDate) / (24 * 60 * 60 * 1000))
+
+    if (dayDiff === 0) {
+      return timeText
+    }
+    if (dayDiff === 1) {
+      return `昨天 ${timeText}`
+    }
+    if (dayDiff > 1 && dayDiff < 7) {
+      const weekdayMap = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      return `${weekdayMap[date.getDay()]} ${timeText}`
+    }
 
     const month = date.getMonth() + 1
     const day = date.getDate()
-    const hours = String(date.getHours()).padStart(2, '0')
-    const minutes = String(date.getMinutes()).padStart(2, '0')
-    const seconds = String(date.getSeconds()).padStart(2, '0')
+    const sameYear = date.getFullYear() === now.getFullYear()
+    if (sameYear) {
+      return `${month}月${day}日 ${timeText}`
+    }
 
-    return `${month}月${day}日 ${hours}:${minutes}:${seconds}`
+    return `${date.getFullYear()}年${month}月${day}日 ${timeText}`
   },
 
   normalizeMessage(item = {}) {
@@ -152,10 +202,12 @@ Page({
     const currentUserId = (app.globalData.userInfo && app.globalData.userInfo.id) || 0
     const senderId = Number(item.senderId || 0)
     const from = senderId === Number(currentUserId) ? 'me' : 'other'
+    const rawTime = item.createdAt || item.time || ''
     const base = {
       id: item.id,
       from,
-      time: this.formatMessageTime(item.time || ''),
+      time: this.formatMessageTime(rawTime),
+      rawTime, // 保存原始时间用于计算
       senderId,
       conversationId: Number(item.conversationId || this.data.conversationId || 0)
     }
@@ -176,11 +228,40 @@ Page({
     }
     return { ...base, type: 'text', text: item.content || '' }
   },
+
+  // 计算消息是否应该显示时间（距离上一条显示时间的消息超过5分钟）
+  shouldShowTime(newMessage) {
+    const messages = this.data.messages || []
+    if (messages.length === 0) return true // 第一条消息显示时间
+
+    // 找到最后一条显示了时间的消息
+    let lastDisplayTime = null
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].showTime && messages[i].rawTime) {
+        lastDisplayTime = new Date(messages[i].rawTime)
+        break
+      }
+    }
+
+    // 如果没有找到显示时间的消息，说明是第一条，应该显示
+    if (!lastDisplayTime || isNaN(lastDisplayTime.getTime())) return true
+
+    const newTime = new Date(newMessage.rawTime || newMessage.createdAt || '')
+    if (isNaN(newTime.getTime())) return false
+
+    const diff = newTime - lastDisplayTime
+    return diff >= 5 * 60 * 1000 // 5分钟
+  },
+
   onWsEvent(event, data) {
     if (event !== 'new_message' || !data) return
     const message = this.normalizeMessage(data)
     if (Number(message.conversationId) !== Number(this.data.conversationId)) return
     if ((this.data.messages || []).some(item => Number(item.id) === Number(message.id))) return
+
+    // 计算是否显示时间
+    message.showTime = this.shouldShowTime(message)
+
     this.setData({
       messages: [...this.data.messages, message]
     }, () => this.scrollToBottom())
@@ -255,6 +336,10 @@ Page({
     }
     return post('/conversations/' + this.data.conversationId + '/send', { type, content }).then(res => {
       const message = this.normalizeMessage(res.data || {})
+
+      // 计算是否显示时间
+      message.showTime = this.shouldShowTime(message)
+
       this.setData({
         messages: [...this.data.messages, message],
         scrollToView: 'msg-' + message.id

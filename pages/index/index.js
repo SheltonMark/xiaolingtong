@@ -1,6 +1,8 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 const auth = require('../../utils/auth')
+const { calculateDistanceForList, getUserLocation, filterByDistance } = require('../../utils/distance')
+const DISTANCE_DEBUG = false
 
 Page({
   data: {
@@ -12,6 +14,7 @@ Page({
     cityNames: [], // picker 用的城市名数组
     cities: [], // 可选城市列表
     jobTypes: [], // 可选工种列表
+    searchKeyword: '', // 搜索关键词
     banners: [
       { id: 1, title: '新用户专享', sub: '注册送 50 灵豆', bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' },
       { id: 2, title: '会员特权', sub: '每日免费查看联系方式', bg: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)' },
@@ -75,13 +78,15 @@ Page({
     // picker 选项
     jobTypeOptions: ['全部'],
     salaryTypeOptions: ['全部', '按小时', '按件'],
-    distanceOptions: ['全部', '1km内', '3km内', '5km内', '10km内'],
+    distanceOptions: ['全部', '1km内', '3km内', '5km内', '10km内', '10km以上'],
     salaryOptions: ['全部', '20元以下', '20-30元', '30-50元', '50元以上'],
     jobTypeIndex: 0,
     salaryTypeIndex: 0,
     distanceIndex: 0,
     salaryIndex: 0,
-    sortBy: 'default'
+    sortBy: 'default',
+    // 用户位置
+    userLocation: null // {latitude, longitude}
   },
 
   onLoad() {
@@ -113,7 +118,11 @@ Page({
     this.loadCities()
     this.loadJobTypes()
     this.loadBannerAds()
-    this.loadData()
+    if (userRole === 'worker') {
+      this.autoLocateAndLoadWorkerJobs()
+    } else {
+      this.loadData()
+    }
     this.loadUnreadCount()
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole })
@@ -175,6 +184,48 @@ Page({
     }
   },
 
+  autoLocateAndLoadWorkerJobs() {
+    if (this.data.userLocation) {
+      this.loadWorkerJobs()
+      return
+    }
+
+    wx.showLoading({ title: '获取位置中...' })
+    getUserLocation().then((location) => {
+      wx.hideLoading()
+      if (DISTANCE_DEBUG) {
+        console.log('[distance-debug][index] auto user location success', location)
+      }
+      this.setData({ userLocation: location })
+      this.loadWorkerJobs()
+    }).catch((error) => {
+      wx.hideLoading()
+      if (DISTANCE_DEBUG) {
+        console.warn('[distance-debug][index] auto user location failed', error)
+      }
+      const errMsg = String((error && error.errMsg) || '')
+      const denied = errMsg.includes('auth deny') || errMsg.includes('auth denied') || errMsg.includes('scope.userLocation')
+      if (denied) {
+        this.showLocationPermissionModal()
+      }
+      this.loadWorkerJobs()
+    })
+  },
+
+  showLocationPermissionModal() {
+    wx.showModal({
+      title: '需要位置权限',
+      content: '按距离筛选和距离展示需要获取您的位置信息，请在设置中开启位置权限',
+      confirmText: '去设置',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          wx.openSetting()
+        }
+      }
+    })
+  },
+
   loadWorkerJobs() {
     const params = {}
     if (this.data.filterJobType) params.keyword = this.data.filterJobType
@@ -188,13 +239,77 @@ Page({
     }
     get('/jobs', params).then(res => {
       let list = res.data.list || res.data || []
-      // 客户端排序（如果需要按距离排序，需要获取用户位置）
-      if (this.data.sortBy === 'salary_desc') {
-        list = list.sort((a, b) => b.salary - a.salary)
-      } else if (this.data.sortBy === 'salary_asc') {
-        list = list.sort((a, b) => a.salary - b.salary)
+      list = this._mapJobs(list)
+      if (DISTANCE_DEBUG) {
+        const sample = list.slice(0, 3).map(item => ({
+          id: item.id,
+          title: item.title,
+          lat: item.lat,
+          lng: item.lng,
+          location: item.location
+        }))
+        console.log('[distance-debug][index] jobs loaded', {
+          total: list.length,
+          hasUserLocation: !!this.data.userLocation,
+          filterDistance: this.data.filterDistance,
+          sample
+        })
       }
-      this.setData({ jobList: this._mapJobs(list) })
+
+      // 如果有用户位置，计算距离
+      if (this.data.userLocation) {
+        calculateDistanceForList(this.data.userLocation, list).then(listWithDistance => {
+          if (DISTANCE_DEBUG) {
+            const withDistance = listWithDistance.filter(item => !!item.distanceText).length
+            const sample = listWithDistance.slice(0, 3).map(item => ({
+              id: item.id,
+              distance: item.distance,
+              distanceText: item.distanceText
+            }))
+            console.log('[distance-debug][index] distances calculated', {
+              total: listWithDistance.length,
+              withDistance,
+              sample
+            })
+          }
+          // 按距离筛选
+          if (this.data.filterDistance) {
+            listWithDistance = filterByDistance(listWithDistance, this.data.filterDistance)
+            if (DISTANCE_DEBUG) {
+              console.log('[distance-debug][index] after filterByDistance', {
+                filterDistance: this.data.filterDistance,
+                remaining: listWithDistance.length
+              })
+            }
+          }
+          // 排序
+          if (this.data.sortBy === 'salary_desc') {
+            listWithDistance = listWithDistance.sort((a, b) => b.salary - a.salary)
+          } else if (this.data.sortBy === 'salary_asc') {
+            listWithDistance = listWithDistance.sort((a, b) => a.salary - b.salary)
+          } else if (this.data.sortBy === 'distance' && this.data.userLocation) {
+            listWithDistance = listWithDistance.sort((a, b) => {
+              if (a.distance === null) return 1
+              if (b.distance === null) return -1
+              return a.distance - b.distance
+            })
+          }
+          this.setData({ jobList: listWithDistance })
+        }).catch((error) => {
+          if (DISTANCE_DEBUG) {
+            console.warn('[distance-debug][index] calculateDistanceForList failed', error)
+          }
+          this.setData({ jobList: list })
+        })
+      } else {
+        // 没有位置信息，直接排序
+        if (this.data.sortBy === 'salary_desc') {
+          list = list.sort((a, b) => b.salary - a.salary)
+        } else if (this.data.sortBy === 'salary_asc') {
+          list = list.sort((a, b) => a.salary - b.salary)
+        }
+        this.setData({ jobList: list })
+      }
     }).catch(() => {})
   },
 
@@ -361,11 +476,73 @@ Page({
   },
 
   onSearch() {
-    wx.navigateTo({ url: '/pages/category/category' })
+    // 已移除，搜索框改为直接输入
   },
 
-  onViewMore() {
-    wx.navigateTo({ url: '/pages/category/category' })
+  onSearchInput(e) {
+    this.setData({ searchKeyword: e.detail.value })
+  },
+
+  onSearchConfirm(e) {
+    const keyword = (e.detail.value || '').trim()
+    this.setData({ searchKeyword: keyword })
+    // 根据用户角色搜索不同内容
+    if (this.data.userRole === 'worker') {
+      this.loadJobList()
+    } else {
+      this.loadPostList()
+    }
+  },
+
+  loadJobList() {
+    const params = {}
+    if (this.data.searchKeyword) {
+      params.keyword = this.data.searchKeyword
+    }
+    get('/jobs', params).then(res => {
+      const list = res.data.list || res.data || []
+      if (this.data.userRole === 'worker') {
+        this.setData({ jobList: this._mapJobs(list) })
+      } else {
+        this.setData({ jobListEnterprise: this._mapJobs(list) })
+      }
+    }).catch(() => {
+      wx.showToast({ title: '搜索失败', icon: 'none' })
+    })
+  },
+
+  loadPostList() {
+    const params = {}
+    if (this.data.searchKeyword) {
+      params.keyword = this.data.searchKeyword
+    }
+    // 根据当前tab加载对应类型的帖子
+    const currentTab = this.data.currentTab
+    if (currentTab === 0) {
+      params.type = 'purchase'
+      get('/posts', params).then(res => {
+        this.setData({ purchaseList: this._mapPosts(res.data.list || res.data || []) })
+      }).catch(() => {
+        wx.showToast({ title: '搜索失败', icon: 'none' })
+      })
+    } else if (currentTab === 1) {
+      params.type = 'stock'
+      get('/posts', params).then(res => {
+        this.setData({ stockList: this._mapPosts(res.data.list || res.data || []) })
+      }).catch(() => {
+        wx.showToast({ title: '搜索失败', icon: 'none' })
+      })
+    } else if (currentTab === 2) {
+      params.type = 'process'
+      get('/posts', params).then(res => {
+        this.setData({ processList: this._mapPosts(res.data.list || res.data || []) })
+      }).catch(() => {
+        wx.showToast({ title: '搜索失败', icon: 'none' })
+      })
+    } else if (currentTab === 3) {
+      // 招工信息
+      this.loadJobList()
+    }
   },
 
   onNotification() {
@@ -699,7 +876,11 @@ Page({
     getApp().globalData.userRole = newRole
     wx.setStorageSync('userRole', newRole)
     this.setData({ userRole: newRole })
-    this.loadData()
+    if (newRole === 'worker') {
+      this.autoLocateAndLoadWorkerJobs()
+    } else {
+      this.loadData()
+    }
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0, userRole: newRole })
     }
@@ -736,8 +917,41 @@ Page({
   onDistanceChange(e) {
     const idx = e.detail.value
     const val = this.data.distanceOptions[idx]
-    this.setData({ distanceIndex: idx, filterDistance: val === '全部' ? '' : val })
-    this.loadWorkerJobs()
+    if (DISTANCE_DEBUG) {
+      console.log('[distance-debug][index] onDistanceChange', {
+        idx,
+        val,
+        hasUserLocation: !!this.data.userLocation
+      })
+    }
+
+    // 如果选择了距离筛选（非"全部"），需要获取用户位置
+    if (val !== '全部' && !this.data.userLocation) {
+      wx.showLoading({ title: '获取位置中...' })
+      getUserLocation().then(location => {
+        wx.hideLoading()
+        if (DISTANCE_DEBUG) {
+          console.log('[distance-debug][index] user location success', location)
+        }
+        this.setData({
+          userLocation: location,
+          distanceIndex: idx,
+          filterDistance: val
+        })
+        this.loadWorkerJobs()
+      }).catch(error => {
+        wx.hideLoading()
+        if (DISTANCE_DEBUG) {
+          console.warn('[distance-debug][index] user location failed', error)
+        }
+        this.showLocationPermissionModal()
+        // 重置为"全部"
+        this.setData({ distanceIndex: 0, filterDistance: '' })
+      })
+    } else {
+      this.setData({ distanceIndex: idx, filterDistance: val === '全部' ? '' : val })
+      this.loadWorkerJobs()
+    }
   },
   onSalaryChange(e) {
     const idx = e.detail.value

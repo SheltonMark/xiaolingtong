@@ -190,7 +190,13 @@ export class ChatService {
   }
 
   async getMessages(conversationId: number, userId: number, query: any) {
-    const conv = await this.findConversationForUser(conversationId, userId);
+    const conv = await this.convRepo.createQueryBuilder('c')
+      .leftJoinAndSelect('c.userARef', 'ua')
+      .leftJoinAndSelect('c.userBRef', 'ub')
+      .where('c.id = :conversationId', { conversationId })
+      .andWhere('(c.userA = :userId OR c.userB = :userId)', { userId })
+      .getOne();
+
     if (!conv) throw new ForbiddenException('无权访问此会话');
 
     const page = Math.max(1, this.toNumber(query.page) || 1);
@@ -241,6 +247,14 @@ export class ChatService {
       otherName = workerCert.realName;
     }
 
+    const otherAvatarUrl = (other && other.avatarUrl) || '';
+    console.log('=== Chat getMessages Debug ===');
+    console.log('conversationId:', conversationId);
+    console.log('otherId:', otherId);
+    console.log('other:', other ? { id: other.id, nickname: other.nickname, avatarUrl: other.avatarUrl } : null);
+    console.log('otherAvatarUrl:', otherAvatarUrl);
+    console.log('=============================');
+
     return {
       list: list.map((item) => this.mapMessage(item)),
       total,
@@ -249,7 +263,7 @@ export class ChatService {
       otherUser: {
         id: otherId,
         name: otherName,
-        avatarUrl: (other && other.avatarUrl) || '',
+        avatarUrl: otherAvatarUrl,
       },
     };
   }

@@ -14,9 +14,15 @@
           <text class="city-name">{{currentCity}}</text>
         </view>
       </picker>
-      <view class="search-bar" bindtap="onSearch">
+      <view class="search-bar">
         <text class="search-icon iconfont icon-sousuo"></text>
-        <text class="search-placeholder">{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}</text>
+        <input class="search-input"
+               placeholder="{{userRole === 'enterprise' ? '搜索产品/工艺/工厂' : '搜索工种/地区'}}"
+               placeholder-class="search-placeholder"
+               value="{{searchKeyword}}"
+               bindinput="onSearchInput"
+               bindconfirm="onSearchConfirm"
+               confirm-type="search" />
       </view>
       <view class="notify-btn" bindtap="onNotification">
         <text class="notify-icon iconfont icon-tongzhi"></text>
@@ -101,7 +107,6 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新采购需求</text>
-          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <info-card wx:for="{{purchaseList}}" wx:key="id"
                    item="{{item}}"
@@ -130,7 +135,6 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新工厂库存</text>
-          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <info-card wx:for="{{stockList}}" wx:key="id"
                    item="{{item}}"
@@ -159,7 +163,6 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新代加工</text>
-          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <info-card wx:for="{{processList}}" wx:key="id"
                    item="{{item}}"
@@ -188,7 +191,6 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">最新招工信息</text>
-          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
               data-id="{{item.id}}" bindtap="onJobTap">
@@ -208,7 +210,7 @@
           </view>
           <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
           <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
-            <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
+            <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:for-index="tagIndex" wx:key="tagIndex" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
           </view>
           <text class="job-desc">{{item.desc}}</text>
           <view class="job-progress">
@@ -242,7 +244,6 @@
       <view class="list-wrap">
         <view class="section-header">
           <text class="section-title">工厂名录</text>
-          <text class="section-more" bindtap="onViewMore">查看更多</text>
         </view>
         <view class="factory-card" wx:for="{{factoryList}}" wx:key="id">
           <view class="factory-top">
@@ -275,7 +276,7 @@
           <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
           <view class="job-company-info">
             <text class="job-company">{{item.companyName}}</text>
-            <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>
+            <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}<text wx:if="{{item.distanceText}}" class="job-distance"> · 距您{{item.distanceText}}</text></text>
           </view>
         </view>
         <view class="job-pay">
@@ -287,7 +288,7 @@
       <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
       <!-- 福利标签 + 工作时间 -->
       <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
-        <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:key="*this" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
+        <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:for-index="tagIndex" wx:key="tagIndex" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
       </view>
       <!-- 描述 -->
       <text class="job-desc">{{item.desc}}</text>

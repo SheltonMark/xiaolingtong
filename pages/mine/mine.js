@@ -1,6 +1,40 @@
 const { get, del } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 
+function formatDate(value) {
+  if (!value) return ''
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) return ''
+    if (/^\d{4}-\d{2}-\d{2}/.test(trimmed)) return trimmed.slice(0, 10)
+    const parsed = new Date(trimmed)
+    if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10)
+    return trimmed.slice(0, 10)
+  }
+  if (typeof value === 'number') {
+    const ts = value < 1e12 ? value * 1000 : value
+    const parsed = new Date(ts)
+    return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
+  }
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? '' : parsed.toISOString().slice(0, 10)
+}
+
+function getFavoriteDate(item) {
+  return formatDate(
+    item.createdAt ||
+    item.favoritedAt ||
+    item.favoriteAt ||
+    item.created_at ||
+    item.updatedAt
+  )
+}
+
+function isGenericCompanyName(name) {
+  const text = String(name || '').trim()
+  return !text || text === '企业' || text === '企业用户'
+}
+
 Page({
   data: {
     userRole: 'enterprise',
@@ -111,10 +145,15 @@ Page({
         this.setData({ myPosts: mapped.slice(0, 3) })
       })
     }
-    // 加载我的收藏
+    // 加载我的收藏（只显示3条）
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
-      this.setData({ favorites: list.slice(0, 3) })
+      // 格式化日期
+      const formatted = list.map(item => ({
+        ...item,
+        displayDate: getFavoriteDate(item)
+      }))
+      this.setData({ favorites: formatted.slice(0, 3) })
     }).catch(() => {})
     // 加载钱包余额（企业端和临工端都需要）
     get('/wallet').then(res => {
@@ -123,12 +162,58 @@ Page({
     }).catch(() => {})
     // 临工端加载接单记录
     if (this.data.userRole === 'worker') {
-      get('/applications').then(res => {
-        const rawList = res.data.list || res.data || []
-        const list = rawList.map(item => this.normalizeApplication(item)).slice(0, 3)
-        this.setData({ myApplications: list })
-      }).catch(() => {})
+      this.loadWorkerApplications()
     }
+  },
+
+  loadWorkerApplications() {
+    get('/applications').then(res => {
+      const rawList = res.data.list || res.data || []
+      const baseList = rawList.map(item => this.normalizeApplication(item))
+      this.enrichApplicationsByJobDetail(baseList).then(list => {
+        this.setData({ myApplications: list.slice(0, 3) })
+      }).catch(() => {
+        this.setData({ myApplications: baseList.slice(0, 3) })
+      })
+    }).catch(() => {})
+  },
+
+  enrichApplicationsByJobDetail(list) {
+    const source = Array.isArray(list) ? list : []
+    const missingNameItems = source.filter(item => item.jobId && isGenericCompanyName(item.company))
+    if (missingNameItems.length === 0) return Promise.resolve(source)
+
+    const requestByJobId = {}
+    const requests = missingNameItems.map(item => {
+      const jobId = item.jobId
+      if (!requestByJobId[jobId]) {
+        requestByJobId[jobId] = get('/jobs/' + jobId)
+          .then(res => ({ jobId, detail: res.data || {} }))
+          .catch(() => ({ jobId, detail: {} }))
+      }
+      return requestByJobId[jobId]
+    })
+
+    return Promise.all(requests).then(results => {
+      const detailMap = {}
+      results.forEach(({ jobId, detail }) => {
+        const company = detail && detail.company ? detail.company : {}
+        detailMap[jobId] = {
+          companyName: company.name || detail.companyName || '',
+          avatarUrl: normalizeImageUrl(company.avatarUrl || detail.avatarUrl || '')
+        }
+      })
+
+      return source.map(item => {
+        const detail = detailMap[item.jobId]
+        if (!detail) return item
+        return {
+          ...item,
+          company: isGenericCompanyName(detail.companyName) ? item.company : detail.companyName,
+          companyAvatarUrl: detail.avatarUrl || item.companyAvatarUrl
+        }
+      })
+    })
   },
 
   normalizeApplication(item) {
@@ -146,14 +231,18 @@ Page({
     }
 
     const statusInfo = statusMap[item.status] || { text: '待确认', bg: 'amber', tabKey: '待确认' }
+    const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
+    const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
+    const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
 
     return {
       id: item.id,
       jobId: job.id,
-      company: user.nickname || user.companyName || '企业',
+      company,
+      companyAvatarUrl,
       title: job.title || '',
       salary: job.salary || 0,
-      salaryUnit: job.salaryUnit || '元/天',
+      salaryUnit,
       location: job.location || '',
       description: job.description || '',
       date: job.dateRange || '',
@@ -236,6 +325,39 @@ Page({
 
   onViewAllPosts() {
     wx.navigateTo({ url: '/pages/my-posts/my-posts' })
+  },
+
+  onViewAllFavorites() {
+    wx.navigateTo({ url: '/pages/my-favorites/my-favorites' })
+  },
+
+  onViewFavorite(e) {
+    const { id, type } = e.currentTarget.dataset
+    let targetUrl = ''
+    if (type === 'post') {
+      targetUrl = '/pages/post-detail/post-detail?id=' + id
+    } else if (type === 'job') {
+      targetUrl = '/pages/job-detail/job-detail?id=' + id
+    } else if (type === 'exposure') {
+      targetUrl = '/pages/exposure-detail/exposure-detail?id=' + id
+    }
+    if (targetUrl) wx.navigateTo({ url: targetUrl })
+  },
+
+  onCancelFavorite(e) {
+    const { id, type } = e.currentTarget.dataset
+    wx.showModal({
+      title: '取消收藏',
+      content: '确定要取消收藏这条信息吗？',
+      confirmColor: '#F43F5E',
+      success: (res) => {
+        if (!res.confirm) return
+        post('/favorites/toggle', { targetType: type, targetId: id }).then(() => {
+          wx.showToast({ title: '已取消收藏', icon: 'success' })
+          this.loadProfile()
+        }).catch(() => {})
+      }
+    })
   },
 
   onDeletePost(e) {

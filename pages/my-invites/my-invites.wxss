@@ -38,6 +38,38 @@
   padding: 12rpx 28rpx; border-radius: 24rpx; font-weight: 500;
 }
 
+/* 邀请说明 */
+.invite-tip {
+  margin: 24rpx 24rpx 0;
+  padding: 24rpx;
+  background: #FFF7ED;
+  border-radius: 16rpx;
+  display: flex;
+  gap: 16rpx;
+  align-items: flex-start;
+}
+.tip-icon {
+  font-size: 32rpx;
+  color: #F97316;
+  flex-shrink: 0;
+}
+.tip-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+.tip-title {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+.tip-text {
+  font-size: 24rpx;
+  color: #64748B;
+  line-height: 1.6;
+}
+
 /* 列表区域 */
 .section-header { padding: 24rpx 24rpx 16rpx; }
 .section-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }

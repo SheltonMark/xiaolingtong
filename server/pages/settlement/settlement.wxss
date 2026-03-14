@@ -1,0 +1,161 @@
+.settlement-page {
+  min-height: 100vh;
+  background-color: #F5F5F5;
+}
+
+/* Tab Bar */
+.tab-bar {
+  display: flex;
+  background-color: #ffffff;
+  padding: 0 24rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.tab-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  font-size: 24rpx;
+  color: #64748B;
+  position: relative;
+}
+
+.tab-active {
+  color: #3B82F6;
+  font-weight: 600;
+}
+
+.tab-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 48rpx;
+  height: 4rpx;
+  background-color: #3B82F6;
+  border-radius: 4rpx;
+}
+
+/* List Container */
+.list-container {
+  padding: 24rpx 32rpx;
+  padding-bottom: 40rpx;
+}
+
+/* Job Card */
+.job-card,
+.settlement-card {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+}
+
+.card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.job-title,
+.settlement-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #1E293B;
+  flex: 1;
+}
+
+/* Status Tag */
+.status-tag {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+  font-size: 20rpx;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.status-bg-green { background-color: #ECFDF5; color: #10B981; }
+.status-bg-amber { background-color: #FFFBEB; color: #F59E0B; }
+.status-bg-gray { background-color: #F1F5F9; color: #94A3B8; }
+
+/* Job Info */
+.job-info-row {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 8rpx;
+}
+
+.job-info-row:last-child {
+  margin-bottom: 0;
+}
+
+.job-info-label {
+  font-size: 22rpx;
+  color: #64748B;
+  width: 80rpx;
+  flex-shrink: 0;
+}
+
+.job-info-value {
+  font-size: 22rpx;
+  color: #1E293B;
+  flex: 1;
+}
+
+/* Settlement Info */
+.settlement-info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.settlement-info-label {
+  font-size: 22rpx;
+  color: #64748B;
+  width: 100rpx;
+  flex-shrink: 0;
+}
+
+.settlement-info-value {
+  font-size: 22rpx;
+  color: #1E293B;
+  flex: 1;
+}
+
+/* Settlement Summary */
+.settlement-summary {
+  display: flex;
+  background-color: #F8FAFC;
+  border-radius: 16rpx;
+  padding: 20rpx;
+  gap: 20rpx;
+}
+
+.summary-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.summary-val {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.summary-label {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+/* Utility Classes */
+.text-cta { color: #F97316; }
+.text-warm { color: #F59E0B; }
+.font-semibold { font-weight: 600; }

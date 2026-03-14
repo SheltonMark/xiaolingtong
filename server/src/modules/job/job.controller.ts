@@ -44,6 +44,22 @@ export class JobController {
     return this.jobService.update(id, userId, dto);
   }
 
+  @Get('urgent/pricing')
+  @Roles('enterprise')
+  getUrgentPricing(@CurrentUser('sub') userId: number) {
+    return this.jobService.getUrgentPricing(userId);
+  }
+
+  @Post(':id/set-urgent')
+  @Roles('enterprise')
+  setUrgent(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: any,
+  ) {
+    return this.jobService.setUrgent(id, userId, dto);
+  }
+
   @Post(':jobId/applications/:applicationId/accept')
   @Roles('enterprise')
   acceptApplication(
@@ -63,6 +79,15 @@ export class JobController {
     @CurrentUser('sub') userId: number,
   ) {
     return this.jobService.selectSupervisor(jobId, dto.workerId, userId);
+  }
+
+  @Post(':jobId/apply')
+  @Roles('worker')
+  applyJob(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') workerId: number,
+  ) {
+    return this.jobService.applyJob(jobId, workerId);
   }
 
   @Post('applications/:applicationId/confirm-attendance')
@@ -87,6 +112,15 @@ export class JobController {
     @CurrentUser('sub') userId: number,
   ) {
     return this.jobService.getApplicationsForEnterprise(jobId, userId);
+  }
+
+  @Get('applications/:applicationId/detail')
+  @Roles('enterprise')
+  getApplicationDetail(
+    @Param('applicationId') applicationId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.getApplicationDetail(applicationId, userId);
   }
 
   @Post(':jobId/check-in')

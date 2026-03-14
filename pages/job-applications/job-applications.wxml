@@ -30,21 +30,77 @@
       <text class="section-count">共{{applications.length}}人</text>
     </view>
 
-    <!-- 待审核 -->
+    <!-- 搜索栏 -->
+    <view class="search-bar">
+      <view class="search-input-wrapper">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" type="text" placeholder="搜索报名者昵称" value="{{searchKeyword}}" bindinput="onSearchInput" />
+        <text class="clear-btn" wx:if="{{searchKeyword}}" bindtap="clearSearch">✕</text>
+      </view>
+    </view>
+
+    <!-- 筛选和排序栏 -->
+    <view class="filter-sort-bar">
+      <view class="filter-btn" bindtap="toggleFilterMenu">
+        <text>筛选</text>
+        <text class="dropdown-icon">{{showFilterMenu ? '▲' : '▼'}}</text>
+      </view>
+      <view class="sort-btn" bindtap="toggleSortMenu">
+        <text>排序</text>
+        <text class="dropdown-icon">{{showSortMenu ? '▲' : '▼'}}</text>
+      </view>
+    </view>
+
+    <!-- 筛选菜单 -->
+    <view class="filter-menu" wx:if="{{showFilterMenu}}">
+      <view class="filter-option {{filterType === 'all' ? 'active' : ''}}" bindtap="onFilterChange" data-type="all">
+        全部
+      </view>
+      <view class="filter-option {{filterType === 'supervisor' ? 'active' : ''}}" bindtap="onFilterChange" data-type="supervisor">
+        🌟 主管候选
+      </view>
+      <view class="filter-option {{filterType === 'normal' ? 'active' : ''}}" bindtap="onFilterChange" data-type="normal">
+        普通临工
+      </view>
+    </view>
+
+    <!-- 排序菜单 -->
+    <view class="sort-menu" wx:if="{{showSortMenu}}">
+      <view class="sort-option {{sortBy === 'time' ? 'active' : ''}}" bindtap="onSortChange" data-sort="time">
+        按报名时间 {{sortBy === 'time' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </view>
+      <view class="sort-option {{sortBy === 'credit' ? 'active' : ''}}" bindtap="onSortChange" data-sort="credit">
+        按信用分 {{sortBy === 'credit' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </view>
+      <view class="sort-option {{sortBy === 'completion' ? 'active' : ''}}" bindtap="onSortChange" data-sort="completion">
+        按完成度 {{sortBy === 'completion' ? (sortOrder === 'desc' ? '↓' : '↑') : ''}}
+      </view>
+    </view>
     <view class="status-group" wx:if="{{pendingApps.length > 0}}">
       <view class="status-group-header">
         <text class="status-group-title">待审核</text>
         <text class="status-group-count">{{pendingApps.length}}</text>
       </view>
       <view class="application-item" wx:for="{{pendingApps}}" wx:key="id">
-        <view class="app-info">
-          <view class="worker-name">{{item.workerName}}</view>
-          <view class="worker-detail">
-            <text class="detail-item">信用分: {{item.creditScore}}</text>
-            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+        <view class="app-header">
+          <view class="worker-info">
+            <view class="worker-name">{{item.workerName}}</view>
+            <view class="supervisor-badge" wx:if="{{item.isSupervisorCandidate}}">
+              🌟 主管候选
+            </view>
+          </view>
+          <view class="worker-rating">
+            <text class="rating-stars">⭐ {{item.averageRating}}</text>
           </view>
         </view>
+        <view class="worker-detail">
+          <text class="detail-item">信用分: {{item.creditScore}}</text>
+          <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          <text class="detail-item">完成度: {{item.completionRate}}%</text>
+          <text class="detail-item detail-time">报名: {{item.appliedAt}}</text>
+        </view>
         <view class="app-actions">
+          <view class="action-btn btn-detail" bindtap="onViewDetail" data-id="{{item.id}}">详情</view>
           <view class="action-btn btn-accept" bindtap="onAcceptApplication" data-id="{{item.id}}" data-job-id="{{job.id}}">接受</view>
           <view class="action-btn btn-reject" bindtap="onRejectApplication" data-id="{{item.id}}" data-job-id="{{job.id}}">拒绝</view>
         </view>
@@ -58,12 +114,22 @@
         <text class="status-group-count">{{acceptedApps.length}}</text>
       </view>
       <view class="application-item" wx:for="{{acceptedApps}}" wx:key="id">
-        <view class="app-info">
-          <view class="worker-name">{{item.workerName}}</view>
-          <view class="worker-detail">
-            <text class="detail-item">信用分: {{item.creditScore}}</text>
-            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+        <view class="app-header">
+          <view class="worker-info">
+            <view class="worker-name">{{item.workerName}}</view>
+            <view class="supervisor-badge" wx:if="{{item.isSupervisorCandidate}}">
+              🌟 主管候选
+            </view>
           </view>
+          <view class="worker-rating">
+            <text class="rating-stars">⭐ {{item.averageRating}}</text>
+          </view>
+        </view>
+        <view class="worker-detail">
+          <text class="detail-item">信用分: {{item.creditScore}}</text>
+          <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          <text class="detail-item">完成度: {{item.completionRate}}%</text>
+          <text class="detail-item detail-time">报名: {{item.appliedAt}}</text>
         </view>
         <view class="app-status">
           <text class="status-badge status-accepted">待确认</text>
@@ -78,12 +144,22 @@
         <text class="status-group-count">{{confirmedApps.length}}</text>
       </view>
       <view class="application-item" wx:for="{{confirmedApps}}" wx:key="id">
-        <view class="app-info">
-          <view class="worker-name">{{item.workerName}}</view>
-          <view class="worker-detail">
-            <text class="detail-item">信用分: {{item.creditScore}}</text>
-            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+        <view class="app-header">
+          <view class="worker-info">
+            <view class="worker-name">{{item.workerName}}</view>
+            <view class="supervisor-badge" wx:if="{{item.isSupervisorCandidate}}">
+              🌟 主管候选
+            </view>
           </view>
+          <view class="worker-rating">
+            <text class="rating-stars">⭐ {{item.averageRating}}</text>
+          </view>
+        </view>
+        <view class="worker-detail">
+          <text class="detail-item">信用分: {{item.creditScore}}</text>
+          <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          <text class="detail-item">完成度: {{item.completionRate}}%</text>
+          <text class="detail-item detail-time">报名: {{item.appliedAt}}</text>
         </view>
         <view class="app-status">
           <text class="status-badge status-confirmed">已入选</text>
@@ -98,12 +174,22 @@
         <text class="status-group-count">{{rejectedApps.length}}</text>
       </view>
       <view class="application-item" wx:for="{{rejectedApps}}" wx:key="id">
-        <view class="app-info">
-          <view class="worker-name">{{item.workerName}}</view>
-          <view class="worker-detail">
-            <text class="detail-item">信用分: {{item.creditScore}}</text>
-            <text class="detail-item">订单数: {{item.totalOrders}}</text>
+        <view class="app-header">
+          <view class="worker-info">
+            <view class="worker-name">{{item.workerName}}</view>
+            <view class="supervisor-badge" wx:if="{{item.isSupervisorCandidate}}">
+              🌟 主管候选
+            </view>
           </view>
+          <view class="worker-rating">
+            <text class="rating-stars">⭐ {{item.averageRating}}</text>
+          </view>
+        </view>
+        <view class="worker-detail">
+          <text class="detail-item">信用分: {{item.creditScore}}</text>
+          <text class="detail-item">订单数: {{item.totalOrders}}</text>
+          <text class="detail-item">完成度: {{item.completionRate}}%</text>
+          <text class="detail-item detail-time">报名: {{item.appliedAt}}</text>
         </view>
         <view class="app-status">
           <text class="status-badge status-rejected">已拒绝</text>
