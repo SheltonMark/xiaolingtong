@@ -480,6 +480,96 @@ export class JobService {
     return this.appRepo.save(application);
   }
 
+  async applyJob(jobId: number, workerId: number): Promise<any> {
+    // 1. 验证工作存在
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) {
+      throw new NotFoundException('工作不存在');
+    }
+
+    // 2. 验证临工存在
+    const worker = await this.userRepo.findOne({ where: { id: workerId } });
+    if (!worker) {
+      throw new NotFoundException('临工不存在');
+    }
+
+    // 3. 检查临工是否已认证
+    const cert = await this.workerCertRepo.findOne({
+      where: { userId: workerId },
+    });
+    if (!cert || cert.status !== 'approved') {
+      throw new BadRequestException('请先完成实名认证');
+    }
+
+    // 4. 检查是否已报名过此工作
+    const existing = await this.appRepo.findOne({
+      where: {
+        jobId,
+        workerId,
+        status: In(['pending', 'accepted', 'confirmed', 'working']),
+      },
+    });
+    if (existing) {
+      throw new BadRequestException('您已报名过此工作');
+    }
+
+    // 5. 检查时间冲突
+    const conflicts = await this.checkTimeConflict(workerId, job);
+    if (conflicts.length > 0) {
+      throw new BadRequestException({
+        message: '工作时间冲突',
+        conflictWith: conflicts,
+      });
+    }
+
+    // 6. 创建应用记录
+    const application = this.appRepo.create({
+      jobId,
+      workerId,
+      status: 'pending',
+    });
+
+    return this.appRepo.save(application);
+  }
+
+  private async checkTimeConflict(workerId: number, newJob: Job): Promise<any[]> {
+    // 获取该临工所有"已接受"和"已确认"的应用
+    const applications = await this.appRepo.find({
+      where: {
+        workerId,
+        status: In(['accepted', 'confirmed', 'working']),
+      },
+      relations: ['job'],
+    });
+
+    const conflicts = [];
+    for (const app of applications) {
+      const existingJob = app.job;
+
+      // 检查时间是否重叠
+      if (this.isTimeOverlap(newJob, existingJob)) {
+        conflicts.push({
+          jobId: existingJob.id,
+          title: existingJob.title,
+          dateStart: existingJob.dateStart,
+          dateEnd: existingJob.dateEnd,
+          workHours: existingJob.workHours,
+        });
+      }
+    }
+
+    return conflicts;
+  }
+
+  private isTimeOverlap(job1: Job, job2: Job): boolean {
+    const start1 = new Date(job1.dateStart);
+    const end1 = new Date(job1.dateEnd);
+    const start2 = new Date(job2.dateStart);
+    const end2 = new Date(job2.dateEnd);
+
+    return start1 <= end2 && end1 >= start2;
+  }
+
   async confirmAttendance(
     applicationId: number,
     workerId: number,
@@ -570,11 +660,21 @@ export class JobService {
       const cert = certMap.get(app.worker.id);
       const workerName = cert?.realName || app.worker.nickname || `用户${app.worker.id}`;
 
+      // 计算完成度和主管候选资格
+      const totalOrders = app.worker.totalOrders || 0;
+      const completedJobs = app.worker.completedJobs || 0;
+      const completionRate = totalOrders > 0 ? Math.round((completedJobs / totalOrders) * 100) : 0;
+      const isSupervisorCandidate = app.worker.creditScore >= 95 && totalOrders >= 10;
+
       const workerData = {
         id: app.worker.id,
         nickname: workerName,
         creditScore: app.worker.creditScore,
-        totalOrders: app.worker.totalOrders || 0,
+        totalOrders: totalOrders,
+        completedJobs: completedJobs,
+        completionRate: completionRate,
+        averageRating: app.worker.averageRating || 0,
+        isSupervisorCandidate: isSupervisorCandidate,
       };
 
       if (app.status === 'pending') {
@@ -622,6 +722,58 @@ export class JobService {
     });
 
     return grouped;
+  }
+
+  async getApplicationDetail(applicationId: number, userId: number) {
+    // 获取应用信息
+    const app = await this.appRepo.findOne({
+      where: { id: applicationId },
+      relations: ['worker', 'job'],
+    });
+
+    if (!app) {
+      throw new NotFoundException('应用不存在');
+    }
+
+    // 验证权限：只有招工企业可以查看
+    if (app.job.userId !== userId) {
+      throw new ForbiddenException('您没有权限查看此应用');
+    }
+
+    const worker = app.worker;
+    const totalOrders = worker.totalOrders || 0;
+    const completedJobs = worker.completedJobs || 0;
+    const completionRate = totalOrders > 0 ? Math.round((completedJobs / totalOrders) * 100) : 0;
+    const isSupervisorCandidate = worker.creditScore >= 95 && totalOrders >= 10;
+
+    // 获取认证信息
+    const cert = await this.workerCertRepo.findOne({
+      where: { userId: worker.id },
+    });
+
+    return {
+      id: app.id,
+      status: app.status,
+      createdAt: app.createdAt,
+      worker: {
+        id: worker.id,
+        nickname: worker.nickname,
+        phone: worker.phone,
+        location: worker.location,
+        avatarUrl: worker.avatarUrl,
+        creditScore: worker.creditScore,
+        totalOrders: totalOrders,
+        completedJobs: completedJobs,
+        completionRate: completionRate,
+        averageRating: worker.averageRating || 0,
+        isSupervisorCandidate: isSupervisorCandidate,
+      },
+      certification: {
+        realName: cert?.realName || '未认证',
+        idNumber: cert?.idNumber ? cert.idNumber.replace(/(.{6})(.*)(.{4})/, '$1****$3') : '未认证',
+        status: cert?.status || 'pending',
+      },
+    };
   }
 
   async checkIn(jobId: number, workerId: number): Promise<Attendance> {

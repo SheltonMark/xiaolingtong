@@ -13,6 +13,7 @@
     "pages/post-detail/post-detail",
     "pages/job-detail/job-detail",
     "pages/job-applications/job-applications",
+    "pages/applicant-detail/applicant-detail",
     "pages/my-posts/my-posts",
     "pages/my-applications/my-applications",
     "pages/my-favorites/my-favorites",

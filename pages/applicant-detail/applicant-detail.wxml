@@ -1,0 +1,123 @@
+<!--pages/applicant-detail/applicant-detail.wxml-->
+<view class="applicant-detail-page">
+  <nav-bar title="报名者详情" />
+
+  <view class="detail-container" wx:if="{{!loading && !error}}">
+    <!-- 基本信息 -->
+    <view class="section">
+      <view class="section-title">基本信息</view>
+      <view class="info-card">
+        <view class="avatar-section">
+          <image class="avatar" src="{{applicant.worker.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill" />
+          <view class="info-text">
+            <view class="name">{{applicant.worker.nickname}}</view>
+            <view class="phone">📞 {{applicant.worker.phone || '未提供'}}</view>
+            <view class="location">📍 {{applicant.worker.location || '未提供'}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 资质信息 -->
+    <view class="section">
+      <view class="section-title">资质信息</view>
+      <view class="stats-grid">
+        <view class="stat-item">
+          <view class="stat-label">信用分</view>
+          <view class="stat-value">{{applicant.worker.creditScore}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">订单数</view>
+          <view class="stat-value">{{applicant.worker.totalOrders}}</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">完成度</view>
+          <view class="stat-value">{{applicant.worker.completionRate}}%</view>
+        </view>
+        <view class="stat-item">
+          <view class="stat-label">评分</view>
+          <view class="stat-value">⭐ {{applicant.worker.averageRating}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 工作记录 -->
+    <view class="section">
+      <view class="section-title">工作记录</view>
+      <view class="record-item">
+        <view class="record-label">已完成工作</view>
+        <view class="record-value">{{applicant.worker.completedJobs}} 个</view>
+      </view>
+      <view class="record-item">
+        <view class="record-label">总接单数</view>
+        <view class="record-value">{{applicant.worker.totalOrders}} 个</view>
+      </view>
+    </view>
+
+    <!-- 认证信息 -->
+    <view class="section">
+      <view class="section-title">认证信息</view>
+      <view class="cert-item">
+        <view class="cert-label">实名认证</view>
+        <view class="cert-value">{{applicant.certification.realName}}</view>
+      </view>
+      <view class="cert-item">
+        <view class="cert-label">身份证号</view>
+        <view class="cert-value">{{applicant.certification.idNumber}}</view>
+      </view>
+      <view class="cert-item">
+        <view class="cert-label">认证状态</view>
+        <view class="cert-value" wx:if="{{applicant.certification.status === 'approved'}}">
+          <text class="status-approved">✓ 已认证</text>
+        </view>
+        <view class="cert-value" wx:else>
+          <text class="status-pending">○ 待认证</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 主管资格 -->
+    <view class="section" wx:if="{{applicant.worker.isSupervisorCandidate}}">
+      <view class="section-title">主管资格</view>
+      <view class="supervisor-info">
+        <view class="badge">🌟 符合主管条件</view>
+        <view class="desc">信用分 ≥ 95 且订单数 ≥ 10</view>
+      </view>
+    </view>
+
+    <!-- 报名信息 -->
+    <view class="section">
+      <view class="section-title">报名信息</view>
+      <view class="info-item">
+        <text class="label">报名时间</text>
+        <text class="value">{{applicant.createdAt}}</text>
+      </view>
+      <view class="info-item">
+        <text class="label">报名状态</text>
+        <text class="value">{{applicant.status}}</text>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-section">
+      <view class="action-btn btn-supervisor" wx:if="{{applicant.worker.isSupervisorCandidate && applicant.status === 'accepted'}}" bindtap="onSelectSupervisor">
+        选择为主管
+      </view>
+      <view class="action-btn btn-back" bindtap="onBack">
+        返回
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 错误状态 -->
+  <view class="error-container" wx:if="{{error && !loading}}">
+    <text class="error-text">{{error}}</text>
+    <view class="error-btn" bindtap="onBack">返回</view>
+  </view>
+</view>

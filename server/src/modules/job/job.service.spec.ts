@@ -12,6 +12,7 @@ import { User } from '../../entities/user.entity';
 import { Supervisor } from '../../entities/supervisor.entity';
 import { Attendance } from '../../entities/attendance.entity';
 import { WorkLog } from '../../entities/work-log.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 
 describe('JobService', () => {
   let service: JobService;
@@ -22,6 +23,7 @@ describe('JobService', () => {
   let supervisorRepository: any;
   let attendanceRepository: any;
   let workLogRepository: any;
+  let workerCertRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -72,6 +74,10 @@ describe('JobService', () => {
       save: jest.fn(),
     };
 
+    workerCertRepository = {
+      findOne: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -102,6 +108,10 @@ describe('JobService', () => {
         {
           provide: getRepositoryToken(WorkLog),
           useValue: workLogRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkerCert),
+          useValue: workerCertRepository,
         },
       ],
     }).compile();
@@ -486,6 +496,80 @@ describe('JobService', () => {
       jobRepository.findOne.mockResolvedValue(mockJob);
 
       await expect(service.getAttendances(1, 1)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('applyJob', () => {
+    it('should apply job successfully', async () => {
+      const mockJob = { id: 1, dateStart: '2026-03-15', dateEnd: '2026-03-15' };
+      const mockWorker = { id: 2, role: 'worker' };
+      const mockCert = { id: 1, userId: 2, status: 'approved' };
+      const mockApplication = { id: 1, jobId: 1, workerId: 2, status: 'pending' };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      workerCertRepository.findOne.mockResolvedValue(mockCert);
+      jobApplicationRepository.findOne.mockResolvedValue(null);
+      jobApplicationRepository.find.mockResolvedValue([]);
+      jobApplicationRepository.create.mockReturnValue(mockApplication);
+      jobApplicationRepository.save.mockResolvedValue(mockApplication);
+
+      const result = await service.applyJob(1, 2);
+
+      expect(result).toEqual(mockApplication);
+      expect(jobApplicationRepository.save).toHaveBeenCalled();
+    });
+
+    it('should throw error when job not found', async () => {
+      jobRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.applyJob(1, 2)).rejects.toThrow('工作不存在');
+    });
+
+    it('should throw error when worker not certified', async () => {
+      const mockJob = { id: 1 };
+      const mockWorker = { id: 2 };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      workerCertRepository.findOne.mockResolvedValue(null);
+
+      await expect(service.applyJob(1, 2)).rejects.toThrow('请先完成实名认证');
+    });
+
+    it('should throw error when already applied', async () => {
+      const mockJob = { id: 1 };
+      const mockWorker = { id: 2 };
+      const mockCert = { id: 1, status: 'approved' };
+      const mockExisting = { id: 1, jobId: 1, workerId: 2, status: 'pending' };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      workerCertRepository.findOne.mockResolvedValue(mockCert);
+      jobApplicationRepository.findOne.mockResolvedValue(mockExisting);
+
+      await expect(service.applyJob(1, 2)).rejects.toThrow('您已报名过此工作');
+    });
+
+    it('should throw error when time conflict', async () => {
+      const mockJob = { id: 1, dateStart: '2026-03-15', dateEnd: '2026-03-15' };
+      const mockWorker = { id: 2 };
+      const mockCert = { id: 1, status: 'approved' };
+      const mockConflict = {
+        id: 2,
+        jobId: 2,
+        workerId: 2,
+        status: 'confirmed',
+        job: { id: 2, dateStart: '2026-03-15', dateEnd: '2026-03-15', title: 'Conflict Job' },
+      };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+      userRepository.findOne.mockResolvedValue(mockWorker);
+      workerCertRepository.findOne.mockResolvedValue(mockCert);
+      jobApplicationRepository.findOne.mockResolvedValue(null);
+      jobApplicationRepository.find.mockResolvedValue([mockConflict]);
+
+      await expect(service.applyJob(1, 2)).rejects.toThrow('工作时间冲突');
     });
   });
 });

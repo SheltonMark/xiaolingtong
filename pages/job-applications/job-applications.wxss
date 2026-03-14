@@ -135,8 +135,7 @@
 /* 应用项 */
 .application-item {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   background-color: #fff;
   padding: 16rpx;
   margin-bottom: 12rpx;
@@ -144,7 +143,17 @@
   border: 1rpx solid #e5e7eb;
 }
 
-.app-info {
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.worker-info {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   flex: 1;
 }
 
@@ -152,25 +161,52 @@
   font-size: 28rpx;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 8rpx;
+}
+
+.supervisor-badge {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  color: white;
+  padding: 4rpx 10rpx;
+  border-radius: 12rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.worker-rating {
+  font-size: 24rpx;
+  color: #f59e0b;
+  margin-left: 12rpx;
+}
+
+.rating-stars {
+  display: inline-block;
 }
 
 .worker-detail {
   display: flex;
-  gap: 16rpx;
+  flex-wrap: wrap;
+  gap: 12rpx;
   font-size: 24rpx;
   color: #9ca3af;
+  margin-bottom: 12rpx;
 }
 
 .detail-item {
   display: inline-block;
 }
 
+.detail-time {
+  color: #999;
+  font-size: 22rpx;
+  width: 100%;
+}
+
 /* 操作按钮 */
 .app-actions {
   display: flex;
   gap: 8rpx;
-  margin-left: 12rpx;
+  justify-content: flex-end;
 }
 
 .action-btn {
@@ -193,6 +229,16 @@
   opacity: 0.9;
 }
 
+.btn-detail {
+  background-color: #3b82f6;
+  color: #fff;
+}
+
+.btn-detail:active {
+  background-color: #2563eb;
+  opacity: 0.9;
+}
+
 .btn-reject {
   background-color: #ef4444;
   color: #fff;
@@ -205,7 +251,8 @@
 
 /* 状态徽章 */
 .app-status {
-  margin-left: 12rpx;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .status-badge {
@@ -230,3 +277,138 @@
   background-color: #fee2e2;
   color: #991b1b;
 }
+
+/* 搜索栏 */
+.search-bar {
+  padding: 12rpx 0;
+  margin-bottom: 12rpx;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: #f3f4f6;
+  border-radius: 8rpx;
+  padding: 8rpx 12rpx;
+  gap: 8rpx;
+}
+
+.search-icon {
+  font-size: 20rpx;
+  color: #9ca3af;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 24rpx;
+  color: #1f2937;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #d1d5db;
+}
+
+.clear-btn {
+  font-size: 20rpx;
+  color: #9ca3af;
+  padding: 4rpx 8rpx;
+}
+
+/* 筛选和排序栏 */
+.filter-sort-bar {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.filter-btn,
+.sort-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  padding: 10rpx 12rpx;
+  background-color: #fff;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  color: #374151;
+  font-weight: 500;
+}
+
+.filter-btn:active,
+.sort-btn:active {
+  background-color: #f9fafb;
+}
+
+.dropdown-icon {
+  font-size: 16rpx;
+  color: #9ca3af;
+}
+
+/* 筛选菜单 */
+.filter-menu {
+  background-color: #fff;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+}
+
+.filter-option {
+  padding: 12rpx 16rpx;
+  font-size: 24rpx;
+  color: #374151;
+  border-bottom: 1rpx solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.filter-option:last-child {
+  border-bottom: none;
+}
+
+.filter-option:active {
+  background-color: #f9fafb;
+}
+
+.filter-option.active {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+}
+
+/* 排序菜单 */
+.sort-menu {
+  background-color: #fff;
+  border: 1rpx solid #e5e7eb;
+  border-radius: 8rpx;
+  margin-bottom: 12rpx;
+  overflow: hidden;
+}
+
+.sort-option {
+  padding: 12rpx 16rpx;
+  font-size: 24rpx;
+  color: #374151;
+  border-bottom: 1rpx solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.sort-option:last-child {
+  border-bottom: none;
+}
+
+.sort-option:active {
+  background-color: #f9fafb;
+}
+
+.sort-option.active {
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-weight: 600;
+}
+

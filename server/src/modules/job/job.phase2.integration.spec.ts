@@ -908,7 +908,24 @@ describe('JobModule Phase 2 Integration Tests - Complete Workflow', () => {
       workerCertRepository.find.mockResolvedValue([]);
 
       const applications = await service.getApplicationsForEnterprise(1, mockEnterprise.id);
+
+      // Verify return structure
       expect(applications).toBeDefined();
+      expect(applications.pending).toBeDefined();
+      expect(applications.pending.length).toBe(1);
+      expect(applications.accepted).toBeDefined();
+      expect(applications.accepted.length).toBe(1);
+
+      // Verify worker details in accepted applications
+      expect(applications.accepted[0].worker).toBeDefined();
+      expect(applications.accepted[0].worker.nickname).toBe('Test Worker');
+      expect(applications.accepted[0].worker.creditScore).toBe(98);
+      expect(applications.accepted[0].worker.totalOrders).toBe(15);
+
+      // Verify worker details in pending applications
+      expect(applications.pending[0].worker.nickname).toBe('Test Supervisor');
+      expect(applications.pending[0].worker.creditScore).toBe(98);
+      expect(applications.pending[0].worker.totalOrders).toBe(15);
     });
 
     it('should retrieve all worker applications grouped by status', async () => {
