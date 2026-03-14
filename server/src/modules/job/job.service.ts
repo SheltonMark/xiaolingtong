@@ -566,42 +566,33 @@ export class JobService {
       const cert = certMap.get(app.worker.id);
       const workerName = cert?.realName || app.worker.nickname || `用户${app.worker.id}`;
 
+      const workerData = {
+        id: app.worker.id,
+        nickname: workerName,
+        creditScore: app.worker.creditScore,
+        totalOrders: app.worker.totalOrders || 0,
+      };
+
       if (app.status === 'pending') {
         grouped.pending.push({
           ...app,
-          worker: {
-            id: app.worker.id,
-            nickname: workerName,
-            creditScore: app.worker.creditScore,
-          },
+          worker: workerData,
         });
       } else if (app.status === 'accepted') {
         grouped.accepted.push({
           ...app,
-          worker: {
-            id: app.worker.id,
-            nickname: workerName,
-            creditScore: app.worker.creditScore,
-          },
+          worker: workerData,
         });
       } else if (app.status === 'confirmed') {
         grouped.confirmed.push({
           ...app,
-          worker: {
-            id: app.worker.id,
-            nickname: workerName,
-            creditScore: app.worker.creditScore,
-          },
+          worker: workerData,
           isSupervisor: app.isSupervisor,
         });
       } else if (app.status === 'rejected') {
         grouped.rejected.push({
           ...app,
-          worker: {
-            id: app.worker.id,
-            nickname: workerName,
-            creditScore: app.worker.creditScore,
-          },
+          worker: workerData,
         });
       }
     });

@@ -66,7 +66,12 @@ Page({
         rejectedApps: rejected,
         loading: false
       })
-    }).catch(() => {
+    }).catch((err) => {
+      console.error('Failed to load applications:', err)
+      wx.showToast({
+        title: err.message || '加载失败',
+        icon: 'none'
+      })
       this.setData({ loading: false })
     })
   },
