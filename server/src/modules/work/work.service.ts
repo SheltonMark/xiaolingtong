@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Checkin } from '../../entities/checkin.entity';
 import { WorkLog } from '../../entities/work-log.entity';
 import { JobApplication } from '../../entities/job-application.entity';
@@ -19,23 +19,69 @@ export class WorkService {
   ) {}
 
   async getOrders(userId: number) {
-    // 查找该用户作为管理员的工作订单
-    const apps = await this.appRepo.find({
-      where: { workerId: userId, isSupervisor: 1 },
-      relations: ['job', 'job.user'],
-      order: { createdAt: 'DESC' },
+    // 获取该临工所有的 work_logs 记录
+    const workLogs = await this.workLogRepo.find({
+      where: { workerId: userId },
+      order: { date: 'DESC' },
     });
 
-    const orders: any[] = [];
-    for (const app of apps) {
-      const job = app.job;
-      let stage = 'checkin';
-      if (job.status === 'working') stage = 'working';
-      else if (job.status === 'pending_settlement') stage = 'settlement';
-      else if (['settled', 'closed'].includes(job.status)) stage = 'done';
-      orders.push({ ...job, stage });
+    if (workLogs.length === 0) {
+      return [];
     }
-    return orders;
+
+    // 获取所有对应的 job_applications 记录
+    const jobIds = [...new Set(workLogs.map(log => log.jobId))];
+    const applications = await this.appRepo.find({
+      where: { workerId: userId, jobId: In(jobIds) },
+      relations: ['job', 'job.user'],
+    });
+
+    // 按 jobId 分组 work_logs
+    const workLogMap = new Map();
+    workLogs.forEach(log => {
+      if (!workLogMap.has(log.jobId)) {
+        workLogMap.set(log.jobId, []);
+      }
+      workLogMap.get(log.jobId).push(log);
+    });
+
+    // 返回 job_applications 记录，包含对应的 work_logs 数据
+    return applications.map(app => {
+      const logs = workLogMap.get(app.jobId) || [];
+      const latestLog = logs[0]; // 最新的 work_log
+
+      return {
+        id: app.id,
+        jobId: app.jobId,
+        workerId: app.workerId,
+        status: app.status,
+        createdAt: app.createdAt,
+        confirmedAt: app.confirmedAt,
+        // work_logs 数据
+        workLogId: latestLog?.id,
+        date: latestLog?.date,
+        hours: latestLog?.hours || 0,
+        pieces: latestLog?.pieces || 0,
+        photoUrls: latestLog?.photoUrls || [],
+        anomalyType: latestLog?.anomalyType || 'normal',
+        anomalyNote: latestLog?.anomalyNote || '',
+        // job 信息
+        job: app.job ? {
+          id: app.job.id,
+          title: app.job.title,
+          location: app.job.location,
+          salary: app.job.salary,
+          salaryUnit: app.job.salaryUnit,
+          salaryType: app.job.salaryType,
+        } : null,
+        // company 信息
+        company: app.job?.user ? {
+          id: app.job.user.id,
+          name: app.job.user.name || app.job.user.nickname || '企业用户',
+          avatarUrl: app.job.user.avatarUrl,
+        } : null,
+      };
+    });
   }
 
   async getSession(jobId: number) {

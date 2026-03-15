@@ -82,25 +82,52 @@ describe('WorkService', () => {
 
   describe('getOrders', () => {
     it('should return user orders', async () => {
+      const mockWorkLogs = [
+        {
+          id: 1,
+          workerId: 1,
+          jobId: 1,
+          date: '2026-03-15',
+          hours: 8,
+          pieces: 0,
+          photoUrls: [],
+          anomalyType: 'normal',
+          anomalyNote: '',
+        },
+      ];
+
       const mockApps = [
         {
           id: 1,
           workerId: 1,
-          isSupervisor: 1,
-          job: { id: 1, status: 'working', user: { id: 2 } },
+          jobId: 1,
+          status: 'working',
+          createdAt: new Date(),
+          confirmedAt: new Date(),
+          job: {
+            id: 1,
+            title: 'Test Job',
+            location: 'Test Location',
+            salary: 100,
+            salaryUnit: '元/时',
+            salaryType: 'hourly',
+            user: { id: 2, name: 'Company', nickname: 'Company', avatarUrl: '' }
+          },
         },
       ];
 
+      workLogRepository.find.mockResolvedValue(mockWorkLogs);
       jobApplicationRepository.find.mockResolvedValue(mockApps);
 
       const result = await service.getOrders(1);
 
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
+      expect(result[0].status).toBe('working');
     });
 
-    it('should return empty array when no orders', async () => {
-      jobApplicationRepository.find.mockResolvedValue([]);
+    it('should return empty array when no work logs', async () => {
+      workLogRepository.find.mockResolvedValue([]);
 
       const result = await service.getOrders(1);
 
@@ -108,20 +135,48 @@ describe('WorkService', () => {
     });
 
     it('should determine correct stage', async () => {
+      const mockWorkLogs = [
+        {
+          id: 1,
+          workerId: 1,
+          jobId: 1,
+          date: '2026-03-15',
+          hours: 8,
+          pieces: 0,
+          photoUrls: [],
+          anomalyType: 'normal',
+          anomalyNote: '',
+        },
+      ];
+
       const mockApps = [
         {
           id: 1,
           workerId: 1,
-          isSupervisor: 1,
-          job: { id: 1, status: 'pending_settlement', user: { id: 2 } },
+          jobId: 1,
+          status: 'done',
+          createdAt: new Date(),
+          confirmedAt: new Date(),
+          job: {
+            id: 1,
+            title: 'Test Job',
+            location: 'Test Location',
+            salary: 100,
+            salaryUnit: '元/时',
+            salaryType: 'hourly',
+            user: { id: 2, name: 'Company', nickname: 'Company', avatarUrl: '' }
+          },
         },
       ];
 
+      workLogRepository.find.mockResolvedValue(mockWorkLogs);
       jobApplicationRepository.find.mockResolvedValue(mockApps);
 
       const result = await service.getOrders(1);
 
-      expect(result[0].stage).toBe('settlement');
+      expect(result).toHaveLength(1);
+      expect(result[0].status).toBe('done');
+      expect(result[0].hours).toBe(8);
     });
   });
 

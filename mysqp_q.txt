@@ -1,181 +1,87 @@
-/root/.pm2/logs/xiaolingtong-api-error.log last 15 lines:
-0|xiaoling |       'JobApplicationRepository',
-0|xiaoling |       'JobRepository',
-0|xiaoling |       'UserRepository',
-0|xiaoling |       'SysConfigRepository',
-0|xiaoling |       'WorkLogRepository'
-0|xiaoling |     ],
-0|xiaoling |     name: 'WorkLogRepository'
-0|xiaoling |   },
-0|xiaoling |   metadata: {
-0|xiaoling |     id: '80375be8dcb2aadab87ba'
-0|xiaoling |   },
-0|xiaoling |   moduleRef: {
-0|xiaoling |     id: '9cb31c53f5939e3b02c4f'
-0|xiaoling |   }
-0|xiaoling | }
+root@VM-0-15-debian:~/xiaolingtong/server# ls -la /root/xiaolingtong/server/dist/
+total 344
+drwxr-xr-x  5 root root   4096 Mar 15 21:29 .
+drwxr-xr-x 16 root root   4096 Mar 15 21:29 ..
+drwxr-xr-x  2 root root   4096 Mar 15 21:29 public
+drwxr-xr-x  5 root root   4096 Mar 15 21:29 src
+drwxr-xr-x  2 root root   4096 Mar 15 21:29 test_plan
+-rw-r--r--  1 root root 327826 Mar 15 21:29 tsconfig.build.tsbuildinfo
+root@VM-0-15-debian:~/xiaolingtong/server# cd /root/xiaolingtong/server
+root@VM-0-15-debian:~/xiaolingtong/server# npm run build
 
-0|xiaolingtong-api  | [Nest] 1930940  - 03/15/2026, 8:56:20 PM     LOG [NestFactory] Starting Nest application...
-0|xiaolingtong-api  | [Nest] 1930940  - 03/15/2026, 8:56:21 PM     LOG [InstanceLoader] AppModule dependencies initialized +51ms
-0|xiaolingtong-api  | [Nest] 1930940  - 03/15/2026, 8:56:21 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +2ms
-0|xiaolingtong-api  | [Nest] 1930940  - 03/15/2026, 8:56:21 PM   ERROR [ExceptionHandler] UnknownDependenciesException [Error]: Nest can't resolve dependencies of the ApplicationService (JobApplicationRepository, JobRepository, UserRepository, SysConfigRepository, ?). Please make sure that the argument "WorkLogRepository" at index [4] is available in the ApplicationModule context.
-0|xiaolingtong-api  | Potential solutions:
-0|xiaolingtong-api  | - Is ApplicationModule a valid NestJS module?
-0|xiaolingtong-api  | - If "WorkLogRepository" is a provider, is it part of the current ApplicationModule?
-0|xiaolingtong-api  | - If "WorkLogRepository" is exported from a separate @Module, is that module imported within ApplicationModule?
-0|xiaolingtong-api  |   @Module({
-0|xiaolingtong-api  |     imports: [ /* the Module containing "WorkLogRepository" */ ]
-0|xiaolingtong-api  |   })
-0|xiaolingtong-api  | For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
-0|xiaolingtong-api  |     at Injector.lookupComponentInParentModules (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:290:19)
-0|xiaolingtong-api  |     at processTicksAndRejections (node:internal/process/task_queues:105:5)
-0|xiaolingtong-api  |     at resolveParam (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:140:38)
-0|xiaolingtong-api  |     at async Promise.all (index 4)
-0|xiaolingtong-api  |     at Injector.resolveConstructorParams (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:169:27)
-0|xiaolingtong-api  |     at Injector.loadInstance (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:75:13)
-0|xiaolingtong-api  |     at Injector.loadProvider (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:103:9)
-0|xiaolingtong-api  |     at /root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:56:13
-0|xiaolingtong-api  |     at async Promise.all (index 3)
-0|xiaolingtong-api  |     at InstanceLoader.createInstancesOfProviders (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:55:9) {
-0|xiaolingtong-api  |   type: 'ApplicationService',
-0|xiaolingtong-api  |   context: {
-0|xiaolingtong-api  |     index: 4,
-0|xiaolingtong-api  |     dependencies: [
-0|xiaolingtong-api  |       'JobApplicationRepository',
-0|xiaolingtong-api  |       'JobRepository',
-0|xiaolingtong-api  |       'UserRepository',
-0|xiaolingtong-api  |       'SysConfigRepository',
-0|xiaolingtong-api  |       'WorkLogRepository'
-0|xiaolingtong-api  |     ],
-0|xiaolingtong-api  |     name: 'WorkLogRepository'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   metadata: {
-0|xiaolingtong-api  |     id: 'd9c8bcf68c4fd1386f8ed'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   moduleRef: {
-0|xiaolingtong-api  |     id: '7c32b4a2e84ee610d2cf1'
-0|xiaolingtong-api  |   }
-0|xiaolingtong-api  | }
-0|xiaolingtong-api  | [Nest] 1930962  - 03/15/2026, 8:56:22 PM     LOG [NestFactory] Starting Nest application...
-0|xiaolingtong-api  | [Nest] 1930962  - 03/15/2026, 8:56:22 PM     LOG [InstanceLoader] AppModule dependencies initialized +47ms
-0|xiaolingtong-api  | [Nest] 1930962  - 03/15/2026, 8:56:22 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +0ms
-0|xiaolingtong-api  | [Nest] 1930962  - 03/15/2026, 8:56:22 PM   ERROR [ExceptionHandler] UnknownDependenciesException [Error]: Nest can't resolve dependencies of the ApplicationService (JobApplicationRepository, JobRepository, UserRepository, SysConfigRepository, ?). Please make sure that the argument "WorkLogRepository" at index [4] is available in the ApplicationModule context.
-0|xiaolingtong-api  | Potential solutions:
-0|xiaolingtong-api  | - Is ApplicationModule a valid NestJS module?
-0|xiaolingtong-api  | - If "WorkLogRepository" is a provider, is it part of the current ApplicationModule?
-0|xiaolingtong-api  | - If "WorkLogRepository" is exported from a separate @Module, is that module imported within ApplicationModule?
-0|xiaolingtong-api  |   @Module({
-0|xiaolingtong-api  |     imports: [ /* the Module containing "WorkLogRepository" */ ]
-0|xiaolingtong-api  |   })
-0|xiaolingtong-api  | For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
-0|xiaolingtong-api  |     at Injector.lookupComponentInParentModules (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:290:19)
-0|xiaolingtong-api  |     at processTicksAndRejections (node:internal/process/task_queues:105:5)
-0|xiaolingtong-api  |     at resolveParam (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:140:38)
-0|xiaolingtong-api  |     at async Promise.all (index 4)
-0|xiaolingtong-api  |     at Injector.resolveConstructorParams (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:169:27)
-0|xiaolingtong-api  |     at Injector.loadInstance (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:75:13)
-0|xiaolingtong-api  |     at Injector.loadProvider (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:103:9)
-0|xiaolingtong-api  |     at /root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:56:13
-0|xiaolingtong-api  |     at async Promise.all (index 3)
-0|xiaolingtong-api  |     at InstanceLoader.createInstancesOfProviders (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:55:9) {
-0|xiaolingtong-api  |   type: 'ApplicationService',
-0|xiaolingtong-api  |   context: {
-0|xiaolingtong-api  |     index: 4,
-0|xiaolingtong-api  |     dependencies: [
-0|xiaolingtong-api  |       'JobApplicationRepository',
-0|xiaolingtong-api  |       'JobRepository',
-0|xiaolingtong-api  |       'UserRepository',
-0|xiaolingtong-api  |       'SysConfigRepository',
-0|xiaolingtong-api  |       'WorkLogRepository'
-0|xiaolingtong-api  |     ],
-0|xiaolingtong-api  |     name: 'WorkLogRepository'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   metadata: {
-0|xiaolingtong-api  |     id: '39ee2119165bf1c755621'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   moduleRef: {
-0|xiaolingtong-api  |     id: '826b020262003611da059'
-0|xiaolingtong-api  |   }
-0|xiaolingtong-api  | }
-0|xiaolingtong-api  | [Nest] 1930979  - 03/15/2026, 8:56:23 PM     LOG [NestFactory] Starting Nest application...
-0|xiaolingtong-api  | [Nest] 1930979  - 03/15/2026, 8:56:23 PM     LOG [InstanceLoader] AppModule dependencies initialized +45ms
-0|xiaolingtong-api  | [Nest] 1930979  - 03/15/2026, 8:56:23 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +1ms
-0|xiaolingtong-api  | [Nest] 1930979  - 03/15/2026, 8:56:23 PM   ERROR [ExceptionHandler] UnknownDependenciesException [Error]: Nest can't resolve dependencies of the ApplicationService (JobApplicationRepository, JobRepository, UserRepository, SysConfigRepository, ?). Please make sure that the argument "WorkLogRepository" at index [4] is available in the ApplicationModule context.
-0|xiaolingtong-api  | Potential solutions:
-0|xiaolingtong-api  | - Is ApplicationModule a valid NestJS module?
-0|xiaolingtong-api  | - If "WorkLogRepository" is a provider, is it part of the current ApplicationModule?
-0|xiaolingtong-api  | - If "WorkLogRepository" is exported from a separate @Module, is that module imported within ApplicationModule?
-0|xiaolingtong-api  |   @Module({
-0|xiaolingtong-api  |     imports: [ /* the Module containing "WorkLogRepository" */ ]
-0|xiaolingtong-api  |   })
-0|xiaolingtong-api  | For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
-0|xiaolingtong-api  |     at Injector.lookupComponentInParentModules (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:290:19)
-0|xiaolingtong-api  |     at processTicksAndRejections (node:internal/process/task_queues:105:5)
-0|xiaolingtong-api  |     at resolveParam (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:140:38)
-0|xiaolingtong-api  |     at async Promise.all (index 4)
-0|xiaolingtong-api  |     at Injector.resolveConstructorParams (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:169:27)
-0|xiaolingtong-api  |     at Injector.loadInstance (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:75:13)
-0|xiaolingtong-api  |     at Injector.loadProvider (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:103:9)
-0|xiaolingtong-api  |     at /root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:56:13
-0|xiaolingtong-api  |     at async Promise.all (index 3)
-0|xiaolingtong-api  |     at InstanceLoader.createInstancesOfProviders (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:55:9) {
-0|xiaolingtong-api  |   type: 'ApplicationService',
-0|xiaolingtong-api  |   context: {
-0|xiaolingtong-api  |     index: 4,
-0|xiaolingtong-api  |     dependencies: [
-0|xiaolingtong-api  |       'JobApplicationRepository',
-0|xiaolingtong-api  |       'JobRepository',
-0|xiaolingtong-api  |       'UserRepository',
-0|xiaolingtong-api  |       'SysConfigRepository',
-0|xiaolingtong-api  |       'WorkLogRepository'
-0|xiaolingtong-api  |     ],
-0|xiaolingtong-api  |     name: 'WorkLogRepository'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   metadata: {
-0|xiaolingtong-api  |     id: 'ebc428eb6a26c909c5198'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   moduleRef: {
-0|xiaolingtong-api  |     id: 'ba284e20fedebd938157f'
-0|xiaolingtong-api  |   }
-0|xiaolingtong-api  | }
-0|xiaolingtong-api  | [Nest] 1931001  - 03/15/2026, 8:56:25 PM     LOG [NestFactory] Starting Nest application...
-0|xiaolingtong-api  | [Nest] 1931001  - 03/15/2026, 8:56:25 PM     LOG [InstanceLoader] AppModule dependencies initialized +72ms
-0|xiaolingtong-api  | [Nest] 1931001  - 03/15/2026, 8:56:25 PM     LOG [InstanceLoader] TypeOrmModule dependencies initialized +1ms
-0|xiaolingtong-api  | [Nest] 1931001  - 03/15/2026, 8:56:25 PM   ERROR [ExceptionHandler] UnknownDependenciesException [Error]: Nest can't resolve dependencies of the ApplicationService (JobApplicationRepository, JobRepository, UserRepository, SysConfigRepository, ?). Please make sure that the argument "WorkLogRepository" at index [4] is available in the ApplicationModule context.
-0|xiaolingtong-api  | Potential solutions:
-0|xiaolingtong-api  | - Is ApplicationModule a valid NestJS module?
-0|xiaolingtong-api  | - If "WorkLogRepository" is a provider, is it part of the current ApplicationModule?
-0|xiaolingtong-api  | - If "WorkLogRepository" is exported from a separate @Module, is that module imported within ApplicationModule?
-0|xiaolingtong-api  |   @Module({
-0|xiaolingtong-api  |     imports: [ /* the Module containing "WorkLogRepository" */ ]
-0|xiaolingtong-api  |   })
-0|xiaolingtong-api  | For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
-0|xiaolingtong-api  |     at Injector.lookupComponentInParentModules (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:290:19)
-0|xiaolingtong-api  |     at processTicksAndRejections (node:internal/process/task_queues:105:5)
-0|xiaolingtong-api  |     at resolveParam (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:140:38)
-0|xiaolingtong-api  |     at async Promise.all (index 4)
-0|xiaolingtong-api  |     at Injector.resolveConstructorParams (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:169:27)
-0|xiaolingtong-api  |     at Injector.loadInstance (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:75:13)
-0|xiaolingtong-api  |     at Injector.loadProvider (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/injector.js:103:9)
-0|xiaolingtong-api  |     at /root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:56:13
-0|xiaolingtong-api  |     at async Promise.all (index 3)
-0|xiaolingtong-api  |     at InstanceLoader.createInstancesOfProviders (/root/xiaolingtong/server/node_modules/@nestjs/core/injector/instance-loader.js:55:9) {
-0|xiaolingtong-api  |   type: 'ApplicationService',
-0|xiaolingtong-api  |   context: {
-0|xiaolingtong-api  |     index: 4,
-0|xiaolingtong-api  |     dependencies: [
-0|xiaolingtong-api  |       'JobApplicationRepository',
-0|xiaolingtong-api  |       'JobRepository',
-0|xiaolingtong-api  |       'UserRepository',
-0|xiaolingtong-api  |       'SysConfigRepository',
-0|xiaolingtong-api  |       'WorkLogRepository'
-0|xiaolingtong-api  |     ],
-0|xiaolingtong-api  |     name: 'WorkLogRepository'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   metadata: {
-0|xiaolingtong-api  |     id: '8b926101c97358655e259'
-0|xiaolingtong-api  |   },
-0|xiaolingtong-api  |   moduleRef: {
-0|xiaolingtong-api  |     id: 'e70f1739edb7a817bd91f'
-0|xiaolingtong-api  |   }
-0|xiaolingtong-api  | }
+> server@0.0.1 build
+> nest build && npm run copy-public
+
+
+> server@0.0.1 copy-public
+> node -e "require('fs').cpSync('public', 'dist/public', {recursive: true})"
+
+root@VM-0-15-debian:~/xiaolingtong/server#
+root@VM-0-15-debian:~/xiaolingtong/server# pm2 restart xiaolingtong-api
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [xiaolingtong-api](ids: [ 0 ])
+[PM2] [xiaolingtong-api](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ xiaolingtong-api   │ fork     │ 636  │ online    │ 0%       │ 21.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@VM-0-15-debian:~/xiaolingtong/server#
+root@VM-0-15-debian:~/xiaolingtong/server# pm2 show xiaolingtong-api
+ Describing process with id 0 - name xiaolingtong-api
+┌───────────────────┬────────────────────────────────────────────┐
+│ status            │ online                                     │
+│ name              │ xiaolingtong-api                           │
+│ namespace         │ default                                    │
+│ version           │ 0.0.1                                      │
+│ restarts          │ 636                                        │
+│ uptime            │ 51s                                        │
+│ script path       │ /root/xiaolingtong/server/dist/src/main.js │
+│ script args       │ N/A                                        │
+│ error log path    │ /root/.pm2/logs/xiaolingtong-api-error.log │
+│ out log path      │ /root/.pm2/logs/xiaolingtong-api-out.log   │
+│ pid path          │ /root/.pm2/pids/xiaolingtong-api-0.pid     │
+│ interpreter       │ node                                       │
+│ interpreter args  │ N/A                                        │
+│ script id         │ 0                                          │
+│ exec cwd          │ /root/xiaolingtong/server                  │
+│ exec mode         │ fork_mode                                  │
+│ node.js version   │ 22.22.0                                    │
+│ node env          │ N/A                                        │
+│ watch & reload    │ ✘                                          │
+│ unstable restarts │ 0                                          │
+│ created at        │ 2026-03-15T13:34:11.425Z                   │
+└───────────────────┴────────────────────────────────────────────┘
+ Actions available
+┌────────────────────────┐
+│ km:heapdump            │
+│ km:cpu:profiling:start │
+│ km:cpu:profiling:stop  │
+│ km:heap:sampling:start │
+│ km:heap:sampling:stop  │
+└────────────────────────┘
+ Trigger via: pm2 trigger xiaolingtong-api <action_name>
+
+ Code metrics value
+┌────────────────────────┬───────────┐
+│ Used Heap Size         │ 46.74 MiB │
+│ Heap Usage             │ 94.46 %   │
+│ Heap Size              │ 49.48 MiB │
+│ Event Loop Latency p95 │ 0.95 ms   │
+│ Event Loop Latency     │ 0.56 ms   │
+│ Active handles         │ 5         │
+│ Active requests        │ 0         │
+└────────────────────────┴───────────┘
+ Divergent env variables from local env
+┌────────────────┬────────────────────────────────────┐
+│ SSH_CONNECTION │ 115.227.213.123 59318 10.0.0.15 22 │
+│ XDG_SESSION_ID │ 27985                              │
+│ SSH_CLIENT     │ 115.227.213.123 59318 22           │
+│ OLDPWD         │ /root                              │
+└────────────────┴────────────────────────────────────┘
+
+ Add your own code metrics: http://bit.ly/code-metrics
+ Use `pm2 logs xiaolingtong-api [--lines 1000]` to display logs
+ Use `pm2 env 0` to display environment variables
+ Use `pm2 monit` to monitor CPU and Memory usage xiaolingtong-api
+root@VM-0-15-debian:~/xiaolingtong/server#
