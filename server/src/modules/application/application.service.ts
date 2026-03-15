@@ -297,37 +297,72 @@ export class ApplicationService {
 
   /**
    * 获取临工的工作记录（接单记录）
+   * 从 job_applications 表查询 working 或 done 状态的记录
+   * 关联 work_logs 获取工作细节
    */
   async getWorkOrders(workerId: number) {
+    // 从 job_applications 表查询 working 或 done 状态的记录
+    const applications = await this.appRepo.find({
+      where: [
+        { workerId, status: 'working' },
+        { workerId, status: 'done' },
+      ],
+      relations: ['job', 'job.user'],
+      order: { createdAt: 'DESC' },
+    });
+
+    // 获取所有对应的 work_logs 记录
+    const appIds = applications.map(app => app.id);
     const workLogs = await this.workLogRepo.find({
       where: { workerId },
-      relations: ['job', 'job.user'],
       order: { date: 'DESC' },
     });
 
-    return workLogs.map(log => ({
-      id: log.id,
-      jobId: log.jobId,
-      date: log.date,
-      hours: log.hours,
-      pieces: log.pieces,
-      photoUrls: log.photoUrls || [],
-      anomalyType: log.anomalyType,
-      anomalyNote: log.anomalyNote,
-      createdAt: log.createdAt,
-      job: log.job ? {
-        id: log.job.id,
-        title: log.job.title,
-        location: log.job.location,
-        salary: log.job.salary,
-        salaryUnit: log.job.salaryUnit,
-        salaryType: log.job.salaryType,
-      } : null,
-      company: log.job?.user ? {
-        id: log.job.user.id,
-        name: log.job.user.name || log.job.user.nickname || '企业用户',
-        avatarUrl: log.job.user.avatarUrl,
-      } : null,
-    }));
+    // 按 jobId 分组 work_logs
+    const workLogMap = new Map();
+    workLogs.forEach(log => {
+      if (!workLogMap.has(log.jobId)) {
+        workLogMap.set(log.jobId, []);
+      }
+      workLogMap.get(log.jobId).push(log);
+    });
+
+    // 返回 job_applications 记录，包含对应的 work_logs 数据
+    return applications.map(app => {
+      const logs = workLogMap.get(app.jobId) || [];
+      const latestLog = logs[0]; // 最新的 work_log
+
+      return {
+        id: app.id,
+        jobId: app.jobId,
+        workerId: app.workerId,
+        status: app.status,
+        createdAt: app.createdAt,
+        confirmedAt: app.confirmedAt,
+        // work_logs 数据
+        workLogId: latestLog?.id,
+        date: latestLog?.date,
+        hours: latestLog?.hours || 0,
+        pieces: latestLog?.pieces || 0,
+        photoUrls: latestLog?.photoUrls || [],
+        anomalyType: latestLog?.anomalyType || 'normal',
+        anomalyNote: latestLog?.anomalyNote || '',
+        // job 信息
+        job: app.job ? {
+          id: app.job.id,
+          title: app.job.title,
+          location: app.job.location,
+          salary: app.job.salary,
+          salaryUnit: app.job.salaryUnit,
+          salaryType: app.job.salaryType,
+        } : null,
+        // company 信息
+        company: app.job?.user ? {
+          id: app.job.user.id,
+          name: app.job.user.name || app.job.user.nickname || '企业用户',
+          avatarUrl: app.job.user.avatarUrl,
+        } : null,
+      };
+    });
   }
 }

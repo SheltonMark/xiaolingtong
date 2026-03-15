@@ -13,7 +13,7 @@
           data-id="{{item.id}}" data-job-id="{{item.jobId}}"
           bindtap="onOrderTap">
 
-      <!-- 公司信息 -->
+      <!-- 公司信息 + 状态 -->
       <view class="record-header">
         <view class="company-info">
           <image class="company-avatar" src="{{item.companyAvatar}}" mode="aspectFill" />
@@ -22,7 +22,9 @@
             <text class="job-title">{{item.jobTitle}}</text>
           </view>
         </view>
-        <view class="record-date">{{item.date}}</view>
+        <view class="status-badge" style="background-color: var(--color-{{item.statusBg}}-100); color: var(--color-{{item.statusBg}}-600);">
+          {{item.statusText}}
+        </view>
       </view>
 
       <!-- 工作详情 -->

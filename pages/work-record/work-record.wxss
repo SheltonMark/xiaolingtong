@@ -70,10 +70,14 @@
   color: #64748b;
 }
 
-.record-date {
-  font-size: 22rpx;
-  color: #94a3b8;
+/* 状态标签 */
+.status-badge {
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  font-weight: 500;
   flex-shrink: 0;
+  margin-left: 12rpx;
 }
 
 /* 记录详情 */
@@ -139,3 +143,18 @@
   font-size: 22rpx;
   font-weight: 500;
 }
+
+/* 颜色变量 */
+:root {
+  --color-amber-100: #fef3c7;
+  --color-amber-600: #d97706;
+  --color-green-100: #dcfce7;
+  --color-green-600: #16a34a;
+  --color-gray-100: #f3f4f6;
+  --color-gray-600: #4b5563;
+  --color-rose-100: #ffe4e6;
+  --color-rose-600: #e11d48;
+  --color-slate-100: #f1f5f9;
+  --color-slate-600: #475569;
+}
+

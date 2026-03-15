@@ -42,9 +42,27 @@ Page({
       absent: '缺勤'
     }
 
+    // 应用状态映射（与"我的报名"保持一致）
+    const statusMap = {
+      pending: { text: '待确认', bg: 'amber' },
+      accepted: { text: '待确认', bg: 'amber' },
+      confirmed: { text: '已入选', bg: 'green' },
+      working: { text: '进行中', bg: 'green' },
+      done: { text: '已完成', bg: 'gray' },
+      completed: { text: '已完成', bg: 'gray' },
+      rejected: { text: '已拒绝', bg: 'rose' },
+      released: { text: '已释放', bg: 'rose' },
+      cancelled: { text: '已取消', bg: 'gray' }
+    }
+
+    const appStatus = statusMap[order.status] || { text: '未知', bg: 'slate' }
+
     return {
       id: order.id,
       jobId: order.jobId,
+      status: order.status,
+      statusText: appStatus.text,
+      statusBg: appStatus.bg,
       jobTitle: job.title || '未知工作',
       location: job.location || '未知地点',
       date: order.date,
@@ -66,7 +84,7 @@ Page({
   onOrderTap(e) {
     const { id, jobId } = e.currentTarget.dataset
     wx.navigateTo({
-      url: `/pages/settlement/settlement?jobId=${jobId}&workLogId=${id}&viewOnly=1`
+      url: `/pages/settlement/settlement?jobId=${jobId}&applicationId=${id}&viewOnly=1`
     })
   }
 })
