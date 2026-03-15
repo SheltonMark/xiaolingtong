@@ -1,160 +1,117 @@
-.work-record-page {
-  min-height: 100vh;
-  background-color: #f5f5f5;
+.ma-page { min-height: 100vh; background-color: #F5F5F5; }
+.tab-bar {
+  display: flex; background-color: #fff; padding: 0 24rpx;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+.tab-item {
+  flex: 1; text-align: center; padding: 20rpx 0;
+  font-size: 24rpx; color: #64748B; position: relative;
+}
+.tab-active { color: #F97316; font-weight: 600; }
+.tab-active::after {
+  content: ''; position: absolute; bottom: 0; left: 50%;
+  transform: translateX(-50%); width: 48rpx; height: 4rpx;
+  background-color: #F97316; border-radius: 4rpx;
 }
 
 /* 加载状态 */
 .loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 100rpx 0;
-  font-size: 24rpx;
-  color: #94a3b8;
+  display: flex; align-items: center; justify-content: center;
+  padding: 100rpx 0; font-size: 24rpx; color: #94a3b8;
 }
 
-/* 记录列表 */
-.record-list {
-  padding: 24rpx 32rpx 0;
-  display: flex;
-  flex-direction: column;
-  gap: 20rpx;
+.app-list { padding: 24rpx 32rpx; }
+.app-card {
+  background-color: #fff; border-radius: 24rpx;
+  padding: 32rpx; margin-bottom: 24rpx;
 }
-
-.record-item {
-  background-color: #fff;
-  border-radius: 24rpx;
-  padding: 24rpx;
-  box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.1);
+.card-faded { opacity: 0.6; }
+.app-header {
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 16rpx;
 }
-
-/* 记录头部 */
-.record-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20rpx;
-  padding-bottom: 16rpx;
-  border-bottom: 1rpx solid #f1f5f9;
+.app-header-left { display: flex; align-items: center; gap: 16rpx; }
+.app-avatar-img {
+  width: 64rpx; height: 64rpx; border-radius: 50%; flex-shrink: 0;
 }
-
-.company-info {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  flex: 1;
-}
-
-.company-avatar {
-  width: 60rpx;
-  height: 60rpx;
-  border-radius: 12rpx;
-  background-color: #e2e8f0;
-}
-
-.company-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 4rpx;
-  flex: 1;
-}
-
-.company-name {
-  font-size: 26rpx;
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.job-title {
-  font-size: 22rpx;
-  color: #64748b;
-}
+.app-company { font-size: 24rpx; font-weight: 500; color: #1E293B; }
 
 /* 状态标签 */
-.status-badge {
-  padding: 6rpx 12rpx;
-  border-radius: 8rpx;
-  font-size: 20rpx;
-  font-weight: 500;
-  flex-shrink: 0;
-  margin-left: 12rpx;
+.status-tag {
+  display: flex; align-items: center; gap: 6rpx;
+  font-size: 20rpx; padding: 4rpx 16rpx;
+  border-radius: 8rpx; font-weight: 500;
+}
+.status-bg-amber { background-color: #FFFBEB; color: #F59E0B; }
+.status-bg-green { background-color: #ECFDF5; color: #10B981; }
+.status-bg-gray { background-color: #F1F5F9; color: #64748B; }
+.status-bg-rose { background-color: #FFF1F2; color: #F43F5E; }
+.pulse-dot {
+  width: 12rpx; height: 12rpx; background-color: #10B981;
+  border-radius: 50%;
 }
 
-/* 记录详情 */
-.record-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-  margin-bottom: 16rpx;
+.app-job-line {
+  font-size: 26rpx; font-weight: 500; color: #1E293B;
+  display: block; margin-bottom: 8rpx;
 }
+.app-location-row {
+  display: flex; align-items: center; gap: 8rpx; margin-bottom: 12rpx;
+}
+.location-icon { font-size: 22rpx; }
+.app-location { font-size: 20rpx; color: #94A3B8; }
+.app-date-row {
+  display: flex; align-items: center; gap: 8rpx; margin-bottom: 12rpx;
+}
+.date-icon { font-size: 22rpx; }
+.app-date { font-size: 20rpx; color: #94A3B8; }
 
-.detail-row {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-  font-size: 22rpx;
+/* 异常 */
+.anomaly-row {
+  display: flex; align-items: center; gap: 8rpx; margin-bottom: 12rpx;
 }
+.anomaly-icon { font-size: 22rpx; }
+.anomaly-text { font-size: 20rpx; color: #EF4444; font-weight: 500; }
 
-.detail-label {
-  color: #94a3b8;
-  min-width: 80rpx;
+/* 提醒 */
+.app-alert {
+  display: flex; align-items: center; gap: 8rpx;
+  background-color: #FFFBEB; border-radius: 12rpx;
+  padding: 16rpx 20rpx; margin-bottom: 20rpx;
 }
+.alert-icon { font-size: 24rpx; }
+.alert-text { font-size: 20rpx; color: #92400E; flex: 1; }
 
-.detail-value {
-  color: #1e293b;
-  font-weight: 500;
+/* 统计 */
+.app-stats {
+  display: flex; background-color: #F8FAFC; border-radius: 16rpx;
+  padding: 20rpx; margin-bottom: 20rpx;
 }
+.stat-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; gap: 4rpx;
+}
+.stat-value { font-size: 28rpx; font-weight: 700; }
+.stat-label { font-size: 20rpx; color: #94A3B8; }
 
-.detail-value.anomaly {
-  color: #ef4444;
-  font-weight: 600;
+/* 确认出勤按钮 */
+.confirm-btn {
+  width: 100%; height: 72rpx;
+  display: flex; align-items: center; justify-content: center;
+  background-color: #F97316; color: #fff;
+  font-size: 24rpx; font-weight: 600;
+  border-radius: 16rpx; border: none; padding: 0;
+  box-shadow: 0 4rpx 16rpx rgba(249,115,22,0.25);
 }
-
-/* 照片 */
-.record-photos {
-  display: flex;
-  gap: 12rpx;
-  margin-bottom: 16rpx;
-  flex-wrap: wrap;
-}
-
-.photo-item {
-  width: 100rpx;
-  height: 100rpx;
-  border-radius: 12rpx;
-  background-color: #e2e8f0;
-}
+.confirm-btn::after { border: none; }
 
 /* 操作按钮 */
-.record-footer {
-  display: flex;
-  gap: 12rpx;
-  padding-top: 16rpx;
-  border-top: 1rpx solid #f1f5f9;
+.app-actions { display: flex; gap: 16rpx; }
+.act-btn {
+  flex: 1; font-size: 22rpx; font-weight: 500;
+  padding: 12rpx 0; border-radius: 12rpx;
+  text-align: center; border: none; line-height: 1.4;
 }
-
-.btn-detail {
-  flex: 1;
-  padding: 12rpx 16rpx;
-  background-color: #3b82f6;
-  color: #fff;
-  border-radius: 12rpx;
-  text-align: center;
-  font-size: 22rpx;
-  font-weight: 500;
-}
-
-/* 颜色变量 */
-:root {
-  --color-amber-100: #fef3c7;
-  --color-amber-600: #d97706;
-  --color-green-100: #dcfce7;
-  --color-green-600: #16a34a;
-  --color-gray-100: #f3f4f6;
-  --color-gray-600: #4b5563;
-  --color-rose-100: #ffe4e6;
-  --color-rose-600: #e11d48;
-  --color-slate-100: #f1f5f9;
-  --color-slate-600: #475569;
-}
-
+.act-btn::after { border: none; }
+.act-blue { background-color: #EFF6FF; color: #3B82F6; }
+.act-orange { background-color: #FFF7ED; color: #F97316; }

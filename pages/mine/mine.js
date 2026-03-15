@@ -220,14 +220,17 @@ Page({
     const job = item.job || {}
     const user = job.user || {}
 
-    // 状态映射
+    // 状态映射（与设计文档一致）
     const statusMap = {
-      pending: { text: '待确认', bg: 'amber', tabKey: '待确认' },
-      accepted: { text: '已入选', bg: 'green', tabKey: '已入选' },
-      confirmed: { text: '进行中', bg: 'green', tabKey: '进行中' },
+      pending:   { text: '待确认', bg: 'amber', tabKey: '待确认' },
+      accepted:  { text: '待确认', bg: 'amber', tabKey: '待确认' },
+      confirmed: { text: '已入选', bg: 'green', tabKey: '已入选' },
+      working:   { text: '进行中', bg: 'green', tabKey: '进行中' },
+      done:      { text: '已完成', bg: 'gray', tabKey: '已完成' },
       completed: { text: '已完成', bg: 'gray', tabKey: '已完成' },
-      rejected: { text: '未通过', bg: 'rose', tabKey: '待确认' },
-      cancelled: { text: '已取消', bg: 'gray', tabKey: '待确认' }
+      rejected:  { text: '已拒绝', bg: 'rose', tabKey: '异常' },
+      released:  { text: '已释放', bg: 'rose', tabKey: '异常' },
+      cancelled: { text: '已取消', bg: 'gray', tabKey: '异常' }
     }
 
     const statusInfo = statusMap[item.status] || { text: '待确认', bg: 'amber', tabKey: '待确认' }

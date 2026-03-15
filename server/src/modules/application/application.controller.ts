@@ -67,12 +67,4 @@ export class ApplicationController {
     return this.appService.rejectApplication(jobId, appId, userId);
   }
 
-  /**
-   * 获取临工的工作记录（接单记录）
-   */
-  @Get('work/orders')
-  @Roles('worker')
-  getWorkOrders(@CurrentUser('sub') userId: number) {
-    return this.appService.getWorkOrders(userId);
-  }
 }

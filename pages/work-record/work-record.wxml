@@ -1,67 +1,83 @@
 <!--pages/work-record/work-record.wxml-->
-<view class="work-record-page">
+<view class="ma-page">
   <nav-bar title="我的接单记录" />
+
+  <!-- Tab -->
+  <view class="tab-bar">
+    <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
+          wx:for="{{tabs}}" wx:key="index"
+          data-index="{{index}}" bindtap="onTabChange">
+      <text>{{item}}</text>
+    </view>
+  </view>
 
   <!-- 加载状态 -->
   <view class="loading" wx:if="{{loading}}">
     <text>加载中...</text>
   </view>
 
-  <!-- 工作记录列表 -->
-  <view class="record-list" wx:if="{{!loading && orders.length > 0}}">
-    <view class="record-item" wx:for="{{orders}}" wx:key="id"
-          data-id="{{item.id}}" data-job-id="{{item.jobId}}"
-          bindtap="onOrderTap">
-
-      <!-- 公司信息 + 状态 -->
-      <view class="record-header">
-        <view class="company-info">
-          <image class="company-avatar" src="{{item.companyAvatar}}" mode="aspectFill" />
-          <view class="company-detail">
-            <text class="company-name">{{item.companyName}}</text>
-            <text class="job-title">{{item.jobTitle}}</text>
-          </view>
+  <!-- 列表 -->
+  <view class="app-list" wx:if="{{!loading}}">
+    <view class="app-card {{item.status === 'rejected' || item.status === 'released' ? 'card-faded' : ''}}"
+          wx:for="{{list}}" wx:key="id"
+          wx:if="{{currentTab === 0 || item.tabKey === tabs[currentTab]}}">
+      <!-- 头部 -->
+      <view class="app-header">
+        <view class="app-header-left">
+          <image wx:if="{{item.companyAvatarUrl}}" src="{{item.companyAvatarUrl}}" class="app-avatar-img" mode="aspectFill" />
+          <view wx:else class="text-avatar" style="width:48rpx;height:48rpx;font-size:20rpx;background-color:#10B981;">{{item.company[0]}}</view>
+          <text class="app-company">{{item.company}}</text>
         </view>
-        <view class="status-badge" style="background-color: var(--color-{{item.statusBg}}-100); color: var(--color-{{item.statusBg}}-600);">
-          {{item.statusText}}
+        <view class="status-tag status-bg-{{item.statusBg}}">
+          <view class="pulse-dot" wx:if="{{item.status === 'working'}}"></view>
+          <text>{{item.statusText}}</text>
         </view>
       </view>
-
-      <!-- 工作详情 -->
-      <view class="record-body">
-        <view class="detail-row">
-          <text class="detail-label">地点：</text>
-          <text class="detail-value">{{item.location}}</text>
-        </view>
-        <view class="detail-row">
-          <text class="detail-label">工时：</text>
-          <text class="detail-value">
-            {{item.salaryType === 'hourly' ? item.hours + '小时' : item.pieces + '件'}}
-          </text>
-        </view>
-        <view class="detail-row">
-          <text class="detail-label">工价：</text>
-          <text class="detail-value">{{item.salary}}{{item.salaryUnit}}</text>
-        </view>
-        <view class="detail-row" wx:if="{{item.anomalyType !== 'normal'}}">
-          <text class="detail-label">异常：</text>
-          <text class="detail-value anomaly" style="color: #ef4444;">{{item.anomalyText}}</text>
+<!-- WXML_APPEND -->
+      <!-- 岗位+薪资 -->
+      <text class="app-job-line">{{item.title}} · <text class="text-cta">{{item.salary}}{{item.salaryUnit}}</text></text>
+      <!-- 地点 -->
+      <view class="app-location-row">
+        <text class="location-icon">📍</text>
+        <text class="app-location">{{item.location}}</text>
+      </view>
+      <!-- 工时/计件 -->
+      <view class="app-date-row" wx:if="{{item.hours || item.pieces}}">
+        <text class="date-icon">⏱</text>
+        <text class="app-date">
+          {{item.salaryType === 'hourly' ? item.hours + '小时' : item.pieces + '件'}}
+        </text>
+      </view>
+      <!-- 异常 -->
+      <view class="anomaly-row" wx:if="{{item.anomalyType !== 'normal'}}">
+        <text class="anomaly-icon">⚠️</text>
+        <text class="anomaly-text">{{item.anomalyText}}</text>
+      </view>
+      <!-- 提醒 -->
+      <view class="app-alert" wx:if="{{item.alert}}">
+        <text class="alert-icon">⏱</text>
+        <text class="alert-text">{{item.alert}}</text>
+      </view>
+      <!-- 统计 -->
+      <view class="app-stats" wx:if="{{item.stats}}">
+        <view class="stat-item" wx:for="{{item.stats}}" wx:for-item="s" wx:key="label">
+          <text class="stat-value" style="color:{{s.color || '#1E293B'}};">{{s.value}}</text>
+          <text class="stat-label">{{s.label}}</text>
         </view>
       </view>
-
-      <!-- 照片 -->
-      <view class="record-photos" wx:if="{{item.photoUrls.length > 0}}">
-        <image class="photo-item" wx:for="{{item.photoUrls}}" wx:key="*this"
-               src="{{item}}" mode="aspectFill" />
-      </view>
-
       <!-- 操作按钮 -->
-      <view class="record-footer">
-        <view class="btn-detail">查看详情</view>
+      <button class="confirm-btn" wx:if="{{item.status === 'confirmed'}}"
+              data-id="{{item.jobId}}" bindtap="onConfirmAttend">确认出勤</button>
+      <view class="app-actions" wx:if="{{item.status === 'working'}}">
+        <button class="act-btn act-blue" data-id="{{item.jobId}}" bindtap="onGoCheckin">打卡签到</button>
+        <button class="act-btn act-blue" data-id="{{item.id}}" data-job-id="{{item.jobId}}" bindtap="onOrderTap">查看详情</button>
+      </view>
+      <view class="app-actions" wx:if="{{item.status === 'done' || item.status === 'completed'}}">
+        <button class="act-btn act-blue" data-id="{{item.id}}" data-job-id="{{item.jobId}}" bindtap="onOrderTap">查看详情</button>
+        <button class="act-btn act-orange" data-id="{{item.jobId}}" bindtap="onRate">评价企业</button>
       </view>
     </view>
   </view>
 
-  <!-- 空状态 -->
-  <empty-state wx:if="{{!loading && empty}}" text="暂无接单记录" subText="完成工作后会显示在这里" />
+  <empty-state wx:if="{{!loading && list.length === 0}}" text="暂无接单记录" subText="报名工作后会显示在这里" />
 </view>
