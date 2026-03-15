@@ -69,7 +69,7 @@ Page({
 
   normalizeApplication(item) {
     const job = item.job || {}
-    const user = job.user || {}
+    const company = item.company || {}
 
     // 状态映射
     const statusMap = {
@@ -84,32 +84,52 @@ Page({
       cancelled: { text: '已取消', bg: 'gray', tabKey: '异常' }
     }
 
+    // 异常类型映射
+    const anomalyMap = {
+      normal: '正常',
+      early_leave: '早退',
+      late: '迟到',
+      injury: '受伤',
+      absent: '缺勤'
+    }
+
     const statusInfo = statusMap[item.status] || { text: '待确认', bg: 'amber', tabKey: '待确认' }
-    const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
-    const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
+    const companyName = company.name || '企业'
+    const companyAvatarUrl = normalizeImageUrl(company.avatarUrl || '')
     const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
+
+    // 计算应得工资（如果有 work_logs 数据）
+    let workStats = null
+    if ((item.status === 'done' || item.status === 'completed') && item.hours) {
+      const earnedSalary = Math.round(item.hours * job.salary)
+      workStats = [
+        { label: '工作时长', value: item.hours + 'h', color: '#3B82F6' },
+        { label: '应得工资', value: '¥' + earnedSalary, color: '#10B981' }
+      ]
+    }
 
     return {
       id: item.id,
       jobId: job.id,
-      company,
+      company: companyName,
       companyAvatarUrl,
       title: job.title || '',
       salary: job.salary || 0,
       salaryUnit,
       location: job.location || '',
       description: job.description || '',
-      date: job.dateRange || '',
-      hours: job.workHours || '',
+      date: item.date || job.dateRange || '',
+      hours: item.hours || job.workHours || '',
       status: item.status,
       statusText: statusInfo.text,
       statusBg: statusInfo.bg,
       tabKey: statusInfo.tabKey,
       alert: item.status === 'confirmed' ? '明天记得按时到岗' : '',
-      stats: item.status === 'done' || item.status === 'completed' ? [
-        { label: '工作时长', value: '8h', color: '#3B82F6' },
-        { label: '应得工资', value: '¥320', color: '#10B981' }
-      ] : null
+      stats: workStats,
+      // work_logs 数据
+      anomalyType: item.anomalyType || 'normal',
+      anomalyText: anomalyMap[item.anomalyType] || '正常',
+      photoUrls: item.photoUrls || []
     }
   },
 

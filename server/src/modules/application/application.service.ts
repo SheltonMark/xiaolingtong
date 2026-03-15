@@ -133,7 +133,62 @@ export class ApplicationService {
       .skip((page - 1) * pageSize)
       .take(pageSize);
 
-    const [list, total] = await qb.getManyAndCount();
+    const [apps, total] = await qb.getManyAndCount();
+
+    // 获取所有对应的 work_logs 记录
+    const appIds = apps.map(app => app.id);
+    const workLogs = await this.workLogRepo.find({
+      where: { workerId },
+      order: { date: 'DESC' },
+    });
+
+    // 按 jobId 分组 work_logs
+    const workLogMap = new Map();
+    workLogs.forEach(log => {
+      if (!workLogMap.has(log.jobId)) {
+        workLogMap.set(log.jobId, []);
+      }
+      workLogMap.get(log.jobId).push(log);
+    });
+
+    // 返回统一格式的数据
+    const list = apps.map(app => {
+      const logs = workLogMap.get(app.jobId) || [];
+      const latestLog = logs[0]; // 最新的 work_log
+
+      return {
+        id: app.id,
+        jobId: app.jobId,
+        workerId: app.workerId,
+        status: app.status,
+        createdAt: app.createdAt,
+        confirmedAt: app.confirmedAt,
+        // work_logs 数据（如果有的话）
+        workLogId: latestLog?.id,
+        date: latestLog?.date,
+        hours: latestLog?.hours || 0,
+        pieces: latestLog?.pieces || 0,
+        photoUrls: latestLog?.photoUrls || [],
+        anomalyType: latestLog?.anomalyType || 'normal',
+        anomalyNote: latestLog?.anomalyNote || '',
+        // job 信息
+        job: app.job ? {
+          id: app.job.id,
+          title: app.job.title,
+          location: app.job.location,
+          salary: app.job.salary,
+          salaryUnit: app.job.salaryUnit,
+          salaryType: app.job.salaryType,
+        } : null,
+        // company 信息
+        company: app.job?.user ? {
+          id: app.job.user.id,
+          name: app.job.user.name || app.job.user.nickname || '企业用户',
+          avatarUrl: app.job.user.avatarUrl,
+        } : null,
+      };
+    });
+
     return { list, total, page: +page, pageSize: +pageSize };
   }
 
