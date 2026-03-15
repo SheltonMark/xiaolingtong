@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
@@ -297,25 +297,25 @@ export class ApplicationService {
 
   /**
    * 获取临工的工作记录（接单记录）
-   * 从 job_applications 表查询 working 或 done 状态的记录
+   * 显示所有有 work_logs 记录的 job_applications
    * 关联 work_logs 获取工作细节
    */
   async getWorkOrders(workerId: number) {
-    // 从 job_applications 表查询 working 或 done 状态的记录
-    const applications = await this.appRepo.find({
-      where: [
-        { workerId, status: 'working' },
-        { workerId, status: 'done' },
-      ],
-      relations: ['job', 'job.user'],
-      order: { createdAt: 'DESC' },
-    });
-
-    // 获取所有对应的 work_logs 记录
-    const appIds = applications.map(app => app.id);
+    // 获取该临工所有的 work_logs 记录
     const workLogs = await this.workLogRepo.find({
       where: { workerId },
       order: { date: 'DESC' },
+    });
+
+    if (workLogs.length === 0) {
+      return [];
+    }
+
+    // 获取所有对应的 job_applications 记录
+    const jobIds = [...new Set(workLogs.map(log => log.jobId))];
+    const applications = await this.appRepo.find({
+      where: { workerId, jobId: In(jobIds) },
+      relations: ['job', 'job.user'],
     });
 
     // 按 jobId 分组 work_logs
