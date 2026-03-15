@@ -84,6 +84,15 @@ project.config.json.bak
 GitHub上传状态.md
 GitHub_Desktop使用指南.md
 
+# 非核心 Markdown 文档（不提交）
+Docs/zheng/DIAGNOSTIC_*.md
+Docs/zheng/DEPLOY_*.md
+Docs/zheng/ANALYSIS_*.md
+Docs/zheng/PLAN_*.md
+Docs/zheng/PHASE*.md
+Docs/zheng/DEBUG_*.md
+Docs/zheng/TEMP_*.md
+
 # 敏感配置
 Docs/ma/
 Docs/zheng/
