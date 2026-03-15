@@ -1,42 +1,141 @@
-.wr-page { min-height: 100vh; background-color: #F5F5F5; }
-
-/* 顶部提示 */
-.wr-tip {
-  margin: 24rpx 32rpx 0; background-color: #EFF6FF;
-  border-radius: 16rpx; padding: 20rpx 24rpx;
-  display: flex; align-items: center; gap: 12rpx;
-}
-.wr-tip-icon { font-size: 28rpx; color: #3B82F6; flex-shrink: 0; }
-.wr-tip-text { font-size: 22rpx; color: #3B82F6; line-height: 1.5; }
-
-/* 订单列表 */
-.wr-list { padding: 24rpx 32rpx 0; display: flex; flex-direction: column; gap: 20rpx; }
-
-.order-card {
-  background-color: #fff; border-radius: 24rpx; padding: 28rpx 24rpx;
-}
-.order-top {
-  display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx;
-}
-.order-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-.order-company { font-size: 28rpx; font-weight: 600; color: #1E293B; }
-.order-meta { font-size: 22rpx; color: #64748B; }
-.order-stage {
-  font-size: 20rpx; font-weight: 500; padding: 6rpx 16rpx;
-  border-radius: 8rpx; flex-shrink: 0;
+.work-record-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
 }
 
-.order-bottom {
-  display: flex; align-items: center; gap: 24rpx;
-  padding-top: 16rpx; border-top: 1rpx solid #F1F5F9;
+/* 加载状态 */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  font-size: 24rpx;
+  color: #94a3b8;
 }
-.order-detail { font-size: 22rpx; color: #94A3B8; display: flex; align-items: center; gap: 6rpx; }
-.order-detail .iconfont { font-size: 24rpx; }
 
-/* 空状态 */
-.wr-empty {
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: center; padding-top: 200rpx;
+/* 记录列表 */
+.record-list {
+  padding: 24rpx 32rpx 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
 }
-.wr-empty-icon { font-size: 120rpx; color: #E2E8F0; }
-.wr-empty-text { font-size: 24rpx; color: #94A3B8; margin-top: 16rpx; }
+
+.record-item {
+  background-color: #fff;
+  border-radius: 24rpx;
+  padding: 24rpx;
+  box-shadow: 0 1rpx 3rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 记录头部 */
+.record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 1rpx solid #f1f5f9;
+}
+
+.company-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+}
+
+.company-avatar {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 12rpx;
+  background-color: #e2e8f0;
+}
+
+.company-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+  flex: 1;
+}
+
+.company-name {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.job-title {
+  font-size: 22rpx;
+  color: #64748b;
+}
+
+.record-date {
+  font-size: 22rpx;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+/* 记录详情 */
+.record-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  font-size: 22rpx;
+}
+
+.detail-label {
+  color: #94a3b8;
+  min-width: 80rpx;
+}
+
+.detail-value {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.detail-value.anomaly {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* 照片 */
+.record-photos {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+  flex-wrap: wrap;
+}
+
+.photo-item {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 12rpx;
+  background-color: #e2e8f0;
+}
+
+/* 操作按钮 */
+.record-footer {
+  display: flex;
+  gap: 12rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #f1f5f9;
+}
+
+.btn-detail {
+  flex: 1;
+  padding: 12rpx 16rpx;
+  background-color: #3b82f6;
+  color: #fff;
+  border-radius: 12rpx;
+  text-align: center;
+  font-size: 22rpx;
+  font-weight: 500;
+}

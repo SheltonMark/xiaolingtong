@@ -1,0 +1,24 @@
+root@VM-0-15-debian:~# mysql -h localhost -u xlt -pXLT2026db xiaolingtong -e "SELECT COUNT(*) FROM worker_cert;"
+--------------
+SELECT COUNT(*) FROM worker_cert
+--------------
+
+ERROR 1146 (42S02) at line 1: Table 'xiaolingtong.worker_cert' doesn't exist
+root@VM-0-15-debian:~#  mysql -h localhost -u xlt -pXLT2026db xiaolingtong -e "SELECT * FROM worker_cert;"
+--------------
+SELECT * FROM worker_cert
+--------------
+
+ERROR 1146 (42S02) at line 1: Table 'xiaolingtong.worker_cert' doesn't exist
+root@VM-0-15-debian:~# mysql -h localhost -u xlt -pXLT2026db xiaolingtong -e "SELECT ja.workerId, wc.realName, u.nickname FROM
+  job_applications ja LEFT JOIN worker_cert wc ON ja.workerId = wc.userId LEFT JOIN users u ON ja.workerId = u.id LIMIT
+  10;"
+--------------
+SELECT ja.workerId, wc.realName, u.nickname FROM
+  job_applications ja LEFT JOIN worker_cert wc ON ja.workerId = wc.userId LEFT JOIN users u ON ja.workerId = u.id LIMIT
+  10
+--------------
+
+ERROR 1146 (42S02) at line 1: Table 'xiaolingtong.worker_cert' doesn't exist
+root@VM-0-15-debian:~#
+

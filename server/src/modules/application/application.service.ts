@@ -9,6 +9,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 import {
   getWorkerStatusDisplay,
   getEnterpriseStatusDisplay,
@@ -23,6 +24,7 @@ export class ApplicationService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
+    @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
   ) {}
 
   /**
@@ -291,5 +293,41 @@ export class ApplicationService {
       status: app.status,
       rejectedAt: app.rejectedAt,
     };
+  }
+
+  /**
+   * 获取临工的工作记录（接单记录）
+   */
+  async getWorkOrders(workerId: number) {
+    const workLogs = await this.workLogRepo.find({
+      where: { workerId },
+      relations: ['job', 'job.user'],
+      order: { date: 'DESC' },
+    });
+
+    return workLogs.map(log => ({
+      id: log.id,
+      jobId: log.jobId,
+      date: log.date,
+      hours: log.hours,
+      pieces: log.pieces,
+      photoUrls: log.photoUrls || [],
+      anomalyType: log.anomalyType,
+      anomalyNote: log.anomalyNote,
+      createdAt: log.createdAt,
+      job: log.job ? {
+        id: log.job.id,
+        title: log.job.title,
+        location: log.job.location,
+        salary: log.job.salary,
+        salaryUnit: log.job.salaryUnit,
+        salaryType: log.job.salaryType,
+      } : null,
+      company: log.job?.user ? {
+        id: log.job.user.id,
+        name: log.job.user.name || log.job.user.nickname || '企业用户',
+        avatarUrl: log.job.user.avatarUrl,
+      } : null,
+    }));
   }
 }

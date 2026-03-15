@@ -1,38 +1,65 @@
 <!--pages/work-record/work-record.wxml-->
-<view class="wr-page">
-  <nav-bar title="临工管理" />
-  <!-- 顶部提示 -->
-  <view class="wr-tip">
-    <text class="iconfont icon-anquan wr-tip-icon"></text>
-    <text class="wr-tip-text">您已被指定为临时管理员，请按时完成各项监管任务</text>
+<view class="work-record-page">
+  <nav-bar title="我的接单记录" />
+
+  <!-- 加载状态 -->
+  <view class="loading" wx:if="{{loading}}">
+    <text>加载中...</text>
   </view>
 
-  <!-- 订单列表 -->
-  <view class="wr-list">
-    <view class="order-card" wx:for="{{orders}}" wx:key="id"
-          data-id="{{item.id}}" data-stage="{{item.stage}}" data-mode="{{item.mode}}"
+  <!-- 工作记录列表 -->
+  <view class="record-list" wx:if="{{!loading && orders.length > 0}}">
+    <view class="record-item" wx:for="{{orders}}" wx:key="id"
+          data-id="{{item.id}}" data-job-id="{{item.jobId}}"
           bindtap="onOrderTap">
-      <view class="order-top">
-        <view class="text-avatar text-avatar-sm" style="background-color: {{item.avatarColor}};">{{item.avatarText}}</view>
-        <view class="order-info">
-          <text class="order-company">{{item.company}}</text>
-          <text class="order-meta">{{item.jobType}} · {{item.salary}}</text>
+
+      <!-- 公司信息 -->
+      <view class="record-header">
+        <view class="company-info">
+          <image class="company-avatar" src="{{item.companyAvatar}}" mode="aspectFill" />
+          <view class="company-detail">
+            <text class="company-name">{{item.companyName}}</text>
+            <text class="job-title">{{item.jobTitle}}</text>
+          </view>
         </view>
-        <view class="order-stage" style="color: {{item.stageColor}}; background-color: {{item.stageBg}};">
-          {{item.stageText}}
+        <view class="record-date">{{item.date}}</view>
+      </view>
+
+      <!-- 工作详情 -->
+      <view class="record-body">
+        <view class="detail-row">
+          <text class="detail-label">地点：</text>
+          <text class="detail-value">{{item.location}}</text>
+        </view>
+        <view class="detail-row">
+          <text class="detail-label">工时：</text>
+          <text class="detail-value">
+            {{item.salaryType === 'hourly' ? item.hours + '小时' : item.pieces + '件'}}
+          </text>
+        </view>
+        <view class="detail-row">
+          <text class="detail-label">工价：</text>
+          <text class="detail-value">{{item.salary}}{{item.salaryUnit}}</text>
+        </view>
+        <view class="detail-row" wx:if="{{item.anomalyType !== 'normal'}}">
+          <text class="detail-label">异常：</text>
+          <text class="detail-value anomaly" style="color: #ef4444;">{{item.anomalyText}}</text>
         </view>
       </view>
-      <view class="order-bottom">
-        <text class="order-detail"><text class="iconfont icon-riqixuanze"></text> {{item.dateRange}}</text>
-        <text class="order-detail"><text class="iconfont icon-worker"></text> {{item.workerCount}}人</text>
-        <text class="order-detail">{{item.mode === 'hourly' ? '计时' : '计件'}}</text>
+
+      <!-- 照片 -->
+      <view class="record-photos" wx:if="{{item.photoUrls.length > 0}}">
+        <image class="photo-item" wx:for="{{item.photoUrls}}" wx:key="*this"
+               src="{{item}}" mode="aspectFill" />
+      </view>
+
+      <!-- 操作按钮 -->
+      <view class="record-footer">
+        <view class="btn-detail">查看详情</view>
       </view>
     </view>
   </view>
 
   <!-- 空状态 -->
-  <view class="wr-empty" wx:if="{{orders.length === 0}}">
-    <text class="iconfont icon-kongkong wr-empty-icon"></text>
-    <text class="wr-empty-text">暂无管理任务</text>
-  </view>
+  <empty-state wx:if="{{!loading && empty}}" text="暂无接单记录" subText="完成工作后会显示在这里" />
 </view>
