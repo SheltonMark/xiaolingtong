@@ -40,7 +40,8 @@
     "pages/agreement/agreement",
     "pages/privacy/privacy",
     "pages/my-invites/my-invites",
-    "pages/webview/webview"
+    "pages/webview/webview",
+    "pages/navigation/navigation"
   ],
   "window": {
     "navigationBarBackgroundColor": "#ffffff",

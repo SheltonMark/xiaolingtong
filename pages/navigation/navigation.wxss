@@ -1,0 +1,90 @@
+.nav-page {
+  background: #F8FAFC;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 地图 - 占满剩余空间 */
+.map-view {
+  width: 100%;
+  flex: 1;
+}
+.map-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #F1F5F9;
+}
+
+/* 底部面板 */
+.bottom-sheet {
+  background: #fff;
+  border-radius: 28rpx 28rpx 0 0;
+  padding: 16rpx 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+  box-shadow: 0 -4rpx 24rpx rgba(0,0,0,0.08);
+  position: relative;
+  z-index: 10;
+}
+.sheet-handle {
+  width: 64rpx; height: 6rpx;
+  background: #E2E8F0; border-radius: 3rpx;
+  margin: 0 auto 20rpx;
+}
+
+/* 路线信息 */
+.route-info {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20rpx;
+}
+.route-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+}
+.route-dot {
+  width: 20rpx; height: 20rpx;
+  border-radius: 50%;
+  margin-top: 8rpx;
+  flex-shrink: 0;
+}
+.dot-green { background: #10B981; box-shadow: 0 0 0 4rpx rgba(16,185,129,0.2); }
+.dot-orange { background: #F97316; box-shadow: 0 0 0 4rpx rgba(249,115,22,0.2); }
+.route-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rpx;
+}
+.route-label { font-size: 24rpx; color: #64748B; }
+.route-name { font-size: 28rpx; color: #1E293B; font-weight: 600; }
+.route-sub { font-size: 22rpx; color: #94A3B8; line-height: 1.4; }
+.route-line {
+  width: 4rpx; height: 32rpx;
+  background: linear-gradient(180deg, #10B981, #F97316);
+  margin: 8rpx 0 8rpx 8rpx;
+  border-radius: 2rpx;
+}
+
+/* 导航按钮 */
+.nav-btn {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(59,130,246,0.3);
+}
+.nav-btn::after { border: none; }
+.nav-btn .iconfont { font-size: 32rpx; }

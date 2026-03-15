@@ -7,7 +7,7 @@ const qqmapsdk = new QQMapWX({
 
 const geocodeCache = Object.create(null)
 const DISTANCE_DEBUG = false
-const FORCE_FIXED_LOCATION = true
+const FORCE_FIXED_LOCATION = false
 const FIXED_USER_LOCATION = { latitude: 30.179079, longitude: 120.154664 }
 const ZERO_POINT_EPSILON = 1e-7
 const ENABLE_DEV_DISTANCE_FALLBACK = true

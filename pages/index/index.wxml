@@ -208,13 +208,19 @@
               <text class="job-salary-unit">{{item.salaryUnit}}</text>
             </view>
           </view>
-          <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
+          <view class="job-title-row">
+            <text class="job-title-text">{{item.title}} · 需{{item.need}}人</text>
+            <text wx:if="{{item.urgent}}" class="urgent-tag">急招</text>
+          </view>
           <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
             <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:for-index="tagIndex" wx:key="tagIndex" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
           </view>
           <text class="job-desc">{{item.desc}}</text>
           <view class="job-progress">
-            <text class="progress-text-simple">已报名 {{item.applied}}/{{item.need}}人</text>
+            <view class="progress-text-row">
+              <text class="progress-text-simple">已报名 <text class="progress-count">{{item.applied}}</text>/{{item.need}}人</text>
+              <text class="progress-remain" wx:if="{{item.need - item.applied > 0}}">剩余<text class="progress-remain-num">{{item.need - item.applied}}</text>个名额</text>
+            </view>
             <view class="progress-bar">
               <view class="progress-fill" style="width: {{item.applied / item.need * 100}}%;"></view>
             </view>
@@ -284,8 +290,11 @@
           <text class="job-salary-unit">{{item.salaryUnit}}</text>
         </view>
       </view>
-      <!-- 标题 -->
-      <text class="job-title-line">{{item.title}} · 需{{item.need}}人<text wx:if="{{item.urgent}}" class="urgent-tag">急招</text></text>
+      <!-- 标题 + 急招 -->
+      <view class="job-title-row">
+        <text class="job-title-text">{{item.title}} · 需{{item.need}}人</text>
+        <text wx:if="{{item.urgent}}" class="urgent-tag">急招</text>
+      </view>
       <!-- 福利标签 + 工作时间 -->
       <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
         <text class="job-tag" wx:for="{{item.allTags}}" wx:for-item="tag" wx:for-index="tagIndex" wx:key="tagIndex" style="background:{{tag.bg}};color:{{tag.color}};">{{tag.label}}</text>
@@ -294,7 +303,10 @@
       <text class="job-desc">{{item.desc}}</text>
       <!-- 报名进度 -->
       <view class="job-progress">
-        <text class="progress-text-simple">已报名 {{item.applied}}/{{item.need}}人</text>
+        <view class="progress-text-row">
+          <text class="progress-text-simple">已报名 <text class="progress-count">{{item.applied}}</text>/{{item.need}}人</text>
+          <text class="progress-remain" wx:if="{{item.need - item.applied > 0}}">剩余<text class="progress-remain-num">{{item.need - item.applied}}</text>个名额</text>
+        </view>
         <view class="progress-bar">
           <view class="progress-fill" style="width: {{item.applied / item.need * 100}}%;"></view>
         </view>
