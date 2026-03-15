@@ -3,35 +3,19 @@
 ## 文件组织规则
 
 ### Markdown 文档
-所有生成的 `.md` 文件统一放到 `Docs/zheng` 目录下，包括：
-- 诊断文档
-- 分析报告
-- 实现方案
-- 部署指南
-- 其他技术文档
 
-**示例：**
-```
-Docs/zheng/DIAGNOSTIC_ANALYSIS.md
-Docs/zheng/IMPLEMENTATION_PLAN.md
-Docs/zheng/DEPLOY_GUIDE.md
-```
+**核心设计文档（保留并提交）：**
+- `CLAUDE.md` - 项目工作规则
+- `Docs/` 目录下所有文档（产品需求、架构设计、API 规范等）
+- `server/README.md` - 服务器文档
 
-### 提交规则
-- **核心设计文档**才提交（如架构设计、API 规范等）
-- **非核心文档**不提交（如诊断报告、临时分析、部署指南等）
-- 非核心文档自动被 `.gitignore` 忽略
+**非核心文档（不提交）：**
+- 诊断分析文档：`DIAGNOSTIC_*.md`, `DIAGNOSIS_*.md`, `ANALYSIS_*.md`
+- 实现方案文档：`PLAN_*.md`, `PHASE*.md`, `*_IMPLEMENTATION.md`
+- 部署/修复指南：`DEPLOY_*.md`, `*_FIX_*.md`, `*_GUIDE.md`
+- 临时文档：`DEBUG_*.md`, `TEMP_*.md`, `findings.md`, `progress.md`, `task_plan.md`
 
-**核心设计文档示例：**
-- `ARCHITECTURE.md` - 系统架构设计
-- `API_SPEC.md` - API 规范
-- `DATABASE_SCHEMA.md` - 数据库设计
-
-**非核心文档示例（不提交）：**
-- `DIAGNOSTIC_*.md` - 诊断分析
-- `DEPLOY_*.md` - 部署指南
-- `ANALYSIS_*.md` - 临时分析
-- `PLAN_*.md` - 实现方案
+所有非核心文档放到 `Docs/zheng` 目录，自动被 `.gitignore` 忽略
 
 ## 代码提交规则
 
