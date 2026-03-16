@@ -1,6 +1,5 @@
 <!--pages/login/login.wxml-->
 <view class="login-page">
-  <!-- Logo 区域 -->
   <view class="logo-area">
     <view class="logo-box">
       <text class="logo-icon iconfont icon-tongzhi"></text>
@@ -10,16 +9,9 @@
     <text class="app-desc">打破供需信息壁垒，精准匹配工厂与贸易商</text>
   </view>
 
-  <!-- 底部登录区域 -->
   <view class="login-bottom">
     <button class="wx-login-btn" bindtap="onWxLogin">
       <text>微信一键登录</text>
     </button>
-    <view class="terms">
-      <text class="terms-text">登录即表示同意</text>
-      <text class="terms-link" bindtap="onViewAgreement">《用户协议》</text>
-      <text class="terms-text">和</text>
-      <text class="terms-link" bindtap="onViewPrivacy">《隐私政策》</text>
-    </view>
   </view>
 </view>

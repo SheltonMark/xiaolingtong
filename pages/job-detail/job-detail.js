@@ -1,6 +1,7 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageList } = require('../../utils/image')
 const { calculateDistanceForList, getUserLocation } = require('../../utils/distance')
+const auth = require('../../utils/auth')
 
 Page({
   data: {
@@ -70,6 +71,7 @@ Page({
   },
 
   onApply() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     wx.showModal({
       title: '确认报名',
       content: '报名后等待平台分配，开工前一天需确认出勤',
@@ -105,6 +107,7 @@ Page({
     wx.makePhoneCall({ phoneNumber, fail() {} })
   },
   onToggleFav() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const id = this.data.job.id
     post('/favorites/toggle', { targetType: 'job', targetId: id }).then(() => {
       this.setData({ isFav: !this.data.isFav })

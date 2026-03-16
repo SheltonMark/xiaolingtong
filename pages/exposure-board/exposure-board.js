@@ -1,5 +1,6 @@
 const { get } = require('../../utils/request')
 const { normalizeImageList } = require('../../utils/image')
+const auth = require('../../utils/auth')
 
 Page({
   data: {
@@ -38,6 +39,7 @@ Page({
     wx.navigateTo({ url: '/pages/exposure-detail/exposure-detail?id=' + e.currentTarget.dataset.id })
   },
   onPublishExposure() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     wx.navigateTo({ url: '/pages/exposure/exposure' })
   },
   onPreviewImage(e) {

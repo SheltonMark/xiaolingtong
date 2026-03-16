@@ -1,7 +1,7 @@
 <!--pages/membership/membership.wxml-->
 <view class="mb-page">
   <nav-bar title="会员中心" />
-  <!-- 会员卡片 -->
+
   <view class="mb-card">
     <view class="mb-card-bg1"></view>
     <view class="mb-card-bg2"></view>
@@ -13,12 +13,11 @@
       </view>
     </view>
     <view class="mb-vip-row">
-      <text class="mb-star">⭐</text>
-      <text class="mb-vip-text">{{isMember ? '小灵通VIP会员' : '未开通会员'}}</text>
+      <text class="mb-star">★</text>
+      <text class="mb-vip-text">{{isMember ? '小灵通 VIP 会员' : '未开通会员'}}</text>
     </view>
   </view>
 
-  <!-- 会员权益 -->
   <view class="mb-section">
     <text class="section-title">会员专属权益</text>
     <view class="benefit-grid">
@@ -27,66 +26,81 @@
           <text class="iconfont icon-chakan"></text>
         </view>
         <text class="benefit-name">每日免费查看</text>
-        <text class="benefit-desc">每天{{dailyFreeViews}}次免费解锁</text>
+        <text class="benefit-desc">每天 {{dailyFreeViews}} 次免费解锁</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-rose">
           <text class="iconfont icon-douzi"></text>
         </view>
-        <text class="benefit-name">查看5折</text>
+        <text class="benefit-name">查看 5 折</text>
         <text class="benefit-desc">超出后灵豆半价</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-blue">
           <text class="iconfont icon-xingxing"></text>
         </view>
-        <text class="benefit-name">置顶8折</text>
+        <text class="benefit-name">置顶 8 折</text>
         <text class="benefit-desc">推广费用享折扣</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-green">
           <text class="iconfont icon-anquan"></text>
         </view>
-        <text class="benefit-name">VIP标识</text>
+        <text class="benefit-name">VIP 标识</text>
         <text class="benefit-desc">专属认证图标</text>
       </view>
       <view class="benefit-item">
         <view class="benefit-icon benefit-icon-sky">
           <text class="iconfont icon-gonggao"></text>
         </view>
-        <text class="benefit-name">广告9折</text>
+        <text class="benefit-name">广告 9 折</text>
         <text class="benefit-desc">投放费用享折扣</text>
       </view>
     </view>
   </view>
 
-  <!-- 套餐选择 -->
   <view class="mb-section">
     <text class="section-title">选择套餐</text>
     <view class="plan-list">
-      <view class="plan-card {{selectedIndex === index ? 'plan-selected' : ''}}"
-            wx:for="{{plans}}" wx:key="id"
-            data-index="{{index}}" bindtap="onSelect">
-        <text class="plan-tag" wx:if="{{item.tag}}" style="background-color:{{item.tagColor || '#F97316'}};">{{item.tag}}</text>
+      <view
+        class="plan-card {{selectedIndex === index ? 'plan-selected' : ''}}"
+        wx:for="{{plans}}"
+        wx:key="id"
+        data-index="{{index}}"
+        bindtap="onSelect"
+      >
+        <text
+          class="plan-tag"
+          wx:if="{{item.tag}}"
+          style="background-color:{{item.tagColor || '#F97316'}};"
+        >{{item.tag}}</text>
         <view class="plan-left">
           <text class="plan-name">{{item.name}}</text>
           <text class="plan-desc">{{item.desc}}</text>
         </view>
         <view class="plan-right">
-          <text class="plan-price">¥{{item.price}}</text>
-          <text class="plan-original" wx:if="{{item.original}}">¥{{item.original}}</text>
+          <text class="plan-price">￥{{item.price}}</text>
+          <text class="plan-original" wx:if="{{item.original}}">￥{{item.original}}</text>
         </view>
       </view>
     </view>
   </view>
 
-  <!-- 开通按钮 -->
   <view class="mb-bottom-area">
-    <button class="mb-pay-btn" bindtap="onPay">立即开通 · ¥{{plans[selectedIndex].price}}/{{plans[selectedIndex].unit}}</button>
+    <view class="mb-agreement-row" bindtap="onToggleAgreement">
+      <view class="mb-checkbox {{agreedMember ? 'mb-checkbox-checked' : ''}}">
+        <text wx:if="{{agreedMember}}" class="mb-checkbox-mark">✓</text>
+      </view>
+      <text class="mb-hint">我已阅读并同意</text>
+      <text class="mb-hint-link" catchtap="onViewMembershipAgreement">《会员服务协议》</text>
+    </view>
+    <button
+      class="mb-pay-btn {{!agreedMember ? 'mb-pay-btn-disabled' : ''}}"
+      bindtap="onPay"
+      disabled="{{!agreedMember}}"
+    >立即开通 · ￥{{plans[selectedIndex] ? plans[selectedIndex].price : '--'}}/{{plans[selectedIndex] ? plans[selectedIndex].unit : '--'}}</button>
     <view class="mb-hint-row">
-      <text class="mb-hint">开通即同意</text>
-      <text class="mb-hint-link" bindtap="onViewMembershipAgreement">《会员服务协议》</text>
-      <text class="mb-hint">，到期自动停止</text>
+      <text class="mb-hint">开通后按套餐周期生效，到期自动停止</text>
     </view>
   </view>
 </view>

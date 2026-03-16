@@ -6,6 +6,7 @@
   box-sizing: border-box;
   padding-top: 0;
 }
+
 .logo-area {
   flex: 1;
   display: flex;
@@ -14,6 +15,7 @@
   justify-content: center;
   padding-top: 0;
 }
+
 .logo-box {
   width: 160rpx;
   height: 160rpx;
@@ -24,28 +26,34 @@
   justify-content: center;
   margin-bottom: 32rpx;
 }
+
 .logo-icon {
   font-size: 80rpx;
 }
+
 .app-name {
   font-size: 44rpx;
   font-weight: 700;
   color: #1E293B;
   margin-bottom: 12rpx;
 }
+
 .app-slogan {
   font-size: 24rpx;
   color: #64748B;
   margin-bottom: 8rpx;
 }
+
 .app-desc {
   font-size: 20rpx;
   color: #94A3B8;
 }
+
 .login-bottom {
   padding: 0 48rpx 140rpx;
   padding-bottom: calc(140rpx + env(safe-area-inset-bottom));
 }
+
 .wx-login-btn {
   display: flex;
   align-items: center;
@@ -59,24 +67,13 @@
   font-weight: 600;
   border-radius: 24rpx;
   border: none;
-  box-shadow: 0 8rpx 24rpx rgba(34,197,94,0.3);
+  box-shadow: 0 8rpx 24rpx rgba(34, 197, 94, 0.3);
 }
-.wx-login-btn::after { border: none; }
+
+.wx-login-btn::after {
+  border: none;
+}
+
 .wx-icon {
   font-size: 36rpx;
-}
-.terms {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 24rpx;
-  flex-wrap: wrap;
-}
-.terms-text {
-  font-size: 20rpx;
-  color: #94A3B8;
-}
-.terms-link {
-  font-size: 20rpx;
-  color: #3B82F6;
 }

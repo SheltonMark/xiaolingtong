@@ -10,8 +10,8 @@ function setToken(token) {
 
 function clearToken() {
   wx.removeStorageSync('token')
-  wx.removeStorageSync('userRole')
   wx.removeStorageSync('avatarUrl')
+  // 不清除 userRole 和 policyHandled，游客选择过的浏览状态要保留
 }
 
 function isLoggedIn() {
@@ -23,8 +23,8 @@ function goLogin() {
   clearToken()
   const app = getApp()
   app.globalData.isLoggedIn = false
-  app.globalData.userRole = ''
-  wx.reLaunch({ url: '/pages/login/login' })
+  // 保留 userRole，登录后可以直接回首页
+  wx.navigateTo({ url: '/pages/login/login' })
 }
 
 module.exports = {

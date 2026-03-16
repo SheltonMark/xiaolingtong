@@ -13,6 +13,7 @@ Page({
     nickname: '',
     isMember: false,
     dailyFreeViews: 5,
+    agreedMember: false,
     selectedIndex: 0,
     plansLoaded: false,
     plans: []
@@ -100,7 +101,15 @@ Page({
     this.setData({ selectedIndex: Number(e.currentTarget.dataset.index) })
   },
 
+  onToggleAgreement() {
+    this.setData({ agreedMember: !this.data.agreedMember })
+  },
+
   onPay() {
+    if (!this.data.agreedMember) {
+      wx.showToast({ title: '请先勾选会员服务协议', icon: 'none' })
+      return
+    }
     const plan = this.data.plans[this.data.selectedIndex]
     if (!this.data.plansLoaded || !plan || !plan.key) {
       wx.showToast({ title: '套餐加载失败，请稍后重试', icon: 'none' })

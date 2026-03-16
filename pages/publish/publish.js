@@ -1,4 +1,5 @@
 const { post, upload } = require('../../utils/request')
+const auth = require('../../utils/auth')
 const DEFAULT_FORM = {
   productName: '',
   category: '',
@@ -35,6 +36,7 @@ Page({
   },
 
   onLoad() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     this.initContactInfo()
   },
 
@@ -133,6 +135,7 @@ Page({
   },
 
   onSubmit() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const { form, phoneChecked, wechatChecked, images, typeIndex, contactInfo } = this.data
     const types = ['purchase', 'stock', 'process']
     const contactName = (contactInfo.name || '').trim()
