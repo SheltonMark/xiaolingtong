@@ -1,7 +1,7 @@
 <!--pages/income/income.wxml-->
 <view class="inc-page">
-  <nav-bar title="收入明细" />
-  <!-- 月度统计 -->
+  <nav-bar title="{{detailTitle}}" />
+
   <view class="inc-month-card">
     <view class="month-nav">
       <text class="month-arrow" bindtap="onPrevMonth">‹</text>
@@ -11,7 +11,7 @@
     <view class="month-stats">
       <view class="month-stat">
         <text class="month-val text-fresh">¥{{monthIncome}}</text>
-        <text class="month-label">本月收入</text>
+        <text class="month-label">{{monthIncomeLabel}}</text>
       </view>
       <view class="month-stat">
         <text class="month-val text-rose">¥{{monthWithdraw}}</text>
@@ -19,31 +19,33 @@
       </view>
       <view class="month-stat">
         <text class="month-val text-primary">{{monthOrders}}</text>
-        <text class="month-label">完成订单</text>
+        <text class="month-label">{{monthCountLabel}}</text>
       </view>
     </view>
   </view>
 
-  <!-- Tab -->
   <view class="inc-tab-wrap">
     <view class="inc-tabs">
-      <view class="inc-tab {{currentTab === index ? 'inc-tab-active' : ''}}"
-            wx:for="{{tabs}}" wx:key="index"
-            data-index="{{index}}" bindtap="onTabChange">
-        <text>{{item}}</text>
+      <view
+        class="inc-tab {{currentTab === item.key ? 'inc-tab-active' : ''}}"
+        wx:for="{{tabs}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="onTabChange"
+      >
+        <text>{{item.label}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 明细列表 -->
-  <view class="inc-list-wrap">
+  <view class="inc-list-wrap" wx:if="{{groups.length > 0}}">
     <block wx:for="{{groups}}" wx:key="date">
       <view class="inc-date-header">
         <text class="inc-date">{{item.date}}</text>
       </view>
       <view class="inc-item" wx:for="{{item.items}}" wx:for-item="rec" wx:key="id">
         <view class="inc-icon-wrap {{rec.type === 'income' ? 'inc-icon-green' : 'inc-icon-rose'}}">
-          <text class="inc-icon">{{rec.type === 'income' ? '+' : '↓'}}</text>
+          <text class="inc-icon">{{rec.iconText}}</text>
         </view>
         <view class="inc-info">
           <text class="inc-name">{{rec.title}}</text>
@@ -53,5 +55,9 @@
         <text class="inc-amount {{rec.type === 'income' ? 'text-fresh' : 'text-rose'}}">{{rec.amount}}</text>
       </view>
     </block>
+  </view>
+
+  <view class="inc-empty" wx:else>
+    <empty-state text="暂无钱包记录" subText="当前月份还没有相关收支" />
   </view>
 </view>

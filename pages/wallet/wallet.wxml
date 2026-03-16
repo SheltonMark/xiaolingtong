@@ -10,7 +10,7 @@
       <text class="wl-yen">¥</text>
       <text class="wl-amount">{{balance}}</text>
     </view>
-    <text class="wl-total">累计收入 ¥{{totalIncome}}</text>
+    <text class="wl-total">{{totalIncomeLabel}} ¥{{totalIncome}}</text>
     <view class="wl-btn-row">
       <button class="wl-btn wl-btn-primary" bindtap="onWithdraw">立即提现</button>
       <button class="wl-btn wl-btn-outline" bindtap="onWithdrawHistory">提现记录</button>
@@ -19,13 +19,13 @@
 
   <view class="wl-section">
     <view class="section-header">
-      <text class="section-title">最近收入</text>
+      <text class="section-title">{{recordsSectionTitle}}</text>
       <text class="section-action" bindtap="onGoIncome">查看全部</text>
     </view>
     <view class="income-list">
       <view class="income-item" wx:for="{{records}}" wx:key="id">
         <view class="income-icon-wrap {{item.type === 'income' ? 'income-icon-green' : 'income-icon-rose'}}">
-          <text class="income-icon">{{item.type === 'income' ? '+' : '-'}}</text>
+          <text class="income-icon">{{item.iconText}}</text>
         </view>
         <view class="income-info">
           <text class="income-name">{{item.title}}</text>
@@ -34,7 +34,7 @@
         <text class="income-amount {{item.type === 'income' ? 'text-fresh' : 'text-rose'}}">{{item.amount}}</text>
       </view>
     </view>
-    <empty-state wx:if="{{records.length === 0}}" text="暂无收入记录" />
+    <empty-state wx:if="{{records.length === 0}}" text="暂无钱包记录" />
   </view>
 
   <view class="wl-tip">

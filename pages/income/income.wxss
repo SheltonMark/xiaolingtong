@@ -38,6 +38,12 @@
   margin: 0 32rpx; background-color: #fff;
   border-radius: 0 0 24rpx 24rpx; overflow: hidden;
 }
+.inc-empty {
+  margin: 0 32rpx;
+  background-color: #fff;
+  border-radius: 0 0 24rpx 24rpx;
+  padding: 48rpx 24rpx;
+}
 .inc-date-header { padding: 20rpx 24rpx 8rpx; }
 .inc-date { font-size: 20rpx; color: #94A3B8; font-weight: 500; }
 .inc-item {
