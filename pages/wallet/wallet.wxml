@@ -38,6 +38,31 @@
   </view>
 
   <view class="wl-tip">
-    <text class="wl-tip-text">提现到微信零钱 · 免手续费 · 预计24小时内到账</text>
+    <text class="wl-tip-text">提现到微信零钱 · 免手续费 · 一般次日到账，具体以实际到账时间为准</text>
+  </view>
+
+  <view wx:if="{{showWithdrawModal}}" class="wl-modal-mask" catchtap="onCloseWithdrawModal">
+    <view class="wl-modal" catchtap="onModalTap">
+      <text class="wl-modal-title">申请提现</text>
+      <text class="wl-modal-balance">可提现余额 ¥{{balance}}</text>
+      <view class="wl-input-wrap">
+        <text class="wl-input-prefix">¥</text>
+        <input
+          class="wl-input"
+          type="digit"
+          maxlength="10"
+          placeholder="请输入提现金额"
+          value="{{withdrawAmount}}"
+          bindinput="onWithdrawAmountInput"
+        />
+      </view>
+      <text class="wl-modal-tip">单次最多提现 200 元，可多次提现</text>
+      <text class="wl-modal-tip">本次最多可提现 ¥{{withdrawLimit}}</text>
+      <text class="wl-modal-tip wl-modal-tip-muted">一般次日到账，具体以实际到账时间为准</text>
+      <view class="wl-modal-actions">
+        <button class="wl-modal-btn wl-modal-btn-secondary" bindtap="onCloseWithdrawModal" disabled="{{withdrawSubmitting}}">取消</button>
+        <button class="wl-modal-btn wl-modal-btn-primary" bindtap="onConfirmWithdraw" loading="{{withdrawSubmitting}}">确认提现</button>
+      </view>
+    </view>
   </view>
 </view>
