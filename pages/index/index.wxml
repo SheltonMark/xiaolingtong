@@ -9,7 +9,7 @@
     <!-- 搜索行 -->
     <view class="top-bar-inner">
       <picker mode="selector" range="{{cityNames}}" value="{{cityIndex}}" bindchange="onCityChange">
-        <view class="city-selector" bindlongpress="onSwitchRole">
+        <view class="city-selector">
           <text class="city-icon iconfont icon-address {{userRole === 'enterprise' ? 'text-cta' : 'text-primary'}}"></text>
           <text class="city-name">{{currentCity}}</text>
         </view>
