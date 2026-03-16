@@ -342,18 +342,21 @@
 }
 
 /* 标题行 */
-.job-title-line {
+.job-title-row {
+  display: flex; align-items: center; gap: 10rpx;
+  margin-bottom: 16rpx;
+}
+.job-title-text {
   font-size: 28rpx; font-weight: 600; color: #1E293B;
-  margin-bottom: 8rpx; display: block;
 }
 .urgent-tag {
-  font-size: 18rpx; color: #F43F5E; background: #FFF1F2;
-  padding: 2rpx 10rpx; border-radius: 6rpx; margin-left: 8rpx;
-  font-weight: 500;
+  font-size: 22rpx; color: #F43F5E; background: #FFF1F2;
+  padding: 4rpx 12rpx; border-radius: 6rpx;
+  font-weight: 600; flex-shrink: 0;
 }
 
 /* 福利标签 */
-.job-tags { display: flex; flex-wrap: wrap; gap: 10rpx; margin-bottom: 12rpx; }
+.job-tags { display: flex; flex-wrap: wrap; gap: 10rpx; margin-bottom: 16rpx; }
 .job-tag {
   font-size: 20rpx; padding: 4rpx 14rpx; border-radius: 8rpx;
   white-space: nowrap;
@@ -371,7 +374,7 @@
   font-size: 24rpx;
   color: #64748B;
   line-height: 1.6;
-  margin-bottom: 16rpx;
+  margin-bottom: 20rpx;
   display: block;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -380,7 +383,7 @@
 }
 
 /* 报名进度条 */
-.job-progress { margin-bottom: 16rpx; }
+.job-progress { margin-bottom: 20rpx; }
 .progress-header {
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 8rpx;
@@ -389,9 +392,14 @@
 .progress-text-simple {
   font-size: 20rpx;
   color: #94A3B8;
-  display: block;
+}
+.progress-count { color: #F97316; font-weight: 700; }
+.progress-text-row {
+  display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 8rpx;
 }
+.progress-remain { font-size: 20rpx; color: #94A3B8; }
+.progress-remain-num { color: #F97316; font-weight: 700; }
 .progress-bold { color: #1E293B; font-weight: 600; }
 .progress-bar {
   height: 6rpx; background: #F1F5F9; border-radius: 6rpx; overflow: hidden;

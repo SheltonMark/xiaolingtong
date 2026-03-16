@@ -21,17 +21,27 @@ page {
 .salary-big { font-size: 48rpx; font-weight: 700; }
 .salary-unit { font-size: 24rpx; font-weight: 500; }
 .urgent-badge {
-  font-size: 20rpx; color: #F43F5E; background-color: #FFF1F2;
-  padding: 4rpx 12rpx; border-radius: 8rpx; margin-left: 16rpx;
-  font-weight: 500;
+  font-size: 24rpx; color: #F43F5E; background-color: #FFF1F2;
+  padding: 6rpx 16rpx; border-radius: 8rpx; margin-left: 16rpx;
+  font-weight: 600;
 }
 .jd-title {
   font-size: 30rpx; font-weight: 600; color: #1E293B;
   display: block; margin-bottom: 12rpx; line-height: 1.5;
 }
 .location-row { display: flex; align-items: center; gap: 8rpx; }
-.loc-icon { font-size: 24rpx; }
-.loc-text { font-size: 24rpx; color: #64748B; }
+.loc-icon { font-size: 24rpx; color: #3B82F6; }
+.loc-text { font-size: 24rpx; color: #64748B; flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.nav-icon {
+  font-size: 36rpx; color: #3B82F6;
+  flex-shrink: 0; padding: 8rpx;
+}
+.distance-pill {
+  display: inline-flex; align-items: center;
+  background: #EFF6FF; border-radius: 20rpx;
+  padding: 6rpx 16rpx; margin-top: 12rpx;
+}
+.distance-val { font-size: 22rpx; color: #3B82F6; font-weight: 500; }
 
 .detail-card {
   background-color: #fff; margin-top: 8rpx; padding: 24rpx 32rpx;
@@ -54,13 +64,17 @@ page {
 .dv { font-size: 24rpx; color: #1E293B; flex: 1; line-height: 1.6; }
 
 /* 福利标签 */
-.tags-wrap { display: flex; flex-wrap: wrap; gap: 16rpx; }
+.tags-wrap { display: flex; flex-wrap: wrap; gap: 12rpx; align-items: center; }
 .benefit-tag {
-  font-size: 20rpx; padding: 8rpx 20rpx; border-radius: 12rpx;
+  font-size: 22rpx; padding: 6rpx 18rpx; border-radius: 8rpx;
 }
 .benefit-green { background-color: #ECFDF5; color: #10B981; }
 .benefit-blue { background-color: #EFF6FF; color: #3B82F6; }
 .benefit-amber { background-color: #FFFBEB; color: #F59E0B; }
+.benefit-time { background-color: #FFF7ED; color: #F97316; font-weight: 500; }
+
+/* 报名剩余 */
+.remain-text { color: #F97316; font-size: 22rpx; }
 
 /* 企业信息 */
 .company-row { display: flex; align-items: center; gap: 24rpx; }

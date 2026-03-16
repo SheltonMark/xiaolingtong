@@ -87,6 +87,15 @@ Page({
     wx.navigateTo({ url: '/pages/settlement/settlement?jobId=' + this.data.job.id })
   },
 
+  onNavigate() {
+    const { job } = this.data
+    const lat = job.lat || 30.1925
+    const lng = job.lng || 120.2103
+    wx.navigateTo({
+      url: `/pages/navigation/navigation?lat=${lat}&lng=${lng}&name=${encodeURIComponent(job.title || '工作地点')}&address=${encodeURIComponent(job.location || '')}`
+    })
+  },
+
   onCallPhone() {
     const phoneNumber = this.data.job?.company?.phone || ''
     if (!phoneNumber) {
