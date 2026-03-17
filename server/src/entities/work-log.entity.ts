@@ -28,7 +28,7 @@ export class WorkLog {
   @Column({ type: 'enum', enum: ['normal', 'early_leave', 'late', 'injury', 'absent', 'fraud'], default: 'normal' })
   anomalyType: string;
 
-  @Column({ length: 256, nullable: true })
+  @Column({ type: 'varchar', length: 256, nullable: true })
   anomalyNote: string | null;
 
   @Column({ type: 'varchar', length: 10, nullable: true })

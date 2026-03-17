@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build && npm run copy-public",
-    "copy-public": "powershell -NoProfile -Command \"if (Test-Path 'public') { New-Item -ItemType Directory -Force -Path 'dist' | Out-Null; Copy-Item 'public' 'dist/public' -Recurse -Force }\"",
+    "copy-public": "node -e \"const fs=require('fs'); if(fs.existsSync('public')){fs.mkdirSync('dist',{recursive:true}); fs.cpSync('public','dist/public',{recursive:true,force:true});}\"",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

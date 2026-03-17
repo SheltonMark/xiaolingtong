@@ -7,9 +7,10 @@ import { WorkLog } from '../../entities/work-log.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Checkin, WorkLog, JobApplication, Job, User])],
+  imports: [TypeOrmModule.forFeature([Checkin, WorkLog, JobApplication, Job, User, EnterpriseCert])],
   controllers: [WorkController],
   providers: [WorkService],
 })
