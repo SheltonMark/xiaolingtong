@@ -64,6 +64,7 @@
       </view>
       <!-- 操作按钮 -->
       <view class="post-actions">
+        <button class="act-btn act-gold" wx:if="{{item.typeKey === 'job'}}" data-id="{{item.id}}" bindtap="onManageJob">管理招工</button>
         <button class="act-btn act-blue" data-id="{{item.id}}" data-type="{{item.typeKey}}" bindtap="onViewPost">查看详情</button>
         <button class="act-btn act-orange" wx:if="{{item.canSettle}}" data-id="{{item.jobId}}" bindtap="onGoSettlement">去结算</button>
         <button class="act-btn act-orange" wx:elif="{{item.canPromote && item.typeKey === 'job'}}" data-id="{{item.id}}" bindtap="onSetUrgent">设置急招</button>

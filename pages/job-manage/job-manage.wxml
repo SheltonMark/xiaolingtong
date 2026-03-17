@@ -1,0 +1,78 @@
+<view class="jm-page">
+  <nav-bar title="招工管理" />
+
+  <view class="jm-hero">
+    <view>
+      <text class="jm-title">招工管理</text>
+      <text class="jm-subtitle">统一处理报名、出勤与结算流程</text>
+    </view>
+    <view class="jm-hero-badge">企业端</view>
+  </view>
+
+  <scroll-view class="jm-tabs" scroll-x enable-flex show-scrollbar="{{false}}">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="jm-tab {{stage === item.key ? 'jm-tab-active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >
+      {{item.label}}
+    </view>
+  </scroll-view>
+
+  <view class="jm-list" wx:if="{{jobs.length > 0}}">
+    <view class="jm-card" wx:for="{{jobs}}" wx:key="id">
+      <view class="jm-card-top">
+        <view>
+          <text class="jm-job-title">{{item.title}}</text>
+          <text class="jm-job-meta">{{item.location}} · {{item.dateRange}}</text>
+        </view>
+        <view class="jm-stage jm-stage-{{item.stageTone}}">{{item.stageText}}</view>
+      </view>
+
+      <view class="jm-highlight">
+        <text class="jm-highlight-label">当前重点</text>
+        <text class="jm-highlight-value">{{item.highlight}}</text>
+      </view>
+
+      <view class="jm-stats">
+        <view class="jm-stat">
+          <text class="jm-stat-value">{{item.appliedCount}}</text>
+          <text class="jm-stat-label">已报名</text>
+        </view>
+        <view class="jm-stat">
+          <text class="jm-stat-value">{{item.pendingCount}}</text>
+          <text class="jm-stat-label">待审核</text>
+        </view>
+        <view class="jm-stat">
+          <text class="jm-stat-value">{{item.confirmedCount}}</text>
+          <text class="jm-stat-label">已到岗</text>
+        </view>
+        <view class="jm-stat">
+          <text class="jm-stat-value">{{item.needCount}}</text>
+          <text class="jm-stat-label">需招人数</text>
+        </view>
+      </view>
+
+      <view class="jm-footer">
+        <view class="jm-price">
+          <text class="jm-price-value">{{item.salary}}</text>
+          <text class="jm-price-unit">{{item.salaryUnit}}</text>
+        </view>
+        <button class="jm-action" data-id="{{item.id}}" data-tab="{{item.actionTab}}" bindtap="onManageJob">
+          {{item.actionText}}
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <view class="jm-loading" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <view class="jm-empty" wx:if="{{!loading && jobs.length === 0}}">
+    <empty-state text="暂无招工单" subText="发布招工后即可在这里统一管理流程" />
+    <button class="jm-create" bindtap="onCreateJob">去发布招工</button>
+  </view>
+</view>

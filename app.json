@@ -14,6 +14,8 @@
     "pages/post-detail/post-detail",
     "pages/job-detail/job-detail",
     "pages/my-posts/my-posts",
+    "pages/job-manage/job-manage",
+    "pages/job-process/job-process",
     "pages/my-applications/my-applications",
     "pages/my-favorites/my-favorites",
     "pages/exposure/exposure",

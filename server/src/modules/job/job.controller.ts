@@ -20,6 +20,48 @@ export class JobController {
     return this.jobService.myJobs(userId);
   }
 
+  @Get('manage/mine')
+  @Roles('enterprise')
+  manageJobs(@CurrentUser('sub') userId: number, @Query() query: any) {
+    return this.jobService.manageJobs(userId, query);
+  }
+
+  @Get(':id/manage')
+  @Roles('enterprise')
+  manageDetail(@Param('id') id: number, @CurrentUser('sub') userId: number) {
+    return this.jobService.manageDetail(Number(id), userId);
+  }
+
+  @Post(':id/applications/:workerId/accept')
+  @Roles('enterprise')
+  acceptApplication(
+    @Param('id') id: number,
+    @Param('workerId') workerId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.acceptApplication(Number(id), Number(workerId), userId);
+  }
+
+  @Post(':id/applications/:workerId/reject')
+  @Roles('enterprise')
+  rejectApplication(
+    @Param('id') id: number,
+    @Param('workerId') workerId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.rejectApplication(Number(id), Number(workerId), userId);
+  }
+
+  @Post(':id/supervisor')
+  @Roles('enterprise')
+  setSupervisor(
+    @Param('id') id: number,
+    @CurrentUser('sub') userId: number,
+    @Body() dto: { workerId: number },
+  ) {
+    return this.jobService.setSupervisor(Number(id), userId, dto);
+  }
+
   @Public()
   @Get(':id')
   detail(@Param('id') id: number) {

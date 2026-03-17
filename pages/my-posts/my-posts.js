@@ -124,6 +124,11 @@ Page({
     wx.navigateTo({ url: '/pages/settlement/settlement?jobId=' + jobId })
   },
 
+  onManageJob(e) {
+    const jobId = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + jobId + '&tab=applications' })
+  },
+
   onDeletePost(e) {
     const id = e.currentTarget.dataset.id
     wx.showModal({

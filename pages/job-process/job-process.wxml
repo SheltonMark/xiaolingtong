@@ -1,0 +1,238 @@
+<view class="st-page">
+  <nav-bar title="{{pageTitle}}" />
+
+  <view class="st-tabs" wx:if="{{role === 'enterprise'}}">
+    <view class="st-tab {{activeTab === 'applications' ? 'st-tab-active' : ''}}" data-tab="applications" bindtap="onTabChange">
+      <text>报名管理</text>
+    </view>
+    <view class="st-tab {{activeTab === 'attendance' ? 'st-tab-active' : ''}}" data-tab="attendance" bindtap="onTabChange">
+      <text>考勤汇总</text>
+    </view>
+    <view class="st-tab {{activeTab === 'settlement' ? 'st-tab-active' : ''}}" data-tab="settlement" bindtap="onTabChange">
+      <text>结算明细</text>
+    </view>
+  </view>
+
+  <view class="st-hero">
+    <view>
+      <text class="st-hero-title">{{manageJob.title || job.jobType || '用工流程'}}</text>
+      <text class="st-hero-sub">{{manageJob.companyName || job.company}} · {{manageJob.dateRange || job.dateRange}}</text>
+    </view>
+    <view class="st-hero-pill">{{role === 'enterprise' ? '企业端' : '结算中'}}</view>
+  </view>
+
+  <block wx:if="{{activeTab === 'applications' && role === 'enterprise'}}">
+    <view class="st-card">
+      <text class="card-title">招工概览</text>
+      <view class="st-summary">
+        <view class="st-sum-item">
+          <text class="st-sum-val text-primary">{{manageSummary.totalCount || 0}}</text>
+          <text class="st-sum-label">已报名</text>
+        </view>
+        <view class="st-sum-item">
+          <text class="st-sum-val text-rose">{{manageSummary.pendingCount || 0}}</text>
+          <text class="st-sum-label">待审核</text>
+        </view>
+        <view class="st-sum-item">
+          <text class="st-sum-val text-fresh">{{manageSummary.confirmedCount || 0}}</text>
+          <text class="st-sum-label">待出勤/到岗</text>
+        </view>
+      </view>
+      <view class="st-note-row">
+        <text class="st-note">工作时段：{{manageJob.workHours || '待定'}}</text>
+        <text class="st-note">需招：{{manageJob.needCount || 0}}人</text>
+      </view>
+    </view>
+
+    <scroll-view class="st-filter-row" scroll-x enable-flex show-scrollbar="{{false}}">
+      <view wx:for="{{applicantTabs}}" wx:key="key" class="st-filter-chip {{applicantFilter === item.key ? 'st-filter-chip-active' : ''}}" data-key="{{item.key}}" bindtap="onApplicantFilterChange">
+        {{item.label}} {{item.count}}
+      </view>
+    </scroll-view>
+
+    <view class="st-card" wx:if="{{filteredApplicants.length > 0}}">
+      <text class="card-title">报名列表</text>
+      <view class="st-applicant-card" wx:for="{{filteredApplicants}}" wx:key="workerId">
+        <view class="st-applicant-top">
+          <view class="st-applicant-main">
+            <view class="text-avatar st-avatar">{{item.name[0]}}</view>
+            <view class="st-applicant-info">
+              <view class="st-applicant-name-row">
+                <text class="st-applicant-name">{{item.name}}</text>
+                <text class="st-status-pill st-status-{{item.statusTone}}">{{item.statusText}}</text>
+                <text class="st-supervisor-pill" wx:if="{{item.isSupervisor}}">主管</text>
+              </view>
+              <text class="st-applicant-meta">信用分 {{item.creditScore}} · 历史完工 {{item.doneCount}} 次</text>
+              <text class="st-applicant-meta">报名时间 {{item.applyTime}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="st-applicant-actions">
+          <button class="st-mini-btn st-mini-primary" wx:if="{{item.canAccept}}" data-id="{{item.workerId}}" bindtap="onAcceptApplicant">录用</button>
+          <button class="st-mini-btn st-mini-ghost" wx:if="{{item.canReject}}" data-id="{{item.workerId}}" bindtap="onRejectApplicant">拒绝</button>
+          <button class="st-mini-btn st-mini-warm" wx:if="{{item.canSetSupervisor && !item.isSupervisor}}" data-id="{{item.workerId}}" bindtap="onSetSupervisor">设为主管</button>
+        </view>
+      </view>
+    </view>
+
+    <view class="st-card st-empty-card" wx:if="{{filteredApplicants.length === 0}}">
+      <text class="st-empty-title">当前筛选下暂无报名记录</text>
+      <text class="st-empty-sub">新的报名进来后会在这里统一处理。</text>
+    </view>
+  </block>
+
+  <block wx:if="{{activeTab === 'attendance' && attendance}}">
+    <view class="st-card">
+      <text class="card-title">考勤概览</text>
+      <view class="st-summary">
+        <view class="st-sum-item">
+          <text class="st-sum-val text-primary">{{attendance.summary.totalExpected}}</text>
+          <text class="st-sum-label">应到人数</text>
+        </view>
+        <view class="st-sum-item">
+          <text class="st-sum-val text-fresh">{{attendance.summary.totalPresent}}</text>
+          <text class="st-sum-label">实到人数</text>
+        </view>
+        <view class="st-sum-item">
+          <text class="st-sum-val text-rose">{{attendance.summary.totalAbsent}}</text>
+          <text class="st-sum-label">缺勤人数</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="st-card">
+      <text class="card-title">考勤明细</text>
+      <view class="table-header">
+        <text class="th" style="flex:1.2;">姓名</text>
+        <text class="th" style="flex:1;">签到</text>
+        <text class="th" style="flex:1;">签退</text>
+        <text class="th" style="flex:0.8;">工时</text>
+        <text class="th" style="flex:1;">状态</text>
+      </view>
+      <view class="table-row" wx:for="{{attendance.records}}" wx:key="workerId">
+        <text class="td" style="flex:1.2;">{{item.name}}</text>
+        <text class="td" style="flex:1;">{{item.checkInTime || '--'}}</text>
+        <text class="td" style="flex:1;">{{item.checkOutTime || '--'}}</text>
+        <text class="td" style="flex:0.8;">{{item.hours}}h</text>
+        <text class="td {{item.statusColor}}" style="flex:1;">{{item.statusIcon}} {{item.statusText}}</text>
+      </view>
+    </view>
+
+    <view class="st-card" wx:if="{{attendance.supervisor}}">
+      <text class="card-title">管理员</text>
+      <view class="att-supervisor">
+        <text>{{attendance.supervisor.name}}</text>
+      </view>
+      <view class="att-meta" wx:if="{{attendance.submittedAt}}">
+        <text>提交时间：{{attendance.submittedAt}}</text>
+      </view>
+      <view class="att-photo-link" wx:if="{{attendance.photos.length}}" bindtap="onPreviewAttendancePhotos">
+        <text>现场照片：查看{{attendance.photos.length}}张</text>
+      </view>
+    </view>
+
+    <view class="st-bottom" wx:if="{{role === 'enterprise' && !viewOnly}}">
+      <view class="att-btn-group">
+        <button class="btn btn-fresh" bindtap="onConfirmAttendance">确认考勤</button>
+        <button class="btn btn-outline" bindtap="onDisputeAttendance">有异议</button>
+      </view>
+    </view>
+  </block>
+
+  <block wx:if="{{activeTab === 'settlement'}}">
+    <view class="st-card st-money-card" wx:if="{{settlementReady}}">
+      <view class="st-money-top">
+        <view>
+          <text class="st-money-label">工厂应付总额</text>
+          <text class="st-money-value">¥{{job.factoryTotal}}</text>
+        </view>
+        <view class="st-money-pill">结算中</view>
+      </view>
+      <view class="st-money-grid">
+        <view class="st-money-item">
+          <text class="st-money-item-val">{{job.totalWorkers}}</text>
+          <text class="st-money-item-label">实到人数</text>
+        </view>
+        <view class="st-money-item">
+          <text class="st-money-item-val">{{job.totalHours}}</text>
+          <text class="st-money-item-label">总工时</text>
+        </view>
+        <view class="st-money-item">
+          <text class="st-money-item-val">¥{{fees.workerTotal}}</text>
+          <text class="st-money-item-label">实发总额</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="st-card st-empty-card" wx:if="{{!settlementReady}}">
+      <text class="st-empty-title">结算单尚未生成</text>
+      <text class="st-empty-sub">确认考勤后，系统会自动进入结算流程。</text>
+    </view>
+
+    <view class="st-card" wx:if="{{settlementReady}}">
+      <text class="card-title">流程状态</text>
+      <view class="step-list">
+        <view class="step-item" wx:for="{{steps}}" wx:key="label">
+          <view class="step-dot {{item.done ? 'dot-done' : 'dot-pending'}}">
+            <text wx:if="{{item.done}}">✓</text>
+            <text wx:else>⏱</text>
+          </view>
+          <view class="step-content">
+            <text class="step-label">{{item.label}}</text>
+            <text class="step-time">{{item.time}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="st-card" wx:if="{{settlementReady}}">
+      <text class="card-title">人员结算明细</text>
+      <view class="st-worker-card" wx:for="{{workers}}" wx:key="name">
+        <view class="st-worker-main">
+          <view>
+            <text class="st-worker-name">{{item.name}}</text>
+            <text class="st-worker-sub">{{item.hours}}h · 工厂付 ¥{{item.factoryPay}}</text>
+          </view>
+          <view class="st-worker-side">
+            <text class="st-worker-pay">¥{{item.workerPay}}</text>
+            <text class="st-worker-status {{item.confirmed ? 'text-fresh' : 'text-warm'}}">{{item.confirmed ? '已确认' : '待确认'}}</text>
+          </view>
+        </view>
+      </view>
+      <text class="view-all" bindtap="onViewAll">查看全部{{job.totalWorkers}}人明细</text>
+    </view>
+
+    <view class="st-card" wx:if="{{settlementReady}}">
+      <text class="card-title">费用拆分</text>
+      <view class="fee-list">
+        <view class="fee-row">
+          <text class="fee-label">工厂总支付</text>
+          <text class="fee-value">¥{{fees.factoryTotal}}</text>
+        </view>
+        <view class="fee-row">
+          <text class="fee-label">平台服务费</text>
+          <text class="fee-value fee-minus">-¥{{fees.platformFee}}</text>
+        </view>
+        <view class="fee-row">
+          <text class="fee-label">管理员服务费</text>
+          <text class="fee-value fee-minus">-¥{{fees.managerFee}}</text>
+        </view>
+        <view class="fee-divider"></view>
+        <view class="fee-row fee-total">
+          <text class="fee-label">临工实发总额</text>
+          <text class="fee-value text-cta">¥{{fees.workerTotal}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="st-bottom" wx:if="{{!viewOnly && settlementReady}}">
+      <button class="btn btn-primary" wx:if="{{role === 'enterprise'}}" bindtap="onPay">确认支付 ¥{{job.factoryTotal}}</button>
+      <button class="btn btn-cta" wx:if="{{role === 'manager'}}" bindtap="onSubmitSettlement">提交结算单</button>
+      <text class="st-hint" wx:if="{{role === 'enterprise'}}">支付后工资将自动发放至临工钱包</text>
+      <text class="st-hint" wx:if="{{role === 'manager'}}">提交后将通知临工确认工时</text>
+    </view>
+    <view class="st-bottom" wx:if="{{role === 'worker'}}">
+      <button class="btn btn-outline" bindtap="onRateEnterprise">评价企业</button>
+    </view>
+  </block>
+</view>

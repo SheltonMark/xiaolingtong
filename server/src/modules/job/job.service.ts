@@ -23,6 +23,14 @@ export class JobService {
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
   ) {}
 
+  private async getEnterpriseCompanyName(userId: number, fallback = '企业用户') {
+    const cert = await this.entCertRepo.findOne({
+      where: { userId, status: 'approved' },
+      order: { id: 'DESC' },
+    });
+    return cert?.companyName || fallback;
+  }
+
   private async checkKeywords(text: string) {
     const keywords = await this.keywordRepo.find();
     for (const kw of keywords) {
@@ -311,6 +319,213 @@ export class JobService {
     }));
 
     return { list: formattedJobs };
+  }
+
+  async manageJobs(userId: number, query: any) {
+    const { stage = 'all' } = query || {};
+    const jobs = await this.jobRepo.find({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+
+    const companyName = await this.getEnterpriseCompanyName(userId);
+    const items = await Promise.all(jobs.map(async (job) => {
+      const applications = await this.appRepo.find({ where: { jobId: job.id } });
+      const pendingCount = applications.filter((item) => item.status === 'pending').length;
+      const acceptedCount = applications.filter((item) => item.status === 'accepted').length;
+      const confirmedCount = applications.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length;
+      const rejectedCount = applications.filter((item) => item.status === 'rejected').length;
+      const supervisorCount = applications.filter((item) => item.isSupervisor === 1).length;
+
+      let stageKey = 'recruiting';
+      let stageText = '招工中';
+      let stageTone = 'blue';
+      let highlight = pendingCount > 0 ? `待审核 ${pendingCount} 人` : '继续招募临工';
+      let actionText = '查看报名';
+      let actionTab = 'applications';
+
+      if (job.status === 'working') {
+        stageKey = 'working';
+        stageText = '进行中';
+        stageTone = 'green';
+        highlight = `已到岗 ${confirmedCount} 人`;
+        actionText = '去考勤';
+        actionTab = 'attendance';
+      } else if (job.status === 'pending_settlement') {
+        stageKey = 'settlement';
+        stageText = '待结算';
+        stageTone = 'amber';
+        highlight = '待确认考勤和结算';
+        actionText = '去结算';
+        actionTab = 'settlement';
+      } else if (['settled', 'closed'].includes(job.status)) {
+        stageKey = 'closed';
+        stageText = '已完成';
+        stageTone = 'slate';
+        highlight = '已完成本次用工';
+        actionText = '查看详情';
+        actionTab = 'settlement';
+      } else if (pendingCount > 0) {
+        stageKey = 'pending';
+        stageText = '待处理';
+        stageTone = 'rose';
+        highlight = `待审核 ${pendingCount} 人`;
+        actionText = '立即处理';
+        actionTab = 'applications';
+      }
+
+      return {
+        id: job.id,
+        title: job.title,
+        companyName,
+        salary: job.salary,
+        salaryUnit: job.salaryUnit,
+        needCount: job.needCount,
+        location: this.extractCityDistrict(job.location),
+        dateRange: job.dateStart && job.dateEnd ? `${job.dateStart} ~ ${job.dateEnd}` : '',
+        workHours: job.workHours || '',
+        status: job.status,
+        stageKey,
+        stageText,
+        stageTone,
+        pendingCount,
+        acceptedCount,
+        confirmedCount,
+        rejectedCount,
+        supervisorCount,
+        appliedCount: applications.length,
+        highlight,
+        actionText,
+        actionTab,
+      };
+    }));
+
+    const list = stage === 'all' ? items : items.filter((item) => item.stageKey === stage);
+    return { list };
+  }
+
+  async manageDetail(jobId: number, userId: number) {
+    const job = await this.jobRepo.findOne({
+      where: { id: jobId },
+      relations: ['user'],
+    });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权查看');
+
+    const companyName = await this.getEnterpriseCompanyName(job.userId, job.user?.nickname || '企业用户');
+    const applications = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'ASC' },
+    });
+
+    const enrichedApplicants = await Promise.all(applications.map(async (app) => {
+      const doneCount = await this.appRepo.count({
+        where: { workerId: app.workerId, status: 'done' },
+      });
+      const statusMap: Record<string, { text: string; tone: string }> = {
+        pending: { text: '待审核', tone: 'rose' },
+        accepted: { text: '已录用', tone: 'blue' },
+        confirmed: { text: '待出勤', tone: 'violet' },
+        working: { text: '进行中', tone: 'green' },
+        done: { text: '已完工', tone: 'slate' },
+        rejected: { text: '已拒绝', tone: 'slate' },
+        released: { text: '已释放', tone: 'slate' },
+        cancelled: { text: '已取消', tone: 'slate' },
+      };
+      const statusInfo = statusMap[app.status] || statusMap.pending;
+
+      return {
+        id: app.id,
+        workerId: app.workerId,
+        name: app.worker?.nickname || '临工',
+        avatarUrl: app.worker?.avatarUrl || '',
+        creditScore: app.worker?.creditScore || 100,
+        doneCount,
+        status: app.status,
+        statusText: statusInfo.text,
+        statusTone: statusInfo.tone,
+        isSupervisor: app.isSupervisor === 1,
+        applyTime: app.createdAt ? new Date(app.createdAt).toLocaleDateString('zh-CN') : '',
+        canAccept: app.status === 'pending',
+        canReject: ['pending', 'accepted'].includes(app.status),
+        canSetSupervisor: ['accepted', 'confirmed', 'working', 'done'].includes(app.status),
+      };
+    }));
+
+    const summary = {
+      pendingCount: enrichedApplicants.filter((item) => item.status === 'pending').length,
+      acceptedCount: enrichedApplicants.filter((item) => item.status === 'accepted').length,
+      confirmedCount: enrichedApplicants.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length,
+      rejectedCount: enrichedApplicants.filter((item) => item.status === 'rejected').length,
+      supervisor: enrichedApplicants.find((item) => item.isSupervisor) || null,
+    };
+
+    return {
+      job: {
+        id: job.id,
+        title: job.title,
+        companyName,
+        dateRange: job.dateStart && job.dateEnd ? `${job.dateStart} ~ ${job.dateEnd}` : '',
+        workHours: job.workHours || '',
+        salary: job.salary,
+        salaryUnit: job.salaryUnit,
+        needCount: job.needCount,
+        location: this.extractCityDistrict(job.location),
+        status: job.status,
+      },
+      summary,
+      applicants: enrichedApplicants,
+    };
+  }
+
+  async acceptApplication(jobId: number, workerId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const app = await this.appRepo.findOne({ where: { jobId, workerId } });
+    if (!app) throw new BadRequestException('报名记录不存在');
+    if (app.status !== 'pending') throw new BadRequestException('当前状态不可录用');
+
+    app.status = 'accepted';
+    await this.appRepo.save(app);
+    return { message: '已录用' };
+  }
+
+  async rejectApplication(jobId: number, workerId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const app = await this.appRepo.findOne({ where: { jobId, workerId } });
+    if (!app) throw new BadRequestException('报名记录不存在');
+    if (!['pending', 'accepted'].includes(app.status)) throw new BadRequestException('当前状态不可拒绝');
+
+    app.status = 'rejected';
+    app.isSupervisor = 0;
+    await this.appRepo.save(app);
+    return { message: '已拒绝' };
+  }
+
+  async setSupervisor(jobId: number, userId: number, dto: { workerId: number }) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const workerId = Number(dto.workerId || 0);
+    if (!workerId) throw new BadRequestException('请选择主管');
+
+    const target = await this.appRepo.findOne({ where: { jobId, workerId } });
+    if (!target) throw new BadRequestException('报名记录不存在');
+    if (!['accepted', 'confirmed', 'working', 'done'].includes(target.status)) {
+      throw new BadRequestException('当前状态不可设为主管');
+    }
+
+    await this.appRepo.update({ jobId }, { isSupervisor: 0 });
+    target.isSupervisor = 1;
+    await this.appRepo.save(target);
+    return { message: '已设置主管' };
   }
 
   async create(userId: number, dto: any) {

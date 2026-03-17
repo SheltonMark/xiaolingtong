@@ -1,0 +1,224 @@
+.jm-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 30%),
+    linear-gradient(180deg, #FFFDF8 0%, #F8FAFC 42%, #F6F8FC 100%);
+  padding-bottom: 40rpx;
+}
+
+.jm-hero {
+  margin: 24rpx;
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8EB 100%);
+  box-shadow: 0 18rpx 44rpx rgba(15, 23, 42, 0.06);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24rpx;
+}
+
+.jm-title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.jm-subtitle {
+  display: block;
+  font-size: 22rpx;
+  color: #64748B;
+  margin-top: 10rpx;
+  line-height: 1.6;
+}
+
+.jm-hero-badge {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background-color: #FFFBEB;
+  color: #D97706;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.jm-tabs {
+  white-space: nowrap;
+  padding: 0 24rpx;
+  box-sizing: border-box;
+}
+
+.jm-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  padding: 14rpx 24rpx;
+  border-radius: 999rpx;
+  background-color: rgba(255, 255, 255, 0.88);
+  color: #64748B;
+  font-size: 24rpx;
+  box-shadow: inset 0 0 0 1rpx #E2E8F0;
+}
+
+.jm-tab-active {
+  background-color: #F59E0B;
+  color: #ffffff;
+  box-shadow: 0 10rpx 24rpx rgba(245, 158, 11, 0.24);
+}
+
+.jm-list {
+  padding: 24rpx;
+}
+
+.jm-card {
+  background-color: rgba(255, 255, 255, 0.96);
+  border-radius: 28rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.06);
+}
+
+.jm-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16rpx;
+}
+
+.jm-job-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0F172A;
+  line-height: 1.35;
+}
+
+.jm-job-meta {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.jm-stage {
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jm-stage-blue { background-color: #EFF6FF; color: #2563EB; }
+.jm-stage-rose { background-color: #FFF1F2; color: #E11D48; }
+.jm-stage-green { background-color: #ECFDF5; color: #16A34A; }
+.jm-stage-amber { background-color: #FFFBEB; color: #D97706; }
+.jm-stage-slate { background-color: #F1F5F9; color: #475569; }
+
+.jm-highlight {
+  margin-top: 24rpx;
+  padding: 20rpx 22rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #FFFDF5 0%, #FFFFFF 100%);
+  border: 1rpx solid #FDE68A;
+}
+
+.jm-highlight-label {
+  display: block;
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+.jm-highlight-value {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 28rpx;
+  color: #0F172A;
+  font-weight: 600;
+}
+
+.jm-stats {
+  margin-top: 22rpx;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 12rpx;
+}
+
+.jm-stat {
+  padding: 18rpx 10rpx;
+  border-radius: 20rpx;
+  background-color: #F8FAFC;
+  text-align: center;
+}
+
+.jm-stat-value {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.jm-stat-label {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+.jm-footer {
+  margin-top: 24rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.jm-price {
+  display: flex;
+  align-items: baseline;
+  gap: 6rpx;
+}
+
+.jm-price-value {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #EA580C;
+}
+
+.jm-price-unit {
+  font-size: 22rpx;
+  color: #EA580C;
+}
+
+.jm-action {
+  min-width: 196rpx;
+  height: 72rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #F59E0B 0%, #FB923C 100%);
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
+  border: none;
+}
+
+.jm-action::after,
+.jm-create::after {
+  border: none;
+}
+
+.jm-loading,
+.jm-empty {
+  padding: 60rpx 24rpx;
+  text-align: center;
+}
+
+.jm-create {
+  margin-top: 24rpx;
+  width: 280rpx;
+  height: 76rpx;
+  border-radius: 999rpx;
+  background-color: #F59E0B;
+  color: #ffffff;
+  font-size: 24rpx;
+  font-weight: 600;
+}

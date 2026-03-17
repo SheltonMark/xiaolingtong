@@ -174,5 +174,6 @@
 }
 .act-btn::after { border: none; }
 .act-blue { background-color: #EFF6FF; color: #3B82F6; }
+.act-gold { background-color: #FFFBEB; color: #D97706; }
 .act-orange { background-color: #FFF7ED; color: #F97316; }
 .act-rose { background-color: #FFF1F2; color: #F43F5E; }
