@@ -1,4 +1,5 @@
 const { post, upload } = require('../../utils/request')
+const auth = require('../../utils/auth')
 
 Page({
   data: {
@@ -20,6 +21,10 @@ Page({
       { label: '熟手优先', selected: false }
     ],
     images: []
+  },
+
+  onLoad() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
   },
 
   onInput(e) {
@@ -95,6 +100,7 @@ Page({
   },
 
   onSubmit() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const { form, settleType, benefits, images } = this.data
     if (!form.title) { wx.showToast({ title: '请输入招工标题', icon: 'none' }); return }
     if (!form.price) { wx.showToast({ title: '请输入工厂出价', icon: 'none' }); return }

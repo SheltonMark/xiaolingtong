@@ -112,6 +112,16 @@ Page({
   },
 
   onShow() {
+    // 首次打开：检查协议和角色
+    if (!wx.getStorageSync('policyHandled')) {
+      wx.redirectTo({ url: '/pages/agreement-confirm/agreement-confirm' })
+      return
+    }
+    if (!wx.getStorageSync('userRole')) {
+      wx.redirectTo({ url: '/pages/identity/identity' })
+      return
+    }
+
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     const currentCity = wx.getStorageSync('currentCity') || '东莞'
     this.setData({ userRole, currentCity })
@@ -858,6 +868,7 @@ Page({
   },
 
   onApply(e) {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
   },

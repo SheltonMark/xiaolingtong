@@ -5,17 +5,11 @@ Page({
   data: {
     loading: false
   },
+
   onLoad() {
-    const token = wx.getStorageSync('token')
-    const userRole = wx.getStorageSync('userRole')
-    if (token && userRole) {
-      wx.switchTab({ url: '/pages/index/index' })
-      return
-    }
-    if (token && !userRole) {
-      wx.redirectTo({ url: '/pages/identity/identity' })
-    }
+    // 不再自动跳转，让用户主动登录
   },
+
   onWxLogin() {
     if (this.data.loading) return
     this.setData({ loading: true })
@@ -35,9 +29,10 @@ Page({
           const app = getApp()
           app.globalData.isLoggedIn = true
           app.globalData.userInfo = user
-          if (user.role) {
-            wx.setStorageSync('userRole', user.role)
-            app.globalData.userRole = user.role
+          const role = user.role || wx.getStorageSync('userRole')
+          if (role) {
+            wx.setStorageSync('userRole', role)
+            app.globalData.userRole = role
             app.globalData.beanBalance = user.beanBalance || 0
             app.globalData.isMember = user.isMember || false
             wx.switchTab({ url: '/pages/index/index' })
@@ -53,11 +48,5 @@ Page({
         this.setData({ loading: false })
       }
     })
-  },
-  onViewAgreement() {
-    wx.navigateTo({ url: '/pages/agreement/agreement' })
-  },
-  onViewPrivacy() {
-    wx.navigateTo({ url: '/pages/privacy/privacy' })
   }
 })

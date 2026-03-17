@@ -1,5 +1,6 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
+const auth = require('../../utils/auth')
 
 const TYPE_TEXT_MAP = {
   purchase: '采购需求',
@@ -230,6 +231,7 @@ Page({
   },
 
   onUnlockContact() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const postId = this.data.detail.id
     if (!postId) {
       wx.showToast({ title: '信息不存在', icon: 'none' })
@@ -431,6 +433,7 @@ Page({
   },
 
   onChat() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const detail = this.data.detail || {}
     const currentUserId = this.getCurrentUserId()
     const targetUserId = this.getOwnerUserId(detail)
@@ -496,6 +499,7 @@ Page({
   },
 
   onToggleFav() {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const id = this.data.detail.id
     console.log('[post-detail] onToggleFav called with id:', id, 'current isFav:', this.data.isFav)
     post('/favorites/toggle', { targetType: 'post', targetId: id }).then((res) => {

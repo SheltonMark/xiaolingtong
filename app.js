@@ -26,6 +26,11 @@ App({
       this.globalData.pendingInviteCode = options.query.inviteCode
     }
 
+    if (!wx.getStorageSync('policyHandled') && wx.getStorageSync('agreedPolicy')) {
+      wx.setStorageSync('policyHandled', true)
+      wx.setStorageSync('policyDecision', 'agree')
+    }
+
     const userRole = wx.getStorageSync('userRole')
     const token = wx.getStorageSync('token')
     const avatarUrl = wx.getStorageSync('avatarUrl')
@@ -58,7 +63,11 @@ App({
 
       if (user.role) wx.setStorageSync('userRole', user.role)
       if (user.avatarUrl) wx.setStorageSync('avatarUrl', user.avatarUrl)
-    }).catch(() => {})
+    }).catch(() => {
+      // token 过期或无效，静默清除，不跳登录页
+      wx.removeStorageSync('token')
+      this.globalData.isLoggedIn = false
+    })
   },
 
   getSharePath(basePath) {

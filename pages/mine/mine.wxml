@@ -1,5 +1,57 @@
 <!--pages/mine/mine.wxml-->
 <view class="mine-page">
+  <view wx:if="{{notLoggedIn}}" class="mine-not-logged">
+    <view class="header {{userRole === 'worker' ? 'header-worker' : 'header-enterprise'}}" style="padding-top: {{statusBarHeight}}px;">
+      <view class="header-top" style="min-height: {{menuHeight}}px; padding-left: {{menuRight}}px; padding-right: {{menuRight}}px;">
+        <text class="header-label">我的</text>
+      </view>
+      <view class="user-info guest-user-info" bindtap="onGoLogin">
+        <view wx:if="{{userRole === 'worker'}}" class="text-avatar text-avatar-2xl" style="background-color: #F97316;">登</view>
+        <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;">登</view>
+        <view class="user-detail">
+          <text class="user-name">点击登录</text>
+          <text class="user-sub">{{guestSubtitle}}</text>
+        </view>
+        <view class="guest-login-pill">去登录</view>
+      </view>
+    </view>
+
+    <view class="func-grid">
+      <view class="func-item" wx:for="{{guestFuncs}}" wx:key="label"
+            data-url="{{item.url}}" bindtap="onFuncTap">
+        <view class="func-icon" style="background-color: {{item.bg}};">
+          <text class="func-emoji" style="color: {{item.iconColor}};">{{item.icon}}</text>
+        </view>
+        <text class="func-label">{{item.label}}</text>
+      </view>
+    </view>
+
+    <view class="tab-section guest-tab-section" bindtap="onGoLogin">
+      <view class="guest-card">
+        <text class="guest-card-title">登录后查看完整个人中心</text>
+        <text class="guest-card-desc">可查看我的发布、收藏、报名记录、钱包余额和认证状态，相关操作将在登录后自动开启。</text>
+        <view class="guest-card-btn">立即登录</view>
+      </view>
+    </view>
+  </view>
+  <!-- 未登录状态 -->
+  <view wx:if="{{false}}" class="mine-not-logged">
+    <view class="header header-enterprise" style="padding-top: {{statusBarHeight}}px;">
+      <view class="header-top" style="min-height: {{menuHeight}}px; padding-left: {{menuRight}}px; padding-right: {{menuRight}}px;">
+        <text class="header-label">我的</text>
+      </view>
+      <view class="user-info" bindtap="onGoLogin">
+        <view class="text-avatar text-avatar-2xl" style="background-color: #CBD5E1;">?</view>
+        <view class="user-detail">
+          <text class="user-name" style="color:#64748B;">点击登录</text>
+          <text class="user-sub">登录后享受完整服务</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 已登录 -->
+  <block wx:if="{{!notLoggedIn}}">
   <!-- ===== 企业端 ===== -->
   <view wx:if="{{userRole === 'enterprise'}}">
     <!-- 头部 -->
@@ -278,4 +330,5 @@
       </view>
     </view>
   </view>
+  </block>
 </view>

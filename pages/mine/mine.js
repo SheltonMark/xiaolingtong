@@ -1,5 +1,6 @@
 const { get, del } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
+const auth = require('../../utils/auth')
 
 function formatDate(value) {
   if (!value) return ''
@@ -41,6 +42,9 @@ Page({
     statusBarHeight: 0,
     menuHeight: 0,
     currentTab: 0,
+    notLoggedIn: false,
+    guestFuncs: [],
+    guestSubtitle: '',
     enterpriseInfo: { avatarText: '' },
     workerInfo: { avatarText: '' },
     myPosts: [],
@@ -83,11 +87,33 @@ Page({
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     const avatarUrl = getApp().globalData.avatarUrl || wx.getStorageSync('avatarUrl') || ''
-    this.setData({ userRole, currentTab: 0, avatarUrl })
-    this.loadProfile()
+    const notLoggedIn = !auth.isLoggedIn()
+    this.setData({
+      userRole,
+      currentTab: 0,
+      avatarUrl,
+      notLoggedIn,
+      guestFuncs: userRole === 'worker' ? this.data.workerFuncs : this.data.enterpriseFuncs,
+      guestSubtitle: userRole === 'worker'
+        ? '登录后查看报名记录、收藏内容和钱包信息'
+        : '登录后查看发布记录、收藏内容和会员信息'
+    })
+    if (!notLoggedIn) {
+      this.loadProfile()
+    }
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: userRole === 'enterprise' ? 4 : 3, userRole })
     }
+  },
+
+  onGoLogin() {
+    auth.goLogin()
+  },
+
+  requireLogin() {
+    if (auth.isLoggedIn()) return true
+    auth.goLogin()
+    return false
   },
 
   loadProfile() {
@@ -298,6 +324,7 @@ Page({
   },
 
   onFuncTap(e) {
+    if (!this.requireLogin()) return
     const { url } = e.currentTarget.dataset
     if (url) wx.navigateTo({ url })
   },

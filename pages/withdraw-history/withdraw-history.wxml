@@ -1,14 +1,14 @@
 <view class="wh-page">
-  <nav-bar title="提现记录" />
-  <!-- 统计卡片 -->
+  <nav-bar title="{{detailPageTitle}}" />
+
   <view class="wh-stat-card">
     <view class="wh-stat-item">
-      <text class="wh-stat-val text-cta">¥{{summary.totalAmount}}</text>
-      <text class="wh-stat-label">累计提现</text>
+      <text class="wh-stat-val text-fresh">¥{{summary.totalIncome}}</text>
+      <text class="wh-stat-label">{{totalIncomeLabel}}</text>
     </view>
     <view class="wh-stat-item">
-      <text class="wh-stat-val text-fresh">{{summary.totalCount}}</text>
-      <text class="wh-stat-label">提现次数</text>
+      <text class="wh-stat-val text-cta">¥{{summary.totalWithdraw}}</text>
+      <text class="wh-stat-label">累计提现</text>
     </view>
     <view class="wh-stat-item">
       <text class="wh-stat-val text-primary">¥{{summary.balance}}</text>
@@ -16,25 +16,39 @@
     </view>
   </view>
 
-  <!-- 记录列表 -->
-  <view class="wh-card">
-    <text class="card-title">全部记录</text>
-    <view class="wh-list">
-      <view class="wh-item" wx:for="{{records}}" wx:key="id">
-        <view class="wh-icon-wrap wh-icon-{{item.statusType}}">
-          <text class="wh-icon">{{item.statusIcon}}</text>
-        </view>
-        <view class="wh-info">
-          <text class="wh-title">提现到微信零钱</text>
-          <text class="wh-time {{item.statusType === 'fail' ? 'text-rose' : (item.statusType === 'pending' ? 'text-warm' : '')}}">{{item.time}} · {{item.statusText}}</text>
-        </view>
-        <text class="wh-amount">-¥{{item.amount}}</text>
+  <view class="wh-tab-wrap">
+    <view class="wh-tabs">
+      <view
+        class="wh-tab {{currentTab === item.key ? 'wh-tab-active' : ''}}"
+        wx:for="{{tabs}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="onTabChange"
+      >
+        <text>{{item.label}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 提示 -->
+  <view class="wh-card">
+    <text class="card-title">记录列表</text>
+    <view class="wh-list" wx:if="{{displayRecords.length > 0}}">
+      <view class="wh-item" wx:for="{{displayRecords}}" wx:key="id">
+        <view class="wh-icon-wrap {{item.type === 'income' ? 'wh-icon-income' : 'wh-icon-withdraw'}}">
+          <text class="wh-icon">{{item.iconText}}</text>
+        </view>
+        <view class="wh-info">
+          <text class="wh-title">{{item.title}}</text>
+          <text class="wh-time {{item.statusType === 'failed' ? 'text-rose' : (item.statusType === 'pending' ? 'text-warm' : '')}}">{{item.desc}}</text>
+          <text class="wh-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
+        </view>
+        <text class="wh-amount {{item.type === 'income' ? 'text-fresh' : 'text-rose'}}">{{item.amount}}</text>
+      </view>
+    </view>
+    <empty-state wx:else text="暂无钱包记录" subText="有收入或提现后会展示在这里" />
+  </view>
+
   <view class="wh-tip">
-    <text class="wh-tip-text">提现到微信零钱 · 免手续费 · 预计24小时内到账</text>
+    <text class="wh-tip-text">提现到微信零钱 · 免手续费 · 一般次日到账，具体以实际到账时间为准</text>
   </view>
 </view>

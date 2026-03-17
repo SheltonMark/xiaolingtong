@@ -47,6 +47,16 @@
   align-items: flex-start;
   gap: 24rpx;
 }
+.guest-user-info {
+  align-items: center;
+  padding: 8rpx 0;
+}
+.guest-user-info .user-detail {
+  margin-top: 0;
+}
+.guest-user-info .user-sub {
+  display: none;
+}
 .avatar-img {
   width: 128rpx;
   height: 128rpx;
@@ -81,6 +91,9 @@
 .user-sub {
   font-size: 24rpx;
   color: #64748B;
+}
+.guest-login-pill {
+  display: none;
 }
 
 /* ===== 数据卡片 ===== */
@@ -167,6 +180,41 @@
   border-radius: 32rpx;
   overflow: hidden;
   box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.04);
+}
+.guest-tab-section {
+  padding: 0;
+  overflow: visible;
+}
+.guest-card {
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+}
+.guest-card-title {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #1E293B;
+}
+.guest-card-desc {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #64748B;
+}
+.guest-card-btn {
+  margin-top: 24rpx;
+  height: 76rpx;
+  border-radius: 20rpx;
+  background-color: #111827;
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .tab-bar-mine {
   display: flex;

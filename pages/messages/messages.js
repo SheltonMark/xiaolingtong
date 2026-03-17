@@ -1,5 +1,6 @@
 const { get, post, put } = require('../../utils/request')
 const wsChat = require('../../utils/ws-chat')
+const auth = require('../../utils/auth')
 
 const SYSTEM_STYLE_MAP = {
   cert: { icon: '✓', iconBg: '#EAF2FF', iconColor: '#3B82F6', accentColor: '#3B82F6' },
@@ -22,6 +23,16 @@ Page({
   },
 
   onShow() {
+    // 未登录时不加载数据
+    if (!auth.isLoggedIn()) {
+      this.setData({ notLoggedIn: true })
+      if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+        const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+        this.getTabBar().setData({ selected: userRole === 'enterprise' ? 3 : 2, userRole })
+      }
+      return
+    }
+    this.setData({ notLoggedIn: false })
     this.loadMessages()
     wsChat.connect()
     if (!this._wsUnsubscribe) {
@@ -134,6 +145,10 @@ Page({
 
   onTabChange(e) {
     this.setData({ currentTab: e.currentTarget.dataset.index })
+  },
+
+  onGoLogin() {
+    wx.navigateTo({ url: '/pages/login/login' })
   },
 
   onReadAll() {

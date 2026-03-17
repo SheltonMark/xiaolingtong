@@ -1,0 +1,27 @@
+<view class="ac-page">
+  <view class="ac-overlay"></view>
+  <view class="ac-shell">
+    <view class="ac-dialog">
+      <view class="ac-header">
+        <text class="ac-title">请阅读并选择</text>
+        <text class="ac-subtitle">您可先浏览公开信息，涉及登录功能时再完成登录</text>
+      </view>
+
+      <view class="ac-summary">
+        <text class="ac-summary-text">以下内容已合并展示《用户服务协议》与《隐私政策》要点，正文区域默认仅展示一部分，请您手动向下滑动查看。</text>
+      </view>
+
+      <scroll-view class="ac-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="ac-doc">
+          <text class="ac-doc-title">小灵通平台服务与隐私说明</text>
+          <text class="ac-doc-paragraph" wx:for="{{paragraphs}}" wx:key="index">{{item}}</text>
+        </view>
+      </scroll-view>
+
+      <view class="ac-actions">
+        <button class="ac-btn ac-btn-secondary" bindtap="onDisagree">不同意，继续浏览</button>
+        <button class="ac-btn ac-btn-primary" bindtap="onAgree">同意并继续</button>
+      </view>
+    </view>
+  </view>
+</view>

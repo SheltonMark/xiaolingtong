@@ -2,6 +2,15 @@
 <view class="msg-page">
   <nav-bar title="消息中心" showBack="{{true}}" />
 
+  <!-- 未登录状态 -->
+  <view wx:if="{{notLoggedIn}}" class="not-logged-in">
+    <text class="iconfont icon-xiaoxi" style="font-size:80rpx;color:#CBD5E1;"></text>
+    <text class="nli-text">登录后查看消息</text>
+    <view class="nli-btn" bindtap="onGoLogin">去登录</view>
+  </view>
+
+  <!-- 已登录内容 -->
+  <block wx:else>
   <!-- Tab筛选：业务消息（左）+ 系统通知（右），带未读badge -->
   <view class="tab-bar">
     <view class="tab-item {{currentTab === 0 ? 'tab-active' : ''}}" data-index="{{0}}" bindtap="onTabChange">
@@ -58,4 +67,5 @@
     </view>
     <empty-state wx:if="{{systemMessages.length === 0}}" text="暂无系统通知" />
   </view>
+  </block>
 </view>

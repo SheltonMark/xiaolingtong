@@ -10,7 +10,7 @@
       <text class="wl-yen">¥</text>
       <text class="wl-amount">{{balance}}</text>
     </view>
-    <text class="wl-total">累计收入 ¥{{totalIncome}}</text>
+    <text class="wl-total">{{totalIncomeLabel}} ¥{{totalIncome}}</text>
     <view class="wl-btn-row">
       <button class="wl-btn wl-btn-primary" bindtap="onWithdraw">立即提现</button>
       <button class="wl-btn wl-btn-outline" bindtap="onWithdrawHistory">提现记录</button>
@@ -19,13 +19,13 @@
 
   <view class="wl-section">
     <view class="section-header">
-      <text class="section-title">最近收入</text>
+      <text class="section-title">{{recordsSectionTitle}}</text>
       <text class="section-action" bindtap="onGoIncome">查看全部</text>
     </view>
     <view class="income-list">
       <view class="income-item" wx:for="{{records}}" wx:key="id">
         <view class="income-icon-wrap {{item.type === 'income' ? 'income-icon-green' : 'income-icon-rose'}}">
-          <text class="income-icon">{{item.type === 'income' ? '+' : '-'}}</text>
+          <text class="income-icon">{{item.iconText}}</text>
         </view>
         <view class="income-info">
           <text class="income-name">{{item.title}}</text>
@@ -34,10 +34,35 @@
         <text class="income-amount {{item.type === 'income' ? 'text-fresh' : 'text-rose'}}">{{item.amount}}</text>
       </view>
     </view>
-    <empty-state wx:if="{{records.length === 0}}" text="暂无收入记录" />
+    <empty-state wx:if="{{records.length === 0}}" text="暂无钱包记录" />
   </view>
 
   <view class="wl-tip">
-    <text class="wl-tip-text">提现到微信零钱 · 免手续费 · 预计24小时内到账</text>
+    <text class="wl-tip-text">提现到微信零钱 · 免手续费 · 一般次日到账，具体以实际到账时间为准</text>
+  </view>
+
+  <view wx:if="{{showWithdrawModal}}" class="wl-modal-mask" catchtap="onCloseWithdrawModal">
+    <view class="wl-modal" catchtap="onModalTap">
+      <text class="wl-modal-title">申请提现</text>
+      <text class="wl-modal-balance">可提现余额 ¥{{balance}}</text>
+      <view class="wl-input-wrap">
+        <text class="wl-input-prefix">¥</text>
+        <input
+          class="wl-input"
+          type="digit"
+          maxlength="10"
+          placeholder="请输入提现金额"
+          value="{{withdrawAmount}}"
+          bindinput="onWithdrawAmountInput"
+        />
+      </view>
+      <text class="wl-modal-tip">单次最多提现 200 元，可多次提现</text>
+      <text class="wl-modal-tip">本次最多可提现 ¥{{withdrawLimit}}</text>
+      <text class="wl-modal-tip wl-modal-tip-muted">一般次日到账，具体以实际到账时间为准</text>
+      <view class="wl-modal-actions">
+        <button class="wl-modal-btn wl-modal-btn-secondary" bindtap="onCloseWithdrawModal" disabled="{{withdrawSubmitting}}">取消</button>
+        <button class="wl-modal-btn wl-modal-btn-primary" bindtap="onConfirmWithdraw" loading="{{withdrawSubmitting}}">确认提现</button>
+      </view>
+    </view>
   </view>
 </view>
