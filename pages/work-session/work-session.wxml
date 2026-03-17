@@ -54,6 +54,30 @@
         </view>
       </view>
     </view>
+
+    <view class="ws-card">
+      <view class="card-header-row">
+        <text class="card-title"><text class="iconfont icon-jilu"></text> 工时记录</text>
+      </view>
+      <view class="hour-list">
+        <view class="hour-item" wx:for="{{workers}}" wx:key="id">
+          <view class="piece-worker">
+            <view class="text-avatar text-avatar-sm" style="background-color: #3B82F6;">{{item.name[0]}}</view>
+            <view class="piece-info">
+              <text class="piece-name">{{item.name}}</text>
+              <text class="piece-sub">{{item.attendanceText}} · 签到 {{item.checkInTime || '--'}}</text>
+            </view>
+          </view>
+          <view class="hour-fields">
+            <picker mode="time" data-id="{{item.id}}" data-field="checkOutTime" bindchange="onTimeChange">
+              <view class="time-chip">{{item.checkOutTime || '签退时间'}}</view>
+            </picker>
+            <input class="piece-input" type="digit" placeholder="工时" data-id="{{item.id}}" bindinput="onHourInput" value="{{item.hourValue}}" />
+          </view>
+        </view>
+      </view>
+      <button class="piece-submit-btn piece-submit-primary" bindtap="onSaveHours">保存工时</button>
+    </view>
   </block>
 
   <!-- 计件模式 -->

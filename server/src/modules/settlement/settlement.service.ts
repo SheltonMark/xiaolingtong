@@ -11,6 +11,7 @@ import { Job } from '../../entities/job.entity';
 import { WorkLog } from '../../entities/work-log.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
@@ -25,6 +26,7 @@ export class SettlementService {
     @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
+    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
     private paymentService: PaymentService,
     private config: ConfigService,
   ) {}
@@ -32,6 +34,14 @@ export class SettlementService {
   private async getConfig(key: string, defaultVal: string): Promise<string> {
     const c = await this.configRepo.findOne({ where: { key } });
     return c ? c.value : defaultVal;
+  }
+
+  private async getCompanyName(userId: number, fallbackNickname?: string): Promise<string> {
+    const cert = await this.entCertRepo.findOne({
+      where: { userId, status: 'approved' },
+      order: { id: 'DESC' },
+    });
+    return cert?.companyName || fallbackNickname || '企业';
   }
 
   async createSettlement(jobId: number, userId: number) {
@@ -50,12 +60,12 @@ export class SettlementService {
     const managerFeeStr = await this.getConfig('manager_service_fee', '5');
     const managerFeeUnit = +managerFeeStr;
 
-    // 查找实际参与工作的临工（confirmed/working/done）
+    // 查找进入考勤阶段的临工，最终是否参与结算由考勤/工时记录决定
     const apps = await this.appRepo.find({
       where: { jobId },
     });
     const workerApps = apps.filter(a => ['confirmed', 'working', 'done'].includes(a.status));
-    if (workerApps.length === 0) throw new BadRequestException('没有参与工作的临工');
+    if (workerApps.length === 0) throw new BadRequestException('没有进入考勤阶段的临工');
 
     // 找管理员
     const supervisorApp = apps.find(a => a.isSupervisor === 1);
@@ -67,10 +77,20 @@ export class SettlementService {
     const items: { workerId: number; hours: number; factoryPay: number; workerPay: number }[] = [];
 
     for (const app of workerApps) {
-      // 汇总该工人的 WorkLog
       const logs = await this.workLogRepo.find({ where: { jobId, workerId: app.workerId } });
-      const hours = logs.reduce((sum, l) => sum + (+l.hours || 0), 0);
-      const pieces = logs.reduce((sum, l) => sum + (+l.pieces || 0), 0);
+      const effectiveLogs = logs.filter((log) => (
+        log.anomalyType !== 'absent'
+        || (Number(log.hours || 0)) > 0
+        || (Number(log.pieces || 0)) > 0
+        || !!log.checkInTime
+        || !!log.checkOutTime
+      ));
+      if (effectiveLogs.length === 0) {
+        continue;
+      }
+
+      const hours = effectiveLogs.reduce((sum, l) => sum + Number(l.hours || 0), 0);
+      const pieces = effectiveLogs.reduce((sum, l) => sum + Number(l.pieces || 0), 0);
 
       let factoryPay: number;
       if (job.salaryType === 'piece') {
@@ -86,14 +106,16 @@ export class SettlementService {
       items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
     }
 
+    if (items.length === 0) throw new BadRequestException('暂无有效考勤记录，无法生成结算单');
+
     // 管理员服务费
-    const supervisorFee = supervisorId ? +(workerApps.length * totalHours * managerFeeUnit).toFixed(2) : 0;
+    const supervisorFee = supervisorId ? +(items.length * totalHours * managerFeeUnit).toFixed(2) : 0;
     const platformFee = +(factoryTotal - workerTotal - supervisorFee).toFixed(2);
 
     const settlementEntity = this.settleRepo.create({
       jobId,
       enterpriseId: job.userId,
-      totalWorkers: workerApps.length,
+      totalWorkers: items.length,
       totalHours,
       factoryTotal: +factoryTotal.toFixed(2),
       platformFee: platformFee > 0 ? platformFee : 0,
@@ -122,10 +144,79 @@ export class SettlementService {
   }
 
   async detail(jobId: number) {
-    const settlement = await this.settleRepo.findOne({ where: { jobId }, relations: ['job'] });
+    const settlement = await this.settleRepo.findOne({
+      where: { jobId },
+      relations: ['job', 'job.user'],
+    });
     if (!settlement) throw new BadRequestException('结算单不存在');
-    const items = await this.itemRepo.find({ where: { settlementId: settlement.id }, relations: ['worker'] });
-    return { ...settlement, items };
+
+    const items = await this.itemRepo.find({
+      where: { settlementId: settlement.id },
+      relations: ['worker'],
+    });
+
+    const job = settlement.job || {} as any;
+    const enterprise = job.user || {} as any;
+    const companyName = await this.getCompanyName(job.userId, enterprise.nickname);
+
+    // 格式化为前端期望的结构
+    const dateRange = job.dateStart && job.dateEnd
+      ? job.dateStart.slice(5) + ' ~ ' + job.dateEnd.slice(5)
+      : '';
+
+    const workers = items.map(it => ({
+      name: it.worker?.nickname || '临工',
+      hours: +it.hours,
+      factoryPay: (+it.factoryPay).toFixed(2),
+      workerPay: (+it.workerPay).toFixed(2),
+      confirmed: it.confirmed === 1,
+    }));
+
+    // 确认状态步骤
+    const steps = [
+      {
+        label: '管理员提交核验单',
+        done: true,
+        time: settlement.createdAt ? new Date(settlement.createdAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '',
+      },
+      {
+        label: '企业确认支付',
+        done: ['paid', 'distributed', 'completed'].includes(settlement.status),
+        time: settlement.paidAt ? new Date(settlement.paidAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '待确认',
+      },
+      {
+        label: '工资发放完成',
+        done: ['distributed', 'completed'].includes(settlement.status),
+        time: ['distributed', 'completed'].includes(settlement.status) ? '已发放' : '待发放',
+      },
+      {
+        label: '临工全部确认',
+        done: settlement.status === 'completed',
+        time: settlement.status === 'completed' ? '已完成' : '待确认',
+      },
+    ];
+
+    return {
+      job: {
+        company: companyName,
+        avatarText: companyName[0] || '企',
+        jobType: job.title || '临时工',
+        dateRange,
+        totalWorkers: settlement.totalWorkers,
+        totalHours: +settlement.totalHours,
+        factoryTotal: (+settlement.factoryTotal).toFixed(2),
+        enterpriseId: settlement.enterpriseId,
+      },
+      workers,
+      fees: {
+        factoryTotal: (+settlement.factoryTotal).toFixed(2),
+        platformFee: (+settlement.platformFee).toFixed(2),
+        managerFee: (+settlement.supervisorFee).toFixed(2),
+        workerTotal: (+settlement.workerTotal).toFixed(2),
+      },
+      steps,
+      status: settlement.status,
+    };
   }
 
   async pay(jobId: number, enterpriseId: number) {

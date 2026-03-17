@@ -51,3 +51,16 @@
   padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
 }
 .st-hint { display: block; text-align: center; font-size: 20rpx; color: #94A3B8; margin-top: 12rpx; }
+
+/* Tab 切换 */
+.st-tabs { display: flex; background-color: #ffffff; margin: 20rpx 24rpx 0; border-radius: 24rpx; padding: 8rpx; gap: 8rpx; }
+.st-tab { flex: 1; text-align: center; padding: 16rpx 0; border-radius: 16rpx; font-size: 26rpx; color: #64748B; }
+.st-tab-active { background-color: #3B82F6; color: #ffffff; font-weight: 600; }
+
+/* 考勤管理员 */
+.att-supervisor { font-size: 26rpx; color: #1E293B; padding: 12rpx 0; }
+.att-meta { font-size: 22rpx; color: #94A3B8; margin-top: 8rpx; }
+.att-photo-link { font-size: 24rpx; color: #3B82F6; margin-top: 12rpx; }
+.att-btn-group { display: flex; gap: 20rpx; }
+.att-btn-group .btn { flex: 1; }
+.btn-outline { background-color: #ffffff; color: #64748B; border: 2rpx solid #E2E8F0; }

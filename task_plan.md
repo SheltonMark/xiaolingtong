@@ -1,126 +1,54 @@
-# 临工招工流程实现计划
+# Task Plan: 临工管理员考勤管理系统
 
-**目标**: 实现临工端"我的报名"与企业端招工流程的完整匹配，通过统一的业务状态机确保两端数据一致。
+## 结论
+设计文档 `Docs/zheng/BRAINSTORM_WORKER_FLOW.md` 对应功能在核查时并未真正完成，主要问题是：
 
-**架构**: 后端维护唯一的 JobApplication 业务状态机（pending → accepted → confirmed → working → done），前端根据业务状态映射到各自的展示状态。
+| 模块 | 核查结果 | 关键缺口 |
+|------|---------|---------|
+| work-record | 部分完成 | 页面已接 `/work/orders`，可继续使用 |
+| checkin | 部分完成 | 前端能发 `workerId`，但后端不支持主管代签到；签到照片也未进入后续核验流程 |
+| work-session | 未完成 | 只有壳层展示，缺少工时录入、完整考勤报告提交、收工时提交核验单 |
+| anomaly | 未完成 | 页面参数与后端接口字段不匹配，无法形成有效异常记录 |
+| work attendance API | 部分完成 | 有接口雏形，但权限、目标工人、日期明细、提交后状态流转不完整 |
+| settlement attendance view | 部分完成 | 能展示基础表格，但缺少提交时间、现场照片、真实考勤确认闭环 |
 
-**关键文件**: `Docs/plans/2026-03-10-worker-recruitment-flow-implementation.md`
+## 实施计划
 
----
+| 阶段 | 工作项 | 状态 |
+|------|-------|------|
+| 1 | 核查设计文档与当前代码完成度，识别假完成项 | 已完成 |
+| 2 | 补齐 `work` 模块后端：主管代签到、代记工、异常记录、考勤提交/查询/确认 | 已完成 |
+| 3 | 补齐主管端页面：签到照片贯通、工时录入、计件保存、收工提交核验单 | 已完成 |
+| 4 | 补齐异常页和企业端考勤汇总：照片、提交时间、确认操作 | 已完成 |
+| 5 | 补齐测试与校验：work 模块单测、TypeScript 构建检查、前端脚本语法检查 | 已完成 |
 
-## 阶段 1: 后端状态机实现 (Task 1-3)
+## 已落地范围
 
-**目标**: 实现 JobApplication 状态机和企业端核心接口
+- `server/src/modules/work` 现已支持：
+  - 主管代签到指定工人
+  - 主管为指定工人录入工时/计件
+  - 异常记录按目标工人写入当日考勤
+  - `GET /work/attendance/:jobId/:date` 日期明细查询
+  - 企业确认考勤后进入结算流转
+- `pages/work-session` 现已支持：
+  - 计时工时录入与保存
+  - 计件录入与保存
+  - 现场照片缓存与核验单提交
+  - 收工时自动提交考勤报告并创建结算单
+- `pages/anomaly` 现已支持：
+  - 读取当班工人
+  - 选择目标工人并提交异常
+- `pages/settlement` 现已支持：
+  - 展示考勤提交时间
+  - 预览现场照片
+  - 企业确认考勤后刷新汇总与结算信息
 
-### Task 1: 完善 JobApplication 状态机 ⏳
-- **状态**: pending
-- **文件**:
-  - 创建: `server/src/modules/job/job-state-machine.ts`
-  - 修改: `server/src/modules/job/job.service.ts`
-- **预期**: 状态转移验证通过所有测试
+## 验证记录
 
-### Task 2: 实现企业端报名管理接口 ⏳
-- **状态**: pending
-- **文件**:
-  - 创建: `server/src/modules/job/dto/accept-application.dto.ts`
-  - 修改: `server/src/modules/job/job.controller.ts`
-- **预期**: 接受/拒绝报名接口可用
-
-### Task 3: 实现企业端选择管理员接口 ⏳
-- **状态**: pending
-- **文件**:
-  - 创建: `server/src/modules/job/dto/select-supervisor.dto.ts`
-  - 修改: `server/src/modules/job/job.service.ts`
-- **预期**: 管理员选择接口可用，资格验证通过
-
----
-
-## 阶段 2: 临工端接口实现 (Task 4-6)
-
-**目标**: 实现临工端出勤确认和"我的报名"分类查询
-
-### Task 4: 实现临工端出勤确认接口 ⏳
-- **状态**: pending
-- **文件**:
-  - 修改: `server/src/modules/job/job.service.ts`
-  - 修改: `server/src/modules/job/job.controller.ts`
-- **预期**: 出勤确认接口可用
-
-### Task 5: 实现临工端"我的报名"分类接口 ⏳
-- **状态**: pending
-- **文件**:
-  - 修改: `server/src/modules/job/job.service.ts`
-  - 修改: `server/src/modules/job/job.controller.ts`
-- **预期**: 按状态分类查询接口可用
-
-### Task 6: 实现企业端报名列表查询接口 ⏳
-- **状态**: pending
-- **文件**:
-  - 修改: `server/src/modules/job/job.service.ts`
-  - 修改: `server/src/modules/job/job.controller.ts`
-- **预期**: 企业端报名列表查询接口可用
-
----
-
-## 阶段 3: 定时任务实现 (Task 7-8)
-
-**目标**: 实现自动释放和工作开始的定时任务
-
-### Task 7: 实现定时任务 - 自动释放未确认的报名 ⏳
-- **状态**: pending
-- **文件**:
-  - 创建: `server/src/modules/job/job.scheduler.ts`
-  - 修改: `server/src/modules/job/job.module.ts`
-- **预期**: 定时任务正确释放未确认的报名
-
-### Task 8: 实现定时任务 - 自动更新工作状态为进行中 ⏳
-- **状态**: pending
-- **文件**:
-  - 修改: `server/src/modules/job/job.scheduler.ts`
-- **预期**: 定时任务正确更新工作状态
-
----
-
-## 阶段 4: 测试验证 (Task 9)
-
-**目标**: 运行完整的测试套件，确保所有功能正常
-
-### Task 9: 运行完整的后端测试套件 ⏳
-- **状态**: pending
-- **命令**:
-  - `npm run test -- server/src/modules/job/`
-  - `npm run test:e2e -- job`
-  - `npm run test:cov -- server/src/modules/job/`
-- **预期**: 所有测试通过，覆盖率 > 80%
-
----
-
-## 关键决策
-
-| 决策 | 选择 | 理由 |
-|------|------|------|
-| 状态机设计 | 统一的业务状态 + 端侧展示层 | 数据一致，易于维护 |
-| 临工展示状态 | 4 个标签（待确认、已入选、进行中、已完成） | 简化用户体验 |
-| 企业端操作 | 报名管理 → 选择管理员 → 工作执行 → 结算支付 | 完整的招工流程 |
-| 定时任务 | 每小时执行一次 | 平衡实时性和性能 |
-
----
-
-## 风险和缓解
-
-| 风险 | 影响 | 缓解措施 |
-|------|------|---------|
-| 状态转移复杂 | 容易出现逻辑错误 | 详细的单元测试 |
-| 定时任务冲突 | 可能重复处理 | 添加幂等性检查 |
-| 前后端不同步 | 用户体验差 | 实时通知机制 |
-
----
-
-## 进度跟踪
-
-- **总任务数**: 9
-- **已完成**: 0
-- **进行中**: 0
-- **待开始**: 9
-- **完成率**: 0%
-
+- `npm test -- work.service.spec.ts work.service.phase3.spec.ts work.integration.spec.ts --runInBand`
+- `npm run build`
+- `npx tsc -p tsconfig.build.json --noEmit`
+- `node -c pages/work-session/work-session.js`
+- `node -c pages/anomaly/anomaly.js`
+- `node -c pages/checkin/checkin.js`
+- `node -c pages/settlement/settlement.js`

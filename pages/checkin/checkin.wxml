@@ -6,7 +6,7 @@
     <view class="ci-job-header">
       <view class="text-avatar" style="width:60rpx;height:60rpx;font-size:24rpx;background-color:#10B981;">{{jobInfo.avatarText}}</view>
       <view class="ci-job-info">
-        <text class="ci-company">{{jobInfo.company}} · 电子组装工</text>
+        <text class="ci-company">{{jobInfo.company}} · {{jobInfo.title}}</text>
         <text class="ci-date">{{jobInfo.date}} · {{jobInfo.time}}</text>
       </view>
       <text class="admin-badge">临时管理员</text>

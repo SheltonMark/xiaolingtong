@@ -54,14 +54,26 @@
 
 /* 计件录入 */
 .piece-list { display: flex; flex-direction: column; gap: 16rpx; }
+.hour-list { display: flex; flex-direction: column; gap: 16rpx; }
 .piece-item {
   display: flex; align-items: center; justify-content: space-between;
   padding: 16rpx 20rpx; background-color: #F8FAFC; border-radius: 16rpx;
+}
+.hour-item {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16rpx; padding: 16rpx 20rpx; background-color: #F8FAFC; border-radius: 16rpx;
 }
 .piece-worker { display: flex; align-items: center; gap: 16rpx; flex: 1; }
 .piece-info { display: flex; flex-direction: column; gap: 4rpx; }
 .piece-name { font-size: 24rpx; font-weight: 500; color: #1E293B; }
 .piece-sub { font-size: 20rpx; color: #94A3B8; }
+.hour-fields { display: flex; align-items: center; gap: 12rpx; }
+.time-chip {
+  min-width: 120rpx; height: 56rpx; padding: 0 20rpx;
+  border: 2rpx solid #E2E8F0; border-radius: 12rpx;
+  background-color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 22rpx; color: #1E293B;
+}
 .piece-input {
   width: 120rpx; height: 56rpx; border: 2rpx solid #E2E8F0;
   border-radius: 12rpx; text-align: center; font-size: 24rpx;
@@ -72,6 +84,7 @@
   padding: 16rpx 0; border-radius: 12rpx; border: none; margin-top: 24rpx;
   font-weight: 500;
 }
+.piece-submit-primary { background-color: #3B82F6; }
 .piece-submit-btn::after { border: none; }
 
 /* 异常记录 */

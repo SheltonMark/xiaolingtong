@@ -1,73 +1,88 @@
-# 临工招工流程 - 进度日志
+# Phase 2 进度日志
 
-**开始时间**: 2026-03-10
-**当前阶段**: 规划完成，准备实现
+## Session: 2026-03-17
 
----
+### 核查结论
+- 设计文档要求的 Phase 2 功能原先只完成了 UI 接线和少量接口壳层。
+- `task_plan.md` / `progress.md` 之前标记为 complete，但实际存在多处断点：
+  - 主管端前端传了 `workerId`，后端未接收，导致代签到、代记工无效
+  - `work-session` 没有真正提交完整考勤报告
+  - `anomaly` 页面字段和后端接口不一致
+  - 企业端结算页缺少现场照片和提交时间
+  - 结算创建逻辑没有排除缺勤人员
 
-## 会话 1: 规划和设计 (2026-03-10)
+### 本次完成内容
 
-### 完成的工作
-- ✅ 头脑风暴：理清临工端和企业端的流程匹配
-- ✅ 设计方案：选择"统一的业务状态 + 端侧展示层"
-- ✅ 创建实现计划：9 个任务，分 4 个阶段
-- ✅ 创建规划文件：task_plan.md、findings.md、progress.md
+#### 1. 后端 `work` 模块补齐
+- **Status:** complete
+- Actions taken:
+  - 新增主管权限校验与目标工人解析
+  - `checkin` 支持主管为指定工人代签到
+  - `submitLog` 支持主管为指定工人录入工时/计件
+  - `recordAnomaly` 支持选择目标工人并写入当日考勤
+  - `submitAttendance` 改为真正的当日考勤报告 upsert
+  - `getAttendance` 增加照片、提交时间、日期明细能力
+  - 新增 `GET /work/attendance/:jobId/:date`
+  - `confirmAttendance` 进入结算流程并推进状态
+- Files modified:
+  - `server/src/modules/work/work.service.ts`
+  - `server/src/modules/work/work.controller.ts`
+  - `server/src/entities/work-log.entity.ts`
 
-### 关键决策
-1. **状态机设计**: 使用统一的 JobApplication 状态机
-2. **展示层映射**: 临工端 4 个标签，企业端完整流程
-3. **定时任务**: 每小时执行一次
+#### 2. 结算生成逻辑修正
+- **Status:** complete
+- Actions taken:
+  - 生成结算单时排除纯缺勤、无有效考勤的人员
+  - 结算人数改为实际有效参与人数
+- Files modified:
+  - `server/src/modules/settlement/settlement.service.ts`
 
-### 下一步
-- [ ] 开始 Task 1: 完善 JobApplication 状态机
-- [ ] 按顺序完成 9 个任务
-- [ ] 运行完整的测试套件
+#### 3. 主管端页面补齐
+- **Status:** complete
+- Actions taken:
+  - `checkin` 页面把签到照片缓存到工作会话
+  - `work-session` 增加工时录入、计件保存、现场照片缓存
+  - 收工时先提交 `/work/attendance`，再创建结算单
+  - `anomaly` 页面支持读取工人并按真实接口字段提交异常
+- Files modified:
+  - `pages/checkin/checkin.js`
+  - `pages/checkin/checkin.wxml`
+  - `pages/work-session/work-session.js`
+  - `pages/work-session/work-session.wxml`
+  - `pages/work-session/work-session.wxss`
+  - `pages/anomaly/anomaly.js`
 
----
+#### 4. 企业端考勤汇总补齐
+- **Status:** complete
+- Actions taken:
+  - 增加考勤提交时间显示
+  - 增加现场照片预览入口
+  - 确认考勤后同步刷新结算和考勤数据
+- Files modified:
+  - `pages/settlement/settlement.js`
+  - `pages/settlement/settlement.wxml`
+  - `pages/settlement/settlement.wxss`
 
-## 错误日志
+#### 5. 测试与校验
+- **Status:** complete
+- Actions taken:
+  - 重写并补齐 `work` 模块测试
+  - 修复 `server/package.json` 中 `copy-public` 在 PowerShell 下的构建失败问题
+  - 通过 `npm run build`
+  - 通过 TypeScript 构建级别校验
+  - 通过前端脚本语法校验
+- Files modified:
+  - `server/src/modules/work/work.service.spec.ts`
+  - `server/src/modules/work/work.service.phase3.spec.ts`
+  - `server/src/modules/work/work.integration.spec.ts`
 
-| 错误 | 尝试 | 解决方案 |
-|------|------|---------|
-| 无 | - | - |
-
----
-
-## 测试结果
-
-| 测试 | 状态 | 备注 |
-|------|------|------|
-| 无 | - | - |
-
----
-
-## 代码变更
-
-| 文件 | 操作 | 提交 |
-|------|------|------|
-| Docs/plans/2026-03-10-worker-recruitment-flow-implementation.md | 创建 | 9e92d2b |
-| task_plan.md | 创建 | - |
-| findings.md | 创建 | - |
-| progress.md | 创建 | - |
-
----
-
-## 笔记
-
-### 业务流程理解
-- 临工报名后状态为 pending
-- 企业接受后状态为 accepted
-- 临工确认出勤后状态为 confirmed
-- 工作开始日期到达后自动变为 working
-- 工资支付后状态为 done
-
-### 关键时间点
-- 出勤确认提醒: 工作开始前 24 小时
-- 出勤确认截止: 工作开始前 12 小时
-- 自动释放: 截止时间前未确认则释放
-
-### 权限模型
-- 临工: 可以报名、确认出勤、查看自己的报名
-- 企业: 可以接受/拒绝报名、选择管理员、查看工作进度
-- 管理员: 是报名者中的一个，负责驻厂监管
-
+## Verification
+| Check | Result |
+|-------|--------|
+| `npm test -- work.service.spec.ts work.service.phase3.spec.ts work.integration.spec.ts --runInBand` | passed |
+| `npm run build` | passed |
+| `npx tsc -p tsconfig.build.json --noEmit` | passed |
+| `node -c pages/work-session/work-session.js` | passed |
+| `node -c pages/anomaly/anomaly.js` | passed |
+| `node -c pages/checkin/checkin.js` | passed |
+| `node -c pages/settlement/settlement.js` | passed |

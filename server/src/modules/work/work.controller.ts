@@ -13,7 +13,7 @@ export class WorkController {
 
   @Get('session/:jobId')
   getSession(@Param('jobId') jobId: number) {
-    return this.workService.getSession(jobId);
+    return this.workService.getSession(Number(jobId));
   }
 
   @Post('checkin')
@@ -29,5 +29,25 @@ export class WorkController {
   @Post('anomaly')
   recordAnomaly(@CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.workService.recordAnomaly(userId, dto);
+  }
+
+  @Post('attendance')
+  submitAttendance(@CurrentUser('sub') userId: number, @Body() dto: any) {
+    return this.workService.submitAttendance(userId, dto);
+  }
+
+  @Get('attendance/:jobId')
+  getAttendance(@Param('jobId') jobId: number, @Query('date') date?: string) {
+    return this.workService.getAttendance(Number(jobId), date);
+  }
+
+  @Get('attendance/:jobId/:date')
+  getAttendanceByDate(@Param('jobId') jobId: number, @Param('date') date: string) {
+    return this.workService.getAttendance(Number(jobId), date);
+  }
+
+  @Post('attendance/:jobId/confirm')
+  confirmAttendance(@CurrentUser('sub') userId: number, @Param('jobId') jobId: number) {
+    return this.workService.confirmAttendance(userId, Number(jobId));
   }
 }
