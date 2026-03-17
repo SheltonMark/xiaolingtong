@@ -371,7 +371,7 @@ describe('JobService', () => {
   });
 
   describe('manageJobs', () => {
-    it('returns recruitment management items filtered by stage', async () => {
+    it('returns recruitment management items filtered by grouped stage', async () => {
       jobRepository.find.mockResolvedValue([
         {
           id: 1,
@@ -388,6 +388,19 @@ describe('JobService', () => {
         },
         {
           id: 2,
+          userId: 3,
+          title: '进行中岗位',
+          salary: 120,
+          salaryUnit: '元/天',
+          needCount: 3,
+          location: '广东省东莞市长安镇',
+          dateStart: '2026-03-10',
+          dateEnd: '2026-03-20',
+          workHours: '08:00-17:00',
+          status: 'working',
+        },
+        {
+          id: 3,
           userId: 3,
           title: '结算岗位',
           salary: 150,
@@ -412,6 +425,13 @@ describe('JobService', () => {
             ];
           }
 
+          if (jobId === 2) {
+            return [
+              { status: 'working', isSupervisor: 1 },
+              { status: 'confirmed', isSupervisor: 0 },
+            ];
+          }
+
           return [
             { status: 'done', isSupervisor: 1 },
             { status: 'working', isSupervisor: 0 },
@@ -419,12 +439,22 @@ describe('JobService', () => {
         },
       );
 
-      const result = await service.manageJobs(3, { stage: 'settlement' });
+      const result = await service.manageJobs(3, { stage: 'ongoing' });
 
-      expect(result.list).toHaveLength(1);
+      expect(result.list).toHaveLength(2);
       expect(result.list[0]).toMatchObject({
         id: 2,
         companyName: '某企业',
+        filterKey: 'ongoing',
+        stageKey: 'working',
+        actionTab: 'attendance',
+        confirmedCount: 2,
+        supervisorCount: 1,
+      });
+      expect(result.list[1]).toMatchObject({
+        id: 3,
+        companyName: '某企业',
+        filterKey: 'ongoing',
         stageKey: 'settlement',
         actionTab: 'settlement',
         confirmedCount: 2,

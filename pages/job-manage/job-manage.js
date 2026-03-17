@@ -7,9 +7,7 @@ Page({
     tabs: [
       { key: 'all', label: '全部' },
       { key: 'pending', label: '待处理' },
-      { key: 'recruiting', label: '招工中' },
-      { key: 'working', label: '进行中' },
-      { key: 'settlement', label: '待结算' },
+      { key: 'ongoing', label: '进行中' },
       { key: 'closed', label: '已完成' }
     ],
     jobs: []

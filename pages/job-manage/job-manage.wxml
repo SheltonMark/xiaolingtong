@@ -1,15 +1,7 @@
 <view class="jm-page">
   <nav-bar title="招工管理" />
 
-  <view class="jm-hero">
-    <view>
-      <text class="jm-title">招工管理</text>
-      <text class="jm-subtitle">统一处理报名、出勤与结算流程</text>
-    </view>
-    <view class="jm-hero-badge">企业端</view>
-  </view>
-
-  <scroll-view class="jm-tabs" scroll-x enable-flex show-scrollbar="{{false}}">
+  <view class="jm-tabs">
     <view
       wx:for="{{tabs}}"
       wx:key="key"
@@ -19,7 +11,7 @@
     >
       {{item.label}}
     </view>
-  </scroll-view>
+  </view>
 
   <view class="jm-list" wx:if="{{jobs.length > 0}}">
     <view class="jm-card" wx:for="{{jobs}}" wx:key="id">

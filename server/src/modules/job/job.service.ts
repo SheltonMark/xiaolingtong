@@ -338,6 +338,7 @@ export class JobService {
       const supervisorCount = applications.filter((item) => item.isSupervisor === 1).length;
 
       let stageKey = 'recruiting';
+      let filterKey = 'ongoing';
       let stageText = '招工中';
       let stageTone = 'blue';
       let highlight = pendingCount > 0 ? `待审核 ${pendingCount} 人` : '继续招募临工';
@@ -346,6 +347,7 @@ export class JobService {
 
       if (job.status === 'working') {
         stageKey = 'working';
+        filterKey = 'ongoing';
         stageText = '进行中';
         stageTone = 'green';
         highlight = `已到岗 ${confirmedCount} 人`;
@@ -353,6 +355,7 @@ export class JobService {
         actionTab = 'attendance';
       } else if (job.status === 'pending_settlement') {
         stageKey = 'settlement';
+        filterKey = 'ongoing';
         stageText = '待结算';
         stageTone = 'amber';
         highlight = '待确认考勤和结算';
@@ -360,6 +363,7 @@ export class JobService {
         actionTab = 'settlement';
       } else if (['settled', 'closed'].includes(job.status)) {
         stageKey = 'closed';
+        filterKey = 'closed';
         stageText = '已完成';
         stageTone = 'slate';
         highlight = '已完成本次用工';
@@ -367,6 +371,7 @@ export class JobService {
         actionTab = 'settlement';
       } else if (pendingCount > 0) {
         stageKey = 'pending';
+        filterKey = 'pending';
         stageText = '待处理';
         stageTone = 'rose';
         highlight = `待审核 ${pendingCount} 人`;
@@ -384,10 +389,11 @@ export class JobService {
         location: this.extractCityDistrict(job.location),
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart} ~ ${job.dateEnd}` : '',
         workHours: job.workHours || '',
-        status: job.status,
-        stageKey,
-        stageText,
-        stageTone,
+          status: job.status,
+          stageKey,
+          filterKey,
+          stageText,
+          stageTone,
         pendingCount,
         acceptedCount,
         confirmedCount,
@@ -400,7 +406,7 @@ export class JobService {
       };
     }));
 
-    const list = stage === 'all' ? items : items.filter((item) => item.stageKey === stage);
+    const list = stage === 'all' ? items : items.filter((item) => item.filterKey === stage);
     return { list };
   }
 
