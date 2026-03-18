@@ -7,6 +7,7 @@
     "pages/cert-enterprise/cert-enterprise",
     "pages/cert-worker/cert-worker",
     "pages/mine/mine",
+    "pages/contact-profile/contact-profile",
     "pages/messages/messages",
     "pages/publish/publish",
     "pages/publish-job/publish-job",
@@ -104,7 +105,8 @@
   "usingComponents": {
     "nav-bar": "/components/nav-bar/nav-bar",
     "info-card": "/components/info-card/info-card",
-    "empty-state": "/components/empty-state/empty-state"
+    "empty-state": "/components/empty-state/empty-state",
+    "wechat-contact-card": "/components/wechat-contact-card/wechat-contact-card"
   },
   "style": "v2",
   "lazyCodeLoading": "requiredComponents",

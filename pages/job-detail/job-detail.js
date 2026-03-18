@@ -8,7 +8,12 @@ Page({
     userRole: 'worker',
     swiperCurrent: 0,
     isFav: false,
-    job: {}
+    job: {},
+    wechatCardVisible: false,
+    wechatCard: {
+      wechatId: '',
+      wechatQrImage: ''
+    }
   },
 
   onLoad(options) {
@@ -24,7 +29,7 @@ Page({
         ...job,
         images: normalizeImageList(job.images)
       }
-      this.setData({ job: jobData })
+      this.setData({ job: jobData, wechatCardVisible: false })
 
       // 计算距离：优先使用 lat/lng，缺失时自动使用地址地理编码
       getUserLocation()
@@ -106,6 +111,29 @@ Page({
     }
     wx.makePhoneCall({ phoneNumber, fail() {} })
   },
+
+  openWechatCard() {
+    const company = (this.data.job && this.data.job.company) || {}
+    const wechatId = company.wechat || ''
+    const wechatQrImage = company.wechatQrImage || ''
+    if (!wechatId && !wechatQrImage) {
+      wx.showToast({ title: '暂无微信信息', icon: 'none' })
+      return
+    }
+    this.setData({
+      wechatCardVisible: true,
+      wechatCard: { wechatId, wechatQrImage }
+    })
+  },
+
+  onCloseWechatCard() {
+    this.setData({ wechatCardVisible: false })
+  },
+
+  onWechat() {
+    this.openWechatCard()
+  },
+
   onToggleFav() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const id = this.data.job.id

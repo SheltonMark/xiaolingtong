@@ -86,7 +86,12 @@ Page({
     salaryIndex: 0,
     sortBy: 'default',
     // 用户位置
-    userLocation: null // {latitude, longitude}
+    userLocation: null, // {latitude, longitude}
+    wechatCardVisible: false,
+    wechatCard: {
+      wechatId: '',
+      wechatQrImage: ''
+    }
   },
 
   onLoad() {
@@ -336,6 +341,9 @@ Page({
         images: normalizeImageList(item.images),
         avatarText: verifiedName ? companyName[0] : '企',
         time: item.createdAt ? item.createdAt.substring(0, 10) : '',
+        contactWechat: item.contactWechat || item.wechat || '',
+        contactWechatQr: item.contactWechatQr || item.wechatQrImage || '',
+        contactPhone: item.contactPhone || item.phone || '',
         wechat: item.contactWechat || item.wechat || '',
         phone: item.contactPhone || item.phone || '',
         isMember: !!(user.isMember)
@@ -615,6 +623,23 @@ Page({
     return allItems.find(i => String(i.id) === String(id))
   },
 
+  openWechatCard(item) {
+    const wechatId = item.contactWechat || item.wechat || ''
+    const wechatQrImage = item.contactWechatQr || item.wechatQrImage || ''
+    if (!wechatId && !wechatQrImage) {
+      wx.showToast({ title: '发布者未留微信信息', icon: 'none' })
+      return
+    }
+    this.setData({
+      wechatCardVisible: true,
+      wechatCard: { wechatId, wechatQrImage }
+    })
+  },
+
+  onCloseWechatCard() {
+    this.setData({ wechatCardVisible: false })
+  },
+
   onWechat(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     const item = this.getPostItemById(id)
@@ -630,20 +655,7 @@ Page({
     }
 
     if (this.isPostUnlocked(item)) {
-      if (!item.contactWechat) {
-        wx.showToast({ title: '发布者未留微信号', icon: 'none' })
-        return
-      }
-      wx.showModal({
-        title: '微信号',
-        content: item.contactWechat,
-        showCancel: true,
-        cancelText: '关闭',
-        confirmText: '复制',
-        success: (res) => {
-          if (res.confirm) wx.setClipboardData({ data: item.contactWechat })
-        }
-      })
+      this.openWechatCard(item)
       return
     }
 
@@ -677,6 +689,7 @@ Page({
   },
 
   _unlockContact(postId, type) {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const app = getApp()
 
     // 先获取解锁成本预览
@@ -797,6 +810,7 @@ Page({
   },
 
   onChat(e) {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     const item = this.getPostItemById(id)
     const targetUserId = this.getPostOwnerId(item)

@@ -184,6 +184,17 @@
 .add-text { font-size: 18rpx; color: #94A3B8; }
 
 /* 联系方式 */
+.contact-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contact-manage-link {
+  font-size: 22rpx;
+  color: #2563EB;
+}
+
 .contact-info {
   display: flex;
   flex-direction: column;
@@ -213,6 +224,10 @@
   color: #1E293B;
   box-sizing: border-box;
 }
+.contact-link {
+  font-size: 22rpx;
+  color: #2563EB;
+}
 .checkbox {
   width: 32rpx;
   height: 32rpx;
@@ -231,6 +246,21 @@
   font-size: 20rpx;
   color: #94A3B8;
   display: block;
+}
+.qr-brief {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+.qr-thumb {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 16rpx;
+  background: #F8FAFC;
+}
+.qr-brief-text {
+  font-size: 22rpx;
+  color: #334155;
 }
 .validity-picker {
   display: flex;

@@ -1,0 +1,21 @@
+<view wx:if="{{visible}}" class="wechat-card-mask" catchtap="onClose">
+  <view class="wechat-card" catchtap="noop">
+    <view class="wechat-card-head">
+      <text class="wechat-card-title">{{title}}</text>
+      <text class="wechat-card-close" bindtap="onClose">×</text>
+    </view>
+
+    <view wx:if="{{wechatQrImage}}" class="wechat-qr-wrap">
+      <image class="wechat-qr-image" src="{{wechatQrImage}}" mode="aspectFit" show-menu-by-longpress="{{true}}" />
+      <text class="wechat-qr-hint">长按二维码识别</text>
+    </view>
+
+    <view class="wechat-id-row">
+      <view class="wechat-id-main">
+        <text class="wechat-id-label">微信号</text>
+        <text class="wechat-id-value">{{wechatId || '未填写'}}</text>
+      </view>
+      <view class="wechat-copy-btn" bindtap="onCopy">复制</view>
+    </view>
+  </view>
+</view>

@@ -36,6 +36,18 @@ export class Post {
   @Column({ length: 64, nullable: true })
   contactWechat: string;
 
+  @Column({ length: 512, nullable: true })
+  contactWechatQr: string;
+
+  @Column({ type: 'tinyint', default: 0 })
+  showPhone: number;
+
+  @Column({ type: 'tinyint', default: 0 })
+  showWechat: number;
+
+  @Column({ type: 'tinyint', default: 0 })
+  showWechatQr: number;
+
   @Column({ length: 128, nullable: true })
   location: string;
 

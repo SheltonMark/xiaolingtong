@@ -1,15 +1,10 @@
 .cert-page { min-height: 100vh; background-color: #F8FAFC; }
 
-/* 提示条 */
 .tip-banner { margin: 24rpx 32rpx 0; border-radius: 20rpx; padding: 24rpx; display: flex; align-items: flex-start; gap: 12rpx; }
-.tip-blue { background-color: #EFF6FF; }
 .tip-orange { background-color: #FFF7ED; }
 .tip-icon { font-size: 28rpx; flex-shrink: 0; margin-top: 2rpx; }
-.tip-text { font-size: 24rpx; line-height: 1.6; }
-.tip-blue .tip-text { color: #3B82F6; }
-.tip-orange .tip-text { color: #EA580C; }
+.tip-text { font-size: 24rpx; line-height: 1.6; color: #EA580C; }
 
-/* 步骤指示器 */
 .steps { display: flex; align-items: flex-start; justify-content: center; margin: 28rpx 32rpx 0; gap: 0; }
 .step { display: flex; flex-direction: column; align-items: center; }
 .step-circle { width: 48rpx; height: 48rpx; border-radius: 50%; background-color: #E2E8F0; color: #fff; font-size: 22rpx; font-weight: 700; display: flex; align-items: center; justify-content: center; }
@@ -18,7 +13,6 @@
 .step-label-active { color: #F97316; font-weight: 500; }
 .step-line { width: 80rpx; height: 4rpx; background-color: #E2E8F0; margin-top: 22rpx; margin-left: 8rpx; margin-right: 8rpx; }
 
-/* 表单 */
 .form-area { padding: 24rpx 24rpx 48rpx; }
 .form-group { margin-bottom: 28rpx; }
 .form-label { font-size: 24rpx; font-weight: 500; color: #1E293B; margin-bottom: 12rpx; display: block; }
@@ -26,12 +20,53 @@
 .optional { color: #94A3B8; font-weight: 400; }
 .form-input { width: 100%; height: 80rpx; background-color: #fff; border: 1rpx solid #E2E8F0; border-radius: 20rpx; padding: 0 24rpx; font-size: 26rpx; color: #1E293B; box-sizing: border-box; }
 
-/* 手机号+验证码行 */
-.phone-row { display: flex; gap: 16rpx; }
-.phone-input { flex: 1; }
-.sms-btn { flex-shrink: 0; height: 80rpx; padding: 0 24rpx; background-color: rgba(249,115,22,0.1); color: #F97316; font-size: 24rpx; font-weight: 500; border-radius: 20rpx; display: flex; align-items: center; justify-content: center; }
+.verify-row { display: flex; gap: 16rpx; align-items: center; }
+.verify-row-bottom { margin-top: 16rpx; }
+.verify-input { flex: 1; }
+.sms-btn,
+.verify-btn {
+  flex-shrink: 0;
+  min-width: 164rpx;
+  height: 80rpx;
+  padding: 0 24rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  font-weight: 600;
+  box-sizing: border-box;
+}
+.sms-btn { background-color: rgba(249,115,22,0.1); color: #F97316; }
+.sms-btn-disabled { opacity: 0.6; }
+.verify-btn { background-color: #F97316; color: #fff; }
+.verify-btn-done { background-color: #10B981; }
+.verify-status {
+  margin-top: 16rpx;
+  flex: 1;
+  min-height: 80rpx;
+  background-color: #fff;
+  border: 1rpx solid #E2E8F0;
+  border-radius: 20rpx;
+  padding: 18rpx 24rpx;
+  box-sizing: border-box;
+  font-size: 22rpx;
+  color: #64748B;
+  line-height: 1.5;
+}
+.verify-status-done {
+  border-color: #A7F3D0;
+  background-color: #ECFDF5;
+  color: #047857;
+}
+.verify-hint {
+  display: block;
+  font-size: 20rpx;
+  line-height: 1.6;
+  color: #94A3B8;
+  margin-top: 12rpx;
+}
 
-/* 上传 */
 .upload-grid { display: flex; gap: 20rpx; }
 .upload-half { flex: 1; height: 220rpx; background-color: #fff; border: 2rpx dashed #E2E8F0; border-radius: 20rpx; overflow: hidden; display: flex; align-items: center; justify-content: center; }
 .upload-preview { width: 100%; height: 100%; }
@@ -39,7 +74,6 @@
 .upload-icon { font-size: 56rpx; color: #CBD5E1; }
 .upload-hint-sm { font-size: 20rpx; color: #94A3B8; }
 
-/* 工种标签 */
 .tag-list { display: flex; flex-wrap: wrap; gap: 12rpx; }
 .skill-tag {
   font-size: 22rpx;
@@ -56,7 +90,6 @@
   font-weight: 600;
 }
 
-/* 提交 */
 .submit-btn { width: 100%; height: 88rpx; line-height: 88rpx; border-radius: 20rpx; font-size: 28rpx; font-weight: 600; color: #fff; border: none; margin-top: 16rpx; text-align: center; padding: 0; }
 .submit-btn::after { border: none; }
 .submit-orange { background-color: #F97316; box-shadow: 0 8rpx 24rpx rgba(249,115,22,0.3); }

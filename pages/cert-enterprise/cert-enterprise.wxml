@@ -1,25 +1,20 @@
-<!--pages/cert-enterprise/cert-enterprise.wxml-->
 <view class="cert-page">
   <nav-bar title="企业认证" />
-  <view class="tip-banner tip-blue">
-    <text class="tip-icon iconfont icon-tishixinxi"></text>
-    <text class="tip-text">完成企业认证后，即可发布供需信息、查看联系方式。请确保信息真实有效。</text>
-  </view>
 
   <view class="form-area">
     <view class="form-group">
       <text class="form-label">公司简称 <text class="required">*</text></text>
-      <input class="form-input" placeholder="用于显示的公司名称，如：鑫达贸易" data-field="companyName" bindinput="onInput" />
+      <input class="form-input" placeholder="用于前台展示的公司名称" data-field="companyName" value="{{form.companyName}}" bindinput="onInput" />
     </view>
 
     <view class="form-group">
-      <text class="form-label">营业执照全称 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入营业执照上的企业全称" data-field="fullName" bindinput="onInput" />
+      <text class="form-label">营业执照全称</text>
+      <input class="form-input" placeholder="请输入营业执照上的企业全称" data-field="fullName" value="{{form.fullName}}" bindinput="onInput" />
     </view>
 
     <view class="form-group">
       <text class="form-label">统一社会信用代码 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入18位信用代码" data-field="creditCode" bindinput="onInput" />
+      <input class="form-input" placeholder="请输入18位统一社会信用代码" data-field="creditCode" value="{{form.creditCode}}" bindinput="onInput" />
     </view>
 
     <view class="form-group">
@@ -31,11 +26,12 @@
           <text class="upload-hint">点击上传营业执照照片</text>
         </view>
       </view>
+      <text class="verify-hint">上传后会自动识别企业名称、信用代码、法人姓名等信息，识别结果可手动修改。</text>
     </view>
 
     <view class="form-group">
       <text class="form-label">法人姓名</text>
-      <input class="form-input" placeholder="请输入法人姓名（选填）" data-field="legalPerson" bindinput="onInput" />
+      <input class="form-input" placeholder="请输入法人姓名（选填）" data-field="legalPerson" value="{{form.legalPerson}}" bindinput="onInput" />
     </view>
 
     <view class="form-group">
@@ -51,7 +47,7 @@
         <view class="upload-area upload-half" bindtap="onUploadIdBack">
           <image wx:if="{{idBackImage}}" src="{{idBackImage}}" mode="aspectFill" class="upload-preview" />
           <view wx:else class="upload-placeholder">
-            <text class="upload-icon-sm iconfont icon-shenfenzheng"></text>
+            <text class="upload-icon-sm iconfont icon-shenfenzhengfanmian"></text>
             <text class="upload-hint-sm">国徽面</text>
           </view>
         </view>
@@ -71,37 +67,50 @@
       <picker mode="selector" range="{{categoryNames}}" value="{{categoryIndex}}" bindchange="onCategoryChange">
         <view class="form-select">
           <text class="{{selectedCategory ? 'select-text' : 'select-placeholder'}}">{{selectedCategory || '请选择主营品类'}}</text>
-          <text class="select-arrow">▾</text>
+          <text class="select-arrow">▼</text>
         </view>
       </picker>
     </view>
 
     <view class="form-group">
       <text class="form-label">联系人 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入联系人姓名" data-field="contactName" bindinput="onInput" />
+      <input class="form-input" placeholder="请输入联系人姓名" data-field="contactName" value="{{form.contactName}}" bindinput="onInput" />
     </view>
 
     <view class="form-group">
       <text class="form-label">联系电话 <text class="required">*</text></text>
-      <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" bindinput="onInput" />
+      <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" value="{{form.phone}}" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">短信验证码 <text class="required">*</text></text>
+      <view class="verify-row">
+        <input class="form-input verify-input" type="number" maxlength="6" placeholder="请输入6位验证码" value="{{smsCode}}" bindinput="onSmsCodeInput" />
+        <view class="sms-btn {{smsCountdown ? 'sms-btn-disabled' : ''}}" bindtap="onSendSms">
+          {{smsCountdown ? smsCountdown + 's后重发' : '发送验证码'}}
+        </view>
+      </view>
+      <view wx:if="{{verifyingSms || verificationToken}}" class="verify-status {{verificationToken ? 'verify-status-done' : ''}}">
+        {{verificationToken ? '验证码已通过' : '验证码校验中...'}}
+      </view>
     </view>
 
     <view class="form-group">
       <text class="form-label">所在地区</text>
       <picker mode="region" bindchange="onRegionChange">
         <view class="form-select">
-          <text class="{{form.city ? 'select-text' : 'select-placeholder'}}">{{form.city || '请选择省/市/区'}}</text>
-          <text class="select-arrow">▾</text>
+          <text class="{{form.city ? 'select-text' : 'select-placeholder'}}">{{form.city || '请选择省 / 市 / 区'}}</text>
+          <text class="select-arrow">▼</text>
         </view>
       </picker>
     </view>
 
     <view class="form-group">
       <text class="form-label">详细地址</text>
-      <input class="form-input" placeholder="请输入街道、门牌号等详细地址" data-field="addressDetail" bindinput="onInput" />
+      <input class="form-input" placeholder="请输入街道、门牌号等详细地址" data-field="addressDetail" value="{{form.addressDetail}}" bindinput="onInput" />
     </view>
 
     <button class="submit-btn submit-blue" bindtap="onSubmit">提交认证</button>
-    <text class="submit-hint">审核结果将在1-3个工作日内通知您</text>
+    <text class="submit-hint">审核结果将在 1-3 个工作日内通知您</text>
   </view>
 </view>

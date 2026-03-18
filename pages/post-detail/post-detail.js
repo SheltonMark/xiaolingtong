@@ -16,7 +16,12 @@ Page({
     contactUnlocked: false,
     contactInfo: {},
     isOwner: false,
-    isUnlocked: false
+    isUnlocked: false,
+    wechatCardVisible: false,
+    wechatCard: {
+      wechatId: '',
+      wechatQrImage: ''
+    }
   },
 
   onLoad(options) {
@@ -184,7 +189,7 @@ Page({
   },
 
   loadDetail(id) {
-    get('/posts/' + id).then(res => {
+    return get('/posts/' + id).then(res => {
       const data = res.data || {}
       const detail = this.formatDetail(data)
 
@@ -196,10 +201,18 @@ Page({
       const contactInfo = {
         name: data.contactName || '',
         phone: data.contactPhone || '',
-        wechat: data.contactWechat || ''
+        wechat: data.contactWechat || '',
+        wechatQrImage: data.contactWechatQr || ''
       }
 
-      this.setData({ detail, contactUnlocked, contactInfo, isOwner, isUnlocked })
+      this.setData({
+        detail,
+        contactUnlocked,
+        contactInfo,
+        isOwner,
+        isUnlocked,
+        wechatCardVisible: false
+      })
     }).catch(() => {})
   },
 
@@ -346,44 +359,54 @@ Page({
       const cost = data.cost || 0
       const msg = cost === 0 ? '免费解锁成功' : `解锁成功，已扣 ${cost} 灵豆`
       wx.showToast({ title: msg, icon: 'success' })
-      this.loadDetail(this.data.detail.id)
+      this.loadDetail(this.data.detail.id).then(() => {
+        setTimeout(() => this.onShowContact(), 200)
+      })
     }).catch((err) => {
       wx.hideLoading()
       wx.showToast({ title: err.message || '解锁失败', icon: 'none' })
     })
   },
 
+  openWechatCard() {
+    const contactInfo = this.data.contactInfo || {}
+    const wechatId = contactInfo.wechat || ''
+    const wechatQrImage = contactInfo.wechatQrImage || ''
+
+    if (!wechatId && !wechatQrImage) {
+      wx.showToast({ title: '发布者未留微信信息', icon: 'none' })
+      return
+    }
+
+    this.setData({
+      wechatCardVisible: true,
+      wechatCard: { wechatId, wechatQrImage }
+    })
+  },
+
+  onCloseWechatCard() {
+    this.setData({ wechatCardVisible: false })
+  },
+
   onShowContact() {
     const contactInfo = this.data.contactInfo || {}
     const wechat = contactInfo.wechat || ''
+    const wechatQrImage = contactInfo.wechatQrImage || ''
     const phone = contactInfo.phone || ''
+    const hasWechat = !!(wechat || wechatQrImage)
 
-    if (!wechat && !phone) {
+    if (!hasWechat && !phone) {
       wx.showToast({ title: '发布者未留联系方式', icon: 'none' })
       return
     }
 
-    // 如果两者都有，让用户选择
-    if (wechat && phone) {
+    if (hasWechat && phone) {
       wx.showActionSheet({
-        itemList: ['查看微信号', '拨打电话'],
+        itemList: ['查看微信', '拨打电话'],
         success: (res) => {
           if (res.tapIndex === 0) {
-            // 查看微信号
-            wx.showModal({
-              title: '微信号',
-              content: wechat,
-              showCancel: true,
-              cancelText: '关闭',
-              confirmText: '复制',
-              success: (modalRes) => {
-                if (modalRes.confirm) {
-                  wx.setClipboardData({ data: wechat })
-                }
-              }
-            })
+            this.openWechatCard()
           } else if (res.tapIndex === 1) {
-            // 拨打电话
             wx.makePhoneCall({ phoneNumber: phone, fail() {} })
           }
         }
@@ -391,24 +414,11 @@ Page({
       return
     }
 
-    // 只有微信
-    if (wechat) {
-      wx.showModal({
-        title: '微信号',
-        content: wechat,
-        showCancel: true,
-        cancelText: '关闭',
-        confirmText: '复制',
-        success: (res) => {
-          if (res.confirm) {
-            wx.setClipboardData({ data: wechat })
-          }
-        }
-      })
+    if (hasWechat) {
+      this.openWechatCard()
       return
     }
 
-    // 只有电话
     if (phone) {
       wx.makePhoneCall({ phoneNumber: phone, fail() {} })
     }

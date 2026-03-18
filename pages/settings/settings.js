@@ -1,12 +1,10 @@
 const { put, upload } = require('../../utils/request')
-const auth = require('../../utils/auth')
 const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
   data: {
     userRole: 'enterprise',
     nickname: '',
-    phone: '',
     cacheSize: '0 MB',
     version: 'v1.0.0',
     avatarUrl: '',
@@ -23,7 +21,6 @@ Page({
     this.setData({
       userRole,
       nickname,
-      phone: userInfo.phone || '',
       avatarUrl,
       avatarText: nickname ? nickname[0] : '',
       avatarColor: userRole === 'enterprise' ? '#3B82F6' : '#F97316'
@@ -37,7 +34,7 @@ Page({
       success: (res) => {
         const tempPath = res.tempFiles[0].tempFilePath
         upload(tempPath).then(r => {
-          const url = r.data.url || r.data
+          const url = (r.data && r.data.url) || r.data
           return put('/settings/avatar', { avatarUrl: url }).then(() => {
             getApp().globalData.avatarUrl = url
             wx.setStorageSync('avatarUrl', url)
@@ -45,32 +42,10 @@ Page({
             wx.showToast({ title: '头像已更新', icon: 'success' })
           })
         }).catch(() => {
-          // fallback 本地
           getApp().globalData.avatarUrl = tempPath
           wx.setStorageSync('avatarUrl', tempPath)
           this.setData({ avatarUrl: tempPath })
         })
-      }
-    })
-  },
-
-  onPhoneTap() {
-    const { phone } = this.data
-    if (!phone) {
-      wx.showToast({ title: '暂无手机号', icon: 'none' })
-      return
-    }
-    wx.showActionSheet({
-      itemList: ['复制手机号', '修改手机号'],
-      success: (res) => {
-        if (res.tapIndex === 0) {
-          // 复制手机号
-          wx.setClipboardData({ data: phone })
-          wx.showToast({ title: '已复制', icon: 'success' })
-        } else if (res.tapIndex === 1) {
-          // 修改手机号
-          wx.navigateTo({ url: '/pages/settings/settings' })
-        }
       }
     })
   },

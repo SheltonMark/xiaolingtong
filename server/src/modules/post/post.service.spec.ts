@@ -228,7 +228,7 @@ describe('PostService', () => {
 
       await service.list({ keyword: 'test', page: 1, pageSize: 20 });
 
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.content LIKE :kw', { kw: '%test%' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('(p.title LIKE :kw OR p.content LIKE :kw)', { kw: '%test%' });
     });
 
     it('should return empty list when no posts found', async () => {
@@ -516,6 +516,8 @@ describe('PostService', () => {
         category: 'electronics',
         description: 'test description',
         validityDays: 30,
+        showPhone: true,
+        contactPhone: '13800138000',
       };
 
       const mockPost = { id: 1, userId: 1, ...dto };
@@ -530,7 +532,7 @@ describe('PostService', () => {
       expect(createCall.expireAt).toBeDefined();
     });
 
-    it('should handle missing contact information', async () => {
+    it('should reject when no contact method is selected', async () => {
       const dto = {
         type: 'purchase',
         title: 'test product',
@@ -538,16 +540,8 @@ describe('PostService', () => {
         description: 'test description',
       };
 
-      const mockPost = { id: 1, userId: 1, ...dto };
-
       keywordRepo.find.mockResolvedValue([]);
-      postRepo.create.mockReturnValue(mockPost);
-      postRepo.save.mockResolvedValue(mockPost);
-
-      await service.create(1, dto);
-
-      const createCall = postRepo.create.mock.calls[0][0];
-      expect(createCall.contactName).toBeUndefined();
+      await expect(service.create(1, dto)).rejects.toThrow('请至少选择一种联系方式');
     });
   });
 

@@ -79,4 +79,11 @@
       <text>{{isUnlocked ? '立即联系' : '解锁联系方式'}}</text>
     </button>
   </view>
+
+  <wechat-contact-card
+    visible="{{wechatCardVisible}}"
+    wechat-id="{{wechatCard.wechatId}}"
+    wechat-qr-image="{{wechatCard.wechatQrImage}}"
+    bind:close="onCloseWechatCard"
+  />
 </view>

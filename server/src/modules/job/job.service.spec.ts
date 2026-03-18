@@ -70,7 +70,13 @@ describe('JobService', () => {
 
     enterpriseCertRepository = {
       findOne: jest.fn(),
-      createQueryBuilder: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }),
     };
 
     userRepository = {
@@ -89,7 +95,7 @@ describe('JobService', () => {
     };
 
     sysConfigRepository = {
-      findOne: jest.fn(),
+      findOne: jest.fn().mockResolvedValue(null),
     };
 
     const module: TestingModule = await Test.createTestingModule({

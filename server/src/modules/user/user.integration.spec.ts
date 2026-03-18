@@ -2,12 +2,15 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
+import { ContactProfile } from '../../entities/contact-profile.entity';
+import { VerificationSession } from '../../entities/verification-session.entity';
 
 describe('UserModule Integration Tests', () => {
   let controller: UserController;
@@ -15,6 +18,9 @@ describe('UserModule Integration Tests', () => {
   let userRepository: any;
   let enterpriseCertRepository: any;
   let workerCertRepository: any;
+  let contactProfileRepository: any;
+  let verificationSessionRepository: any;
+  let configService: any;
 
   beforeEach(async () => {
     userRepository = {
@@ -37,6 +43,26 @@ describe('UserModule Integration Tests', () => {
       create: jest.fn(),
     };
 
+    contactProfileRepository = {
+      findOneBy: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn(),
+    };
+
+    verificationSessionRepository = {
+      findOneBy: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn(),
+    };
+
+    configService = {
+      get: jest.fn((key: string, defaultValue?: any) => {
+        if (key === 'NODE_ENV') return 'test';
+        if (key === 'TENCENT_SMS_MOCK') return '1';
+        return defaultValue;
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserController],
       providers: [
@@ -53,6 +79,18 @@ describe('UserModule Integration Tests', () => {
           provide: getRepositoryToken(WorkerCert),
           useValue: workerCertRepository,
         },
+        {
+          provide: getRepositoryToken(ContactProfile),
+          useValue: contactProfileRepository,
+        },
+        {
+          provide: getRepositoryToken(VerificationSession),
+          useValue: verificationSessionRepository,
+        },
+        {
+          provide: ConfigService,
+          useValue: configService,
+        },
       ],
     }).compile();
 
@@ -66,24 +104,71 @@ describe('UserModule Integration Tests', () => {
 
   describe('submitEnterpriseCert Integration', () => {
     it('should submit enterprise certification successfully', async () => {
-      const dto = { companyName: 'Test Co', licenseNumber: '123456' };
-      const mockResult = { id: 1, userId: 1, ...dto, status: 'pending' };
+      const dto = {
+        companyName: 'Test Co',
+        creditCode: '91310000123456789A',
+        licenseImage: 'https://cdn.test/license.png',
+        contactName: 'Alice',
+        verificationToken: 'token-enterprise-1',
+      };
+      const session = {
+        userId: 1,
+        scene: 'enterprise_cert',
+        phone: '13800000000',
+        verificationToken: 'token-enterprise-1',
+        verifiedAt: new Date(),
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      };
+      const mockResult = {
+        id: 1,
+        userId: 1,
+        companyName: 'Test Co',
+        creditCode: '91310000123456789A',
+        licenseImage: 'https://cdn.test/license.png',
+        contactName: 'Alice',
+        contactPhone: '13800000000',
+        status: 'pending',
+      };
 
+      verificationSessionRepository.findOneBy.mockResolvedValueOnce(session);
+      verificationSessionRepository.save.mockResolvedValue({ ...session, verificationToken: null });
+      userRepository.update.mockResolvedValue({ affected: 1 });
       enterpriseCertRepository.findOneBy.mockResolvedValue(null);
-      enterpriseCertRepository.create.mockReturnValue(mockResult);
+      enterpriseCertRepository.create.mockImplementation((payload: any) => payload);
       enterpriseCertRepository.save.mockResolvedValue(mockResult);
 
       const result = await controller.submitEnterpriseCert(1, dto);
 
       expect(result).toBeDefined();
+      expect(userRepository.update).toHaveBeenCalledWith(1, {
+        verifiedPhone: '13800000000',
+        phone: '13800000000',
+      });
       expect(enterpriseCertRepository.save).toHaveBeenCalled();
     });
 
     it('should handle duplicate submission', async () => {
-      const dto = { companyName: 'Test Co', licenseNumber: '123456' };
+      const dto = {
+        companyName: 'Test Co',
+        creditCode: '91310000123456789A',
+        licenseImage: 'https://cdn.test/license.png',
+        contactName: 'Alice',
+        verificationToken: 'token-enterprise-2',
+      };
+      const session = {
+        userId: 1,
+        scene: 'enterprise_cert',
+        phone: '13900000000',
+        verificationToken: 'token-enterprise-2',
+        verifiedAt: new Date(),
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      };
       const existing = { id: 1, userId: 1, companyName: 'Old Co', status: 'approved' };
-      const mockResult = { ...existing, ...dto, status: 'pending' };
+      const mockResult = { ...existing, companyName: 'Test Co', contactPhone: '13900000000', status: 'pending' };
 
+      verificationSessionRepository.findOneBy.mockResolvedValueOnce(session);
+      verificationSessionRepository.save.mockResolvedValue({ ...session, verificationToken: null });
+      userRepository.update.mockResolvedValue({ affected: 1 });
       enterpriseCertRepository.findOneBy.mockResolvedValue(existing);
       enterpriseCertRepository.save.mockResolvedValue(mockResult);
 
@@ -96,16 +181,46 @@ describe('UserModule Integration Tests', () => {
 
   describe('submitWorkerCert Integration', () => {
     it('should submit worker certification successfully', async () => {
-      const dto = { name: 'John', idNumber: '123456789' };
-      const mockResult = { id: 1, userId: 1, ...dto, status: 'pending' };
+      const dto = {
+        name: 'John',
+        idNumber: '123456789',
+        phone: '13800138000',
+        frontImage: 'front.png',
+        backImage: 'back.png',
+        verificationToken: 'token-worker-1',
+      };
+      const session = {
+        userId: 1,
+        scene: 'worker_cert',
+        phone: '13800138000',
+        verificationToken: 'token-worker-1',
+        verifiedAt: new Date(),
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      };
+      const mockResult = {
+        id: 1,
+        userId: 1,
+        realName: 'John',
+        idNo: '123456789',
+        idFrontImage: 'front.png',
+        idBackImage: 'back.png',
+        status: 'pending',
+      };
 
+      verificationSessionRepository.findOneBy.mockResolvedValueOnce(session);
+      verificationSessionRepository.save.mockResolvedValue({ ...session, verificationToken: null });
+      userRepository.update.mockResolvedValue({ affected: 1 });
       workerCertRepository.findOneBy.mockResolvedValue(null);
-      workerCertRepository.create.mockReturnValue(mockResult);
+      workerCertRepository.create.mockImplementation((payload: any) => payload);
       workerCertRepository.save.mockResolvedValue(mockResult);
 
       const result = await controller.submitWorkerCert(1, dto);
 
       expect(result).toBeDefined();
+      expect(userRepository.update).toHaveBeenCalledWith(1, {
+        verifiedPhone: '13800138000',
+        phone: '13800138000',
+      });
       expect(workerCertRepository.save).toHaveBeenCalled();
     });
   });
