@@ -107,6 +107,21 @@ page {
 }
 .contact-label { font-size: 24rpx; color: #64748B; }
 .contact-value { font-size: 24rpx; color: #1E293B; }
+.contact-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4rpx;
+}
+.contact-action-text {
+  font-size: 24rpx;
+  color: #2563EB;
+  font-weight: 600;
+}
+.contact-action-hint {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
 
 /* 收藏 */
 .fav-active { color: #F59E0B; }

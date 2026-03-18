@@ -8,12 +8,22 @@ import { JobService } from './job.service';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { User } from '../../entities/user.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { Notification } from '../../entities/notification.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 
 describe('JobService', () => {
   let service: JobService;
   let jobRepository: any;
   let keywordRepository: any;
   let jobApplicationRepository: any;
+  let enterpriseCertRepository: any;
+  let userRepository: any;
+  let beanTransactionRepository: any;
+  let notificationRepository: any;
+  let sysConfigRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -39,6 +49,36 @@ describe('JobService', () => {
       update: jest.fn(),
     };
 
+    enterpriseCertRepository = {
+      findOne: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }),
+    };
+
+    userRepository = {
+      findOneBy: jest.fn(),
+      save: jest.fn(),
+    };
+
+    beanTransactionRepository = {
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    notificationRepository = {
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
+    sysConfigRepository = {
+      findOne: jest.fn().mockResolvedValue(null),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -53,6 +93,26 @@ describe('JobService', () => {
         {
           provide: getRepositoryToken(JobApplication),
           useValue: jobApplicationRepository,
+        },
+        {
+          provide: getRepositoryToken(EnterpriseCert),
+          useValue: enterpriseCertRepository,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: userRepository,
+        },
+        {
+          provide: getRepositoryToken(BeanTransaction),
+          useValue: beanTransactionRepository,
+        },
+        {
+          provide: getRepositoryToken(Notification),
+          useValue: notificationRepository,
+        },
+        {
+          provide: getRepositoryToken(SysConfig),
+          useValue: sysConfigRepository,
         },
       ],
     }).compile();

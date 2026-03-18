@@ -97,6 +97,13 @@
         <text class="contact-label">联系电话</text>
         <text class="contact-value text-primary font-medium" bindtap="onCallPhone">{{job.company.phone}}</text>
       </view>
+      <view class="contact-row" wx:if="{{job.company.wechat || job.company.wechatQrImage}}">
+        <text class="contact-label">微信联系</text>
+        <view class="contact-action" bindtap="onWechat">
+          <text class="contact-action-text">查看微信</text>
+          <text class="contact-action-hint">{{job.company.wechatQrImage ? '长按二维码识别' : '点击查看并复制'}}</text>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -126,5 +133,12 @@
       <view class="bar-btn-phone" style="flex: 1;" bindtap="onCallPhone">联系电话</view>
     </view>
   </view>
+
+  <wechat-contact-card
+    visible="{{wechatCardVisible}}"
+    wechat-id="{{wechatCard.wechatId}}"
+    wechat-qr-image="{{wechatCard.wechatQrImage}}"
+    bind:close="onCloseWechatCard"
+  />
 
 </view>

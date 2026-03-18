@@ -34,6 +34,7 @@ The design is intentionally product-complete: it covers front end, backend inter
 - Post publishing contact enhancements
 - WeChat contact card UI after unlock
 - Mine page certification-status click-through when not certified
+- Hide the redundant phone-only entry in settings after the mine page exposes `联系方式`
 - Certificate-upload icon audit, including ID-card back-side icon correctness
 
 ### Excluded From Phase 1
@@ -115,6 +116,89 @@ Use SMS verification to confirm phone ownership during enterprise and worker cer
 - Retry limit
 - Space reserved for stronger anti-abuse measures such as image captcha or risk scoring
 
+## Module 2A: Tencent Cloud Integration And Billing
+
+### Integration Decision
+
+Phase 1 will connect OCR and certification SMS through Tencent Cloud directly from the backend.
+
+Implementation direction:
+
+- OCR uses Tencent Cloud OCR APIs
+- certification SMS uses Tencent Cloud SMS APIs
+- the backend signs requests with Tencent Cloud `SecretId` and `SecretKey`
+- the mini program continues uploading images through the existing `/upload` flow, and OCR consumes the uploaded image URL
+
+This keeps the front-end upload path unchanged and avoids introducing a second upload or cloud-function flow just for OCR.
+
+### Products To Open
+
+Before production rollout, the following Tencent Cloud capabilities must be available:
+
+- OCR service, including:
+  - ID-card OCR
+  - business-license OCR
+- SMS service, for domestic SMS sending during certification
+- API key access (`SecretId` / `SecretKey`) with permission to call OCR and SMS APIs
+
+Recommended account setup:
+
+- use a Tencent Cloud enterprise-authenticated account
+- create a CAM sub-account or scoped key for the server instead of using a broad root key
+- grant only the permissions required for OCR and SMS calls
+
+### Billing And Lead-Time Notes
+
+Operational notes confirmed against Tencent Cloud official documentation:
+
+- OCR can usually be started with the platform's free quota, and later expanded with resource packs or postpaid billing if volume grows
+- SMS normally requires:
+  - opening the SMS product
+  - creating an SMS application
+  - preparing and approving an SMS signature
+  - preparing and approving an SMS template
+  - purchasing an available SMS package before real sending
+- SMS signature/template approval may require business materials and review time, so this should be prepared before launch
+
+Exact pricing, free-quota rules, and package availability are controlled by Tencent Cloud and may change. The release checklist should always use the current Tencent Cloud console values as the final source of truth.
+
+### Required Environment Variables
+
+The backend should read the following configuration values:
+
+```env
+# Tencent Cloud shared credentials for OCR + SMS.
+# Leave empty until the Tencent Cloud account, permissions, and products are ready.
+TENCENT_CLOUD_SECRET_ID=
+TENCENT_CLOUD_SECRET_KEY=
+
+# OCR
+TENCENT_OCR_REGION=ap-beijing
+
+# SMS
+TENCENT_SMS_REGION=ap-guangzhou
+TENCENT_SMS_SDK_APP_ID=
+TENCENT_SMS_SIGN_NAME=
+TENCENT_SMS_CERT_TEMPLATE_ID=
+
+# Optional per-scene override templates
+TENCENT_SMS_WORKER_CERT_TEMPLATE_ID=
+TENCENT_SMS_ENTERPRISE_CERT_TEMPLATE_ID=
+```
+
+### Runtime Behavior When Config Is Missing
+
+Recommended backend behavior:
+
+- in production:
+  - missing Tencent Cloud credentials or SMS template config should fail certification SMS with a clear server error
+  - missing Tencent Cloud credentials should fail OCR with a clear server error
+- in local development and test:
+  - SMS may fall back to debug-code mode when Tencent Cloud is not yet configured
+  - OCR may fall back to unconfigured or mock responses so developers can continue form-link work without blocking the entire flow
+
+This keeps production honest while still allowing staged development before the real Tencent Cloud resources are applied for.
+
 ## Module 3: Contact Profile
 
 ### Product Positioning
@@ -128,6 +212,9 @@ Introduce an explicit contact-information module in the mine page. This gives us
 Recommended placement:
 
 - Add a new function-grid item in the mine page: `联系方式`
+- Keep it in an early function-grid slot so it stays prominent and is less likely to collide with later business-grid additions during merge
+
+Once this entry exists, settings should no longer carry a standalone phone-management cell. Settings should stay focused on generic app/account items such as avatar, cache, agreement, privacy policy, and logout.
 
 This is preferable to hiding it under settings because it is business data, not just account settings.
 
@@ -494,6 +581,9 @@ Unlocked detail responses should return the full contact object:
 
 - Tencent Cloud ID Card OCR: https://cloud.tencent.com/document/product/866/33524
 - Tencent Cloud Business License OCR: https://cloud.tencent.com/document/product/866/36215
+- Tencent Cloud OCR billing and quotas: https://cloud.tencent.com/document/product/866/17622
 - Tencent Cloud Card OCR product overview: https://cloud.tencent.com/product/cardocr
+- Tencent Cloud SMS quick start: https://cloud.tencent.com/document/product/382/37745
+- Tencent Cloud SendSms API: https://cloud.tencent.com/document/api/382/55981
+- Tencent Cloud API key management: https://cloud.tencent.com/document/product/598/37140
 - WeChat Mini Program `wx.previewImage`: https://developers.weixin.qq.com/miniprogram/dev/api/media/image/wx.previewImage.html
-

@@ -57,7 +57,7 @@ describe('PostController', () => {
 
       const result = await controller.list(query);
 
-      expect(postService.list).toHaveBeenCalledWith(query);
+      expect(postService.list).toHaveBeenCalledWith(query, 0);
       expect(result.list).toHaveLength(1);
       expect(result.total).toBe(1);
     });

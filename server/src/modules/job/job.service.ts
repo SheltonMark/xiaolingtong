@@ -37,6 +37,32 @@ export class JobService {
     return String(value).trim();
   }
 
+  private parseVisibility(value: any, defaultValue = false): boolean {
+    if (value === undefined || value === null || value === '') return defaultValue;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value === 1;
+    const normalized = this.normalizeText(value).toLowerCase();
+    if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+    if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+    return defaultValue;
+  }
+
+  private buildVisibleContactInfo(job: Partial<Job>, includeHidden = false) {
+    const showPhone = includeHidden || this.parseVisibility(job.showPhone, !!job.contactPhone);
+    const showWechat = includeHidden || this.parseVisibility(job.showWechat, !!job.contactWechat);
+    const showWechatQr = includeHidden || this.parseVisibility(job.showWechatQr, !!job.contactWechatQr);
+
+    return {
+      contactName: job.contactName || '',
+      contactPhone: showPhone ? job.contactPhone || '' : '',
+      contactWechat: showWechat ? job.contactWechat || '' : '',
+      contactWechatQr: showWechatQr ? job.contactWechatQr || '' : '',
+      showPhone,
+      showWechat,
+      showWechatQr,
+    };
+  }
+
   private parseCoordinate(value: any): number | undefined {
     if (value === undefined || value === null || value === '') return undefined;
     const num = Number(value);
@@ -69,19 +95,15 @@ export class JobService {
     return normalized.length ? normalized : undefined;
   }
 
-  // 提取地级市+区县
   private extractCityDistrict(fullAddress: string): string {
     if (!fullAddress) return '';
-    // 匹配模式：省份 + 地级市 + 区县
-    // 例如：广东省东莞市长安镇 -> 东莞·长安
-    const match = fullAddress.match(/(?:.*?[省市])?([^省]+?[市州盟])([^市县区]+?[县区镇乡])/);
+    const match = fullAddress.match(/(?:.*?[省市])?([^省]+?[市州直辖])([^市县区]+?[县区镇乡])/);
     if (match) {
       const city = match[1].replace(/市$/, '');
       const district = match[2].replace(/[县区镇乡]$/, '');
       return `${city}·${district}`;
     }
-    // 如果匹配失败，尝试简单提取
-    const simpleMatch = fullAddress.match(/([^省]+?[市州盟])([^市]+)/);
+    const simpleMatch = fullAddress.match(/([^省]+?[市州直辖])([^市]+)/);
     if (simpleMatch) {
       return simpleMatch[1].replace(/市$/, '') + '·' + simpleMatch[2].substring(0, 4);
     }
@@ -101,6 +123,12 @@ export class JobService {
     const startTime = this.normalizeText(dto.startTime);
     const endTime = this.normalizeText(dto.endTime);
     const workHours = this.normalizeText(dto.workHours) || (startTime && endTime ? `${startTime}-${endTime}` : '');
+    const contactPhone = this.normalizeText(dto.contactPhone || dto.phone);
+    const contactWechat = this.normalizeText(dto.contactWechat || dto.wechat || dto.wechatId);
+    const contactWechatQr = this.normalizeText(dto.contactWechatQr || dto.wechatQr || dto.wechatQrImage);
+    const hasShowPhone = Object.prototype.hasOwnProperty.call(dto, 'showPhone');
+    const hasShowWechat = Object.prototype.hasOwnProperty.call(dto, 'showWechat');
+    const hasShowWechatQr = Object.prototype.hasOwnProperty.call(dto, 'showWechatQr');
 
     return {
       title: this.normalizeText(dto.title || dto.jobType),
@@ -112,7 +140,12 @@ export class JobService {
       lat,
       lng,
       contactName: this.normalizeText(dto.contactName || dto.contact),
-      contactPhone: this.normalizeText(dto.contactPhone || dto.phone),
+      contactPhone,
+      contactWechat,
+      contactWechatQr,
+      showPhone: hasShowPhone ? (this.parseVisibility(dto.showPhone, !!contactPhone) ? 1 : 0) : (contactPhone ? 1 : 0),
+      showWechat: hasShowWechat ? (this.parseVisibility(dto.showWechat, !!contactWechat) ? 1 : 0) : (contactWechat ? 1 : 0),
+      showWechatQr: hasShowWechatQr ? (this.parseVisibility(dto.showWechatQr, !!contactWechatQr) ? 1 : 0) : (contactWechatQr ? 1 : 0),
       dateStart,
       dateEnd,
       workHours,
@@ -131,7 +164,7 @@ export class JobService {
 
     if (keyword) {
       qb.andWhere(
-        '(j.title LIKE :kw OR j.description LIKE :kw OR j.companyName LIKE :kw)',
+        '(j.title LIKE :kw OR j.description LIKE :kw)',
         { kw: `%${keyword}%` }
       );
     }
@@ -146,7 +179,6 @@ export class JobService {
 
     const [list, total] = await qb.getManyAndCount();
 
-    // 检查并更新过期的急招状态
     const now = new Date();
     for (const job of list) {
       if (job.urgent === 1 && job.urgentExpireAt && new Date(job.urgentExpireAt) < now) {
@@ -155,7 +187,6 @@ export class JobService {
       }
     }
 
-    // 获取企业认证信息
     const userIds = list.map(job => job.userId).filter(Boolean);
     const certMap = new Map<number, EnterpriseCert>();
     if (userIds.length > 0) {
@@ -170,19 +201,16 @@ export class JobService {
       }
     }
 
-    // 格式化列表数据
     const formattedList = await Promise.all(list.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
       const cert = certMap.get(job.userId);
 
-      // 格式化福利标签
       const benefitTags = (job.benefits || []).map((b: any) => ({
         label: typeof b === 'string' ? b : b.label,
         bg: '#ECFDF5',
         color: '#10B981'
       }));
 
-      // 添加工作时间标签
       const timeTags = job.workHours ? [{
         label: job.workHours,
         bg: '#EFF6FF',
@@ -204,7 +232,9 @@ export class JobService {
         lng: this.parseCoordinate(job.lng) ?? null,
         cityDistrict: this.extractCityDistrict(job.location),
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
-        publishDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : '',
+        publishDate: job.createdAt
+          ? new Date(job.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '-')
+          : '',
         desc: job.description || '',
         urgent: job.urgent === 1,
         images: job.images || [],
@@ -217,7 +247,7 @@ export class JobService {
           avatarUrl: job.user?.avatarUrl || '',
           isMember: job.user?.isMember || 0
         },
-        isMember: !!(job.user?.isMember),
+        isMember: !!job.user?.isMember,
         time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
       };
     }));
@@ -229,13 +259,11 @@ export class JobService {
     const job = await this.jobRepo.findOne({ where: { id }, relations: ['user'] });
     if (!job) throw new BadRequestException('招工信息不存在');
 
-    // 查询报名人数
     const appliedCount = await this.appRepo.count({ where: { jobId: id } });
 
-    // 查询企业认证信息
     let companyName = job.user?.nickname || '企业用户';
     let verified = false;
-    let avatarUrl = job.user?.avatarUrl || '';
+    const avatarUrl = job.user?.avatarUrl || '';
 
     if (job.userId) {
       const cert = await this.entCertRepo.findOne({
@@ -248,11 +276,11 @@ export class JobService {
       }
     }
 
-    // 格式化返回数据
     const salaryTypeMap = { hourly: '计时', piece: '计件' };
     const dateRange = job.dateStart && job.dateEnd
       ? `${job.dateStart} 至 ${job.dateEnd}`
       : '待定';
+    const contactInfo = this.buildVisibleContactInfo(job);
 
     return {
       ...job,
@@ -268,8 +296,13 @@ export class JobService {
         verified,
         avatarUrl,
         creditScore: job.user?.creditScore || 100,
-        contact: job.contactName || '联系人',
-        phone: job.contactPhone || job.user?.phone || ''
+        contact: contactInfo.contactName || '联系人',
+        phone: contactInfo.contactPhone || '',
+        wechat: contactInfo.contactWechat || '',
+        wechatQrImage: contactInfo.contactWechatQr || '',
+        showPhone: contactInfo.showPhone,
+        showWechat: contactInfo.showWechat,
+        showWechatQr: contactInfo.showWechatQr,
       }
     };
   }
@@ -283,7 +316,6 @@ export class JobService {
     const formattedJobs = await Promise.all(jobs.map(async (job) => {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
 
-      // 检查急招是否过期
       let isUrgent = job.urgent === 1;
       if (isUrgent && job.urgentExpireAt && new Date(job.urgentExpireAt) < new Date()) {
         isUrgent = false;
@@ -306,7 +338,7 @@ export class JobService {
         urgent: isUrgent,
         urgentExpireAt: job.urgentExpireAt,
         createdAt: job.createdAt,
-        viewCount: 0 // TODO: 实现浏览次数统计
+        viewCount: 0
       };
     }));
 
@@ -320,7 +352,12 @@ export class JobService {
     if (!(payload.needCount > 0)) throw new BadRequestException('请输入招工人数');
     if (!payload.location) throw new BadRequestException('请选择工作地点');
     if (!payload.contactName) throw new BadRequestException('请输入联系人');
-    if (!payload.contactPhone) throw new BadRequestException('请输入联系电话');
+    if (!payload.showPhone && !payload.showWechat && !payload.showWechatQr) {
+      throw new BadRequestException('请至少选择一种联系方式');
+    }
+    if (payload.showPhone && !payload.contactPhone) throw new BadRequestException('请输入联系电话');
+    if (payload.showWechat && !payload.contactWechat) throw new BadRequestException('请填写微信号');
+    if (payload.showWechatQr && !payload.contactWechatQr) throw new BadRequestException('请上传微信二维码');
     if (!payload.dateStart || !payload.dateEnd) throw new BadRequestException('请选择工作日期');
 
     await this.checkKeywords(payload.title + (payload.description || ''));
@@ -396,7 +433,6 @@ export class JobService {
     const durationDays = Number(dto.durationDays || 0);
     if (!durationDays || durationDays < 1) throw new BadRequestException('急招时长不能为空');
 
-    // 从配置获取急招价格（使用置顶价格配置），并应用会员折扣
     const pricingList = await this.buildUrgentPricingForUser(user);
     const pricing = pricingList.find((item) => item.durationDays === durationDays);
     if (!pricing) throw new BadRequestException('不支持的急招时长');
@@ -404,28 +440,26 @@ export class JobService {
 
     if (user.beanBalance < actualCost) throw new BadRequestException('灵豆不足');
 
-    // 扣除灵豆
     user.beanBalance -= actualCost;
     await this.userRepo.save(user);
 
-    // 设置急招状态和过期时间
     job.urgent = 1;
     const expireAt = new Date();
     expireAt.setDate(expireAt.getDate() + durationDays);
     job.urgentExpireAt = expireAt;
     await this.jobRepo.save(job);
 
-    // 记录灵豆交易
     await this.beanTxRepo.save(this.beanTxRepo.create({
       userId,
       type: 'promote',
       amount: -actualCost,
       refType: 'job',
       refId: jobId,
-      remark: this.isMemberActive(user) ? `设置急招${durationDays}天(会员折扣)` : `设置急招${durationDays}天`,
+      remark: this.isMemberActive(user)
+        ? `设置急招${durationDays}天(会员折扣)`
+        : `设置急招${durationDays}天`,
     }));
 
-    // 发送通知
     await this.notiRepo.save(this.notiRepo.create({
       userId,
       type: 'promotion' as any,

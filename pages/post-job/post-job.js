@@ -1,15 +1,28 @@
 const { post, upload } = require('../../utils/request')
 const auth = require('../../utils/auth')
+const { getDefaultContactProfile } = require('../../utils/contact-profile')
+const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
   data: {
     settleType: 0,
     form: {
-      title: '', jobType: '', price: '', headcount: '',
-      content: '', startDate: '', endDate: '',
-      startTime: '08:00', endTime: '18:00', address: '',
-      contactName: '', contactPhone: '',
-      lat: null, lng: null
+      title: '',
+      jobType: '',
+      price: '',
+      headcount: '',
+      content: '',
+      startDate: '',
+      endDate: '',
+      startTime: '08:00',
+      endTime: '18:00',
+      address: '',
+      contactName: '',
+      contactPhone: '',
+      contactWechat: '',
+      contactWechatQr: '',
+      lat: null,
+      lng: null
     },
     jobTypes: ['电子组装', '包装工', '搬运工', '缝纫工', '焊接工', '质检员', '普工', '其他'],
     benefits: [
@@ -20,11 +33,29 @@ Page({
       { label: '长期合作', selected: false },
       { label: '熟手优先', selected: false }
     ],
-    images: []
+    images: [],
+    phoneChecked: false,
+    wechatChecked: false,
+    wechatQrChecked: false
   },
 
   onLoad() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    this.initContactInfo()
+  },
+
+  initContactInfo() {
+    getDefaultContactProfile().then((profile) => {
+      this.setData({
+        'form.contactName': profile.contactName || '',
+        'form.contactPhone': profile.phone || '',
+        'form.contactWechat': profile.wechatId || '',
+        'form.contactWechatQr': normalizeImageUrl(profile.wechatQrImage || ''),
+        phoneChecked: !!profile.phone,
+        wechatChecked: !!profile.wechatId,
+        wechatQrChecked: false
+      })
+    }).catch(() => {})
   },
 
   onInput(e) {
@@ -75,6 +106,33 @@ Page({
     this.setData({ [key]: !this.data.benefits[idx].selected })
   },
 
+  onTogglePhone() {
+    this.setData({ phoneChecked: !this.data.phoneChecked })
+  },
+
+  onToggleWechat() {
+    this.setData({ wechatChecked: !this.data.wechatChecked })
+  },
+
+  onToggleWechatQr() {
+    if (!this.data.form.contactWechatQr && !this.data.wechatQrChecked) {
+      wx.showToast({ title: '请先在联系方式中上传二维码', icon: 'none' })
+      return
+    }
+    this.setData({ wechatQrChecked: !this.data.wechatQrChecked })
+  },
+
+  onManageContactInfo() {
+    this._shouldRefreshContact = true
+    wx.navigateTo({ url: '/pages/contact-profile/contact-profile' })
+  },
+
+  onPreviewWechatQr() {
+    const url = this.data.form.contactWechatQr
+    if (!url) return
+    wx.previewImage({ current: url, urls: [url] })
+  },
+
   onChooseImage() {
     if (this.data.images.length >= 9) return
     wx.chooseMedia({
@@ -84,7 +142,7 @@ Page({
         const newImages = res.tempFiles.map(f => f.tempFilePath)
         const uploads = newImages.map(path => upload(path))
         Promise.all(uploads).then(results => {
-          const urls = results.map(r => r.data.url || r.data)
+          const urls = results.map(r => (r.data && r.data.url) || r.data)
           this.setData({ images: [...this.data.images, ...urls] })
         }).catch(() => {
           this.setData({ images: [...this.data.images, ...newImages] })
@@ -101,14 +159,22 @@ Page({
 
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
-    const { form, settleType, benefits, images } = this.data
+
+    const { form, settleType, benefits, images, phoneChecked, wechatChecked, wechatQrChecked } = this.data
     if (!form.title) { wx.showToast({ title: '请输入招工标题', icon: 'none' }); return }
-    if (!form.price) { wx.showToast({ title: '请输入工厂出价', icon: 'none' }); return }
+    if (!form.price) { wx.showToast({ title: '请输入工价', icon: 'none' }); return }
     if (!form.headcount) { wx.showToast({ title: '请输入招工人数', icon: 'none' }); return }
     if (!form.startDate || !form.endDate) { wx.showToast({ title: '请选择工作日期', icon: 'none' }); return }
     if (!form.address) { wx.showToast({ title: '请选择工作地点', icon: 'none' }); return }
     if (!form.contactName) { wx.showToast({ title: '请输入联系人', icon: 'none' }); return }
-    if (!form.contactPhone) { wx.showToast({ title: '请输入联系电话', icon: 'none' }); return }
+    if (!phoneChecked && !wechatChecked && !wechatQrChecked) {
+      wx.showToast({ title: '请至少选择一种联系方式', icon: 'none' })
+      return
+    }
+    if (phoneChecked && !form.contactPhone) { wx.showToast({ title: '请输入联系电话', icon: 'none' }); return }
+    if (wechatChecked && !form.contactWechat) { wx.showToast({ title: '请填写微信号', icon: 'none' }); return }
+    if (wechatQrChecked && !form.contactWechatQr) { wx.showToast({ title: '请先上传微信二维码', icon: 'none' }); return }
+
     const selectedBenefits = benefits.filter(b => b.selected).map(b => b.label)
     wx.showLoading({ title: '发布中...' })
     post('/jobs', {
@@ -127,6 +193,11 @@ Page({
       lng: form.lng,
       contactName: form.contactName,
       contactPhone: form.contactPhone,
+      contactWechat: form.contactWechat,
+      contactWechatQr: form.contactWechatQr,
+      showPhone: phoneChecked,
+      showWechat: wechatChecked,
+      showWechatQr: wechatQrChecked,
       benefits: selectedBenefits,
       images
     }).then(() => {
@@ -134,5 +205,12 @@ Page({
       wx.showToast({ title: '发布成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 1500)
     }).catch(() => { wx.hideLoading() })
+  },
+
+  onShow() {
+    if (this._shouldRefreshContact && auth.isLoggedIn()) {
+      this._shouldRefreshContact = false
+      this.initContactInfo()
+    }
   }
 })

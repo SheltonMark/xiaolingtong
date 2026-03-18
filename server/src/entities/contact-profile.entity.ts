@@ -10,19 +10,19 @@ export class ContactProfile {
   userId: number;
 
   @Column({ length: 32, nullable: true })
-  contactName: string;
+  contactName: string | null;
 
   @Column({ length: 20, nullable: true })
-  phone: string;
+  phone: string | null;
 
   @Column({ type: 'tinyint', default: 0 })
   phoneVerified: number;
 
   @Column({ length: 64, nullable: true })
-  wechatId: string;
+  wechatId: string | null;
 
   @Column({ length: 512, nullable: true })
-  wechatQrImage: string;
+  wechatQrImage: string | null;
 
   @Column({ type: 'tinyint', default: 1 })
   isDefault: number;

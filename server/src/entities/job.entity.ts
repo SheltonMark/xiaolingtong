@@ -33,6 +33,21 @@ export class Job {
   @Column({ length: 32, nullable: true })
   contactPhone: string;
 
+  @Column({ length: 64, nullable: true })
+  contactWechat: string;
+
+  @Column({ length: 512, nullable: true })
+  contactWechatQr: string;
+
+  @Column({ type: 'tinyint', default: 0 })
+  showPhone: number;
+
+  @Column({ type: 'tinyint', default: 0 })
+  showWechat: number;
+
+  @Column({ type: 'tinyint', default: 0 })
+  showWechatQr: number;
+
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
   lat: number;
 

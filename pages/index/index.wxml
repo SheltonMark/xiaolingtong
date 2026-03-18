@@ -321,4 +321,11 @@
     </view>
     <empty-state wx:if="{{jobList.length === 0}}" text="暂无招工信息" subText="附近暂时没有招工需求" />
   </view>
+
+  <wechat-contact-card
+    visible="{{wechatCardVisible}}"
+    wechat-id="{{wechatCard.wechatId}}"
+    wechat-qr-image="{{wechatCard.wechatQrImage}}"
+    bind:close="onCloseWechatCard"
+  />
 </view>

@@ -1,0 +1,163 @@
+.contact-profile-page {
+  min-height: 100vh;
+  background: #F8FAFC;
+  padding-bottom: calc(120rpx + env(safe-area-inset-bottom));
+}
+
+.hero-card {
+  margin: 24rpx 32rpx 0;
+  padding: 32rpx;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #EFF6FF, #F8FAFC);
+}
+
+.hero-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.hero-sub {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.form-card {
+  margin: 24rpx 32rpx 0;
+  padding: 28rpx;
+  border-radius: 24rpx;
+  background: #FFFFFF;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #1E293B;
+  margin-bottom: 12rpx;
+}
+
+.required::before {
+  content: '*';
+  color: #F43F5E;
+  margin-right: 4rpx;
+}
+
+.form-input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 24rpx;
+  border-radius: 18rpx;
+  background: #F8FAFC;
+  border: 2rpx solid #E2E8F0;
+  box-sizing: border-box;
+  font-size: 24rpx;
+  color: #1E293B;
+}
+
+.verified-pill {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background: #ECFDF5;
+  color: #059669;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.link-text {
+  font-size: 22rpx;
+  color: #2563EB;
+}
+
+.qr-empty {
+  height: 220rpx;
+  border-radius: 20rpx;
+  border: 3rpx dashed #CBD5E1;
+  background: #F8FAFC;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+}
+
+.qr-empty-icon {
+  font-size: 48rpx;
+  color: #94A3B8;
+}
+
+.qr-empty-text {
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.qr-panel {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.qr-image {
+  width: 184rpx;
+  height: 184rpx;
+  border-radius: 20rpx;
+  background: #F8FAFC;
+}
+
+.qr-actions {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.qr-btn {
+  height: 72rpx;
+  border-radius: 18rpx;
+  background: #F1F5F9;
+  color: #334155;
+  font-size: 24rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-btn-primary {
+  background: #DBEAFE;
+  color: #2563EB;
+}
+
+.submit-area {
+  margin: 40rpx 32rpx 0;
+}
+
+.save-btn {
+  height: 88rpx;
+  line-height: normal;
+  padding: 0;
+  border-radius: 24rpx;
+  background: #111827;
+  color: #FFFFFF;
+  font-size: 28rpx;
+  font-weight: 700;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.save-btn::after {
+  border: none;
+}

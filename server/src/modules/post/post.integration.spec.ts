@@ -12,6 +12,8 @@ import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
+import { Promotion } from '../../entities/promotion.entity';
 
 describe('PostModule Integration Tests', () => {
   let controller: PostController;
@@ -23,6 +25,8 @@ describe('PostModule Integration Tests', () => {
   let keywordRepository: any;
   let entCertRepository: any;
   let jobRepository: any;
+  let sysConfigRepository: any;
+  let promotionRepository: any;
 
   beforeEach(async () => {
     postRepository = {
@@ -55,11 +59,30 @@ describe('PostModule Integration Tests', () => {
 
     entCertRepository = {
       findOne: jest.fn(),
-      createQueryBuilder: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }),
     };
 
     jobRepository = {
       findOne: jest.fn(),
+      createQueryBuilder: jest.fn(),
+    };
+
+    sysConfigRepository = {
+      findOne: jest.fn().mockResolvedValue(null),
+    };
+
+    promotionRepository = {
+      createQueryBuilder: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -93,6 +116,14 @@ describe('PostModule Integration Tests', () => {
         {
           provide: getRepositoryToken(Job),
           useValue: jobRepository,
+        },
+        {
+          provide: getRepositoryToken(SysConfig),
+          useValue: sysConfigRepository,
+        },
+        {
+          provide: getRepositoryToken(Promotion),
+          useValue: promotionRepository,
         },
       ],
     }).compile();
@@ -180,6 +211,8 @@ describe('PostModule Integration Tests', () => {
         title: 'New Post',
         category: 'electronics',
         description: 'Test',
+        showPhone: true,
+        contactPhone: '13800138000',
       };
       const mockPost = { id: 1, userId: 1, ...dto };
 

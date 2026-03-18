@@ -1,4 +1,4 @@
-const { get, del } = require('../../utils/request')
+const { get, del, post } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 const auth = require('../../utils/auth')
 
@@ -44,7 +44,6 @@ Page({
     currentTab: 0,
     notLoggedIn: false,
     guestFuncs: [],
-    guestSubtitle: '',
     enterpriseInfo: { avatarText: '' },
     workerInfo: { avatarText: '' },
     myPosts: [],
@@ -60,7 +59,9 @@ Page({
       { icon: '\ue619', label: '我要招工', bg: '#FFF1F2', iconColor: '#F43F5E', url: '/pages/post-job/post-job' },
       { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' },
       { icon: '\ue661', label: '我的邀请', bg: '#F0F9FF', iconColor: '#0EA5E9', url: '/pages/my-invites/my-invites' },
-      { icon: '\ue63b', label: '广告投放', bg: '#F3E8FF', iconColor: '#8B5CF6', url: '/pages/ad-purchase/ad-purchase' }
+      { icon: '\ue63b', label: '广告投放', bg: '#F3E8FF', iconColor: '#8B5CF6', url: '/pages/ad-purchase/ad-purchase' },
+      { placeholder: true, key: 'enterprise-contact-gap' },
+      { icon: '\ue605', label: '联系方式', bg: '#EEF2FF', iconColor: '#4F46E5', url: '/pages/contact-profile/contact-profile' }
     ],
     myPosts: [],
     // 临工端
@@ -93,10 +94,7 @@ Page({
       currentTab: 0,
       avatarUrl,
       notLoggedIn,
-      guestFuncs: userRole === 'worker' ? this.data.workerFuncs : this.data.enterpriseFuncs,
-      guestSubtitle: userRole === 'worker'
-        ? '登录后查看报名记录、收藏内容和钱包信息'
-        : '登录后查看发布记录、收藏内容和会员信息'
+      guestFuncs: userRole === 'worker' ? this.data.workerFuncs : this.data.enterpriseFuncs
     })
     if (!notLoggedIn) {
       this.loadProfile()
@@ -147,6 +145,7 @@ Page({
         beanBalance: user.beanBalance || 0,
         isMember: user.isMember || false,
         creditScore: user.creditScore || 100,
+        certStatus,
         certBadge,
         certName,
         isVerified
@@ -405,6 +404,15 @@ Page({
 
   onSettings() {
     wx.navigateTo({ url: '/pages/settings/settings' })
+  },
+
+  onTapCertStatus() {
+    if (!this.requireLogin()) return
+    if (this.data.certStatus === 'approved') return
+    const targetUrl = this.data.userRole === 'worker'
+      ? '/pages/cert-worker/cert-worker'
+      : '/pages/cert-enterprise/cert-enterprise'
+    wx.navigateTo({ url: targetUrl })
   },
 
   onMembership() {

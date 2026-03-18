@@ -1,0 +1,70 @@
+<view class="contact-profile-page">
+  <nav-bar title="联系方式" />
+
+  <view class="hero-card">
+    <text class="hero-title">默认联系方式</text>
+    <text class="hero-sub">发布时自动带出，可单次修改</text>
+  </view>
+
+  <view class="form-card">
+    <text class="form-label required">联系人</text>
+    <input
+      class="form-input"
+      placeholder="请输入联系人"
+      data-field="contactName"
+      value="{{form.contactName}}"
+      bindinput="onInput"
+    />
+  </view>
+
+  <view class="form-card">
+    <view class="label-row">
+      <text class="form-label required">手机号</text>
+      <text wx:if="{{phoneVerified}}" class="verified-pill">已验证</text>
+    </view>
+    <input
+      class="form-input"
+      type="number"
+      maxlength="11"
+      placeholder="请输入手机号"
+      data-field="phone"
+      value="{{form.phone}}"
+      bindinput="onInput"
+    />
+  </view>
+
+  <view class="form-card">
+    <text class="form-label">微信号</text>
+    <input
+      class="form-input"
+      placeholder="请输入微信号"
+      data-field="wechatId"
+      value="{{form.wechatId}}"
+      bindinput="onInput"
+    />
+  </view>
+
+  <view class="form-card">
+    <view class="label-row">
+      <text class="form-label">微信二维码</text>
+      <text class="link-text" bindtap="onChooseQr">{{form.wechatQrImage ? '更换' : '上传'}}</text>
+    </view>
+
+    <view wx:if="{{form.wechatQrImage}}" class="qr-panel">
+      <image class="qr-image" src="{{form.wechatQrImage}}" mode="aspectFill" bindtap="onPreviewQr" />
+      <view class="qr-actions">
+        <view class="qr-btn qr-btn-primary" bindtap="onPreviewQr">预览</view>
+        <view class="qr-btn" bindtap="onRemoveQr">删除</view>
+      </view>
+    </view>
+
+    <view wx:else class="qr-empty" bindtap="onChooseQr">
+      <text class="qr-empty-icon">+</text>
+      <text class="qr-empty-text">{{uploadingQr ? '上传中...' : '上传微信二维码'}}</text>
+    </view>
+  </view>
+
+  <view class="submit-area">
+    <button class="save-btn" loading="{{saving}}" bindtap="onSave">保存</button>
+  </view>
+</view>

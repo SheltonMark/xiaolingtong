@@ -199,7 +199,10 @@
 
   <!-- 联系方式 -->
   <view class="form-card">
-    <text class="form-label">联系方式</text>
+    <view class="contact-head">
+      <text class="form-label" style="margin-bottom: 0;">联系方式</text>
+      <text class="contact-manage-link" bindtap="onManageContactInfo">去维护</text>
+    </view>
     <view class="contact-info">
       <view class="contact-row">
         <text class="contact-label">联系人</text>
@@ -243,7 +246,20 @@
           bindinput="onContactInput"
         />
       </view>
-      <text class="contact-hint">勾选后对方可见，至少选择一种</text>
+      <view class="contact-row">
+        <view class="contact-left">
+          <view class="checkbox {{wechatQrChecked ? 'checked' : ''}}" bindtap="onToggleWechatQr">
+            <text wx:if="{{wechatQrChecked}}" class="check-icon">✓</text>
+          </view>
+          <text class="contact-label">微信二维码</text>
+        </view>
+        <view wx:if="{{contactInfo.wechatQrImage}}" class="qr-brief" bindtap="onPreviewWechatQr">
+          <image class="qr-thumb" src="{{contactInfo.wechatQrImage}}" mode="aspectFill" />
+          <text class="qr-brief-text">档案二维码</text>
+        </view>
+        <text wx:else class="contact-link" bindtap="onManageContactInfo">去上传</text>
+      </view>
+      <text class="contact-hint">至少选择一种联系方式</text>
       <view class="contact-row">
         <text class="contact-label">有效期</text>
         <picker mode="selector" range="{{validityOptions}}" value="{{validityIndex}}" bindchange="onValidityChange">

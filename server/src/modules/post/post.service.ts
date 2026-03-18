@@ -44,6 +44,33 @@ export class PostService {
     return String(value).trim();
   }
 
+  private parseVisibility(value: any, defaultValue = false): boolean {
+    if (value === undefined || value === null || value === '') return defaultValue;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value === 1;
+    const normalized = this.normalizeText(value).toLowerCase();
+    if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
+    if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
+    return defaultValue;
+  }
+
+  private buildVisibleContactInfo(post: Partial<Post>, includeHidden = false) {
+    const showPhone = includeHidden || this.parseVisibility(post.showPhone, !!post.contactPhone);
+    const showWechat = includeHidden || this.parseVisibility(post.showWechat, !!post.contactWechat);
+    const showWechatQr = includeHidden || this.parseVisibility(post.showWechatQr, !!post.contactWechatQr);
+    const hasVisibleContact = showPhone || showWechat || showWechatQr;
+
+    return {
+      contactName: hasVisibleContact || includeHidden ? post.contactName || null : null,
+      contactPhone: showPhone ? post.contactPhone || null : null,
+      contactWechat: showWechat ? post.contactWechat || null : null,
+      contactWechatQr: showWechatQr ? post.contactWechatQr || null : null,
+      showPhone,
+      showWechat,
+      showWechatQr,
+    };
+  }
+
   private composePostContent(type: string, title: string, description: string, fields: Record<string, any>) {
     const safeFields = fields || {};
     const joinSegments = (segments: string[]) => segments.filter(Boolean).join('，');
@@ -186,7 +213,7 @@ export class PostService {
     const normalizedList = (list || []).map(item => {
       const postId = Number(item.id);
       const itemUserId = Number(item.userId);
-      const isOwner = userId && userId > 0 && itemUserId === userId;
+      const isOwner = !!(userId && userId > 0 && itemUserId === userId);
       const isUnlocked = isOwner || unlockedPostIds.has(postId);
 
       // 构建基础信息
@@ -200,9 +227,7 @@ export class PostService {
       if (isUnlocked) {
         return {
           ...baseInfo,
-          contactPhone: item.contactPhone || null,
-          contactWechat: item.contactWechat || null,
-          contactName: item.contactName || null,
+          ...this.buildVisibleContactInfo(item, isOwner),
         };
       }
 
@@ -258,9 +283,7 @@ export class PostService {
       ...this.buildCompanyInfo(item, certMap),
       isPromoted: promotedIds.has(Number(item.id)),
       contactUnlocked: true, // 自己的信息始终已解锁
-      contactPhone: item.contactPhone || null,
-      contactWechat: item.contactWechat || null,
-      contactName: item.contactName || null,
+      ...this.buildVisibleContactInfo(item, true),
     }));
     return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }
@@ -284,27 +307,15 @@ export class PostService {
     });
     const certMap = await this.getEnterpriseCertMap([Number(post.userId)]);
 
-    // 调试日志
-    console.log('=== Detail 认证状态调试 ===');
-    console.log('post.userId:', post.userId);
-    console.log('certMap size:', certMap.size);
-    const cert = certMap.get(Number(post.userId));
-    console.log('cert:', cert ? { id: cert.id, status: cert.status, companyName: cert.companyName } : null);
-    console.log('========================');
-
     const normalizedPost = this.buildCompanyInfo(post, certMap);
 
     // 判断是否已解锁（修复类型比较问题）
     const postUserId = Number(post.userId);
-    const isOwner = userId && userId > 0 && postUserId === userId;
+    const isOwner = !!(userId && userId > 0 && postUserId === userId);
     const isUnlocked = !!unlocked || isOwner;
 
     // 如果已解锁，返回联系方式
-    const contactInfo = isUnlocked ? {
-      contactName: post.contactName,
-      contactPhone: post.contactPhone,
-      contactWechat: post.contactWechat,
-    } : {};
+    const contactInfo = isUnlocked ? this.buildVisibleContactInfo(post, isOwner) : {};
 
     return {
       ...normalizedPost,
@@ -323,21 +334,46 @@ export class PostService {
       images,
       showPhone,
       showWechat,
+      showWechatQr,
       validityDays,
       contactName,
       contactPhone,
       contactWechat,
+      contactWechatQr,
       ...structuredFields
     } = dto;
 
     const content = this.composePostContent(type, title, description, structuredFields);
-    const phoneVisible = showPhone !== false;
-    const wechatVisible = showWechat !== false;
     const normalizedContactName = this.normalizeText(contactName) || null;
     const normalizedContactPhone = this.normalizeText(contactPhone) || null;
     const normalizedContactWechat = this.normalizeText(contactWechat) || null;
+    const normalizedContactWechatQr = this.normalizeText(contactWechatQr) || null;
+    const hasShowPhone = Object.prototype.hasOwnProperty.call(dto, 'showPhone');
+    const hasShowWechat = Object.prototype.hasOwnProperty.call(dto, 'showWechat');
+    const hasShowWechatQr = Object.prototype.hasOwnProperty.call(dto, 'showWechatQr');
+    const phoneVisible = hasShowPhone
+      ? this.parseVisibility(showPhone, !!normalizedContactPhone)
+      : !!normalizedContactPhone;
+    const wechatVisible = hasShowWechat
+      ? this.parseVisibility(showWechat, !!normalizedContactWechat)
+      : !!normalizedContactWechat;
+    const wechatQrVisible = hasShowWechatQr
+      ? this.parseVisibility(showWechatQr, !!normalizedContactWechatQr)
+      : !!normalizedContactWechatQr;
 
     await this.checkKeywords(content + (title || ''));
+    if (!phoneVisible && !wechatVisible && !wechatQrVisible) {
+      throw new BadRequestException('请至少选择一种联系方式');
+    }
+    if (phoneVisible && !normalizedContactPhone) {
+      throw new BadRequestException('请填写联系电话');
+    }
+    if (wechatVisible && !normalizedContactWechat) {
+      throw new BadRequestException('请填写微信号');
+    }
+    if (wechatQrVisible && !normalizedContactWechatQr) {
+      throw new BadRequestException('请上传微信二维码');
+    }
 
     const postData: Partial<Post> = {
       userId,
@@ -346,12 +382,16 @@ export class PostService {
       industry: category,
       content,
       expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : undefined,
+      showPhone: phoneVisible ? 1 : 0,
+      showWechat: wechatVisible ? 1 : 0,
+      showWechatQr: wechatQrVisible ? 1 : 0,
     };
     if (Object.keys(structuredFields).length) postData.fields = structuredFields;
     if (images && images.length) postData.images = images;
     if (normalizedContactName) postData.contactName = normalizedContactName;
-    if (phoneVisible && normalizedContactPhone) postData.contactPhone = normalizedContactPhone;
-    if (wechatVisible && normalizedContactWechat) postData.contactWechat = normalizedContactWechat;
+    if (normalizedContactPhone) postData.contactPhone = normalizedContactPhone;
+    if (normalizedContactWechat) postData.contactWechat = normalizedContactWechat;
+    if (normalizedContactWechatQr) postData.contactWechatQr = normalizedContactWechatQr;
 
     const post = this.postRepo.create(postData);
     return this.postRepo.save(post);

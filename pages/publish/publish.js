@@ -1,5 +1,8 @@
 const { post, upload } = require('../../utils/request')
 const auth = require('../../utils/auth')
+const { getDefaultContactProfile } = require('../../utils/contact-profile')
+const { normalizeImageUrl } = require('../../utils/image')
+
 const DEFAULT_FORM = {
   productName: '',
   category: '',
@@ -17,6 +20,17 @@ const DEFAULT_FORM = {
   capacity: ''
 }
 
+function buildFallbackContactInfo() {
+  const app = getApp()
+  const userInfo = app.globalData.userInfo || {}
+  return {
+    name: userInfo.nickname || '',
+    phone: userInfo.phone || '',
+    wechat: '',
+    wechatQrImage: ''
+  }
+}
+
 Page({
   data: {
     typeIndex: 0,
@@ -26,13 +40,10 @@ Page({
     deliveryOptions: ['7天内', '15天内', '30天内', '45天内', '60天内'],
     validityOptions: ['7天', '15天', '30天', '60天', '90天'],
     validityIndex: 2,
-    contactInfo: {
-      name: '',
-      phone: '',
-      wechat: ''
-    },
+    contactInfo: buildFallbackContactInfo(),
     phoneChecked: false,
-    wechatChecked: false
+    wechatChecked: false,
+    wechatQrChecked: false
   },
 
   onLoad() {
@@ -51,17 +62,27 @@ Page({
   },
 
   initContactInfo() {
-    const app = getApp()
-    const userInfo = app.globalData.userInfo || {}
-    const contactInfo = {
-      name: userInfo.nickname || '',
-      phone: userInfo.phone || '',
-      wechat: ''
-    }
-    this.setData({
-      contactInfo,
-      phoneChecked: !!contactInfo.phone,
-      wechatChecked: !!contactInfo.wechat
+    const fallback = buildFallbackContactInfo()
+    getDefaultContactProfile().then((profile) => {
+      const contactInfo = {
+        name: profile.contactName || fallback.name,
+        phone: profile.phone || fallback.phone,
+        wechat: profile.wechatId || '',
+        wechatQrImage: normalizeImageUrl(profile.wechatQrImage || '')
+      }
+      this.setData({
+        contactInfo,
+        phoneChecked: !!contactInfo.phone,
+        wechatChecked: !!contactInfo.wechat,
+        wechatQrChecked: false
+      })
+    }).catch(() => {
+      this.setData({
+        contactInfo: fallback,
+        phoneChecked: !!fallback.phone,
+        wechatChecked: !!fallback.wechat,
+        wechatQrChecked: false
+      })
     })
   },
 
@@ -99,6 +120,25 @@ Page({
     this.setData({ wechatChecked: !this.data.wechatChecked })
   },
 
+  onToggleWechatQr() {
+    if (!this.data.contactInfo.wechatQrImage && !this.data.wechatQrChecked) {
+      wx.showToast({ title: '请先在联系方式中上传二维码', icon: 'none' })
+      return
+    }
+    this.setData({ wechatQrChecked: !this.data.wechatQrChecked })
+  },
+
+  onManageContactInfo() {
+    this._shouldRefreshContact = true
+    wx.navigateTo({ url: '/pages/contact-profile/contact-profile' })
+  },
+
+  onPreviewWechatQr() {
+    const url = this.data.contactInfo.wechatQrImage
+    if (!url) return
+    wx.previewImage({ current: url, urls: [url] })
+  },
+
   onChooseImage() {
     if (this.data.images.length >= 9) {
       wx.showToast({ title: '最多9张图片', icon: 'none' })
@@ -109,7 +149,6 @@ Page({
       mediaType: ['image'],
       success: (res) => {
         const newImages = res.tempFiles.map(f => f.tempFilePath)
-        // 仅保存上传成功后的远程地址，避免临时本地路径失效
         const uploads = newImages.map(path => upload(path))
         Promise.allSettled(uploads).then(results => {
           const urls = results
@@ -136,11 +175,14 @@ Page({
 
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
-    const { form, phoneChecked, wechatChecked, images, typeIndex, contactInfo } = this.data
+
+    const { form, phoneChecked, wechatChecked, wechatQrChecked, images, typeIndex, contactInfo } = this.data
     const types = ['purchase', 'stock', 'process']
     const contactName = (contactInfo.name || '').trim()
     const contactPhone = (contactInfo.phone || '').trim()
     const contactWechat = (contactInfo.wechat || '').trim()
+    const contactWechatQr = contactInfo.wechatQrImage || ''
+
     if (!form.productName && typeIndex !== 2) {
       wx.showToast({ title: '请输入物品名称', icon: 'none' })
       return
@@ -149,7 +191,7 @@ Page({
       wx.showToast({ title: '请输入加工类型', icon: 'none' })
       return
     }
-    if (!phoneChecked && !wechatChecked) {
+    if (!phoneChecked && !wechatChecked && !wechatQrChecked) {
       wx.showToast({ title: '请至少选择一种联系方式', icon: 'none' })
       return
     }
@@ -165,6 +207,11 @@ Page({
       wx.showToast({ title: '请填写微信号', icon: 'none' })
       return
     }
+    if (wechatQrChecked && !contactWechatQr) {
+      wx.showToast({ title: '请先上传微信二维码', icon: 'none' })
+      return
+    }
+
     const data = {
       type: types[typeIndex],
       title: typeIndex === 2 ? form.processType : form.productName,
@@ -184,10 +231,13 @@ Page({
       contactName,
       contactPhone,
       contactWechat,
+      contactWechatQr,
       showPhone: phoneChecked,
       showWechat: wechatChecked,
+      showWechatQr: wechatQrChecked,
       validityDays: Number(this.data.validityOptions[this.data.validityIndex].replace('天', ''))
     }
+
     wx.showLoading({ title: '发布中...' })
     post('/posts', data).then(() => {
       wx.hideLoading()
@@ -200,6 +250,10 @@ Page({
   },
 
   onShow() {
+    if (this._shouldRefreshContact && auth.isLoggedIn()) {
+      this._shouldRefreshContact = false
+      this.initContactInfo()
+    }
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
       this.getTabBar().setData({ selected: 2, userRole })
