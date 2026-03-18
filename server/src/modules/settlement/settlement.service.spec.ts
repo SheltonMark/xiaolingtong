@@ -14,6 +14,7 @@ import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { User } from '../../entities/user.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { PaymentService } from '../payment/payment.service';
 
 describe('SettlementService', () => {
@@ -27,6 +28,7 @@ describe('SettlementService', () => {
   let walletTransactionRepository: any;
   let userRepository: any;
   let sysConfigRepository: any;
+  let enterpriseCertRepository: any;
   let paymentService: any;
   let configService: any;
 
@@ -55,6 +57,7 @@ describe('SettlementService', () => {
 
     jobApplicationRepository = {
       find: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
 
     workLogRepository = {
@@ -79,6 +82,10 @@ describe('SettlementService', () => {
     };
 
     sysConfigRepository = {
+      findOne: jest.fn(),
+    };
+
+    enterpriseCertRepository = {
       findOne: jest.fn(),
     };
 
@@ -131,6 +138,10 @@ describe('SettlementService', () => {
         {
           provide: getRepositoryToken(SysConfig),
           useValue: sysConfigRepository,
+        },
+        {
+          provide: getRepositoryToken(EnterpriseCert),
+          useValue: enterpriseCertRepository,
         },
         {
           provide: PaymentService,
@@ -219,16 +230,53 @@ describe('SettlementService', () => {
   });
 
   describe('detail', () => {
-    it('should return settlement detail', async () => {
-      const mockSettlement = { id: 1, jobId: 1, userId: 1, status: 'pending' };
+    it('should return settlement detail with current worker settlement info', async () => {
+      const mockSettlement = {
+        id: 1,
+        jobId: 1,
+        enterpriseId: 1,
+        totalWorkers: 1,
+        totalHours: 8,
+        factoryTotal: 800,
+        platformFee: 120,
+        workerTotal: 680,
+        supervisorFee: 0,
+        status: 'paid',
+        createdAt: new Date('2026-03-18T08:00:00Z'),
+        job: {
+          id: 1,
+          userId: 1,
+          title: 'Test Job',
+          dateStart: '2026-03-18',
+          dateEnd: '2026-03-18',
+          user: { nickname: 'Test Enterprise' },
+        },
+      };
+      const mockItems = [
+        {
+          workerId: 2,
+          hours: 8,
+          factoryPay: 800,
+          workerPay: 680,
+          confirmed: 0,
+          confirmedAt: null,
+          worker: { nickname: 'Worker A' },
+        },
+      ];
 
       settlementRepository.findOne.mockResolvedValue(mockSettlement);
-      settlementItemRepository.find.mockResolvedValue([]);
+      settlementItemRepository.find.mockResolvedValue(mockItems);
+      enterpriseCertRepository.findOne.mockResolvedValue({ companyName: 'Test Company' });
 
-      const result = await service.detail(1, 1);
+      const result = await service.detail(1, 2);
 
       expect(result).toBeDefined();
-      expect(result.id).toBe(1);
+      expect(result.job.company).toBe('Test Company');
+      expect(result.currentWorkerSettlement).toEqual(expect.objectContaining({
+        workerId: 2,
+        confirmed: false,
+        canConfirm: true,
+      }));
     });
 
     it('should throw error when settlement not found', async () => {

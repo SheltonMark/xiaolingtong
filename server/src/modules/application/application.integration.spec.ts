@@ -9,6 +9,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 
 describe('ApplicationModule Integration Tests', () => {
   let controller: ApplicationController;
@@ -17,6 +18,7 @@ describe('ApplicationModule Integration Tests', () => {
   let jobRepository: any;
   let userRepository: any;
   let configRepository: any;
+  let enterpriseCertRepository: any;
 
   beforeEach(async () => {
     appRepository = {
@@ -45,6 +47,11 @@ describe('ApplicationModule Integration Tests', () => {
       find: jest.fn(),
     };
 
+    enterpriseCertRepository = {
+      findOne: jest.fn(),
+      createQueryBuilder: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ApplicationController],
       providers: [
@@ -64,6 +71,10 @@ describe('ApplicationModule Integration Tests', () => {
         {
           provide: getRepositoryToken(SysConfig),
           useValue: configRepository,
+        },
+        {
+          provide: getRepositoryToken(EnterpriseCert),
+          useValue: enterpriseCertRepository,
         },
       ],
     }).compile();
@@ -190,6 +201,13 @@ describe('ApplicationModule Integration Tests', () => {
         take: jest.fn().mockReturnThis(),
         getManyAndCount: jest.fn().mockResolvedValue([mockApps, 1]),
       });
+      enterpriseCertRepository.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      });
 
       const result = await controller.myApplications(1, { page: 1, pageSize: 20 });
 
@@ -212,6 +230,13 @@ describe('ApplicationModule Integration Tests', () => {
         take: jest.fn().mockReturnThis(),
         getManyAndCount: jest.fn().mockResolvedValue([mockApps, 1]),
       });
+      enterpriseCertRepository.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      });
 
       const result = await controller.myApplications(1, { status: 'confirmed', page: 1, pageSize: 20 });
 
@@ -228,6 +253,13 @@ describe('ApplicationModule Integration Tests', () => {
         skip: jest.fn().mockReturnThis(),
         take: jest.fn().mockReturnThis(),
         getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      });
+      enterpriseCertRepository.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
       });
 
       const result = await controller.myApplications(1, { page: 1, pageSize: 20 });

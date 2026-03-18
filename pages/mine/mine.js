@@ -36,6 +36,12 @@ function isGenericCompanyName(name) {
   return !text || text === '企业' || text === '企业用户'
 }
 
+function formatJobDate(job) {
+  if (job.dateRange) return job.dateRange
+  if (job.dateStart && job.dateEnd) return `${job.dateStart} ~ ${job.dateEnd}`
+  return ''
+}
+
 Page({
   data: {
     userRole: 'enterprise',
@@ -249,15 +255,17 @@ Page({
 
     // 状态映射
     const statusMap = {
-      pending: { text: '待确认', bg: 'amber', tabKey: '待确认' },
-      accepted: { text: '已入选', bg: 'green', tabKey: '已入选' },
-      confirmed: { text: '进行中', bg: 'green', tabKey: '进行中' },
-      completed: { text: '已完成', bg: 'gray', tabKey: '已完成' },
-      rejected: { text: '未通过', bg: 'rose', tabKey: '待确认' },
-      cancelled: { text: '已取消', bg: 'gray', tabKey: '待确认' }
+      pending: { text: '待审核', bg: 'amber', tabKey: '待审核' },
+      accepted: { text: '待出勤', bg: 'green', tabKey: '待出勤' },
+      confirmed: { text: '待开工', bg: 'green', tabKey: '进行中' },
+      working: { text: '进行中', bg: 'green', tabKey: '进行中' },
+      done: { text: '已完成', bg: 'gray', tabKey: '已完成' },
+      rejected: { text: '未通过', bg: 'rose', tabKey: '全部' },
+      released: { text: '已释放', bg: 'gray', tabKey: '全部' },
+      cancelled: { text: '已取消', bg: 'gray', tabKey: '全部' }
     }
 
-    const statusInfo = statusMap[item.status] || { text: '待确认', bg: 'amber', tabKey: '待确认' }
+    const statusInfo = statusMap[item.status] || { text: '待审核', bg: 'amber', tabKey: '待审核' }
     const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
     const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
     const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
@@ -272,12 +280,17 @@ Page({
       salaryUnit,
       location: job.location || '',
       description: job.description || '',
-      date: job.dateRange || '',
+      date: formatJobDate(job),
       hours: job.workHours || '',
       status: item.status,
       statusText: statusInfo.text,
       statusBg: statusInfo.bg,
-      tabKey: statusInfo.tabKey
+      tabKey: statusInfo.tabKey,
+      alert: item.status === 'accepted'
+        ? '如确认出勤，请尽快确认，避免名额释放'
+        : item.status === 'confirmed'
+          ? '已确认出勤，请按时签到开工'
+          : ''
     }
   },
 

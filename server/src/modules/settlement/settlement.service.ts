@@ -143,7 +143,7 @@ export class SettlementService {
     return { message: '结算单已生成', settlementId: settlement.id };
   }
 
-  async detail(jobId: number) {
+  async detail(jobId: number, viewerId?: number) {
     const settlement = await this.settleRepo.findOne({
       where: { jobId },
       relations: ['job', 'job.user'],
@@ -171,6 +171,9 @@ export class SettlementService {
       workerPay: (+it.workerPay).toFixed(2),
       confirmed: it.confirmed === 1,
     }));
+    const currentWorkerItem = viewerId
+      ? items.find((item) => Number(item.workerId) === Number(viewerId))
+      : null;
 
     // 确认状态步骤
     const steps = [
@@ -216,6 +219,15 @@ export class SettlementService {
       },
       steps,
       status: settlement.status,
+      currentWorkerSettlement: currentWorkerItem ? {
+        workerId: currentWorkerItem.workerId,
+        hours: +currentWorkerItem.hours,
+        factoryPay: (+currentWorkerItem.factoryPay).toFixed(2),
+        workerPay: (+currentWorkerItem.workerPay).toFixed(2),
+        confirmed: currentWorkerItem.confirmed === 1,
+        confirmedAt: currentWorkerItem.confirmedAt || null,
+        canConfirm: currentWorkerItem.confirmed !== 1 && ['paid', 'distributed', 'completed'].includes(settlement.status),
+      } : null,
     };
   }
 

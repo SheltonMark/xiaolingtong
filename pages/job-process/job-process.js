@@ -18,7 +18,9 @@ Page({
     workers: [],
     fees: {},
     attendance: null,
-    settlementReady: false
+    settlementReady: false,
+    settlementStatus: '',
+    currentWorkerSettlement: null
   },
 
   onLoad(options) {
@@ -52,7 +54,7 @@ Page({
       { key: 'all', label: '全部', count: (base.totalCount || 0) },
       { key: 'pending', label: '待审核', count: (base.pendingCount || 0) },
       { key: 'accepted', label: '已录用', count: (base.acceptedCount || 0) },
-      { key: 'confirmed', label: '待出勤', count: (base.confirmedCount || 0) },
+      { key: 'confirmed', label: '已到岗', count: (base.confirmedCount || 0) },
       { key: 'rejected', label: '已拒绝', count: (base.rejectedCount || 0) }
     ]
   },
@@ -97,10 +99,12 @@ Page({
       const data = res.data || res || {}
       this.setData({
         settlementReady: true,
+        settlementStatus: data.status || '',
         job: { ...(this.data.job || {}), ...(data.job || {}), enterpriseId: (data.job || {}).enterpriseId || '' },
         steps: data.steps || [],
         workers: data.workers || [],
-        fees: data.fees || {}
+        fees: data.fees || {},
+        currentWorkerSettlement: data.currentWorkerSettlement || null
       })
     }).catch(() => {
       this.setData({ settlementReady: false })
@@ -228,6 +232,25 @@ Page({
         post('/settlements/' + this.data.jobId + '/confirm').then(() => {
           wx.showToast({ title: '已提交', icon: 'success' })
           setTimeout(() => wx.navigateBack(), 1500)
+        }).catch(() => {})
+      }
+    })
+  },
+
+  onConfirmSettlement() {
+    const currentWorkerSettlement = this.data.currentWorkerSettlement || {}
+    if (!currentWorkerSettlement.canConfirm) {
+      wx.showToast({ title: '当前暂无需确认', icon: 'none' })
+      return
+    }
+    wx.showModal({
+      title: '确认工时',
+      content: '确认后将完成你的结算确认，请先核对工时与收益明细。',
+      success: (res) => {
+        if (!res.confirm) return
+        post('/settlements/' + this.data.jobId + '/confirm').then(() => {
+          wx.showToast({ title: '已确认', icon: 'success' })
+          this.loadSettlement(this.data.jobId)
         }).catch(() => {})
       }
     })

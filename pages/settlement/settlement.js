@@ -6,11 +6,13 @@ Page({
     role: 'enterprise',
     jobId: '',
     activeTab: 'settlement',
+    settlementStatus: '',
     job: {},
     steps: [],
     workers: [],
     fees: {},
-    attendance: null
+    attendance: null,
+    currentWorkerSettlement: null
   },
 
   onLoad(options) {
@@ -48,10 +50,12 @@ Page({
     get('/settlements/' + jobId).then(res => {
       const d = res.data || res || {}
       this.setData({
+        settlementStatus: d.status || '',
         job: { ...d.job || {}, enterpriseId: (d.job || {}).enterpriseId || '' },
         steps: d.steps || [],
         workers: d.workers || [],
-        fees: d.fees || {}
+        fees: d.fees || {},
+        currentWorkerSettlement: d.currentWorkerSettlement || null
       })
     }).catch(() => {})
   },
@@ -132,6 +136,25 @@ Page({
             setTimeout(() => wx.navigateBack(), 1500)
           }).catch(() => {})
         }
+      }
+    })
+  },
+
+  onConfirmSettlement() {
+    const currentWorkerSettlement = this.data.currentWorkerSettlement || {}
+    if (!currentWorkerSettlement.canConfirm) {
+      wx.showToast({ title: '当前暂无需确认', icon: 'none' })
+      return
+    }
+    wx.showModal({
+      title: '确认工时',
+      content: '确认后将完成你的结算确认，请先核对工时与收益明细。',
+      success: (res) => {
+        if (!res.confirm) return
+        post('/settlements/' + this.data.jobId + '/confirm').then(() => {
+          wx.showToast({ title: '已确认', icon: 'success' })
+          this.loadSettlement(this.data.jobId)
+        }).catch(() => {})
       }
     })
   },

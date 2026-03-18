@@ -7,8 +7,8 @@ export class SettlementController {
   constructor(private settlementService: SettlementService) {}
 
   @Get(':jobId')
-  detail(@Param('jobId') jobId: number) {
-    return this.settlementService.detail(jobId);
+  detail(@Param('jobId') jobId: number, @CurrentUser('sub') userId: number) {
+    return this.settlementService.detail(jobId, userId);
   }
 
   @Post(':jobId/create')
