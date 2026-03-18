@@ -71,17 +71,30 @@ Page({
     this.setData({ filteredApplicants })
   },
 
+  normalizeApplicant(item) {
+    const applicant = item || {}
+    const worker = applicant.worker || {}
+    const rawName = applicant.name || applicant.workerName || applicant.realName || applicant.nickname || worker.realName || worker.nickname || ''
+    const name = String(rawName || '').trim() || '临工'
+    return {
+      ...applicant,
+      name,
+      avatarText: name.charAt(0) || '临'
+    }
+  },
+
   loadManage(jobId) {
     get('/jobs/' + jobId + '/manage').then(res => {
       const data = res.data || res || {}
+      const applicants = (data.applicants || []).map(item => this.normalizeApplicant(item))
       const summary = {
         ...data.summary,
-        totalCount: (data.applicants || []).length
+        totalCount: applicants.length
       }
       this.setData({
         manageJob: data.job || {},
         manageSummary: summary,
-        applicants: data.applicants || [],
+        applicants,
         applicantTabs: this.buildApplicantTabs(summary),
         job: Object.keys(this.data.job || {}).length ? this.data.job : {
           company: (data.job || {}).companyName || '',

@@ -9,6 +9,7 @@ import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
@@ -39,6 +40,7 @@ describe('JobService', () => {
   let keywordRepository: any;
   let jobApplicationRepository: any;
   let enterpriseCertRepository: any;
+  let workerCertRepository: any;
   let userRepository: any;
   let beanTransactionRepository: any;
   let notificationRepository: any;
@@ -70,6 +72,16 @@ describe('JobService', () => {
 
     enterpriseCertRepository = {
       findOne: jest.fn(),
+      createQueryBuilder: jest.fn().mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      }),
+    };
+
+    workerCertRepository = {
       createQueryBuilder: jest.fn().mockReturnValue({
         where: jest.fn().mockReturnThis(),
         andWhere: jest.fn().mockReturnThis(),
@@ -116,6 +128,10 @@ describe('JobService', () => {
         {
           provide: getRepositoryToken(EnterpriseCert),
           useValue: enterpriseCertRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkerCert),
+          useValue: workerCertRepository,
         },
         {
           provide: getRepositoryToken(User),
@@ -534,6 +550,56 @@ describe('JobService', () => {
       expect(result.summary.supervisor.workerId).toBe(102);
       expect(result.applicants).toHaveLength(2);
       expect(result.applicants[0].doneCount).toBe(2);
+    });
+
+    it('falls back to worker cert real name when nickname is empty', async () => {
+      jobRepository.findOne.mockResolvedValue({
+        id: 9,
+        userId: 3,
+        title: 'Test Job',
+        salary: 200,
+        salaryUnit: '元/天',
+        needCount: 1,
+        location: '深圳市宝安区',
+        dateStart: '2026-03-10',
+        dateEnd: '2026-03-12',
+        workHours: '09:00-18:00',
+        status: 'recruiting',
+        user: {
+          nickname: 'Enterprise User',
+        },
+      });
+      enterpriseCertRepository.findOne.mockResolvedValue({
+        companyName: '测试企业',
+      });
+      workerCertRepository.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([
+          { userId: 201, realName: '张三' },
+        ]),
+      });
+      jobApplicationRepository.find.mockResolvedValue([
+        {
+          id: 1,
+          workerId: 201,
+          status: 'pending',
+          isSupervisor: 0,
+          createdAt: new Date('2026-03-01T00:00:00.000Z'),
+          worker: {
+            nickname: '',
+            avatarUrl: 'a.png',
+            creditScore: 90,
+          },
+        },
+      ]);
+      jobApplicationRepository.count.mockResolvedValue(2);
+
+      const result = await service.manageDetail(9, 3);
+
+      expect(result.applicants[0].name).toBe('张三');
     });
 
     it('rejects access from non-owner users', async () => {

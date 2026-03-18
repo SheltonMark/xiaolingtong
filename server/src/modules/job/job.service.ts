@@ -5,6 +5,7 @@ import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
@@ -17,6 +18,7 @@ export class JobService {
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
@@ -456,6 +458,19 @@ export class JobService {
       relations: ['worker'],
       order: { createdAt: 'ASC' },
     });
+    const workerIds = applications.map((item) => item.workerId).filter(Boolean);
+    const workerCertMap = new Map<number, WorkerCert>();
+    if (workerIds.length) {
+      const workerCerts = await this.workerCertRepo.createQueryBuilder('cert')
+        .where('cert.userId IN (:...workerIds)', { workerIds })
+        .andWhere('cert.status = :status', { status: 'approved' })
+        .orderBy('cert.userId', 'ASC')
+        .addOrderBy('cert.id', 'DESC')
+        .getMany();
+      for (const cert of workerCerts) {
+        if (!workerCertMap.has(cert.userId)) workerCertMap.set(cert.userId, cert);
+      }
+    }
 
     const enrichedApplicants = await Promise.all(applications.map(async (app) => {
       const doneCount = await this.appRepo.count({
@@ -472,11 +487,15 @@ export class JobService {
         cancelled: { text: '已取消', tone: 'slate' },
       };
       const statusInfo = statusMap[app.status] || statusMap.pending;
+      const workerCert = workerCertMap.get(app.workerId);
+      const displayName = this.normalizeText(app.worker?.nickname)
+        || this.normalizeText(workerCert?.realName)
+        || '临工';
 
       return {
         id: app.id,
         workerId: app.workerId,
-        name: app.worker?.nickname || '临工',
+        name: displayName,
         avatarUrl: app.worker?.avatarUrl || '',
         creditScore: app.worker?.creditScore || 100,
         doneCount,
