@@ -74,6 +74,7 @@ describe('WorkService', () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
   });
 
   it('maps supervisor jobs to correct stage in getOrders', async () => {
@@ -88,11 +89,24 @@ describe('WorkService', () => {
   });
 
   it('allows supervisor to manually check in another worker', async () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 2, 18, 8, 10, 0));
     appRepo.findOne
       .mockResolvedValueOnce({ jobId: 1, workerId: 99, isSupervisor: 1, status: 'working' })
       .mockResolvedValueOnce({ jobId: 1, workerId: 2, status: 'confirmed' });
+    appRepo.find.mockResolvedValue([
+      { jobId: 1, workerId: 99, isSupervisor: 1, status: 'working', worker: { id: 99, nickname: '主管' } },
+      { jobId: 1, workerId: 2, isSupervisor: 0, status: 'confirmed', worker: { id: 2, nickname: '张三' } },
+    ]);
     checkinRepo.findOne.mockResolvedValue(null);
-    jobRepo.findOneBy.mockResolvedValue({ id: 1, status: 'full' });
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'full',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-20',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业A' },
+    });
     workLogRepo.findOne.mockResolvedValue(null);
 
     await service.checkin(99, { jobId: 1, workerId: 2, type: 'manual' });
@@ -172,6 +186,74 @@ describe('WorkService', () => {
     expect(result.records[1].attendance).toBe('late');
     expect(result.photos).toEqual(['https://img.test/photo-1.jpg']);
     expect(result.supervisor.name).toBe('主管');
+  });
+
+  it('blocks worker checkin before the allowed time window', async () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 2, 18, 7, 0, 0));
+    appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 2, status: 'confirmed' });
+    appRepo.find.mockResolvedValue([
+      { jobId: 1, workerId: 9, isSupervisor: 1, status: 'working', worker: { id: 9, nickname: '主管' } },
+      { jobId: 1, workerId: 2, isSupervisor: 0, status: 'confirmed', worker: { id: 2, nickname: '张三' } },
+    ]);
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'full',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-18',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业A' },
+    });
+
+    await expect(service.checkin(2, { jobId: 1, type: 'location' })).rejects.toThrow('未到签到时间');
+  });
+
+  it('blocks worker checkin when no supervisor is assigned', async () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 2, 18, 8, 10, 0));
+    appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 2, status: 'confirmed' });
+    appRepo.find.mockResolvedValue([
+      { jobId: 1, workerId: 2, isSupervisor: 0, status: 'confirmed', worker: { id: 2, nickname: '张三' } },
+    ]);
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'full',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-18',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业A' },
+    });
+
+    await expect(service.checkin(2, { jobId: 1, type: 'location' })).rejects.toThrow('企业尚未设置临工管理员');
+  });
+
+  it('returns checkin guard metadata in session response', async () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 2, 18, 7, 15, 0));
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      title: '装配工',
+      status: 'full',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-20',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业B' },
+    });
+    checkinRepo.find.mockResolvedValue([]);
+    workLogRepo.find.mockResolvedValue([]);
+    appRepo.find.mockResolvedValue([
+      { jobId: 1, workerId: 99, isSupervisor: 1, status: 'working', worker: { id: 99, nickname: '主管' } },
+      { jobId: 1, workerId: 2, isSupervisor: 0, status: 'confirmed', worker: { id: 2, nickname: '张三' } },
+    ]);
+
+    const result = await service.getSession(1, 2);
+
+    expect(result.hasSupervisor).toBe(true);
+    expect(result.canCheckin).toBe(false);
+    expect(result.checkinBlockedCode).toBe('too_early');
+    expect(result.checkinBlockedReason).toContain('未到签到时间');
+    expect(result.startTime).toBe('08:00');
+    expect(result.isSupervisor).toBe(false);
   });
 
   it('confirms attendance and advances the workflow', async () => {

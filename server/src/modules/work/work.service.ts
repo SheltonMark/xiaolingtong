@@ -25,6 +25,9 @@ type AttendanceRecordDto = {
 
 @Injectable()
 export class WorkService {
+  private readonly checkinAdvanceMinutes = 30;
+  private readonly checkinDeadlineMinutes = 120;
+
   constructor(
     @InjectRepository(Checkin) private checkinRepo: Repository<Checkin>,
     @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
@@ -63,9 +66,16 @@ export class WorkService {
 
   private normalizeDate(date?: string): string {
     if (!date) {
-      return new Date().toISOString().slice(0, 10);
+      return this.formatLocalDate();
     }
     return date.slice(0, 10);
+  }
+
+  private formatLocalDate(date = new Date()): string {
+    const year = date.getFullYear();
+    const month = `${date.getMonth() + 1}`.padStart(2, '0');
+    const day = `${date.getDate()}`.padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   private formatTime(date: Date): string {
@@ -74,9 +84,132 @@ export class WorkService {
     return `${hours}:${minutes}`;
   }
 
+  private formatDateTime(date?: Date | null): string {
+    if (!date) {
+      return '';
+    }
+    return `${this.formatLocalDate(date)} ${this.formatTime(date)}`;
+  }
+
   private isSameDate(date: Date | string, dateText: string): boolean {
-    const target = typeof date === 'string' ? date : date.toISOString().slice(0, 10);
+    const target = typeof date === 'string' ? date : this.formatLocalDate(date);
     return target.slice(0, 10) === dateText;
+  }
+
+  private parseClock(value?: string | null): { hours: number; minutes: number } | null {
+    const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) {
+      return null;
+    }
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+    if (
+      !Number.isInteger(hours)
+      || !Number.isInteger(minutes)
+      || hours < 0
+      || hours > 23
+      || minutes < 0
+      || minutes > 59
+    ) {
+      return null;
+    }
+
+    return { hours, minutes };
+  }
+
+  private getJobStartTime(job: Partial<Job>): string {
+    const startText = String(job.workHours || '').split('-')[0]?.trim();
+    const parsed = this.parseClock(startText);
+    if (!parsed) {
+      return '08:00';
+    }
+    return `${`${parsed.hours}`.padStart(2, '0')}:${`${parsed.minutes}`.padStart(2, '0')}`;
+  }
+
+  private buildDateTime(dateText?: string | null, timeText?: string | null): Date | null {
+    const normalizedDate = String(dateText || '').trim();
+    const parsedClock = this.parseClock(timeText);
+    if (!normalizedDate || !parsedClock) {
+      return null;
+    }
+
+    const [yearText, monthText, dayText] = normalizedDate.split('-');
+    const year = Number(yearText);
+    const month = Number(monthText);
+    const day = Number(dayText);
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    return new Date(year, month - 1, day, parsedClock.hours, parsedClock.minutes, 0, 0);
+  }
+
+  private addMinutes(date: Date, minutes: number): Date {
+    return new Date(date.getTime() + minutes * 60 * 1000);
+  }
+
+  private isActiveSupervisor(app?: Partial<JobApplication> | null): boolean {
+    return !!app
+      && Number(app.isSupervisor) === 1
+      && ['accepted', 'confirmed', 'working', 'done'].includes(String(app.status || ''));
+  }
+
+  private getAssignedSupervisor(apps: JobApplication[]): JobApplication | null {
+    return apps.find((app) => this.isActiveSupervisor(app)) || null;
+  }
+
+  private getCheckinRule(job: Partial<Job>, apps: JobApplication[], workerApp?: JobApplication | null, now = new Date()) {
+    const todayText = this.formatLocalDate(now);
+    const startDateText = String(job.dateStart || '').slice(0, 10);
+    const endDateText = String(job.dateEnd || '').slice(0, 10);
+    const startTime = this.getJobStartTime(job);
+    const workStartAt = this.buildDateTime(todayText, startTime);
+    const checkinWindowStart = workStartAt
+      ? this.addMinutes(workStartAt, -this.checkinAdvanceMinutes)
+      : null;
+    const checkinWindowEnd = workStartAt
+      ? this.addMinutes(workStartAt, this.checkinDeadlineMinutes)
+      : null;
+    const supervisorApp = this.getAssignedSupervisor(apps);
+
+    let blockedCode = '';
+    let blockedReason = '';
+
+    if (!workerApp) {
+      blockedCode = 'not_applied';
+      blockedReason = '未找到当前报名记录';
+    } else if (!['confirmed', 'working'].includes(workerApp.status)) {
+      blockedCode = 'status_invalid';
+      blockedReason = '当前状态暂不可打卡';
+    } else if (startDateText && todayText < startDateText) {
+      blockedCode = 'before_start_date';
+      blockedReason = `未到上岗日期，请于${startDateText}再签到`;
+    } else if (endDateText && todayText > endDateText) {
+      blockedCode = 'after_end_date';
+      blockedReason = '已超过用工日期，无法签到';
+    } else if (!supervisorApp) {
+      blockedCode = 'no_supervisor';
+      blockedReason = '企业尚未设置临工管理员，暂不可打卡';
+    } else if (checkinWindowStart && now < checkinWindowStart) {
+      blockedCode = 'too_early';
+      blockedReason = `未到签到时间，请于${this.formatTime(checkinWindowStart)}后签到`;
+    } else if (checkinWindowEnd && now > checkinWindowEnd) {
+      blockedCode = 'window_closed';
+      blockedReason = '已超过签到时间，请联系临工管理员处理';
+    }
+
+    return {
+      canCheckin: !blockedCode,
+      blockedCode,
+      blockedReason,
+      hasSupervisor: !!supervisorApp,
+      supervisorApp,
+      startTime,
+      workStartAt: this.formatDateTime(workStartAt),
+      checkinWindowStart: this.formatDateTime(checkinWindowStart),
+      checkinWindowEnd: this.formatDateTime(checkinWindowEnd),
+    };
   }
 
   private uniqueStrings(values?: Array<string | null | undefined>): string[] {
@@ -257,7 +390,7 @@ export class WorkService {
     return orders;
   }
 
-  async getSession(jobId: number) {
+  async getSession(jobId: number, userId?: number) {
     const normalizedJobId = this.normalizeJobId(jobId);
     const job = await this.jobRepo.findOne({
       where: { id: normalizedJobId },
@@ -287,12 +420,31 @@ export class WorkService {
       relations: ['worker'],
     });
     const confirmedWorkers = workers.filter((worker) => ['confirmed', 'working', 'done'].includes(worker.status));
+    const currentApp = userId
+      ? workers.find((worker) => Number(worker.workerId) === Number(userId)) || null
+      : null;
+    const checkinRule = this.getCheckinRule(job, workers, currentApp);
+    const supervisorApp = checkinRule.supervisorApp;
 
     return {
       job: { ...job, companyName },
       checkins: checkins.filter((checkin) => this.isSameDate(checkin.checkInAt, today)),
       logs,
       workers: confirmedWorkers,
+      supervisor: supervisorApp ? {
+        id: supervisorApp.workerId,
+        name: supervisorApp.worker?.nickname || '管理员',
+      } : null,
+      hasSupervisor: checkinRule.hasSupervisor,
+      canCheckin: checkinRule.canCheckin,
+      checkinBlockedCode: checkinRule.blockedCode,
+      checkinBlockedReason: checkinRule.blockedReason,
+      currentApplicationStatus: currentApp?.status || '',
+      isSupervisor: currentApp ? Number(currentApp.isSupervisor) === 1 : false,
+      checkinWindowStart: checkinRule.checkinWindowStart,
+      checkinWindowEnd: checkinRule.checkinWindowEnd,
+      workStartAt: checkinRule.workStartAt,
+      startTime: checkinRule.startTime,
     };
   }
 
@@ -301,6 +453,17 @@ export class WorkService {
     const targetWorkerId = await this.resolveTargetWorker(jobId, userId, dto.workerId);
     const today = this.normalizeDate();
     const now = new Date();
+    const job = await this.ensureJob(jobId);
+    const apps = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+    });
+    const targetWorkerApp = apps.find((app) => Number(app.workerId) === Number(targetWorkerId)) || null;
+    const checkinRule = this.getCheckinRule(job, apps, targetWorkerApp, now);
+
+    if (!checkinRule.canCheckin) {
+      throw new BadRequestException(checkinRule.blockedReason || '当前不可打卡');
+    }
 
     const latestCheckin = await this.checkinRepo.findOne({
       where: { jobId, workerId: targetWorkerId },
@@ -321,8 +484,7 @@ export class WorkService {
     });
     await this.checkinRepo.save(checkin);
 
-    const job = await this.jobRepo.findOneBy({ id: jobId });
-    if (job && !['working', 'pending_settlement', 'settled', 'closed'].includes(job.status)) {
+    if (!['working', 'pending_settlement', 'settled', 'closed'].includes(job.status)) {
       await this.jobRepo.update(jobId, { status: 'working' });
     }
 

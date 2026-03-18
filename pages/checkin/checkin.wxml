@@ -1,7 +1,6 @@
-<!--pages/checkin/checkin.wxml-->
 <view class="ci-page">
   <nav-bar title="签到管理" />
-  <!-- 工单信息卡片 -->
+
   <view class="ci-card">
     <view class="ci-job-header">
       <view class="text-avatar" style="width:60rpx;height:60rpx;font-size:24rpx;background-color:#10B981;">{{jobInfo.avatarText}}</view>
@@ -9,7 +8,7 @@
         <text class="ci-company">{{jobInfo.company}} · {{jobInfo.title}}</text>
         <text class="ci-date">{{jobInfo.date}} · {{jobInfo.time}}</text>
       </view>
-      <text class="admin-badge">临时管理员</text>
+      <text class="admin-badge">{{isSupervisor ? '临工管理员' : '零工签到'}}</text>
     </view>
     <view class="ci-stats">
       <view class="ci-stat">
@@ -27,7 +26,6 @@
     </view>
   </view>
 
-  <!-- GPS定位签到 -->
   <view class="ci-card gps-card">
     <view class="gps-map">
       <view class="gps-ring-outer">
@@ -37,7 +35,7 @@
       </view>
       <view class="gps-factory-label">{{jobInfo.company}}</view>
       <view class="gps-my-label">
-        <text class="my-loc-icon">◎</text>
+        <text class="my-loc-icon">●</text>
         <text>我的位置</text>
       </view>
     </view>
@@ -47,24 +45,26 @@
       </view>
       <text class="gps-factory">{{jobInfo.company}}</text>
       <text class="gps-hint">当前位置距离签到点 <text class="text-fresh font-medium">{{distance}}m</text></text>
-      <button class="btn btn-fresh checkin-btn" bindtap="onCheckin">立即签到</button>
+      <button class="btn btn-fresh checkin-btn {{!canCheckin ? 'checkin-btn-disabled' : ''}}"
+              disabled="{{!canCheckin}}" bindtap="onCheckin">立即签到</button>
+      <text class="checkin-tip" wx:if="{{checkinBlockedReason}}">{{checkinBlockedReason}}</text>
+      <text class="checkin-window" wx:if="{{checkinWindowStart && checkinWindowEnd}}">签到时间：{{checkinWindowStart}} - {{checkinWindowEnd}}</text>
       <text class="refresh-link" bindtap="onRefreshLocation"><text class="iconfont icon-shuaxin"></text> 刷新位置</text>
-      <text class="gps-range">需在工厂{{maxDistance}}米范围内签到</text>
+      <text class="gps-range">需在工厂 {{maxDistance}} 米范围内签到</text>
     </view>
   </view>
 
-  <!-- 签到名单 -->
   <view class="ci-section">
     <view class="section-header">
       <text class="section-title">签到名单</text>
-      <text class="section-action" bindtap="onCheckAll">全部签到</text>
+      <text class="section-action" wx:if="{{isSupervisor}}" bindtap="onCheckAll">全部签到</text>
     </view>
     <view class="checkin-list">
       <view class="checkin-item" wx:for="{{workers}}" wx:key="id">
         <view class="text-avatar" style="width:64rpx;height:64rpx;font-size:26rpx;background-color:#3B82F6;">{{item.name[0]}}</view>
         <view class="checkin-info">
           <text class="checkin-name">{{item.name}}</text>
-          <text class="checkin-time {{item.status === 'absent' ? 'text-rose' : ''}}">{{item.status === 'absent' ? '未签到' : item.time + ' 签到' + (item.status === 'late' ? '（迟到）' : '')}}</text>
+          <text class="checkin-time {{item.status === 'absent' ? 'text-rose' : ''}}">{{item.status === 'absent' ? '未签到' : item.time + ' 已签到' + (item.status === 'late' ? '（迟到）' : '')}}</text>
         </view>
         <view wx:if="{{item.status === 'ontime'}}" class="check-circle check-green">
           <text class="check-mark">✓</text>
@@ -72,16 +72,15 @@
         <view wx:elif="{{item.status === 'late'}}" class="check-circle check-amber">
           <text class="check-mark">✓</text>
         </view>
-        <button wx:elif="{{item.status === 'absent'}}" class="manual-checkin-btn"
+        <button wx:elif="{{item.status === 'absent' && isSupervisor}}" class="manual-checkin-btn"
                 data-id="{{item.id}}" bindtap="onManualCheckin">手动签到</button>
       </view>
     </view>
   </view>
 
-  <!-- 上传现场照片 -->
-  <view class="ci-card">
+  <view class="ci-card" wx:if="{{isSupervisor}}">
     <text class="card-title">上传现场照片</text>
-    <text class="photo-hint">请拍摄工作现场照片作为签到凭证</text>
+    <text class="photo-hint">请拍摄工作现场照片，作为签到与开工记录。</text>
     <view class="photo-grid">
       <view class="photo-add" bindtap="onTakePhoto">
         <text class="photo-add-icon">📷</text>
@@ -93,8 +92,7 @@
     </view>
   </view>
 
-  <!-- 底部 -->
-  <view class="ci-bottom">
+  <view class="ci-bottom" wx:if="{{isSupervisor}}">
     <button class="btn btn-fresh" bindtap="onConfirmStart">确认开工</button>
   </view>
 </view>

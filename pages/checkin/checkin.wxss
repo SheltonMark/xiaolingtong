@@ -52,6 +52,24 @@
 .gps-factory { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 8rpx; }
 .gps-hint { font-size: 24rpx; color: #94A3B8; display: block; margin-bottom: 24rpx; }
 .checkin-btn { width: 384rpx !important; margin: 0 auto; }
+.checkin-btn-disabled {
+  background-color: #CBD5E1 !important;
+  color: #FFFFFF !important;
+  box-shadow: none;
+}
+.checkin-tip {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  color: #F97316;
+  line-height: 1.6;
+}
+.checkin-window {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #64748B;
+}
 .refresh-link {
   display: block; font-size: 20rpx; color: #3B82F6;
   margin-top: 16rpx; text-align: center;
@@ -93,7 +111,7 @@
 /* 上传照片 */
 .card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 8rpx; }
 .photo-hint { font-size: 20rpx; color: #94A3B8; display: block; margin-bottom: 16rpx; }
-.photo-grid { display: flex; gap: 16rpx; }
+.photo-grid { display: flex; gap: 16rpx; flex-wrap: wrap; }
 .photo-add {
   width: 128rpx; height: 128rpx;
   border: 4rpx dashed #CBD5E1; border-radius: 16rpx;

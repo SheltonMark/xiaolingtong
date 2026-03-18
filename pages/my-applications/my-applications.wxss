@@ -36,6 +36,7 @@
   border-radius: 8rpx; font-weight: 500;
 }
 .status-bg-amber { background-color: #FFFBEB; color: #F59E0B; }
+.status-bg-blue { background-color: #EFF6FF; color: #3B82F6; }
 .status-bg-green { background-color: #ECFDF5; color: #10B981; }
 .status-bg-gray { background-color: #F1F5F9; color: #64748B; }
 .status-bg-rose { background-color: #FFF1F2; color: #F43F5E; }

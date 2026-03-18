@@ -12,8 +12,8 @@ export class WorkController {
   }
 
   @Get('session/:jobId')
-  getSession(@Param('jobId') jobId: number) {
-    return this.workService.getSession(Number(jobId));
+  getSession(@CurrentUser('sub') userId: number, @Param('jobId') jobId: number) {
+    return this.workService.getSession(Number(jobId), userId);
   }
 
   @Post('checkin')

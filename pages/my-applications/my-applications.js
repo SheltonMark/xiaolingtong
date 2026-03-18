@@ -86,20 +86,18 @@ Page({
   normalizeApplication(item) {
     const job = item.job || {}
     const user = job.user || {}
-
-    // 状态映射
     const statusMap = {
       pending: { text: '待审核', bg: 'amber', tabKey: '待审核' },
       accepted: { text: '待出勤', bg: 'blue', tabKey: '待出勤', canConfirmAttendance: true },
-      confirmed: { text: '待开工', bg: 'blue', tabKey: '进行中', canCheckin: true },
-      working: { text: '进行中', bg: 'green', tabKey: '进行中', canCheckin: true, showPulse: true },
+      confirmed: { text: '待开工', bg: 'blue', tabKey: '进行中', canOpenCheckin: true, checkinActionText: '查看签到' },
+      working: { text: '进行中', bg: 'green', tabKey: '进行中', canOpenCheckin: true, checkinActionText: '打卡签到', showPulse: true },
       done: { text: '已完成', bg: 'gray', tabKey: '已完成', canRate: true },
       rejected: { text: '未通过', bg: 'rose', tabKey: '全部' },
       released: { text: '已释放', bg: 'gray', tabKey: '全部' },
       cancelled: { text: '已取消', bg: 'gray', tabKey: '全部' }
     }
 
-    const statusInfo = statusMap[item.status] || { text: '待审核', bg: 'amber', tabKey: '待审核' }
+    const statusInfo = statusMap[item.status] || statusMap.pending
     const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
     const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
     const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
@@ -123,14 +121,17 @@ Page({
       statusBg: statusInfo.bg,
       tabKey: statusInfo.tabKey,
       canConfirmAttendance: !!statusInfo.canConfirmAttendance,
-      canCheckin: !!statusInfo.canCheckin,
+      canOpenCheckin: !!statusInfo.canOpenCheckin,
+      checkinActionText: statusInfo.checkinActionText || '查看签到',
       canRate: !!statusInfo.canRate,
       showPulse: !!statusInfo.showPulse,
       alert: item.status === 'accepted'
         ? '如确认出勤，请尽快确认，避免名额释放'
         : item.status === 'confirmed'
-          ? '已确认出勤，请按时签到开工'
-          : ''
+          ? '已确认出勤，请在签到时间内完成签到，如未设置临工管理员将无法打卡'
+          : item.status === 'working'
+            ? '已进入工作中，可查看签到记录和当前状态'
+            : ''
     }
   },
 
@@ -142,15 +143,13 @@ Page({
     const jobId = e.currentTarget.dataset.jobId
     wx.showModal({
       title: '确认出勤',
-      content: '确认明天按时到岗？',
+      content: '确认会按时到岗后，系统将保留你的录用资格。',
       success: (res) => {
-        if (res.confirm) {
-          post('/jobs/' + jobId + '/confirm').then(() => {
-            wx.showToast({ title: '已确认', icon: 'success' })
-            this.loadApplications()
-            setTimeout(() => wx.navigateTo({ url: '/pages/checkin/checkin?jobId=' + jobId }), 1500)
-          }).catch(() => {})
-        }
+        if (!res.confirm) return
+        post('/jobs/' + jobId + '/confirm').then(() => {
+          wx.showToast({ title: '已确认', icon: 'success' })
+          this.loadApplications()
+        }).catch(() => {})
       }
     })
   },

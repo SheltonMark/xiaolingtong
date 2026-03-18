@@ -1,7 +1,6 @@
-<!--pages/my-applications/my-applications.wxml-->
 <view class="ma-page">
   <nav-bar title="我的报名" />
-  <!-- Tab -->
+
   <view class="tab-bar">
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
           wx:for="{{tabs}}" wx:key="index"
@@ -10,11 +9,9 @@
     </view>
   </view>
 
-  <!-- 列表 -->
   <view class="app-list">
     <view class="app-card {{item.status === 'rejected' ? 'card-faded' : ''}}"
           wx:for="{{filteredList}}" wx:key="id">
-      <!-- 头部 -->
       <view class="app-header">
         <view class="app-header-left">
           <image wx:if="{{item.companyAvatarUrl}}" src="{{item.companyAvatarUrl}}" class="app-avatar-img" mode="aspectFill" />
@@ -26,33 +23,35 @@
           <text>{{item.statusText}}</text>
         </view>
       </view>
-      <!-- 岗位+薪资 -->
+
       <text class="app-job-line">{{item.title}} · <text class="text-cta">{{item.salary}}{{item.salaryUnit}}</text></text>
-      <!-- 地点 -->
+
       <view class="app-location-row">
         <text class="location-icon">📍</text>
         <text class="app-location">{{item.location}}</text>
       </view>
-      <!-- 日期 -->
+
       <view class="app-date-row">
         <text class="date-icon">📅</text>
         <text class="app-date">{{item.date}}</text>
         <text class="app-date" wx:if="{{item.hours}}"> · {{item.hours}}</text>
       </view>
-      <!-- 工作描述 -->
+
       <text class="app-description" wx:if="{{item.description}}">{{item.description}}</text>
-      <!-- 提醒 -->
+
       <view class="app-alert" wx:if="{{item.alert}}">
-        <text class="alert-icon">⏱</text>
+        <text class="alert-icon">🔔</text>
         <text class="alert-text">{{item.alert}}</text>
       </view>
-      <!-- 操作 -->
+
       <button class="confirm-btn" wx:if="{{item.canConfirmAttendance}}"
               data-job-id="{{item.jobId}}" bindtap="onConfirmAttend">确认出勤</button>
-      <view class="app-actions" wx:if="{{item.canCheckin}}">
-        <button class="act-btn act-blue" data-job-id="{{item.jobId}}" bindtap="onGoCheckin">打卡签到</button>
+
+      <view class="app-actions" wx:if="{{item.canOpenCheckin}}">
+        <button class="act-btn act-blue" data-job-id="{{item.jobId}}" bindtap="onGoCheckin">{{item.checkinActionText}}</button>
         <button class="act-btn act-blue" data-job-id="{{item.jobId}}" bindtap="onViewDetail">查看详情</button>
       </view>
+
       <view class="app-actions" wx:if="{{item.canRate}}">
         <button class="act-btn act-blue" data-job-id="{{item.jobId}}" bindtap="onViewDetail">查看详情</button>
         <button class="act-btn act-orange" data-job-id="{{item.jobId}}" data-enterprise-id="{{item.enterpriseId}}" bindtap="onRate">评价企业</button>
