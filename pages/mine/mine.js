@@ -67,7 +67,6 @@ Page({
       { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' },
       { icon: '\ue661', label: '我的邀请', bg: '#F0F9FF', iconColor: '#0EA5E9', url: '/pages/my-invites/my-invites' },
       { icon: '\ue63b', label: '广告投放', bg: '#F3E8FF', iconColor: '#8B5CF6', url: '/pages/ad-purchase/ad-purchase' },
-      { placeholder: true, key: 'enterprise-contact-gap' },
       { icon: '\ue605', label: '联系方式', bg: '#EEF2FF', iconColor: '#4F46E5', url: '/pages/contact-profile/contact-profile' }
     ],
     myPosts: [],
