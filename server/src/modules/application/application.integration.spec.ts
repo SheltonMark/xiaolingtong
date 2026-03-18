@@ -119,6 +119,14 @@ describe('ApplicationModule Integration Tests', () => {
       await expect(controller.apply(1, 1)).rejects.toThrow();
     });
 
+    it('should throw error when job is beyond end date', async () => {
+      const mockJob = { id: 1, status: 'recruiting', needCount: 5, dateEnd: '2000-01-01' };
+
+      jobRepository.findOne.mockResolvedValue(mockJob);
+
+      await expect(controller.apply(1, 1)).rejects.toThrow('该岗位已超过结束日期');
+    });
+
     it('should throw error when already applied', async () => {
       const mockJob = { id: 1, status: 'recruiting', needCount: 5 };
       const mockApp = { id: 1, jobId: 1, workerId: 1, status: 'pending' };

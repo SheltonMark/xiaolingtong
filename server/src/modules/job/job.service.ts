@@ -120,6 +120,105 @@ export class JobService {
     return fullAddress.substring(0, 20);
   }
 
+  private formatDate(date = new Date()): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private isDatePassed(dateText: string, today = this.formatDate()): boolean {
+    const normalized = this.normalizeText(dateText);
+    return !!normalized && normalized < today;
+  }
+
+  private getJobTimeMeta(
+    job: Partial<Job>,
+    summary: { pendingCount?: number; acceptedCount?: number; confirmedCount?: number } = {},
+  ) {
+    const status = this.normalizeText(job.status);
+    const startPassed = this.isDatePassed(this.normalizeText(job.dateStart));
+    const endPassed = this.isDatePassed(this.normalizeText(job.dateEnd));
+    const pendingCount = summary.pendingCount || 0;
+    const confirmedCount = summary.confirmedCount || 0;
+
+    if (status === 'pending_settlement') {
+      return {
+        key: 'settlement',
+        text: '待结算',
+        tone: 'amber',
+        hint: '考勤已确认，尽快完成结算',
+      };
+    }
+
+    if (['settled', 'closed'].includes(status)) {
+      return {
+        key: 'ended',
+        text: '已结束',
+        tone: 'slate',
+        hint: '本单已结束，无需继续处理',
+      };
+    }
+
+    if (endPassed) {
+      if (confirmedCount > 0 || status === 'working') {
+        return {
+          key: 'end_overdue',
+          text: '待考勤',
+          tone: 'amber',
+          hint: '已超过结束日期，请尽快确认考勤并生成结算',
+        };
+      }
+      return {
+        key: 'ended',
+        text: '已结束',
+        tone: 'slate',
+        hint: '已超过结束日期，订单已停止招工',
+      };
+    }
+
+    if (startPassed && ['recruiting', 'full'].includes(status)) {
+      return {
+        key: 'start_overdue',
+        text: '已过开工',
+        tone: 'amber',
+        hint: pendingCount > 0
+          ? `已过开工日期，仍有 ${pendingCount} 人待处理`
+          : '已过开工日期，请尽快处理当前报名',
+      };
+    }
+
+    return {
+      key: 'normal',
+      text: '',
+      tone: '',
+      hint: '',
+    };
+  }
+
+  private getJobPrimaryAction(
+    job: Partial<Job>,
+    summary: { pendingCount?: number } = {},
+    timeMeta = this.getJobTimeMeta(job, summary),
+  ) {
+    const status = this.normalizeText(job.status);
+    const pendingCount = summary.pendingCount || 0;
+
+    if (status === 'pending_settlement') {
+      return { text: '去结算', tab: 'settlement' };
+    }
+    if (timeMeta.key === 'end_overdue' || status === 'working') {
+      return { text: '去考勤', tab: 'attendance' };
+    }
+    if (['settled', 'closed'].includes(status)) {
+      return { text: '查看详情', tab: 'settlement' };
+    }
+    if (pendingCount > 0 || timeMeta.key === 'start_overdue') {
+      return { text: '查看报名', tab: 'applications' };
+    }
+    return { text: '管理招工', tab: 'applications' };
+  }
+
   private normalizeCreateDto(dto: any) {
     const salary = Number(dto.salary || dto.price || 0);
     const needCount = Number(dto.needCount || dto.headcount || dto.need || 0);
@@ -324,7 +423,13 @@ export class JobService {
     });
 
     const formattedJobs = await Promise.all(jobs.map(async (job) => {
-      const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+      const applications = await this.appRepo.find({ where: { jobId: job.id } });
+      const appliedCount = applications.length;
+      const pendingCount = applications.filter((item) => item.status === 'pending').length;
+      const acceptedCount = applications.filter((item) => item.status === 'accepted').length;
+      const confirmedCount = applications.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length;
+      const timeMeta = this.getJobTimeMeta(job, { pendingCount, acceptedCount, confirmedCount });
+      const primaryAction = this.getJobPrimaryAction(job, { pendingCount }, timeMeta);
 
       let isUrgent = job.urgent === 1;
       if (isUrgent && job.urgentExpireAt && new Date(job.urgentExpireAt) < new Date()) {
@@ -341,10 +446,21 @@ export class JobService {
         salaryUnit: job.salaryUnit,
         needCount: job.needCount,
         appliedCount,
+        pendingCount,
+        acceptedCount,
+        confirmedCount,
+        dateStart: job.dateStart,
+        dateEnd: job.dateEnd,
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
         workHours: job.workHours,
         cityDistrict: this.extractCityDistrict(job.location),
         status: job.status,
+        timeState: timeMeta.key,
+        timeStateText: timeMeta.text,
+        timeStateTone: timeMeta.tone,
+        timeHint: timeMeta.hint,
+        actionText: primaryAction.text,
+        actionTab: primaryAction.tab,
         urgent: isUrgent,
         urgentExpireAt: job.urgentExpireAt,
         createdAt: job.createdAt,
@@ -370,6 +486,7 @@ export class JobService {
       const confirmedCount = applications.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length;
       const rejectedCount = applications.filter((item) => item.status === 'rejected').length;
       const supervisorCount = applications.filter((item) => item.isSupervisor === 1).length;
+      const timeMeta = this.getJobTimeMeta(job, { pendingCount, acceptedCount, confirmedCount });
 
       let stageKey = 'recruiting';
       let filterKey = 'ongoing';
@@ -379,7 +496,23 @@ export class JobService {
       let actionText = '查看报名';
       let actionTab = 'applications';
 
-      if (job.status === 'working') {
+      if (timeMeta.key === 'end_overdue') {
+        stageKey = 'attendance_due';
+        filterKey = 'ongoing';
+        stageText = timeMeta.text;
+        stageTone = timeMeta.tone;
+        highlight = timeMeta.hint;
+        actionText = '去考勤';
+        actionTab = 'attendance';
+      } else if (timeMeta.key === 'ended' && !['settled', 'closed'].includes(job.status)) {
+        stageKey = 'closed';
+        filterKey = 'closed';
+        stageText = timeMeta.text;
+        stageTone = timeMeta.tone;
+        highlight = timeMeta.hint;
+        actionText = '查看报名';
+        actionTab = 'applications';
+      } else if (job.status === 'working') {
         stageKey = 'working';
         filterKey = 'ongoing';
         stageText = '进行中';
@@ -403,6 +536,14 @@ export class JobService {
         highlight = '已完成本次用工';
         actionText = '查看详情';
         actionTab = 'settlement';
+      } else if (timeMeta.key === 'start_overdue') {
+        stageKey = 'start_overdue';
+        filterKey = pendingCount > 0 ? 'pending' : 'ongoing';
+        stageText = timeMeta.text;
+        stageTone = timeMeta.tone;
+        highlight = timeMeta.hint;
+        actionText = '查看报名';
+        actionTab = 'applications';
       } else if (pendingCount > 0) {
         stageKey = 'pending';
         filterKey = 'pending';
@@ -423,7 +564,13 @@ export class JobService {
         location: this.extractCityDistrict(job.location),
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart} ~ ${job.dateEnd}` : '',
         workHours: job.workHours || '',
+        dateStart: job.dateStart,
+        dateEnd: job.dateEnd,
           status: job.status,
+          timeState: timeMeta.key,
+          timeStateText: timeMeta.text,
+          timeStateTone: timeMeta.tone,
+          timeHint: timeMeta.hint,
           stageKey,
           filterKey,
           stageText,

@@ -18,6 +18,13 @@ export class TasksService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
   ) {}
 
+  private formatDate(date = new Date()): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   /** 每天凌晨1点：会员到期自动降级 */
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleMemberExpire() {
@@ -77,6 +84,37 @@ export class TasksService {
         await this.appRepo.save(alternate);
         this.logger.log(`递补工人${alternate.workerId} 到招工${app.jobId}`);
       }
+    }
+  }
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async handleExpiredJobs() {
+    const today = this.formatDate();
+    const jobs = await this.jobRepo.find({
+      where: [
+        { status: 'recruiting' as any },
+        { status: 'full' as any },
+        { status: 'working' as any },
+      ],
+    });
+
+    for (const job of jobs) {
+      if (!job.dateEnd || job.dateEnd >= today) continue;
+
+      const apps = await this.appRepo.find({ where: { jobId: job.id } });
+      const hasStarted = apps.some((item) => ['working', 'done'].includes(item.status));
+      const hasConfirmed = apps.some((item) => item.status === 'confirmed');
+      if (hasStarted || hasConfirmed || job.status === 'working') continue;
+
+      await this.jobRepo.update(job.id, { status: 'closed' });
+      await this.appRepo.createQueryBuilder()
+        .update(JobApplication)
+        .set({ status: 'released', isSupervisor: 0 })
+        .where('jobId = :jobId', { jobId: job.id })
+        .andWhere('status IN (:...statuses)', { statuses: ['pending', 'accepted', 'confirmed'] })
+        .execute();
+
+      this.logger.log(`招工到期自动关闭: job=${job.id}`);
     }
   }
 }

@@ -17,10 +17,21 @@ export class ApplicationService {
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
   ) {}
 
+  private formatDate(date = new Date()): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   async apply(jobId: number, workerId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.status !== 'recruiting') throw new BadRequestException('该岗位已停止招聘');
+
+    if (job.dateEnd && job.dateEnd < this.formatDate()) {
+      throw new BadRequestException('该岗位已超过结束日期，请联系企业重新发布');
+    }
 
     const existing = await this.appRepo.findOne({ where: { jobId, workerId } });
     if (existing) throw new BadRequestException('已报名');

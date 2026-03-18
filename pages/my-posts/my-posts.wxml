@@ -1,7 +1,6 @@
 <!--pages/my-posts/my-posts.wxml-->
 <view class="my-posts-page">
   <nav-bar title="我的发布" />
-  <!-- Tab -->
   <view class="tab-bar">
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
           wx:for="{{tabs}}" wx:key="index"
@@ -10,7 +9,6 @@
     </view>
   </view>
 
-  <!-- 列表 -->
   <view class="post-list">
     <view class="post-card {{item.status === 'offline' ? 'card-offline' : ''}}"
           wx:for="{{posts}}" wx:key="uniqueKey"
@@ -23,9 +21,9 @@
           <text>{{item.statusText}}</text>
         </view>
       </view>
+
       <text class="post-title">{{item.title}}</text>
 
-      <!-- 招工信息详情 -->
       <view class="job-detail-info" wx:if="{{item.typeKey === 'job'}}">
         <view class="job-info-row">
           <text class="job-info-label">工价：</text>
@@ -49,24 +47,33 @@
         </view>
       </view>
 
-      <!-- 其他类型信息详情 -->
       <text class="post-desc" wx:if="{{item.typeKey !== 'job' && item.desc}}">{{item.desc}}</text>
 
-      <!-- 驳回原因 -->
       <view class="reject-box" wx:if="{{item.rejectReason}}">
         <text class="reject-text">驳回原因：{{item.rejectReason}}</text>
       </view>
+
       <view class="post-meta">
         <text class="meta-item">发布：{{item.publishTime}}</text>
         <text class="meta-item" wx:if="{{item.expireTime && !item.expired}}">有效期至：{{item.expireTime}}</text>
         <text class="meta-item" wx:if="{{item.expired}}">已过期：{{item.expireTime}}</text>
         <text class="meta-item meta-views" wx:if="{{item.views > 0}}">{{item.views}}次浏览</text>
       </view>
-      <!-- 操作按钮 -->
+
+      <view class="deadline-tip" wx:if="{{item.typeKey === 'job' && item.timeHint}}">
+        <text class="deadline-tip-text">{{item.timeHint}}</text>
+      </view>
+
       <view class="post-actions">
-        <button class="act-btn act-gold" wx:if="{{item.typeKey === 'job'}}" data-id="{{item.id}}" bindtap="onManageJob">管理招工</button>
+        <button
+          class="act-btn act-gold"
+          wx:if="{{item.typeKey === 'job'}}"
+          data-id="{{item.id}}"
+          data-tab="{{item.primaryActionTab}}"
+          bindtap="onManageJob"
+        >{{item.primaryActionText || '管理招工'}}</button>
         <button class="act-btn act-blue" data-id="{{item.id}}" data-type="{{item.typeKey}}" bindtap="onViewPost">查看详情</button>
-        <button class="act-btn act-orange" wx:if="{{item.canSettle}}" data-id="{{item.jobId}}" bindtap="onGoSettlement">去结算</button>
+        <button class="act-btn act-orange" wx:if="{{item.canSettle && item.primaryActionTab !== 'settlement'}}" data-id="{{item.jobId || item.id}}" bindtap="onGoSettlement">去结算</button>
         <button class="act-btn act-orange" wx:elif="{{item.canPromote && item.typeKey === 'job'}}" data-id="{{item.id}}" bindtap="onSetUrgent">设置急招</button>
         <button class="act-btn act-orange" wx:elif="{{item.canPromote}}" data-id="{{item.id}}" bindtap="onPromotePost">推广置顶</button>
         <button class="act-btn act-rose" data-id="{{item.id}}" bindtap="onDeletePost">删除</button>

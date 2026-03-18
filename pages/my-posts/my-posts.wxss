@@ -155,6 +155,20 @@
 }
 .meta-views { margin-left: auto; }
 
+.deadline-tip {
+  margin-bottom: 18rpx;
+  padding: 16rpx 20rpx;
+  border-radius: 16rpx;
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFFDF7 100%);
+  border: 1rpx solid #FED7AA;
+}
+
+.deadline-tip-text {
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #C2410C;
+}
+
 /* 操作按钮 */
 .post-actions {
   display: flex;

@@ -48,6 +48,64 @@ Page({
     }
   },
 
+  getJobDisplayState(item, fallbackStatus) {
+    const statusMeta = fallbackStatus || { text: '审核中', color: 'rose' }
+    const timeState = item.timeState || ''
+
+    if (timeState === 'settlement') {
+      return {
+        text: '待结算',
+        color: 'amber',
+        hint: item.timeHint || '考勤已确认，尽快完成结算',
+        primaryActionText: '去结算',
+        primaryActionTab: 'settlement',
+        isOverdue: false
+      }
+    }
+
+    if (timeState === 'end_overdue') {
+      return {
+        text: '待考勤',
+        color: 'amber',
+        hint: item.timeHint || '已超过结束日期，请尽快确认考勤并生成结算',
+        primaryActionText: '去考勤',
+        primaryActionTab: 'attendance',
+        isOverdue: true
+      }
+    }
+
+    if (timeState === 'start_overdue') {
+      return {
+        text: '已过开工',
+        color: 'amber',
+        hint: item.timeHint || '已过开工日期，请尽快处理当前报名',
+        primaryActionText: '查看报名',
+        primaryActionTab: 'applications',
+        isOverdue: true
+      }
+    }
+
+    if (timeState === 'ended' && !['settled', 'closed'].includes(item.status)) {
+      return {
+        text: '已结束',
+        color: 'gray',
+        hint: item.timeHint || '已超过结束日期，订单已停止招工',
+        primaryActionText: '查看报名',
+        primaryActionTab: 'applications',
+        isOverdue: true
+      }
+    }
+
+    return {
+      text: statusMeta.text,
+      color: statusMeta.color,
+      hint: item.timeHint || '',
+      primaryActionText: item.actionText || '管理招工',
+      primaryActionTab: item.actionTab || 'applications',
+      isOverdue: false
+    }
+  },
+
   mapPosts(list) {
     const typeMap = {
       purchase: { label: '采购需求', color: 'blue' },
@@ -71,25 +129,29 @@ Page({
     return (Array.isArray(list) ? list : []).map(item => {
       const typeMeta = typeMap[item.type] || { label: '信息', color: 'blue' }
       const statusMeta = statusMap[item.status] || { text: '审核中', color: 'rose' }
+      const jobDisplay = item.type === 'job' ? this.getJobDisplayState(item, statusMeta) : null
       const createdAt = item.createdAt ? item.createdAt.substring(0, 10) : ''
-      const expireAt = item.expireAt ? item.expireAt.substring(0, 10) : ''
+      const expireAt = item.expireAt ? item.expireAt.substring(0, 10) : (item.dateEnd || '')
       return {
         ...item,
         uniqueKey: `${item.type}-${item.id}`, // 添加唯一key，避免posts和jobs的id冲突
         typeKey: item.type,
         type: typeMeta.label,
         typeColor: typeMeta.color,
-        statusText: statusMeta.text,
-        statusColor: statusMeta.color,
+        statusText: jobDisplay ? jobDisplay.text : statusMeta.text,
+        statusColor: jobDisplay ? jobDisplay.color : statusMeta.color,
         publishTime: createdAt,
         expireTime: expireAt,
-        expired: item.status === 'expired',
+        expired: item.type === 'job' ? !!(jobDisplay && jobDisplay.isOverdue) : item.status === 'expired',
         views: Number(item.viewCount || 0),
         title: item.title || (item.content || '').slice(0, 36) || '未命名发布',
         desc: item.content || '',
+        timeHint: jobDisplay ? jobDisplay.hint : '',
+        primaryActionText: jobDisplay ? jobDisplay.primaryActionText : '',
+        primaryActionTab: jobDisplay ? jobDisplay.primaryActionTab : 'applications',
         isPromoted: !!item.isPromoted,
-        canPromote: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting'),
-        canSettle: item.type === 'job' && item.status === 'pending_settlement'
+        canPromote: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting') && !(jobDisplay && jobDisplay.isOverdue),
+        canSettle: item.type === 'job' && (item.status === 'pending_settlement' || item.timeState === 'settlement')
       }
     })
   },
@@ -126,7 +188,8 @@ Page({
 
   onManageJob(e) {
     const jobId = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + jobId + '&tab=applications' })
+    const tab = e.currentTarget.dataset.tab || 'applications'
+    wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + jobId + '&tab=' + tab })
   },
 
   onDeletePost(e) {

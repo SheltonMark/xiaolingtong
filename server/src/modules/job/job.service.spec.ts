@@ -379,7 +379,11 @@ describe('JobService', () => {
           createdAt: new Date('2026-03-01T00:00:00.000Z'),
         },
       ]);
-      jobApplicationRepository.count.mockResolvedValue(3);
+      jobApplicationRepository.find.mockResolvedValue([
+        { status: 'pending' },
+        { status: 'accepted' },
+        { status: 'confirmed' },
+      ]);
 
       const result = await service.myJobs(1);
 
@@ -482,6 +486,66 @@ describe('JobService', () => {
         confirmedCount: 2,
         supervisorCount: 1,
       });
+    });
+  });
+
+  it('marks overdue jobs with attendance or closed guidance', async () => {
+    jobRepository.find.mockResolvedValue([
+      {
+        id: 11,
+        userId: 3,
+        title: 'Attendance Due',
+        salary: 120,
+        salaryUnit: '元/天',
+        needCount: 3,
+        location: '深圳市宝安区',
+        dateStart: '2000-01-01',
+        dateEnd: '2000-01-02',
+        workHours: '08:00-17:00',
+        status: 'working',
+      },
+      {
+        id: 12,
+        userId: 3,
+        title: 'Closed Job',
+        salary: 100,
+        salaryUnit: '元/天',
+        needCount: 2,
+        location: '深圳市宝安区',
+        dateStart: '2000-01-01',
+        dateEnd: '2000-01-02',
+        workHours: '08:00-17:00',
+        status: 'recruiting',
+      },
+    ]);
+    enterpriseCertRepository.findOne.mockResolvedValue({
+      companyName: '测试企业',
+    });
+    jobApplicationRepository.find.mockImplementation(async ({ where: { jobId } }) => {
+      if (jobId === 11) {
+        return [
+          { status: 'working', isSupervisor: 1 },
+          { status: 'done', isSupervisor: 0 },
+        ];
+      }
+      return [
+        { status: 'pending', isSupervisor: 0 },
+      ];
+    });
+
+    const result = await service.manageJobs(3, { stage: 'all' });
+
+    expect(result.list[0]).toMatchObject({
+      id: 11,
+      stageKey: 'attendance_due',
+      actionTab: 'attendance',
+      timeState: 'end_overdue',
+    });
+    expect(result.list[1]).toMatchObject({
+      id: 12,
+      stageKey: 'closed',
+      filterKey: 'closed',
+      timeState: 'ended',
     });
   });
 
