@@ -30,4 +30,14 @@ export class UserController {
   updateProfile(@CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.userService.updateProfile(userId, dto);
   }
+
+  @Get('contact-profile/default')
+  getDefaultContactProfile(@CurrentUser('sub') userId: number) {
+    return this.userService.getDefaultContactProfile(userId);
+  }
+
+  @Put('contact-profile/default')
+  updateDefaultContactProfile(@CurrentUser('sub') userId: number, @Body() dto: any) {
+    return this.userService.updateDefaultContactProfile(userId, dto);
+  }
 }

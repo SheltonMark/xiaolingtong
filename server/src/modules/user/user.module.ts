@@ -5,9 +5,10 @@ import { UserService } from './user.service';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
+import { ContactProfile } from '../../entities/contact-profile.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, EnterpriseCert, WorkerCert])],
+  imports: [TypeOrmModule.forFeature([User, EnterpriseCert, WorkerCert, ContactProfile])],
   controllers: [UserController],
   providers: [UserService],
   exports: [UserService],

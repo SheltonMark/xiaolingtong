@@ -7,17 +7,20 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
+import { ContactProfile } from '../../entities/contact-profile.entity';
 
 describe('UserService', () => {
   let service: UserService;
   let userRepo: jest.Mocked<any>;
   let entCertRepo: jest.Mocked<any>;
   let workerCertRepo: jest.Mocked<any>;
+  let contactProfileRepo: jest.Mocked<any>;
 
   beforeEach(async () => {
     userRepo = {
       update: jest.fn(),
       findOne: jest.fn(),
+      findOneBy: jest.fn(),
     } as jest.Mocked<any>;
 
     entCertRepo = {
@@ -27,6 +30,12 @@ describe('UserService', () => {
     } as jest.Mocked<any>;
 
     workerCertRepo = {
+      findOneBy: jest.fn(),
+      create: jest.fn(),
+      save: jest.fn(),
+    } as jest.Mocked<any>;
+
+    contactProfileRepo = {
       findOneBy: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
@@ -46,6 +55,10 @@ describe('UserService', () => {
         {
           provide: getRepositoryToken(WorkerCert),
           useValue: workerCertRepo,
+        },
+        {
+          provide: getRepositoryToken(ContactProfile),
+          useValue: contactProfileRepo,
         },
       ],
     }).compile();
@@ -327,6 +340,75 @@ describe('UserService', () => {
         nickname: 'New Nickname',
       });
       expect(result.nickname).toBe('New Nickname');
+    });
+  });
+
+  describe('getDefaultContactProfile', () => {
+    it('should fallback to verifiedPhone when contact profile phone is empty', async () => {
+      userRepo.findOneBy.mockResolvedValue({
+        id: 7,
+        nickname: '张三',
+        verifiedPhone: '13800000000',
+        phone: '15500000000',
+      });
+      contactProfileRepo.findOneBy.mockResolvedValue({
+        userId: 7,
+        contactName: '张三',
+        phone: null,
+        phoneVerified: 1,
+        wechatId: 'zhangsan',
+        wechatQrImage: 'https://cdn.test/qr.png',
+      });
+
+      const result = await service.getDefaultContactProfile(7);
+
+      expect(contactProfileRepo.findOneBy).toHaveBeenCalledWith({ userId: 7, isDefault: 1 });
+      expect(result.phone).toBe('13800000000');
+      expect(result.phoneVerified).toBe(true);
+      expect(result.wechatId).toBe('zhangsan');
+      expect(result.wechatQrImage).toBe('https://cdn.test/qr.png');
+    });
+
+    it('should return empty defaults when user and profile are both missing', async () => {
+      userRepo.findOneBy.mockResolvedValue(null);
+      contactProfileRepo.findOneBy.mockResolvedValue(null);
+
+      const result = await service.getDefaultContactProfile(7);
+
+      expect(result).toEqual({
+        contactName: '',
+        phone: '',
+        phoneVerified: false,
+        wechatId: '',
+        wechatQrImage: '',
+      });
+    });
+  });
+
+  describe('updateDefaultContactProfile', () => {
+    it('should create a default contact profile when none exists', async () => {
+      const payload = {
+        contactName: '李四',
+        phone: '13800138000',
+        wechatId: 'lisi',
+        wechatQrImage: 'https://cdn.test/lisi-qr.png',
+      };
+      const created = { userId: 9, isDefault: 1, status: 'active', phoneVerified: 0, ...payload };
+
+      contactProfileRepo.findOneBy.mockResolvedValue(null);
+      contactProfileRepo.create.mockReturnValue(created);
+      contactProfileRepo.save.mockResolvedValue(created);
+
+      const result = await service.updateDefaultContactProfile(9, payload);
+
+      expect(contactProfileRepo.create).toHaveBeenCalledWith({
+        userId: 9,
+        isDefault: 1,
+        status: 'active',
+        phoneVerified: 0,
+        ...payload,
+      });
+      expect(result.wechatId).toBe('lisi');
     });
   });
 });

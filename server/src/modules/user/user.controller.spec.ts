@@ -17,6 +17,8 @@ describe('UserController', () => {
       getCertStatus: jest.fn(),
       updateAvatar: jest.fn(),
       updateProfile: jest.fn(),
+      getDefaultContactProfile: jest.fn(),
+      updateDefaultContactProfile: jest.fn(),
     } as jest.Mocked<UserService>;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -485,6 +487,51 @@ describe('UserController', () => {
       await expect(
         controller.updateProfile(userId, dto),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('default contact profile', () => {
+    it('should return the default contact profile', async () => {
+      const userId = 7;
+      const mockResult = {
+        contactName: '张三',
+        phone: '13800000000',
+        phoneVerified: true,
+        wechatId: 'zhangsan',
+        wechatQrImage: 'https://cdn.test/qr.png',
+      };
+
+      userService.getDefaultContactProfile.mockResolvedValue(mockResult as any);
+
+      const result = await controller.getDefaultContactProfile(userId);
+
+      expect(userService.getDefaultContactProfile).toHaveBeenCalledWith(userId);
+      expect(result.phoneVerified).toBe(true);
+      expect(result.wechatId).toBe('zhangsan');
+    });
+
+    it('should update the default contact profile', async () => {
+      const userId = 7;
+      const dto = {
+        contactName: '李四',
+        phone: '13800138000',
+        wechatId: 'lisi',
+      };
+      const mockResult = {
+        userId,
+        isDefault: 1,
+        status: 'active',
+        phoneVerified: false,
+        ...dto,
+      };
+
+      userService.updateDefaultContactProfile.mockResolvedValue(mockResult as any);
+
+      const result = await controller.updateDefaultContactProfile(userId, dto);
+
+      expect(userService.updateDefaultContactProfile).toHaveBeenCalledWith(userId, dto);
+      expect(result.contactName).toBe('李四');
+      expect(result.wechatId).toBe('lisi');
     });
   });
 });
