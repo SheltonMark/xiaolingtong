@@ -20,16 +20,6 @@
 
   <view class="form-area">
     <view class="form-group">
-      <text class="form-label">真实姓名 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入身份证上的姓名" data-field="name" value="{{form.name}}" bindinput="onInput" />
-    </view>
-
-    <view class="form-group">
-      <text class="form-label">身份证号 <text class="required">*</text></text>
-      <input class="form-input" placeholder="请输入18位身份证号" data-field="idCard" value="{{form.idCard}}" bindinput="onInput" />
-    </view>
-
-    <view class="form-group">
       <text class="form-label">身份证照片 <text class="required">*</text></text>
       <view class="upload-grid">
         <view class="upload-area upload-half" bindtap="onUploadFront">
@@ -48,6 +38,16 @@
         </view>
       </view>
       <text class="verify-hint">上传后会自动识别身份证信息，识别结果可手动修改。</text>
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">真实姓名 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入身份证上的姓名" data-field="name" value="{{form.name}}" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
+      <text class="form-label">身份证号 <text class="required">*</text></text>
+      <input class="form-input" placeholder="请输入18位身份证号" data-field="idCard" value="{{form.idCard}}" bindinput="onInput" />
     </view>
 
     <view class="form-group">
