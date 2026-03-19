@@ -51,6 +51,11 @@
     </view>
 
     <view class="form-group">
+      <text class="form-label">身份证有效期</text>
+      <input class="form-input" placeholder="上传国徽面后自动识别，可手动修改" data-field="idValidity" value="{{form.idValidity}}" bindinput="onInput" />
+    </view>
+
+    <view class="form-group">
       <text class="form-label">手机号 <text class="required">*</text></text>
       <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" value="{{form.phone}}" bindinput="onInput" />
     </view>

@@ -4,7 +4,7 @@ const features = require('../../utils/features')
 Page({
   data: {
     certSmsEnabled: features.certSmsVerificationEnabled,
-    form: { name: '', idCard: '', phone: '' },
+    form: { name: '', idCard: '', idValidity: '', phone: '' },
     skills: ['组装工', '包装工', '缝纫工', '搬运工', '质检员', '焊工', '叉车工', '普工'],
     selectedSkills: [],
     selectedSkillsMap: {},
@@ -95,6 +95,33 @@ Page({
     return (res && res.data && res.data.url) || (res && res.data) || ''
   },
 
+  formatIdValidity(value) {
+    const text = String(value || '').trim()
+    if (!text) return ''
+    if (text.includes('长期')) {
+      const normalized = text.replace(/\s+/g, '')
+      const parts = normalized.split(/[-~至]/).filter(Boolean)
+      if (parts.length >= 2) {
+        return `${this.formatDateSegment(parts[0])}-长期`
+      }
+      return '长期'
+    }
+
+    const parts = text.replace(/\s+/g, '').split(/[-~至]/).filter(Boolean)
+    if (parts.length >= 2) {
+      return `${this.formatDateSegment(parts[0])}-${this.formatDateSegment(parts[1])}`
+    }
+    return this.formatDateSegment(text)
+  },
+
+  formatDateSegment(value) {
+    const text = String(value || '').trim()
+    if (/^\d{8}$/.test(text)) {
+      return `${text.slice(0, 4)}.${text.slice(4, 6)}.${text.slice(6, 8)}`
+    }
+    return text
+  },
+
   runOcr(api, imageUrl, applyFields) {
     if (!imageUrl) return
     wx.showLoading({ title: '识别中...' })
@@ -143,7 +170,11 @@ Page({
           .then((r) => {
             const imageUrl = this.getUploadUrl(r) || path
             this.setData({ backImage: imageUrl })
-            this.runOcr('/cert/ocr/id-card/back', imageUrl, () => {})
+            this.runOcr('/cert/ocr/id-card/back', imageUrl, (fields) => {
+              if (fields.validDate) {
+                this.setData({ 'form.idValidity': this.formatIdValidity(fields.validDate) })
+              }
+            })
           })
           .catch(() => this.setData({ backImage: path }))
       }
