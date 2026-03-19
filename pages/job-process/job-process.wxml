@@ -55,7 +55,8 @@
       <view class="st-applicant-card" wx:for="{{filteredApplicants}}" wx:key="workerId">
         <view class="st-applicant-top">
           <view class="st-applicant-main">
-            <view class="text-avatar st-avatar">{{item.avatarText}}</view>
+            <image wx:if="{{item.avatarUrl}}" class="st-avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+            <view wx:else class="text-avatar st-avatar">{{item.avatarText}}</view>
             <view class="st-applicant-info">
               <view class="st-applicant-name-row">
                 <text class="st-applicant-name">{{item.name}}</text>

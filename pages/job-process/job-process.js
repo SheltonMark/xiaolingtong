@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request')
+const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
   data: {
@@ -76,9 +77,11 @@ Page({
     const worker = applicant.worker || {}
     const rawName = applicant.name || applicant.workerName || applicant.realName || applicant.nickname || worker.realName || worker.nickname || ''
     const name = String(rawName || '').trim() || '临工'
+    const avatarUrl = normalizeImageUrl(applicant.avatarUrl || worker.avatarUrl || '')
     return {
       ...applicant,
       name,
+      avatarUrl,
       avatarText: name.charAt(0) || '临'
     }
   },
