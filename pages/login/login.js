@@ -69,6 +69,7 @@ Page({
         }).then(res => {
           const { token, user } = res.data
           const app = getApp()
+          const localRole = wx.getStorageSync('userRole')
           auth.setToken(token)
           app.globalData.isLoggedIn = true
           app.globalData.userInfo = user
@@ -77,12 +78,20 @@ Page({
           app.globalData.beanBalance = user.beanBalance || 0
           app.globalData.isMember = user.isMember || false
 
+          if (localRole && localRole !== user.role) {
+            this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
+              this.completeLogin(role, syncedUser)
+            }).catch(() => {
+              wx.redirectTo({ url: '/pages/identity/identity' })
+            })
+            return
+          }
+
           if (user.role) {
             this.completeLogin(user.role, user)
             return
           }
 
-          const localRole = wx.getStorageSync('userRole')
           if (!localRole) {
             wx.redirectTo({ url: '/pages/identity/identity' })
             return
