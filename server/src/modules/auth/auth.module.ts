@@ -26,10 +26,7 @@ import { NotificationModule } from '../notification/notification.module';
     NotificationModule,
   ],
   controllers: [AuthController],
-  providers: [
-    AuthService,
-    { provide: APP_GUARD, useClass: AuthGuard },
-  ],
+  providers: [AuthService, { provide: APP_GUARD, useClass: AuthGuard }],
   exports: [JwtModule, AuthService],
 })
 export class AuthModule {}

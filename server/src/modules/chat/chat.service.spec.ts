@@ -89,7 +89,10 @@ describe('ChatService', () => {
     });
 
     it('should truncate long text at 60 characters', () => {
-      const result = service['buildLastMessagePreview']('text', 'a'.repeat(100));
+      const result = service['buildLastMessagePreview'](
+        'text',
+        'a'.repeat(100),
+      );
       expect(result).toBe('a'.repeat(60) + '...');
     });
 
@@ -99,7 +102,10 @@ describe('ChatService', () => {
     });
 
     it('should return voice indicator', () => {
-      const result = service['buildLastMessagePreview']('text', '__VOICE__test');
+      const result = service['buildLastMessagePreview'](
+        'text',
+        '__VOICE__test',
+      );
       expect(result).toBe('[语音]');
     });
   });
@@ -107,7 +113,16 @@ describe('ChatService', () => {
   describe('listConversations', () => {
     it('should return user conversations', async () => {
       const mockConversations = [
-        { id: 1, userA: 1, userB: 2, lastMessage: 'Hello', lastMessageAt: new Date(), createdAt: new Date(), userARef: { id: 1, nickname: 'User 1' }, userBRef: { id: 2, nickname: 'User 2' } },
+        {
+          id: 1,
+          userA: 1,
+          userB: 2,
+          lastMessage: 'Hello',
+          lastMessageAt: new Date(),
+          createdAt: new Date(),
+          userARef: { id: 1, nickname: 'User 1' },
+          userBRef: { id: 2, nickname: 'User 2' },
+        },
       ];
 
       conversationRepository.createQueryBuilder.mockReturnValue({
@@ -148,10 +163,22 @@ describe('ChatService', () => {
   describe('getMessages', () => {
     it('should return paginated messages', async () => {
       const mockMessages = [
-        { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text', createdAt: new Date(), sender: { id: 1, nickname: 'User 1', avatarUrl: '' } },
+        {
+          id: 1,
+          conversationId: 1,
+          senderId: 1,
+          content: 'Hello',
+          type: 'text',
+          createdAt: new Date(),
+          sender: { id: 1, nickname: 'User 1', avatarUrl: '' },
+        },
       ];
 
-      conversationRepository.findOne.mockResolvedValue({ id: 1, userA: 1, userB: 2 });
+      conversationRepository.findOne.mockResolvedValue({
+        id: 1,
+        userA: 1,
+        userB: 2,
+      });
       chatMessageRepository.findAndCount.mockResolvedValue([mockMessages, 1]);
       chatMessageRepository.createQueryBuilder.mockReturnValue({
         update: jest.fn().mockReturnThis(),
@@ -170,27 +197,45 @@ describe('ChatService', () => {
     it('should throw error when conversation not found', async () => {
       conversationRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.getMessages(1, 999, { page: 1, pageSize: 20 })).rejects.toThrow();
+      await expect(
+        service.getMessages(1, 999, { page: 1, pageSize: 20 }),
+      ).rejects.toThrow();
     });
 
     it('should throw error on unauthorized access', async () => {
-      conversationRepository.findOne.mockResolvedValue({ id: 1, userA: 2, userB: 3 });
+      conversationRepository.findOne.mockResolvedValue({
+        id: 1,
+        userA: 2,
+        userB: 3,
+      });
 
-      await expect(service.getMessages(1, 1, { page: 1, pageSize: 20 })).rejects.toThrow();
+      await expect(
+        service.getMessages(1, 1, { page: 1, pageSize: 20 }),
+      ).rejects.toThrow();
     });
   });
 
   describe('sendMessage', () => {
     it('should send text message successfully', async () => {
       const mockConversation = { id: 1, userA: 1, userB: 2 };
-      const mockMessage = { id: 1, conversationId: 1, senderId: 1, content: 'Hello', type: 'text', createdAt: new Date() };
+      const mockMessage = {
+        id: 1,
+        conversationId: 1,
+        senderId: 1,
+        content: 'Hello',
+        type: 'text',
+        createdAt: new Date(),
+      };
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
       chatMessageRepository.create.mockReturnValue(mockMessage);
       chatMessageRepository.save.mockResolvedValue(mockMessage);
       conversationRepository.save.mockResolvedValue(mockConversation);
 
-      const result = await service.sendMessage(1, 1, { content: 'Hello', type: 'text' });
+      const result = await service.sendMessage(1, 1, {
+        content: 'Hello',
+        type: 'text',
+      });
 
       expect(result).toBeDefined();
       expect(chatMessageRepository.save).toHaveBeenCalled();
@@ -201,13 +246,17 @@ describe('ChatService', () => {
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
 
-      await expect(service.sendMessage(1, 1, { content: '', type: 'text' })).rejects.toThrow();
+      await expect(
+        service.sendMessage(1, 1, { content: '', type: 'text' }),
+      ).rejects.toThrow();
     });
 
     it('should throw error when conversation not found', async () => {
       conversationRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.sendMessage(1, 999, { content: 'Hello', type: 'text' })).rejects.toThrow();
+      await expect(
+        service.sendMessage(1, 999, { content: 'Hello', type: 'text' }),
+      ).rejects.toThrow();
     });
   });
 

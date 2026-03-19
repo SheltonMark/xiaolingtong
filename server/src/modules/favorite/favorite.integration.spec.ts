@@ -73,11 +73,24 @@ describe('FavoriteModule Integration Tests', () => {
   describe('list Integration', () => {
     it('should return favorite list with posts', async () => {
       const mockFavorites = [
-        { id: 1, userId: 1, targetType: 'post', targetId: 1, createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          targetType: 'post',
+          targetId: 1,
+          createdAt: new Date(),
+        },
       ];
 
       const mockPosts = [
-        { id: 1, type: 'purchase', title: 'Test Post', content: 'Content', images: [], createdAt: new Date() },
+        {
+          id: 1,
+          type: 'purchase',
+          title: 'Test Post',
+          content: 'Content',
+          images: [],
+          createdAt: new Date(),
+        },
       ];
 
       favoriteRepository.find.mockResolvedValue(mockFavorites);
@@ -94,7 +107,13 @@ describe('FavoriteModule Integration Tests', () => {
 
     it('should return favorite list with jobs', async () => {
       const mockFavorites = [
-        { id: 1, userId: 1, targetType: 'job', targetId: 1, createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          targetType: 'job',
+          targetId: 1,
+          createdAt: new Date(),
+        },
       ];
 
       const mockJobs = [
@@ -124,7 +143,13 @@ describe('FavoriteModule Integration Tests', () => {
 
     it('should return favorite list with exposures', async () => {
       const mockFavorites = [
-        { id: 1, userId: 1, targetType: 'exposure', targetId: 1, createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          targetType: 'exposure',
+          targetId: 1,
+          createdAt: new Date(),
+        },
       ];
 
       const mockExposures = [
@@ -173,7 +198,14 @@ describe('FavoriteModule Integration Tests', () => {
       ];
 
       const mockPosts = [
-        { id: 1, type: 'purchase', title: 'Post 1', content: 'Content', images: [], createdAt: date1 },
+        {
+          id: 1,
+          type: 'purchase',
+          title: 'Post 1',
+          content: 'Content',
+          images: [],
+          createdAt: date1,
+        },
       ];
 
       const mockJobs = [
@@ -211,25 +243,41 @@ describe('FavoriteModule Integration Tests', () => {
 
   describe('toggle Integration', () => {
     it('should add favorite successfully', async () => {
-      const mockFavorite = { id: 1, userId: 1, targetType: 'post', targetId: 1 };
+      const mockFavorite = {
+        id: 1,
+        userId: 1,
+        targetType: 'post',
+        targetId: 1,
+      };
 
       favoriteRepository.findOne.mockResolvedValue(null);
       favoriteRepository.create.mockReturnValue(mockFavorite);
       favoriteRepository.save.mockResolvedValue(mockFavorite);
 
-      const result = await controller.toggle(1, { targetType: 'post', targetId: 1 });
+      const result = await controller.toggle(1, {
+        targetType: 'post',
+        targetId: 1,
+      });
 
       expect(result.favorited).toBe(true);
       expect(favoriteRepository.save).toHaveBeenCalled();
     });
 
     it('should remove favorite successfully', async () => {
-      const mockFavorite = { id: 1, userId: 1, targetType: 'post', targetId: 1 };
+      const mockFavorite = {
+        id: 1,
+        userId: 1,
+        targetType: 'post',
+        targetId: 1,
+      };
 
       favoriteRepository.findOne.mockResolvedValue(mockFavorite);
       favoriteRepository.remove.mockResolvedValue(mockFavorite);
 
-      const result = await controller.toggle(1, { targetType: 'post', targetId: 1 });
+      const result = await controller.toggle(1, {
+        targetType: 'post',
+        targetId: 1,
+      });
 
       expect(result.favorited).toBe(false);
       expect(favoriteRepository.remove).toHaveBeenCalled();
@@ -242,7 +290,10 @@ describe('FavoriteModule Integration Tests', () => {
       favoriteRepository.create.mockReturnValue(mockFavorite);
       favoriteRepository.save.mockResolvedValue(mockFavorite);
 
-      const result = await controller.toggle(1, { targetType: 'job', targetId: 5 });
+      const result = await controller.toggle(1, {
+        targetType: 'job',
+        targetId: 5,
+      });
 
       expect(result.favorited).toBe(true);
       expect(favoriteRepository.findOne).toHaveBeenCalledWith({
@@ -251,13 +302,21 @@ describe('FavoriteModule Integration Tests', () => {
     });
 
     it('should toggle favorite for exposure', async () => {
-      const mockFavorite = { id: 1, userId: 1, targetType: 'exposure', targetId: 3 };
+      const mockFavorite = {
+        id: 1,
+        userId: 1,
+        targetType: 'exposure',
+        targetId: 3,
+      };
 
       favoriteRepository.findOne.mockResolvedValue(null);
       favoriteRepository.create.mockReturnValue(mockFavorite);
       favoriteRepository.save.mockResolvedValue(mockFavorite);
 
-      const result = await controller.toggle(1, { targetType: 'exposure', targetId: 3 });
+      const result = await controller.toggle(1, {
+        targetType: 'exposure',
+        targetId: 3,
+      });
 
       expect(result.favorited).toBe(true);
       expect(favoriteRepository.save).toHaveBeenCalled();
@@ -266,37 +325,61 @@ describe('FavoriteModule Integration Tests', () => {
     it('should handle toggle error', async () => {
       favoriteRepository.findOne.mockRejectedValue(new Error('Database error'));
 
-      await expect(controller.toggle(1, { targetType: 'post', targetId: 1 })).rejects.toThrow('Database error');
+      await expect(
+        controller.toggle(1, { targetType: 'post', targetId: 1 }),
+      ).rejects.toThrow('Database error');
     });
 
     it('should handle multiple toggle operations', async () => {
-      const mockFavorite = { id: 1, userId: 1, targetType: 'post', targetId: 1 };
+      const mockFavorite = {
+        id: 1,
+        userId: 1,
+        targetType: 'post',
+        targetId: 1,
+      };
 
       // First toggle - add
       favoriteRepository.findOne.mockResolvedValueOnce(null);
       favoriteRepository.create.mockReturnValueOnce(mockFavorite);
       favoriteRepository.save.mockResolvedValueOnce(mockFavorite);
 
-      const result1 = await controller.toggle(1, { targetType: 'post', targetId: 1 });
+      const result1 = await controller.toggle(1, {
+        targetType: 'post',
+        targetId: 1,
+      });
       expect(result1.favorited).toBe(true);
 
       // Second toggle - remove
       favoriteRepository.findOne.mockResolvedValueOnce(mockFavorite);
       favoriteRepository.remove.mockResolvedValueOnce(mockFavorite);
 
-      const result2 = await controller.toggle(1, { targetType: 'post', targetId: 1 });
+      const result2 = await controller.toggle(1, {
+        targetType: 'post',
+        targetId: 1,
+      });
       expect(result2.favorited).toBe(false);
     });
 
     it('should handle concurrent toggle operations', async () => {
-      const mockFavorite = { id: 1, userId: 1, targetType: 'post', targetId: 1 };
+      const mockFavorite = {
+        id: 1,
+        userId: 1,
+        targetType: 'post',
+        targetId: 1,
+      };
 
       favoriteRepository.findOne.mockResolvedValue(null);
       favoriteRepository.create.mockReturnValue(mockFavorite);
       favoriteRepository.save.mockResolvedValue(mockFavorite);
 
-      const result1 = await controller.toggle(1, { targetType: 'post', targetId: 1 });
-      const result2 = await controller.toggle(1, { targetType: 'post', targetId: 2 });
+      const result1 = await controller.toggle(1, {
+        targetType: 'post',
+        targetId: 1,
+      });
+      const result2 = await controller.toggle(1, {
+        targetType: 'post',
+        targetId: 2,
+      });
 
       expect(result1.favorited).toBe(true);
       expect(result2.favorited).toBe(true);

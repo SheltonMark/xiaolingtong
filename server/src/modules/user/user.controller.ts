@@ -42,12 +42,18 @@ export class UserController {
   }
 
   @Get('cert/status')
-  getCertStatus(@CurrentUser('sub') userId: number, @CurrentUser('role') role: string) {
+  getCertStatus(
+    @CurrentUser('sub') userId: number,
+    @CurrentUser('role') role: string,
+  ) {
     return this.userService.getCertStatus(userId, role);
   }
 
   @Put('settings/avatar')
-  updateAvatar(@CurrentUser('sub') userId: number, @Body('avatarUrl') avatarUrl: string) {
+  updateAvatar(
+    @CurrentUser('sub') userId: number,
+    @Body('avatarUrl') avatarUrl: string,
+  ) {
     return this.userService.updateAvatar(userId, avatarUrl);
   }
 

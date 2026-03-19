@@ -236,7 +236,14 @@ describe('PaymentService', () => {
       };
 
       const user = { id: 1, openid: 'test_openid', beanBalance: 100 };
-      const order = { id: 1, userId: 1, outTradeNo, beanAmount: 200, totalFee: 1000, payStatus: 'pending' };
+      const order = {
+        id: 1,
+        userId: 1,
+        outTradeNo,
+        beanAmount: 200,
+        totalFee: 1000,
+        payStatus: 'pending',
+      };
 
       beanOrderRepo.findOne.mockResolvedValue(order);
       userRepo.findOneBy.mockResolvedValue(user);
@@ -254,7 +261,11 @@ describe('PaymentService', () => {
         type: 'income',
         amount: 200,
       });
-      beanOrderRepo.save.mockResolvedValue({ ...order, payStatus: 'paid', paidAt: new Date() });
+      beanOrderRepo.save.mockResolvedValue({
+        ...order,
+        payStatus: 'paid',
+        paidAt: new Date(),
+      });
 
       await service.handlePaySuccess(outTradeNo, result);
 
@@ -273,7 +284,14 @@ describe('PaymentService', () => {
         payer: { openid: 'test_openid' },
       };
 
-      const order = { id: 1, userId: 1, outTradeNo, beanAmount: 200, totalFee: 1000, payStatus: 'paid' };
+      const order = {
+        id: 1,
+        userId: 1,
+        outTradeNo,
+        beanAmount: 200,
+        totalFee: 1000,
+        payStatus: 'paid',
+      };
 
       beanOrderRepo.findOne.mockResolvedValue(order);
 
@@ -311,7 +329,9 @@ describe('PaymentService', () => {
       await service.handlePaySuccess(outTradeNo, result);
 
       // 应该使用备用方案，从支付金额反推灵豆数量
-      expect(userRepo.findOne).toHaveBeenCalledWith({ where: { openid: 'test_openid' } });
+      expect(userRepo.findOne).toHaveBeenCalledWith({
+        where: { openid: 'test_openid' },
+      });
       expect(userRepo.update).toHaveBeenCalled();
       expect(beanTxRepo.save).toHaveBeenCalled();
     });

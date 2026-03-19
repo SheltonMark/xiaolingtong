@@ -4,7 +4,7 @@ test.describe('Phase 1: UI Consistency - Responsive Design', () => {
   const viewports = [
     { name: 'mobile', width: 375, height: 667 },
     { name: 'tablet', width: 768, height: 1024 },
-    { name: 'desktop', width: 1920, height: 1080 }
+    { name: 'desktop', width: 1920, height: 1080 },
   ];
 
   test.beforeEach(async ({ page }) => {
@@ -17,8 +17,10 @@ test.describe('Phase 1: UI Consistency - Responsive Design', () => {
     ]);
   });
 
-  viewports.forEach(viewport => {
-    test(`should display mine page correctly on ${viewport.name}`, async ({ page }) => {
+  viewports.forEach((viewport) => {
+    test(`should display mine page correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
       await page.goto('http://localhost:3000/pages/mine/mine');
 
@@ -35,7 +37,9 @@ test.describe('Phase 1: UI Consistency - Responsive Design', () => {
       }
     });
 
-    test(`should display wallet page correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display wallet page correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
       await page.goto('http://localhost:3000/pages/wallet/wallet');
 
@@ -44,7 +48,9 @@ test.describe('Phase 1: UI Consistency - Responsive Design', () => {
       expect(await balance.isVisible()).toBe(true);
     });
 
-    test(`should display job list correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display job list correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
       await page.goto('http://localhost:3000/pages/index/index');
 
@@ -53,7 +59,9 @@ test.describe('Phase 1: UI Consistency - Responsive Design', () => {
       expect(await items.count()).toBeGreaterThan(0);
     });
 
-    test(`should display chat correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display chat correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
       await page.goto('http://localhost:3000/pages/chat/chat');
 
@@ -62,16 +70,22 @@ test.describe('Phase 1: UI Consistency - Responsive Design', () => {
       expect(await messages.count()).toBeGreaterThan(0);
     });
 
-    test(`should display my-applications correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display my-applications correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
-      await page.goto('http://localhost:3000/pages/my-applications/my-applications');
+      await page.goto(
+        'http://localhost:3000/pages/my-applications/my-applications',
+      );
 
       await page.waitForSelector('[data-testid="app-card"]');
       const cards = page.locator('[data-testid="app-card"]');
       expect(await cards.count()).toBeGreaterThan(0);
     });
 
-    test(`should display bean-detail correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display bean-detail correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
       await page.goto('http://localhost:3000/pages/bean-detail/bean-detail');
 
@@ -80,25 +94,35 @@ test.describe('Phase 1: UI Consistency - Responsive Design', () => {
       expect(await balance.isVisible()).toBe(true);
     });
 
-    test(`should display withdraw-history correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display withdraw-history correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
-      await page.goto('http://localhost:3000/pages/withdraw-history/withdraw-history');
+      await page.goto(
+        'http://localhost:3000/pages/withdraw-history/withdraw-history',
+      );
 
       await page.waitForSelector('[data-testid="current-balance"]');
       const balance = page.locator('[data-testid="current-balance"]');
       expect(await balance.isVisible()).toBe(true);
     });
 
-    test(`should display job-detail correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display job-detail correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
-      await page.goto('http://localhost:3000/pages/job-detail/job-detail?id=test-job-123');
+      await page.goto(
+        'http://localhost:3000/pages/job-detail/job-detail?id=test-job-123',
+      );
 
       await page.waitForSelector('[data-testid="job-title"]');
       const title = page.locator('[data-testid="job-title"]');
       expect(await title.isVisible()).toBe(true);
     });
 
-    test(`should display settings correctly on ${viewport.name}`, async ({ page }) => {
+    test(`should display settings correctly on ${viewport.name}`, async ({
+      page,
+    }) => {
       await page.setViewportSize(viewport);
       await page.goto('http://localhost:3000/pages/settings/settings');
 
@@ -204,7 +228,10 @@ test.describe('Phase 1: UI Consistency - Theme Switching', () => {
 
     // 切换主题
     await page.evaluate(() => {
-      const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      const newTheme =
+        document.documentElement.getAttribute('data-theme') === 'light'
+          ? 'dark'
+          : 'light';
       document.documentElement.setAttribute('data-theme', newTheme);
     });
 

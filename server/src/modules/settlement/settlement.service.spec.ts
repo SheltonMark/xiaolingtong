@@ -90,7 +90,9 @@ describe('SettlementService', () => {
     };
 
     paymentService = {
-      generateOutTradeNo: jest.fn((prefix, id) => `${prefix}_${id}_${Date.now()}`),
+      generateOutTradeNo: jest.fn(
+        (prefix, id) => `${prefix}_${id}_${Date.now()}`,
+      ),
       createJsapiOrder: jest.fn().mockResolvedValue({
         prepayId: 'test_prepay_id',
       }),
@@ -183,7 +185,13 @@ describe('SettlementService', () => {
 
   describe('create', () => {
     it('should create settlement successfully', async () => {
-      const mockJob = { id: 1, userId: 1, title: 'Test Job', salary: 100, salaryType: 'hourly' };
+      const mockJob = {
+        id: 1,
+        userId: 1,
+        title: 'Test Job',
+        salary: 100,
+        salaryType: 'hourly',
+      };
       const mockApplications = [
         { id: 1, workerId: 2, status: 'confirmed', isSupervisor: 0 },
         { id: 2, workerId: 3, status: 'confirmed', isSupervisor: 0 },
@@ -192,7 +200,12 @@ describe('SettlementService', () => {
         { id: 1, applicationId: 1, hours: 8, pieces: 0, jobId: 1, workerId: 2 },
         { id: 2, applicationId: 2, hours: 8, pieces: 0, jobId: 1, workerId: 3 },
       ];
-      const mockSettlement = { id: 1, jobId: 1, enterpriseId: 1, status: 'pending' };
+      const mockSettlement = {
+        id: 1,
+        jobId: 1,
+        enterpriseId: 1,
+        status: 'pending',
+      };
 
       jobRepository.findOneBy.mockResolvedValue(mockJob);
       settlementRepository.findOne.mockResolvedValue(null);
@@ -288,7 +301,14 @@ describe('SettlementService', () => {
 
   describe('pay', () => {
     it('should initiate payment successfully', async () => {
-      const mockSettlement = { id: 1, jobId: 1, enterpriseId: 1, status: 'pending', factoryTotal: 1000, totalWorkers: 2 };
+      const mockSettlement = {
+        id: 1,
+        jobId: 1,
+        enterpriseId: 1,
+        status: 'pending',
+        factoryTotal: 1000,
+        totalWorkers: 2,
+      };
       const mockUser = { id: 1, openid: 'test_openid' };
 
       settlementRepository.findOne.mockResolvedValue(mockSettlement);
@@ -313,11 +333,20 @@ describe('SettlementService', () => {
   describe('confirmByWorker', () => {
     it('should confirm settlement item', async () => {
       const mockSettlement = { id: 1, jobId: 1, status: 'pending' };
-      const mockItem = { id: 1, settlementId: 1, workerId: 2, status: 'pending', confirmed: 0 };
+      const mockItem = {
+        id: 1,
+        settlementId: 1,
+        workerId: 2,
+        status: 'pending',
+        confirmed: 0,
+      };
 
       settlementRepository.findOne.mockResolvedValue(mockSettlement);
       settlementItemRepository.findOne.mockResolvedValue(mockItem);
-      settlementItemRepository.save.mockResolvedValue({ ...mockItem, confirmed: 1 });
+      settlementItemRepository.save.mockResolvedValue({
+        ...mockItem,
+        confirmed: 1,
+      });
 
       const result = await service.confirmByWorker(1, 2);
 

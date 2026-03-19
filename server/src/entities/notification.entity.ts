@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('notifications')
@@ -9,7 +16,10 @@ export class Notification {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['job_apply', 'settlement', 'system', 'promotion', 'invite', 'cert'] })
+  @Column({
+    type: 'enum',
+    enum: ['job_apply', 'settlement', 'system', 'promotion', 'invite', 'cert'],
+  })
   type: string;
 
   @Column({ length: 128 })
@@ -20,6 +30,12 @@ export class Notification {
 
   @Column({ length: 256, nullable: true })
   link: string;
+
+  @Column({ type: 'json', nullable: true })
+  data: Record<string, any>;
+
+  @Column({ type: 'varchar', length: 32, default: 'active' })
+  status: string; // active, archived, deleted
 
   @Column({ type: 'tinyint', default: 0 })
   isRead: number;

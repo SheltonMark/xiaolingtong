@@ -1,4 +1,8 @@
-import { BadRequestException, ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Conversation } from '../../entities/conversation.entity';
@@ -16,10 +20,13 @@ export class ChatService {
   constructor(
     @InjectRepository(Conversation) private convRepo: Repository<Conversation>,
     @InjectRepository(ChatMessage) private msgRepo: Repository<ChatMessage>,
-    @InjectRepository(ContactUnlock) private unlockRepo: Repository<ContactUnlock>,
+    @InjectRepository(ContactUnlock)
+    private unlockRepo: Repository<ContactUnlock>,
     @InjectRepository(Post) private postRepo: Repository<Post>,
-    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
-    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
+    @InjectRepository(EnterpriseCert)
+    private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkerCert)
+    private workerCertRepo: Repository<WorkerCert>,
     private realtime: ChatRealtimeService,
   ) {}
 
@@ -46,7 +53,10 @@ export class ChatService {
     return text.length > 60 ? `${text.slice(0, 60)}...` : text;
   }
 
-  private async findConversationForUser(conversationId: number, userId: number) {
+  private async findConversationForUser(
+    conversationId: number,
+    userId: number,
+  ) {
     return this.convRepo.findOne({
       where: [
         { id: conversationId, userA: userId },
@@ -75,7 +85,8 @@ export class ChatService {
   }
 
   async listConversations(userId: number) {
-    const list = await this.convRepo.createQueryBuilder('c')
+    const list = await this.convRepo
+      .createQueryBuilder('c')
       .leftJoinAndSelect('c.userARef', 'ua')
       .leftJoinAndSelect('c.userBRef', 'ub')
       .where('c.userA = :userId OR c.userB = :userId', { userId })
@@ -91,7 +102,8 @@ export class ChatService {
     });
 
     // 获取企业认证信息
-    const entCerts = await this.entCertRepo.createQueryBuilder('c')
+    const entCerts = await this.entCertRepo
+      .createQueryBuilder('c')
       .where('c.userId IN (:...userIds)', { userIds: otherUserIds })
       .andWhere('c.status = :status', { status: 'approved' })
       .orderBy('c.userId', 'ASC')
@@ -107,7 +119,8 @@ export class ChatService {
     }
 
     // 获取临工认证信息
-    const workerCerts = await this.workerCertRepo.createQueryBuilder('c')
+    const workerCerts = await this.workerCertRepo
+      .createQueryBuilder('c')
       .where('c.userId IN (:...userIds)', { userIds: otherUserIds })
       .andWhere('c.status = :status', { status: 'approved' })
       .orderBy('c.userId', 'ASC')
@@ -123,7 +136,8 @@ export class ChatService {
     }
 
     const conversationIds = list.map((item) => item.id);
-    const unreadRows = await this.msgRepo.createQueryBuilder('m')
+    const unreadRows = await this.msgRepo
+      .createQueryBuilder('m')
       .select('m.conversationId', 'conversationId')
       .addSelect('COUNT(*)', 'count')
       .where('m.conversationId IN (:...conversationIds)', { conversationIds })
@@ -134,14 +148,20 @@ export class ChatService {
 
     const unreadMap = new Map<number, number>();
     unreadRows.forEach((row) => {
-      unreadMap.set(this.toNumber(row.conversationId), this.toNumber(row.count));
+      unreadMap.set(
+        this.toNumber(row.conversationId),
+        this.toNumber(row.count),
+      );
     });
 
     return list.map((item) => {
       const isUserA = this.toNumber(item.userA) === this.toNumber(userId);
       const other = isUserA ? item.userBRef : item.userARef;
       const otherId = this.toNumber(isUserA ? item.userB : item.userA);
-      const preview = this.buildLastMessagePreview('text', item.lastMessage || '');
+      const preview = this.buildLastMessagePreview(
+        'text',
+        item.lastMessage || '',
+      );
 
       // 获取认证名称
       const entCert = entCertMap.get(otherId);
@@ -180,7 +200,10 @@ export class ChatService {
     if (!conv) throw new ForbiddenException('无权访问此会话');
 
     const page = Math.max(1, this.toNumber(query.page) || 1);
-    const pageSize = Math.min(100, Math.max(1, this.toNumber(query.pageSize) || 50));
+    const pageSize = Math.min(
+      100,
+      Math.max(1, this.toNumber(query.pageSize) || 50),
+    );
 
     const [list, total] = await this.msgRepo.findAndCount({
       where: { conversationId },
@@ -190,7 +213,8 @@ export class ChatService {
       relations: ['sender'],
     });
 
-    await this.msgRepo.createQueryBuilder()
+    await this.msgRepo
+      .createQueryBuilder()
       .update(ChatMessage)
       .set({ readAt: new Date() })
       .where('conversationId = :conversationId', { conversationId })
@@ -266,9 +290,10 @@ export class ChatService {
     });
 
     const mapped = this.mapMessage(saved);
-    const receiverId = this.toNumber(conv.userA) === this.toNumber(senderId)
-      ? this.toNumber(conv.userB)
-      : this.toNumber(conv.userA);
+    const receiverId =
+      this.toNumber(conv.userA) === this.toNumber(senderId)
+        ? this.toNumber(conv.userB)
+        : this.toNumber(conv.userA);
     if (receiverId) {
       this.realtime.emitToUser(receiverId, 'new_message', mapped);
     }
@@ -276,28 +301,40 @@ export class ChatService {
     return mapped;
   }
 
-  async getOrCreateConversation(userA: number, userB: number, postId?: number | string) {
+  async getOrCreateConversation(
+    userA: number,
+    userB: number,
+    postId?: number | string,
+  ) {
     if (!userA || !userB) throw new BadRequestException('用户信息不完整');
     if (this.toNumber(userA) === this.toNumber(userB)) {
       throw new BadRequestException('不能和自己发起会话');
     }
     const normalizedPostId = Math.max(0, this.toNumber(postId));
     const [a, b] = userA < userB ? [userA, userB] : [userB, userA];
-    let conv = await this.convRepo.findOne({ where: { userA: a, userB: b, postId: normalizedPostId } });
+    let conv = await this.convRepo.findOne({
+      where: { userA: a, userB: b, postId: normalizedPostId },
+    });
     if (!conv) {
       // 新会话：校验发起方是否已解锁对方联系方式
       const hasUnlock = await this.checkContactUnlock(userA, userB);
       if (!hasUnlock) {
         throw new ForbiddenException('请先解锁对方联系方式后再发起聊天');
       }
-      conv = await this.convRepo.save(this.convRepo.create({ userA: a, userB: b, postId: normalizedPostId }));
+      conv = await this.convRepo.save(
+        this.convRepo.create({ userA: a, userB: b, postId: normalizedPostId }),
+      );
     }
     return conv;
   }
 
-  private async checkContactUnlock(initiator: number, target: number): Promise<boolean> {
+  private async checkContactUnlock(
+    initiator: number,
+    target: number,
+  ): Promise<boolean> {
     // 查找 initiator 是否解锁过 target 发布的任意帖子的联系方式
-    const unlock = await this.unlockRepo.createQueryBuilder('u')
+    const unlock = await this.unlockRepo
+      .createQueryBuilder('u')
       .innerJoin(Post, 'p', 'u.postId = p.id')
       .where('u.userId = :initiator', { initiator })
       .andWhere('p.userId = :target', { target })

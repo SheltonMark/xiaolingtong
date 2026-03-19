@@ -29,13 +29,11 @@ describe('E2E: Complete User Workflows', () => {
 
   describe('Worker Job Application Workflow', () => {
     it('should register worker and obtain token', async () => {
-      const response = await app
-        .get('/auth/register')
-        .send({
-          openid: 'worker_openid_123',
-          nickname: 'Worker User',
-          role: 'worker',
-        });
+      const response = await app.get('/auth/register').send({
+        openid: 'worker_openid_123',
+        nickname: 'Worker User',
+        role: 'worker',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');
@@ -153,13 +151,11 @@ describe('E2E: Complete User Workflows', () => {
 
   describe('Enterprise Job Management Workflow', () => {
     it('should register enterprise and obtain token', async () => {
-      const response = await app
-        .get('/auth/register')
-        .send({
-          openid: 'enterprise_openid_456',
-          nickname: 'Enterprise User',
-          role: 'enterprise',
-        });
+      const response = await app.get('/auth/register').send({
+        openid: 'enterprise_openid_456',
+        nickname: 'Enterprise User',
+        role: 'enterprise',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');

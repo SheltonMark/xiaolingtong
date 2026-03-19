@@ -16,11 +16,22 @@ import { SysConfig } from '../../entities/sys-config.entity';
 import { Notification } from '../../entities/notification.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([
-    MemberOrder, User, BeanTransaction, BeanOrder, AdOrder,
-    Settlement, SettlementItem, Wallet, WalletTransaction, Job,
-    SysConfig, Notification,
-  ])],
+  imports: [
+    TypeOrmModule.forFeature([
+      MemberOrder,
+      User,
+      BeanTransaction,
+      BeanOrder,
+      AdOrder,
+      Settlement,
+      SettlementItem,
+      Wallet,
+      WalletTransaction,
+      Job,
+      SysConfig,
+      Notification,
+    ]),
+  ],
   controllers: [PaymentController],
   providers: [PaymentService],
   exports: [PaymentService],

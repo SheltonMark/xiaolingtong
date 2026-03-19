@@ -83,16 +83,31 @@ describe('Phase 2: Real-time Chat - WebSocket & Notifications', () => {
       convRepo.update.mockResolvedValue({ affected: 1 });
       realtimeService.emitToUser.mockResolvedValue(true);
 
-      const result = await service.sendMessage(1, 1, { type: 'text', content: 'Hello' });
+      const result = await service.sendMessage(1, 1, {
+        type: 'text',
+        content: 'Hello',
+      });
 
       expect(result).toBeDefined();
-      expect(realtimeService.emitToUser).toHaveBeenCalledWith(2, 'new_message', expect.any(Object));
+      expect(realtimeService.emitToUser).toHaveBeenCalledWith(
+        2,
+        'new_message',
+        expect.any(Object),
+      );
     });
 
     it('should get messages and mark as read', async () => {
       const mockConv = { id: 1, userA: 1, userB: 2 };
       const mockMessages = [
-        { id: 1, conversationId: 1, senderId: 2, type: 'text', content: 'Hi', createdAt: new Date(), sender: { id: 2, nickname: 'User2', avatarUrl: 'url2' } },
+        {
+          id: 1,
+          conversationId: 1,
+          senderId: 2,
+          type: 'text',
+          content: 'Hi',
+          createdAt: new Date(),
+          sender: { id: 2, nickname: 'User2', avatarUrl: 'url2' },
+        },
       ];
 
       convRepo.findOne.mockResolvedValue(mockConv);
@@ -130,7 +145,10 @@ describe('Phase 2: Real-time Chat - WebSocket & Notifications', () => {
       convRepo.update.mockResolvedValue({ affected: 1 });
       realtimeService.emitToUser.mockResolvedValue(false);
 
-      const result = await service.sendMessage(1, 1, { type: 'text', content: 'Offline message' });
+      const result = await service.sendMessage(1, 1, {
+        type: 'text',
+        content: 'Offline message',
+      });
 
       expect(result).toBeDefined();
       expect(realtimeService.emitToUser).toHaveBeenCalled();
@@ -140,8 +158,24 @@ describe('Phase 2: Real-time Chat - WebSocket & Notifications', () => {
   describe('Conversation Management', () => {
     it('should return conversation list with unread counts', async () => {
       const mockConversations = [
-        { id: 1, userA: 1, userB: 2, lastMessageAt: new Date(), lastMessage: 'Hi', userARef: { id: 1, nickname: 'User1', avatarUrl: 'url1' }, userBRef: { id: 2, nickname: 'User2', avatarUrl: 'url2' } },
-        { id: 2, userA: 1, userB: 3, lastMessageAt: new Date(), lastMessage: 'Hello', userARef: { id: 1, nickname: 'User1', avatarUrl: 'url1' }, userBRef: { id: 3, nickname: 'User3', avatarUrl: 'url3' } },
+        {
+          id: 1,
+          userA: 1,
+          userB: 2,
+          lastMessageAt: new Date(),
+          lastMessage: 'Hi',
+          userARef: { id: 1, nickname: 'User1', avatarUrl: 'url1' },
+          userBRef: { id: 2, nickname: 'User2', avatarUrl: 'url2' },
+        },
+        {
+          id: 2,
+          userA: 1,
+          userB: 3,
+          lastMessageAt: new Date(),
+          lastMessage: 'Hello',
+          userARef: { id: 1, nickname: 'User1', avatarUrl: 'url1' },
+          userBRef: { id: 3, nickname: 'User3', avatarUrl: 'url3' },
+        },
       ];
 
       const queryBuilder = {
@@ -196,11 +230,15 @@ describe('Phase 2: Real-time Chat - WebSocket & Notifications', () => {
     });
 
     it('should reject conversation with same user', async () => {
-      await expect(service.getOrCreateConversation(1, 1)).rejects.toThrow('不能和自己发起会话');
+      await expect(service.getOrCreateConversation(1, 1)).rejects.toThrow(
+        '不能和自己发起会话',
+      );
     });
 
     it('should reject conversation with missing user info', async () => {
-      await expect(service.getOrCreateConversation(0, 2)).rejects.toThrow('用户信息不完整');
+      await expect(service.getOrCreateConversation(0, 2)).rejects.toThrow(
+        '用户信息不完整',
+      );
     });
   });
 
@@ -214,7 +252,11 @@ describe('Phase 2: Real-time Chat - WebSocket & Notifications', () => {
         type: 'text',
         content: `Message ${i + 1}`,
         createdAt: new Date(Date.now() - i * 1000),
-        sender: { id: i % 2 === 0 ? 1 : 2, nickname: `User${i % 2}`, avatarUrl: 'url' },
+        sender: {
+          id: i % 2 === 0 ? 1 : 2,
+          nickname: `User${i % 2}`,
+          avatarUrl: 'url',
+        },
       }));
 
       convRepo.findOne.mockResolvedValue(mockConv);
@@ -270,13 +312,19 @@ describe('Phase 2: Real-time Chat - WebSocket & Notifications', () => {
       msgRepo.save.mockResolvedValue(mockMsg);
       convRepo.update.mockResolvedValue({ affected: 1 });
 
-      const result = await service.sendMessage(1, 1, { type: 'text', content: 'Last message' });
+      const result = await service.sendMessage(1, 1, {
+        type: 'text',
+        content: 'Last message',
+      });
 
       expect(result).toBeDefined();
-      expect(convRepo.update).toHaveBeenCalledWith(1, expect.objectContaining({
-        lastMessage: expect.any(String),
-        lastMessageAt: expect.any(Date),
-      }));
+      expect(convRepo.update).toHaveBeenCalledWith(
+        1,
+        expect.objectContaining({
+          lastMessage: expect.any(String),
+          lastMessageAt: expect.any(Date),
+        }),
+      );
     });
 
     it('should handle concurrent message sends', async () => {
@@ -297,7 +345,10 @@ describe('Phase 2: Real-time Chat - WebSocket & Notifications', () => {
       convRepo.update.mockResolvedValue({ affected: 1 });
 
       const promises = Array.from({ length: 5 }, (_, i) =>
-        service.sendMessage(1, 1, { type: 'text', content: `Message ${i + 1}` }),
+        service.sendMessage(1, 1, {
+          type: 'text',
+          content: `Message ${i + 1}`,
+        }),
       );
 
       const results = await Promise.all(promises);

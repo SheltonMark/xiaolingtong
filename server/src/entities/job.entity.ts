@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
+import { Supervisor } from './supervisor.entity';
 
 @Entity('jobs')
 export class Job {
@@ -78,7 +79,18 @@ export class Job {
   @Column({ type: 'datetime', nullable: true })
   urgentExpireAt: Date;
 
-  @Column({ type: 'enum', enum: ['recruiting', 'full', 'working', 'pending_settlement', 'settled', 'closed'], default: 'recruiting' })
+  @Column({
+    type: 'enum',
+    enum: [
+      'recruiting',
+      'full',
+      'working',
+      'pending_settlement',
+      'settled',
+      'closed',
+    ],
+    default: 'recruiting',
+  })
   status: string;
 
   @CreateDateColumn()
@@ -90,4 +102,7 @@ export class Job {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
   user: User;
+
+  @OneToMany(() => Supervisor, supervisor => supervisor.job)
+  supervisors: Supervisor[];
 }

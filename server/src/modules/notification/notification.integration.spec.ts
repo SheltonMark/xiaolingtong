@@ -45,7 +45,14 @@ describe('NotificationModule Integration Tests', () => {
   describe('list Integration', () => {
     it('should return paginated notifications', async () => {
       const mockNotifications = [
-        { id: 1, userId: 1, type: 'job', title: 'New Job', isRead: 0, createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          type: 'job',
+          title: 'New Job',
+          isRead: 0,
+          createdAt: new Date(),
+        },
       ];
 
       notificationRepository.createQueryBuilder.mockReturnValue({
@@ -66,7 +73,14 @@ describe('NotificationModule Integration Tests', () => {
 
     it('should filter by type', async () => {
       const mockNotifications = [
-        { id: 1, userId: 1, type: 'job', title: 'New Job', isRead: 0, createdAt: new Date() },
+        {
+          id: 1,
+          userId: 1,
+          type: 'job',
+          title: 'New Job',
+          isRead: 0,
+          createdAt: new Date(),
+        },
       ];
 
       notificationRepository.createQueryBuilder.mockReturnValue({
@@ -78,7 +92,11 @@ describe('NotificationModule Integration Tests', () => {
         getManyAndCount: jest.fn().mockResolvedValue([mockNotifications, 1]),
       });
 
-      const result = await controller.list(1, { type: 'job', page: 1, pageSize: 20 });
+      const result = await controller.list(1, {
+        type: 'job',
+        page: 1,
+        pageSize: 20,
+      });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
@@ -121,7 +139,10 @@ describe('NotificationModule Integration Tests', () => {
 
       expect(result).toBeDefined();
       expect(result.message).toBe('已读');
-      expect(notificationRepository.update).toHaveBeenCalledWith({ id: 1, userId: 1 }, { isRead: 1 });
+      expect(notificationRepository.update).toHaveBeenCalledWith(
+        { id: 1, userId: 1 },
+        { isRead: 1 },
+      );
     });
   });
 });

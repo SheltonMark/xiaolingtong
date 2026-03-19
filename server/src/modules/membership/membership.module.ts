@@ -8,7 +8,10 @@ import { SysConfig } from '../../entities/sys-config.entity';
 import { PaymentModule } from '../payment/payment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MemberOrder, User, SysConfig]), PaymentModule],
+  imports: [
+    TypeOrmModule.forFeature([MemberOrder, User, SysConfig]),
+    PaymentModule,
+  ],
   controllers: [MembershipController],
   providers: [MembershipService],
 })

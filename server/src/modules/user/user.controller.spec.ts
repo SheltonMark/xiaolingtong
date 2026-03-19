@@ -60,7 +60,10 @@ describe('UserController', () => {
 
       const result = await controller.submitEnterpriseCert(userId, dto);
 
-      expect(userService.submitEnterpriseCert).toHaveBeenCalledWith(userId, dto);
+      expect(userService.submitEnterpriseCert).toHaveBeenCalledWith(
+        userId,
+        dto,
+      );
       expect(result.type).toBe('enterprise');
       expect(result.status).toBe('pending');
     });
@@ -182,9 +185,9 @@ describe('UserController', () => {
         new BadRequestException('Missing required fields'),
       );
 
-      await expect(
-        controller.submitWorkerCert(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.submitWorkerCert(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when idCard is missing', async () => {
@@ -198,9 +201,9 @@ describe('UserController', () => {
         new BadRequestException('Missing required fields'),
       );
 
-      await expect(
-        controller.submitWorkerCert(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.submitWorkerCert(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when user not authenticated', async () => {
@@ -232,9 +235,9 @@ describe('UserController', () => {
         new BadRequestException('Database error'),
       );
 
-      await expect(
-        controller.submitWorkerCert(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.submitWorkerCert(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should handle empty dto', async () => {
@@ -245,9 +248,9 @@ describe('UserController', () => {
         new BadRequestException('Missing required fields'),
       );
 
-      await expect(
-        controller.submitWorkerCert(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.submitWorkerCert(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -335,9 +338,9 @@ describe('UserController', () => {
         new BadRequestException('Avatar URL cannot be empty'),
       );
 
-      await expect(
-        controller.updateAvatar(userId, avatarUrl),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.updateAvatar(userId, avatarUrl)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when avatarUrl is null', async () => {
@@ -374,9 +377,9 @@ describe('UserController', () => {
         new BadRequestException('Database error'),
       );
 
-      await expect(
-        controller.updateAvatar(userId, avatarUrl),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.updateAvatar(userId, avatarUrl)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should handle special characters in URL', async () => {
@@ -428,9 +431,9 @@ describe('UserController', () => {
         new BadRequestException('Missing required fields'),
       );
 
-      await expect(
-        controller.updateProfile(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.updateProfile(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when nickname is invalid type', async () => {
@@ -444,9 +447,9 @@ describe('UserController', () => {
         new BadRequestException('Invalid field type'),
       );
 
-      await expect(
-        controller.updateProfile(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.updateProfile(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw error when user not authenticated', async () => {
@@ -476,9 +479,9 @@ describe('UserController', () => {
         new BadRequestException('Database error'),
       );
 
-      await expect(
-        controller.updateProfile(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.updateProfile(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should handle empty dto', async () => {
@@ -489,9 +492,9 @@ describe('UserController', () => {
         new BadRequestException('Missing required fields'),
       );
 
-      await expect(
-        controller.updateProfile(userId, dto),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.updateProfile(userId, dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 

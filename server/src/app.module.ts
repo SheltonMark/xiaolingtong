@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule as NestConfigModule, ConfigService } from '@nestjs/config';
+import {
+  ConfigModule as NestConfigModule,
+  ConfigService,
+} from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { UserModule } from './modules/user/user.module';
@@ -24,6 +27,8 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { ConfigModule } from './modules/config/config.module';
 import { InviteModule } from './modules/invite/invite.module';
+import { DisputeModule } from './modules/dispute/dispute.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -38,7 +43,7 @@ import { InviteModule } from './modules/invite/invite.module';
         password: config.get('DB_PASSWORD', ''),
         database: config.get('DB_DATABASE', 'xiaolingtong'),
         entities: [__dirname + '/entities/*.entity{.ts,.js}'],
-        synchronize: config.get('NODE_ENV') === 'development',
+        synchronize: true,
         charset: 'utf8mb4',
       }),
     }),
@@ -65,6 +70,8 @@ import { InviteModule } from './modules/invite/invite.module';
     TasksModule,
     ConfigModule,
     InviteModule,
+    DisputeModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}

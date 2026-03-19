@@ -42,7 +42,9 @@ describe('Bean Recharge Flow - Bug Fix Verification', () => {
     };
 
     paymentService = {
-      generateOutTradeNo: jest.fn((prefix, id) => `${prefix}_${id}_${Date.now()}_abc123`),
+      generateOutTradeNo: jest.fn(
+        (prefix, id) => `${prefix}_${id}_${Date.now()}_abc123`,
+      ),
       createJsapiOrder: jest.fn().mockResolvedValue({
         prepay_id: 'test_prepay_id',
         timeStamp: '1234567890',
@@ -119,7 +121,7 @@ describe('Bean Recharge Flow - Bug Fix Verification', () => {
           beanAmount: 200,
           totalFee: 1800,
           payStatus: 'pending',
-        })
+        }),
       );
       expect(beanOrderRepository.save).toHaveBeenCalled();
       expect(result.prepay_id).toBe('test_prepay_id');

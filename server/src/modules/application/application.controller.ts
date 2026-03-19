@@ -28,4 +28,43 @@ export class ApplicationController {
   cancel(@Param('id') id: number, @CurrentUser('sub') userId: number) {
     return this.appService.cancel(id, userId);
   }
+
+  /**
+   * 获取工作的所有应聘者列表（企业端）
+   */
+  @Get('jobs/:jobId/applications')
+  @Roles('enterprise')
+  getJobApplications(
+    @Param('jobId') jobId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.appService.getJobApplications(jobId, userId);
+  }
+
+  /**
+   * 企业接受应聘者
+   */
+  @Post('jobs/:jobId/applications/:appId/accept')
+  @Roles('enterprise')
+  acceptApplication(
+    @Param('jobId') jobId: number,
+    @Param('appId') appId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.appService.acceptApplication(jobId, appId, userId);
+  }
+
+  /**
+   * 企业拒绝应聘者
+   */
+  @Post('jobs/:jobId/applications/:appId/reject')
+  @Roles('enterprise')
+  rejectApplication(
+    @Param('jobId') jobId: number,
+    @Param('appId') appId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.appService.rejectApplication(jobId, appId, userId);
+  }
+
 }

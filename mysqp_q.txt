@@ -1,0 +1,87 @@
+root@VM-0-15-debian:~/xiaolingtong/server# ls -la /root/xiaolingtong/server/dist/
+total 344
+drwxr-xr-x  5 root root   4096 Mar 15 21:29 .
+drwxr-xr-x 16 root root   4096 Mar 15 21:29 ..
+drwxr-xr-x  2 root root   4096 Mar 15 21:29 public
+drwxr-xr-x  5 root root   4096 Mar 15 21:29 src
+drwxr-xr-x  2 root root   4096 Mar 15 21:29 test_plan
+-rw-r--r--  1 root root 327826 Mar 15 21:29 tsconfig.build.tsbuildinfo
+root@VM-0-15-debian:~/xiaolingtong/server# cd /root/xiaolingtong/server
+root@VM-0-15-debian:~/xiaolingtong/server# npm run build
+
+> server@0.0.1 build
+> nest build && npm run copy-public
+
+
+> server@0.0.1 copy-public
+> node -e "require('fs').cpSync('public', 'dist/public', {recursive: true})"
+
+root@VM-0-15-debian:~/xiaolingtong/server#
+root@VM-0-15-debian:~/xiaolingtong/server# pm2 restart xiaolingtong-api
+Use --update-env to update environment variables
+[PM2] Applying action restartProcessId on app [xiaolingtong-api](ids: [ 0 ])
+[PM2] [xiaolingtong-api](0) ✓
+┌────┬────────────────────┬──────────┬──────┬───────────┬──────────┬──────────┐
+│ id │ name               │ mode     │ ↺    │ status    │ cpu      │ memory   │
+├────┼────────────────────┼──────────┼──────┼───────────┼──────────┼──────────┤
+│ 0  │ xiaolingtong-api   │ fork     │ 636  │ online    │ 0%       │ 21.3mb   │
+└────┴────────────────────┴──────────┴──────┴───────────┴──────────┴──────────┘
+root@VM-0-15-debian:~/xiaolingtong/server#
+root@VM-0-15-debian:~/xiaolingtong/server# pm2 show xiaolingtong-api
+ Describing process with id 0 - name xiaolingtong-api
+┌───────────────────┬────────────────────────────────────────────┐
+│ status            │ online                                     │
+│ name              │ xiaolingtong-api                           │
+│ namespace         │ default                                    │
+│ version           │ 0.0.1                                      │
+│ restarts          │ 636                                        │
+│ uptime            │ 51s                                        │
+│ script path       │ /root/xiaolingtong/server/dist/src/main.js │
+│ script args       │ N/A                                        │
+│ error log path    │ /root/.pm2/logs/xiaolingtong-api-error.log │
+│ out log path      │ /root/.pm2/logs/xiaolingtong-api-out.log   │
+│ pid path          │ /root/.pm2/pids/xiaolingtong-api-0.pid     │
+│ interpreter       │ node                                       │
+│ interpreter args  │ N/A                                        │
+│ script id         │ 0                                          │
+│ exec cwd          │ /root/xiaolingtong/server                  │
+│ exec mode         │ fork_mode                                  │
+│ node.js version   │ 22.22.0                                    │
+│ node env          │ N/A                                        │
+│ watch & reload    │ ✘                                          │
+│ unstable restarts │ 0                                          │
+│ created at        │ 2026-03-15T13:34:11.425Z                   │
+└───────────────────┴────────────────────────────────────────────┘
+ Actions available
+┌────────────────────────┐
+│ km:heapdump            │
+│ km:cpu:profiling:start │
+│ km:cpu:profiling:stop  │
+│ km:heap:sampling:start │
+│ km:heap:sampling:stop  │
+└────────────────────────┘
+ Trigger via: pm2 trigger xiaolingtong-api <action_name>
+
+ Code metrics value
+┌────────────────────────┬───────────┐
+│ Used Heap Size         │ 46.74 MiB │
+│ Heap Usage             │ 94.46 %   │
+│ Heap Size              │ 49.48 MiB │
+│ Event Loop Latency p95 │ 0.95 ms   │
+│ Event Loop Latency     │ 0.56 ms   │
+│ Active handles         │ 5         │
+│ Active requests        │ 0         │
+└────────────────────────┴───────────┘
+ Divergent env variables from local env
+┌────────────────┬────────────────────────────────────┐
+│ SSH_CONNECTION │ 115.227.213.123 59318 10.0.0.15 22 │
+│ XDG_SESSION_ID │ 27985                              │
+│ SSH_CLIENT     │ 115.227.213.123 59318 22           │
+│ OLDPWD         │ /root                              │
+└────────────────┴────────────────────────────────────┘
+
+ Add your own code metrics: http://bit.ly/code-metrics
+ Use `pm2 logs xiaolingtong-api [--lines 1000]` to display logs
+ Use `pm2 env 0` to display environment variables
+ Use `pm2 monit` to monitor CPU and Memory usage xiaolingtong-api
+root@VM-0-15-debian:~/xiaolingtong/server#

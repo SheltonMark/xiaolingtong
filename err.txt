@@ -1,0 +1,15 @@
+0|xiaoling |     at addChunk (node:internal/streams/readable:561:12)
+0|xiaoling |     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+0|xiaoling |     at Socket.Readable.push (node:internal/streams/readable:392:5)
+0|xiaoling | [Nest] 1325727  - 03/14/2026, 12:15:42 AM   ERROR [ExceptionFilter] Unknown column 'Job__Job_user.name' in 'SELECT'
+0|xiaoling | QueryFailedError: Unknown column 'Job__Job_user.name' in 'SELECT'
+0|xiaoling |     at Query.onResult (/root/xiaolingtong/server/src/driver/mysql/MysqlQueryRunner.ts:248:33)
+0|xiaoling |     at Query.execute (/root/xiaolingtong/server/node_modules/mysql2/lib/commands/command.js:36:14)
+0|xiaoling |     at PoolConnection.handlePacket (/root/xiaolingtong/server/node_modules/mysql2/lib/base/connection.js:508:34)
+0|xiaoling |     at PacketParser.onPacket (/root/xiaolingtong/server/node_modules/mysql2/lib/base/connection.js:93:12)
+0|xiaoling |     at PacketParser.executeStart (/root/xiaolingtong/server/node_modules/mysql2/lib/packet_parser.js:75:16)
+0|xiaoling |     at Socket.<anonymous> (/root/xiaolingtong/server/node_modules/mysql2/lib/base/connection.js:100:25)
+0|xiaoling |     at Socket.emit (node:events:519:28)
+0|xiaoling |     at addChunk (node:internal/streams/readable:561:12)
+0|xiaoling |     at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+0|xiaoling |     at Socket.Readable.push (node:internal/streams/readable:392:5)

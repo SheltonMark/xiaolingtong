@@ -11,7 +11,8 @@ import { PaymentService } from '../payment/payment.service';
 export class BeanService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
-    @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(BeanTransaction)
+    private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(BeanOrder) private beanOrderRepo: Repository<BeanOrder>,
     private paymentService: PaymentService,
     private config: ConfigService,
@@ -25,7 +26,7 @@ export class BeanService {
     const transactions = await this.beanTxRepo.find({ where: { userId } });
     let totalIn = 0;
     let totalOut = 0;
-    transactions.forEach(tx => {
+    transactions.forEach((tx) => {
       if (tx.type === 'income') {
         totalIn += tx.amount;
       } else if (tx.type === 'expense') {
@@ -45,13 +46,15 @@ export class BeanService {
     const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
 
     // 保存订单信息
-    await this.beanOrderRepo.save(this.beanOrderRepo.create({
-      userId,
-      outTradeNo,
-      beanAmount: dto.amount,
-      totalFee,
-      payStatus: 'pending',
-    }));
+    await this.beanOrderRepo.save(
+      this.beanOrderRepo.create({
+        userId,
+        outTradeNo,
+        beanAmount: dto.amount,
+        totalFee,
+        payStatus: 'pending',
+      }),
+    );
 
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
@@ -66,10 +69,12 @@ export class BeanService {
 
   async getTransactions(userId: number, query: any) {
     const { page = 1, pageSize = 20 } = query;
-    const qb = this.beanTxRepo.createQueryBuilder('t')
+    const qb = this.beanTxRepo
+      .createQueryBuilder('t')
       .where('t.userId = :userId', { userId })
       .orderBy('t.createdAt', 'DESC')
-      .skip((page - 1) * pageSize).take(pageSize);
+      .skip((page - 1) * pageSize)
+      .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
     return { list, total, page: +page, pageSize: +pageSize };
   }

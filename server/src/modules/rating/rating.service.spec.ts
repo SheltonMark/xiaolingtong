@@ -3,19 +3,34 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { RatingService } from './rating.service';
 import { Rating } from '../../entities/rating.entity';
+import { User } from '../../entities/user.entity';
+import { Job } from '../../entities/job.entity';
 
 describe('RatingService', () => {
   let service: RatingService;
   let ratingRepo: any;
+  let userRepo: any;
+  let jobRepo: any;
 
   beforeEach(async () => {
     ratingRepo = {
       findOne: jest.fn(),
+      find: jest.fn(),
+      findAndCount: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+    };
+
+    userRepo = {
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
+
+    jobRepo = {
+      findOne: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -24,6 +39,14 @@ describe('RatingService', () => {
         {
           provide: getRepositoryToken(Rating),
           useValue: ratingRepo,
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: userRepo,
+        },
+        {
+          provide: getRepositoryToken(Job),
+          useValue: jobRepo,
         },
       ],
     }).compile();
@@ -68,9 +91,7 @@ describe('RatingService', () => {
 
       ratingRepo.findOne.mockResolvedValue(existingRating);
 
-      await expect(service.create(1, dto)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.create(1, dto)).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException with "已评价过" message', async () => {
@@ -190,7 +211,8 @@ describe('RatingService', () => {
     });
 
     it('should persist content string correctly', async () => {
-      const content = 'This worker was very professional and completed the job on time.';
+      const content =
+        'This worker was very professional and completed the job on time.';
       const dto = {
         jobId: 1,
         enterpriseId: 1,
@@ -223,4 +245,271 @@ describe('RatingService', () => {
       });
     });
   });
+
+  describe('createRating', () => {
+    it('should create rating successfully with all parameters', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      const mockRated = { id: 2, nickname: 'Enterprise' };
+      const savedRating = {
+        id: 1,
+        jobId: 1,
+        raterId: 1,
+        ratedId: 2,
+        raterRole: 'worker',
+        score: 5,
+        comment: 'Great work',
+        tags: ['professional'],
+        status: 'pending',
+      };
+
+      jobRepo.findOne.mockResolvedValue(mockJob);
+      userRepo.findOne.mockResolvedValueOnce(mockRater);
+      userRepo.findOne.mockResolvedValueOnce(mockRated);
+      ratingRepo.findOne.mockResolvedValue(null);
+      ratingRepo.create.mockReturnValue(savedRating);
+      ratingRepo.save.mockResolvedValue(savedRating);
+
+      const result = await service.createRating(
+        1,
+        1,
+        2,
+        'worker',
+        5,
+        'Great work',
+        ['professional'],
+      );
+
+      expect(result).toEqual(savedRating);
+      expect(result.status).toBe('pending');
+    });
+
+    it('should throw BadRequestException when score is below 1', async () => {
+      await expect(
+        service.createRating(1, 1, 2, 'worker', 0, 'Bad'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException when score is above 5', async () => {
+      await expect(
+        service.createRating(1, 1, 2, 'worker', 6, 'Bad'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException when job does not exist', async () => {
+      jobRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.createRating(999, 1, 2, 'worker', 5),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException when rater does not exist', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      jobRepo.findOne.mockResolvedValue(mockJob);
+      userRepo.findOne.mockResolvedValueOnce(null);
+
+      await expect(
+        service.createRating(1, 999, 2, 'worker', 5),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw NotFoundException when rated user does not exist', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      jobRepo.findOne.mockResolvedValue(mockJob);
+      userRepo.findOne.mockResolvedValueOnce(mockRater);
+      userRepo.findOne.mockResolvedValueOnce(null);
+
+      await expect(
+        service.createRating(1, 1, 999, 'worker', 5),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when duplicate rating exists', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      const mockRated = { id: 2, nickname: 'Enterprise' };
+      const existingRating = { id: 1, jobId: 1, raterId: 1, ratedId: 2 };
+
+      jobRepo.findOne.mockResolvedValue(mockJob);
+      userRepo.findOne.mockResolvedValueOnce(mockRater);
+      userRepo.findOne.mockResolvedValueOnce(mockRated);
+      ratingRepo.findOne.mockResolvedValue(existingRating);
+
+      await expect(
+        service.createRating(1, 1, 2, 'worker', 5),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should set default empty tags when not provided', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      const mockRated = { id: 2, nickname: 'Enterprise' };
+      const savedRating = {
+        id: 1,
+        jobId: 1,
+        raterId: 1,
+        ratedId: 2,
+        raterRole: 'worker',
+        score: 4,
+        comment: 'Good',
+        tags: [],
+        status: 'pending',
+      };
+
+      jobRepo.findOne.mockResolvedValue(mockJob);
+      userRepo.findOne.mockResolvedValueOnce(mockRater);
+      userRepo.findOne.mockResolvedValueOnce(mockRated);
+      ratingRepo.findOne.mockResolvedValue(null);
+      ratingRepo.create.mockReturnValue(savedRating);
+      ratingRepo.save.mockResolvedValue(savedRating);
+
+      const result = await service.createRating(1, 1, 2, 'worker', 4, 'Good');
+
+      expect(result.tags).toEqual([]);
+    });
+  });
+
+  describe('getRatings', () => {
+    it('should get ratings for a user with pagination', async () => {
+      const mockRatings = [
+        { id: 1, ratedId: 1, score: 5, createdAt: new Date() },
+        { id: 2, ratedId: 1, score: 4, createdAt: new Date() },
+      ];
+
+      ratingRepo.findAndCount.mockResolvedValue([mockRatings, 2]);
+
+      const result = await service.getRatings(1, 1, 10);
+
+      expect(result.data).toEqual(mockRatings);
+      expect(result.total).toBe(2);
+    });
+
+    it('should use default pagination values', async () => {
+      ratingRepo.findAndCount.mockResolvedValue([[], 0]);
+
+      await service.getRatings(1);
+
+      expect(ratingRepo.findAndCount).toHaveBeenCalledWith({
+        where: { ratedId: 1 },
+        skip: 0,
+        take: 10,
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it('should calculate correct skip value for page 2', async () => {
+      ratingRepo.findAndCount.mockResolvedValue([[], 0]);
+
+      await service.getRatings(1, 2, 10);
+
+      expect(ratingRepo.findAndCount).toHaveBeenCalledWith({
+        where: { ratedId: 1 },
+        skip: 10,
+        take: 10,
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it('should sort by createdAt in descending order', async () => {
+      ratingRepo.findAndCount.mockResolvedValue([[], 0]);
+
+      await service.getRatings(1);
+
+      expect(ratingRepo.findAndCount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          order: { createdAt: 'DESC' },
+        }),
+      );
+    });
+  });
+
+  describe('approveRating', () => {
+    it('should approve rating and update user average rating', async () => {
+      const mockRating = {
+        id: 1,
+        ratedId: 2,
+        score: 5,
+        status: 'pending',
+      };
+      const approvedRating = { ...mockRating, status: 'approved' };
+      const mockUser = { id: 2, creditScore: 100 };
+      const approvedRatings = [
+        { score: 5 },
+        { score: 4 },
+        { score: 5 },
+      ];
+
+      ratingRepo.findOne.mockResolvedValueOnce(mockRating);
+      ratingRepo.save.mockResolvedValueOnce(approvedRating);
+      ratingRepo.find.mockResolvedValue(approvedRatings);
+      userRepo.findOne.mockResolvedValue(mockUser);
+      userRepo.save.mockResolvedValue(mockUser);
+
+      const result = await service.approveRating(1);
+
+      expect(result.status).toBe('approved');
+      expect(ratingRepo.save).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when rating does not exist', async () => {
+      ratingRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.approveRating(999)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('should update user credit score based on average rating', async () => {
+      const mockRating = {
+        id: 1,
+        ratedId: 2,
+        score: 5,
+        status: 'pending',
+      };
+      const approvedRating = { ...mockRating, status: 'approved' };
+      const mockUser = { id: 2, creditScore: 100 };
+      const approvedRatings = [{ score: 5 }, { score: 4 }];
+
+      ratingRepo.findOne.mockResolvedValueOnce(mockRating);
+      ratingRepo.save.mockResolvedValueOnce(approvedRating);
+      ratingRepo.find.mockResolvedValue(approvedRatings);
+      userRepo.findOne.mockResolvedValue(mockUser);
+      userRepo.save.mockResolvedValue(mockUser);
+
+      await service.approveRating(1);
+
+      expect(userRepo.save).toHaveBeenCalled();
+    });
+  });
+
+  describe('rejectRating', () => {
+    it('should reject rating successfully', async () => {
+      const mockRating = {
+        id: 1,
+        ratedId: 2,
+        score: 1,
+        status: 'pending',
+      };
+      const rejectedRating = { ...mockRating, status: 'rejected' };
+
+      ratingRepo.findOne.mockResolvedValue(mockRating);
+      ratingRepo.save.mockResolvedValue(rejectedRating);
+
+      const result = await service.rejectRating(1);
+
+      expect(result.status).toBe('rejected');
+      expect(ratingRepo.save).toHaveBeenCalled();
+    });
+
+    it('should throw NotFoundException when rating does not exist', async () => {
+      ratingRepo.findOne.mockResolvedValue(null);
+
+      await expect(service.rejectRating(999)).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
 });
+

@@ -2,7 +2,11 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  INestApplication,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { AppModule } from '../../app.module';
 
 describe('Error Recovery and Edge Cases', () => {
@@ -18,13 +22,11 @@ describe('Error Recovery and Edge Cases', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
 
-    const response = await app
-      .get('/auth/register')
-      .send({
-        openid: 'error_test_user',
-        nickname: 'Error Test',
-        role: 'worker',
-      });
+    const response = await app.get('/auth/register').send({
+      openid: 'error_test_user',
+      nickname: 'Error Test',
+      role: 'worker',
+    });
 
     token = response.body.token;
     userId = response.body.userId;
@@ -63,9 +65,7 @@ describe('Error Recovery and Edge Cases', () => {
     it('should handle partial failure in batch operations', async () => {
       const jobIds = [1, 999, 2, 888, 3];
       const promises = jobIds.map((jobId) =>
-        app
-          .get(`/jobs/${jobId}`)
-          .set('Authorization', `Bearer ${token}`),
+        app.get(`/jobs/${jobId}`).set('Authorization', `Bearer ${token}`),
       );
 
       const responses = await Promise.all(promises);
@@ -117,13 +117,10 @@ describe('Error Recovery and Edge Cases', () => {
     it('should handle concurrent update conflicts', async () => {
       const jobId = 1;
       const promises = Array.from({ length: 5 }, () =>
-        app
-          .put(`/jobs/${jobId}`)
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            title: 'Updated Title',
-            salary: 150,
-          }),
+        app.put(`/jobs/${jobId}`).set('Authorization', `Bearer ${token}`).send({
+          title: 'Updated Title',
+          salary: 150,
+        }),
       );
 
       const responses = await Promise.all(promises);
@@ -222,19 +219,14 @@ describe('Error Recovery and Edge Cases', () => {
 
     it('should handle rate limiting', async () => {
       const promises = Array.from({ length: 100 }, () =>
-        app
-          .post('/chat/send')
-          .set('Authorization', `Bearer ${token}`)
-          .send({
-            recipientId: 1,
-            content: 'Spam message',
-          }),
+        app.post('/chat/send').set('Authorization', `Bearer ${token}`).send({
+          recipientId: 1,
+          content: 'Spam message',
+        }),
       );
 
       const responses = await Promise.all(promises);
-      const rateLimitedCount = responses.filter(
-        (r) => r.status === 429,
-      ).length;
+      const rateLimitedCount = responses.filter((r) => r.status === 429).length;
 
       // Some requests should be rate limited
       expect(rateLimitedCount).toBeGreaterThanOrEqual(0);

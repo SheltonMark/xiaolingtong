@@ -33,9 +33,13 @@ test.describe('Auth Module E2E', () => {
   });
 
   test('should refresh token', async ({ apiClient, authToken }) => {
-    const response = await apiClient.post('/auth/refresh', {}, {
-      headers: { Authorization: `Bearer ${authToken}` },
-    });
+    const response = await apiClient.post(
+      '/auth/refresh',
+      {},
+      {
+        headers: { Authorization: `Bearer ${authToken}` },
+      },
+    );
 
     expect(response.status).toBe(200);
     expect(response.data.data).toHaveProperty('token');
