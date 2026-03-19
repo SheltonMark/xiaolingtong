@@ -9,6 +9,8 @@ import { AuthService } from './auth.service';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
+const ALLOWED_ROLES = ['enterprise', 'worker'];
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -23,6 +25,9 @@ export class AuthController {
   @Post('choose-role')
   chooseRole(@CurrentUser('sub') userId: number, @Body('role') role: string) {
     if (!role) throw new BadRequestException('role 不能为空');
+    if (!ALLOWED_ROLES.includes(role)) {
+      throw new BadRequestException('角色不合法');
+    }
     return this.authService.chooseRole(userId, role);
   }
 

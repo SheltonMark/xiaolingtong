@@ -12,6 +12,8 @@ import { InviteService } from '../invite/invite.service';
 import { NotificationService } from '../notification/notification.service';
 import axios from 'axios';
 
+const ALLOWED_ROLES = ['enterprise', 'worker'];
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -36,24 +38,21 @@ export class AuthService {
     } else {
       const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${secret}&js_code=${code}&grant_type=authorization_code`;
       const { data } = await axios.get(url);
-      if (data.errcode)
+      if (data.errcode) {
         throw new BadRequestException(data.errmsg || '微信登录失败');
+      }
       openid = data.openid;
     }
 
     let user = await this.userRepo.findOne({ where: { openid } });
-    let isNewUser = false;
     if (!user) {
-      isNewUser = true;
       user = this.userRepo.create({ openid });
       user = await this.userRepo.save(user);
       await this.walletRepo.save(this.walletRepo.create({ userId: user.id }));
 
-      // 生成邀请码
       const code = await this.inviteService.ensureInviteCode(user.id);
       user.inviteCode = code;
 
-      // 绑定邀请关系
       if (inviteCode) {
         const inviter = await this.userRepo.findOne({ where: { inviteCode } });
         if (inviter && inviter.id !== user.id) {
@@ -83,13 +82,16 @@ export class AuthService {
   }
 
   async chooseRole(userId: number, role: string) {
+    if (!ALLOWED_ROLES.includes(role)) {
+      throw new BadRequestException('角色不合法');
+    }
+
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
 
     const isFirstRole = !user.role;
     await this.userRepo.update(userId, { role });
 
-    // 首次选角色：发放新人灵豆
     if (isFirstRole) {
       await this.userRepo.update(userId, {
         beanBalance: () => 'beanBalance + 3',
@@ -104,12 +106,11 @@ export class AuthService {
         }),
       );
 
-      // 通知邀请人
       if (user.invitedBy) {
         await this.notificationService.create(user.invitedBy, {
           type: 'invite' as any,
           title: '邀请成功',
-          content: `您邀请的用户已注册，角色：${role === 'enterprise' ? '企业' : '临工'}`,
+          content: `您邀请的用户已注册，角色：${role === 'enterprise' ? '企业' : '零工'}`,
         });
       }
     }
@@ -123,8 +124,7 @@ export class AuthService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) return null;
 
-    // Check certification status
-    let certStatus = 'none'; // none, pending, approved, rejected
+    let certStatus = 'none';
     let certName = '';
 
     if (user.role === 'enterprise') {

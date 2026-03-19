@@ -18,25 +18,37 @@ Page({
     if (this.data.loading) return
     this.setData({ loading: true })
 
-    wx.setStorageSync('userRole', role)
     const app = getApp()
+    const previousRole = app.globalData.userRole || wx.getStorageSync('userRole') || ''
+    wx.setStorageSync('userRole', role)
     app.globalData.userRole = role
 
-    // 已登录：调后端同步角色
+    // Logged in: sync role to backend before entering the app.
     if (auth.isLoggedIn()) {
       post('/auth/choose-role', { role }).then(res => {
-        const { token } = res.data
+        const { token, role: syncedRole } = res.data
+        const finalRole = syncedRole || role
         if (token) auth.setToken(token)
         app.globalData.isLoggedIn = true
+        app.globalData.userRole = finalRole
+        if (app.globalData.userInfo) {
+          app.globalData.userInfo = Object.assign({}, app.globalData.userInfo, { role: finalRole })
+        }
+        wx.setStorageSync('userRole', finalRole)
         wx.switchTab({ url: '/pages/index/index' })
       }).catch(() => {
-        // 即使后端失败，也让用户进首页浏览
-        wx.switchTab({ url: '/pages/index/index' })
+        if (previousRole) {
+          wx.setStorageSync('userRole', previousRole)
+          app.globalData.userRole = previousRole
+        } else {
+          wx.removeStorageSync('userRole')
+          app.globalData.userRole = ''
+        }
       }).finally(() => {
         this.setData({ loading: false })
       })
     } else {
-      // 未登录：只存本地角色，直接进首页游客浏览
+      // Guest mode keeps the role locally for browsing.
       wx.switchTab({ url: '/pages/index/index' })
       this.setData({ loading: false })
     }
