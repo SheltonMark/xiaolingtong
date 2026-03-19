@@ -1,13 +1,25 @@
 const { post } = require('../../utils/request')
 const auth = require('../../utils/auth')
 
+const TAB_BAR_ROUTES = [
+  'pages/index/index',
+  'pages/exposure-board/exposure-board',
+  'pages/publish/publish',
+  'pages/messages/messages',
+  'pages/mine/mine'
+]
+
 Page({
   data: {
-    loading: false
+    loading: false,
+    statusBarHeight: 0
   },
 
   onLoad() {
-    // 不再自动跳转，让用户主动登录
+    const sysInfo = wx.getSystemInfoSync()
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight || 0
+    })
   },
 
   onWxLogin() {
@@ -48,5 +60,22 @@ Page({
         this.setData({ loading: false })
       }
     })
+  },
+
+  onBack() {
+    const pages = getCurrentPages()
+    const prevPage = pages.length > 1 ? pages[pages.length - 2] : null
+
+    if (prevPage && TAB_BAR_ROUTES.includes(prevPage.route)) {
+      wx.switchTab({ url: '/' + prevPage.route })
+      return
+    }
+
+    if (prevPage) {
+      wx.navigateBack({ delta: 1 })
+      return
+    }
+
+    wx.switchTab({ url: '/pages/index/index' })
   }
 })

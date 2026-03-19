@@ -4,7 +4,36 @@
   height: 100vh;
   background-color: #ffffff;
   box-sizing: border-box;
-  padding-top: 0;
+}
+
+.login-top {
+  padding-left: 24rpx;
+  padding-right: 24rpx;
+}
+
+.back-btn {
+  width: 132rpx;
+  height: 64rpx;
+  border-radius: 999rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6rpx;
+  color: #334155;
+  background-color: rgba(248, 250, 252, 0.96);
+  border: 2rpx solid #E2E8F0;
+  box-sizing: border-box;
+}
+
+.back-arrow {
+  font-size: 34rpx;
+  line-height: 1;
+  margin-top: -2rpx;
+}
+
+.back-text {
+  font-size: 24rpx;
+  font-weight: 500;
 }
 
 .logo-area {
@@ -13,7 +42,6 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding-top: 0;
 }
 
 .logo-box {
@@ -60,20 +88,18 @@
   justify-content: center;
   gap: 12rpx;
   width: 100%;
-  height: 96rpx;
+  height: 88rpx;
   background-color: #22C55E;
   color: #ffffff;
   font-size: 28rpx;
   font-weight: 600;
   border-radius: 24rpx;
   border: none;
+  padding: 0;
+  box-sizing: border-box;
   box-shadow: 0 8rpx 24rpx rgba(34, 197, 94, 0.3);
 }
 
 .wx-login-btn::after {
   border: none;
-}
-
-.wx-icon {
-  font-size: 36rpx;
 }
