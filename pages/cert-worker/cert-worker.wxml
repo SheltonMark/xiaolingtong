@@ -55,7 +55,7 @@
       <input class="form-input" type="number" placeholder="请输入手机号" data-field="phone" value="{{form.phone}}" bindinput="onInput" />
     </view>
 
-    <view class="form-group">
+    <view wx:if="{{certSmsEnabled}}" class="form-group">
       <text class="form-label">短信验证码 <text class="required">*</text></text>
       <view class="verify-row">
         <input class="form-input verify-input" type="number" maxlength="6" placeholder="请输入6位验证码" value="{{smsCode}}" bindinput="onSmsCodeInput" />

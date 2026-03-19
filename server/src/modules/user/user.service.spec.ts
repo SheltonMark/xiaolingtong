@@ -24,6 +24,7 @@ describe('UserService', () => {
   beforeEach(async () => {
     configValues = {
       NODE_ENV: 'test',
+      TENCENT_CERT_SMS_ENABLED: '1',
       TENCENT_SMS_MOCK: '1',
       TENCENT_OCR_MOCK: '0',
     };
@@ -223,6 +224,32 @@ describe('UserService', () => {
       expect(result.status).toBe('pending');
     });
 
+    it('should allow enterprise certification without verification token when cert sms is disabled', async () => {
+      configValues.TENCENT_CERT_SMS_ENABLED = '0';
+
+      userRepo.update.mockResolvedValue({ affected: 1 });
+      entCertRepo.findOneBy.mockResolvedValue(null);
+      entCertRepo.create.mockImplementation((payload) => payload);
+      entCertRepo.save.mockResolvedValue({ id: 2, userId: 1, status: 'pending' });
+
+      const result = await service.submitEnterpriseCert(1, {
+        companyName: 'Test Company',
+        creditCode: '91310000123456789A',
+        licenseImage: 'https://cdn.test/license.png',
+        contactName: 'Alice',
+        contactPhone: '13800000000',
+      });
+
+      expect(verificationSessionRepo.findOneBy).not.toHaveBeenCalled();
+      expect(userRepo.update).toHaveBeenCalledWith(1, {
+        phone: '13800000000',
+      });
+      expect(entCertRepo.create).toHaveBeenCalledWith(expect.objectContaining({
+        contactPhone: '13800000000',
+      }));
+      expect(result.status).toBe('pending');
+    });
+
     it('should reject enterprise certification when verification token is missing', async () => {
       await expect(
         service.submitEnterpriseCert(1, {
@@ -380,6 +407,33 @@ describe('UserService', () => {
         verifiedPhone: '13800000000',
         phone: '13800000000',
       });
+    });
+
+    it('should allow worker certification without verification token when cert sms is disabled', async () => {
+      configValues.TENCENT_CERT_SMS_ENABLED = '0';
+
+      userRepo.update.mockResolvedValue({ affected: 1 });
+      workerCertRepo.findOneBy.mockResolvedValue(null);
+      workerCertRepo.create.mockImplementation((payload) => payload);
+      workerCertRepo.save.mockResolvedValue({ id: 2, userId: 1, status: 'pending' });
+
+      const result = await service.submitWorkerCert(1, {
+        realName: 'Zhang San',
+        idNo: '110101199003071234',
+        idFrontImage: 'https://cdn.test/front.png',
+        idBackImage: 'https://cdn.test/back.png',
+        skills: ['装配工'],
+        phone: '13800138000',
+      });
+
+      expect(verificationSessionRepo.findOneBy).not.toHaveBeenCalled();
+      expect(userRepo.update).toHaveBeenCalledWith(1, {
+        phone: '13800138000',
+      });
+      expect(workerCertRepo.create).toHaveBeenCalledWith(expect.objectContaining({
+        realName: 'Zhang San',
+      }));
+      expect(result.status).toBe('pending');
     });
   });
 
