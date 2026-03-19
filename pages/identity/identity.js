@@ -7,13 +7,7 @@ Page({
     loading: false
   },
   goToIndexPage() {
-    wx.switchTab({
-      url: '/pages/index/index',
-      fail: (error) => {
-        console.error('[identity] switchTab to index failed, fallback to reLaunch', error)
-        wx.reLaunch({ url: '/pages/index/index' })
-      }
-    })
+    wx.reLaunch({ url: '/pages/index/index' })
   },
   onSelectEnterprise() {
     this.setData({ selected: 'enterprise' })

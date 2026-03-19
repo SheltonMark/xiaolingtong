@@ -11,13 +11,7 @@ Page({
   },
 
   goToIndexPage() {
-    wx.switchTab({
-      url: '/pages/index/index',
-      fail: (error) => {
-        console.error('[login] switchTab to index failed, fallback to reLaunch', error)
-        wx.reLaunch({ url: '/pages/index/index' })
-      }
-    })
+    wx.reLaunch({ url: '/pages/index/index' })
   },
 
   completeLogin(role, user) {

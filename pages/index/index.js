@@ -134,7 +134,7 @@ Page({
     this.loadJobTypes()
     this.loadBannerAds()
     if (userRole === 'worker') {
-      this.autoLocateAndLoadWorkerJobs()
+      this.loadWorkerJobs()
     } else {
       this.loadData()
     }
