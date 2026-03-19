@@ -9,19 +9,19 @@ export class ContactProfile {
   @Column({ type: 'bigint' })
   userId: number;
 
-  @Column({ length: 32, nullable: true })
+  @Column({ type: 'varchar', length: 32, nullable: true })
   contactName: string | null;
 
-  @Column({ length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   phone: string | null;
 
   @Column({ type: 'tinyint', default: 0 })
   phoneVerified: number;
 
-  @Column({ length: 64, nullable: true })
+  @Column({ type: 'varchar', length: 64, nullable: true })
   wechatId: string | null;
 
-  @Column({ length: 512, nullable: true })
+  @Column({ type: 'varchar', length: 512, nullable: true })
   wechatQrImage: string | null;
 
   @Column({ type: 'tinyint', default: 1 })

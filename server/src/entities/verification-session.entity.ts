@@ -18,7 +18,7 @@ export class VerificationSession {
   @Column({ length: 128 })
   smsCodeHash: string;
 
-  @Column({ length: 64, nullable: true })
+  @Column({ type: 'varchar', length: 64, nullable: true })
   verificationToken: string | null;
 
   @Column({ type: 'json', nullable: true })
