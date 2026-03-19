@@ -664,6 +664,24 @@ describe('UserService', () => {
   });
 
   describe('cert sms verification helpers', () => {
+    it('should reject sending a cert sms code when cert sms is disabled', async () => {
+      configValues.TENCENT_CERT_SMS_ENABLED = '0';
+
+      await expect(service.sendCertSmsCode(7, {
+        phone: '13800000000',
+        scene: 'worker_cert',
+      })).rejects.toThrow('当前版本暂未开放短信验证');
+    });
+
+    it('should reject checking a cert sms code when cert sms is disabled', async () => {
+      configValues.TENCENT_CERT_SMS_ENABLED = '0';
+
+      await expect(service.checkCertSmsCode(7, {
+        sessionId: 9,
+        code: '246810',
+      })).rejects.toThrow('当前版本暂未开放短信验证');
+    });
+
     it('should create a verification session and mask the phone when sending a cert sms code', async () => {
       verificationSessionRepo.create.mockImplementation((payload) => ({ id: 9, ...payload }));
       verificationSessionRepo.save.mockImplementation(async (payload) => payload);

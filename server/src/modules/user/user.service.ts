@@ -433,6 +433,10 @@ export class UserService {
   }
 
   async sendCertSmsCode(userId: number, dto: any) {
+    if (!this.isCertSmsVerificationEnabled()) {
+      throw new BadRequestException('当前版本暂未开放短信验证');
+    }
+
     const phone = this.normalizeText(dto.phone);
     const scene = this.normalizeText(dto.scene) as CertScene;
 
@@ -467,6 +471,10 @@ export class UserService {
   }
 
   async checkCertSmsCode(userId: number, dto: any) {
+    if (!this.isCertSmsVerificationEnabled()) {
+      throw new BadRequestException('当前版本暂未开放短信验证');
+    }
+
     const sessionId = Number(dto.sessionId) || 0;
     const code = this.normalizeText(dto.code);
     const session = await this.verificationSessionRepo.findOneBy({ id: sessionId, userId });
