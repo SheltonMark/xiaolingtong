@@ -16,6 +16,11 @@ export class WorkController {
     return this.workService.getSession(Number(jobId), userId);
   }
 
+  @Post('session/:jobId/start')
+  confirmStart(@CurrentUser('sub') userId: number, @Param('jobId') jobId: number, @Body() dto: any) {
+    return this.workService.confirmStart(userId, Number(jobId), dto);
+  }
+
   @Post('checkin')
   checkin(@CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.workService.checkin(userId, dto);

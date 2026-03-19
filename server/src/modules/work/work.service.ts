@@ -12,6 +12,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkStart } from '../../entities/work-start.entity';
 
 type AttendanceRecordDto = {
   workerId: number;
@@ -35,6 +36,7 @@ export class WorkService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkStart) private workStartRepo: Repository<WorkStart>,
   ) {}
 
   private async getCompanyName(userId: number, fallbackNickname?: string): Promise<string> {
@@ -228,6 +230,22 @@ export class WorkService {
     return Object.fromEntries(
       Object.entries(patch).filter(([, value]) => value !== undefined),
     ) as Partial<T>;
+  }
+
+  private normalizePhotoUrls(photoUrls?: unknown): string[] {
+    if (!Array.isArray(photoUrls)) {
+      return [];
+    }
+    return this.uniqueStrings(
+      photoUrls.map((item) => (typeof item === 'string' ? item.trim() : '')),
+    );
+  }
+
+  private async getDailyStart(jobId: number, date: string): Promise<WorkStart | null> {
+    return this.workStartRepo.findOne({
+      where: { jobId, date },
+      relations: ['confirmer'],
+    });
   }
 
   private async ensureJob(jobId: number): Promise<Job> {
@@ -425,6 +443,8 @@ export class WorkService {
       : null;
     const checkinRule = this.getCheckinRule(job, workers, currentApp);
     const supervisorApp = checkinRule.supervisorApp;
+    const todayStart = await this.getDailyStart(normalizedJobId, today);
+    const isSupervisor = currentApp ? Number(currentApp.isSupervisor) === 1 : false;
 
     return {
       job: { ...job, companyName },
@@ -440,11 +460,75 @@ export class WorkService {
       checkinBlockedCode: checkinRule.blockedCode,
       checkinBlockedReason: checkinRule.blockedReason,
       currentApplicationStatus: currentApp?.status || '',
-      isSupervisor: currentApp ? Number(currentApp.isSupervisor) === 1 : false,
+      isSupervisor,
+      hasStartedToday: !!todayStart,
+      canConfirmStart: isSupervisor && !todayStart,
+      startedAt: todayStart ? this.formatDateTime(todayStart.confirmedAt) : '',
+      startedBy: todayStart?.confirmer?.nickname || todayStart?.confirmer?.name || '',
+      startedPhotos: todayStart?.photoUrls || [],
       checkinWindowStart: checkinRule.checkinWindowStart,
       checkinWindowEnd: checkinRule.checkinWindowEnd,
       workStartAt: checkinRule.workStartAt,
       startTime: checkinRule.startTime,
+    };
+  }
+
+  async confirmStart(userId: number, jobId: number, dto: any) {
+    const normalizedJobId = this.normalizeJobId(jobId);
+    const today = this.normalizeDate();
+    const job = await this.ensureJob(normalizedJobId);
+    await this.ensureSupervisor(normalizedJobId, userId);
+
+    const startDateText = String(job.dateStart || '').slice(0, 10);
+    const endDateText = String(job.dateEnd || '').slice(0, 10);
+    if (startDateText && today < startDateText) {
+      throw new BadRequestException(`未到上岗日期，请于 ${startDateText} 再确认开工`);
+    }
+    if (endDateText && today > endDateText) {
+      throw new BadRequestException('已超过用工日期，无法确认开工');
+    }
+
+    const existing = await this.getDailyStart(normalizedJobId, today);
+    if (existing) {
+      return {
+        id: existing.id,
+        hasStartedToday: true,
+        startedAt: this.formatDateTime(existing.confirmedAt),
+        startedBy: existing.confirmer?.nickname || existing.confirmer?.name || '',
+        photoUrls: existing.photoUrls || [],
+      };
+    }
+
+    let saved: WorkStart;
+    try {
+      saved = await this.workStartRepo.save(this.workStartRepo.create({
+        jobId: normalizedJobId,
+        date: today,
+        confirmedBy: userId,
+        confirmedAt: new Date(),
+        photoUrls: this.normalizePhotoUrls(dto?.photos),
+      }));
+    } catch (error) {
+      const concurrentExisting = await this.getDailyStart(normalizedJobId, today);
+      if (concurrentExisting) {
+        return {
+          id: concurrentExisting.id,
+          hasStartedToday: true,
+          startedAt: this.formatDateTime(concurrentExisting.confirmedAt),
+          startedBy: concurrentExisting.confirmer?.nickname || concurrentExisting.confirmer?.name || '',
+          photoUrls: concurrentExisting.photoUrls || [],
+        };
+      }
+      throw error;
+    }
+    const result = await this.getDailyStart(normalizedJobId, today);
+
+    return {
+      id: saved.id,
+      hasStartedToday: true,
+      startedAt: this.formatDateTime(result?.confirmedAt || saved.confirmedAt),
+      startedBy: result?.confirmer?.nickname || result?.confirmer?.name || '',
+      photoUrls: result?.photoUrls || saved.photoUrls || [],
     };
   }
 

@@ -8,9 +8,10 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkStart } from '../../entities/work-start.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Checkin, WorkLog, JobApplication, Job, User, EnterpriseCert])],
+  imports: [TypeOrmModule.forFeature([Checkin, WorkLog, JobApplication, Job, User, EnterpriseCert, WorkStart])],
   controllers: [WorkController],
   providers: [WorkService],
 })

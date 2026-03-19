@@ -13,10 +13,15 @@ Page({
     isSupervisor: false,
     hasSupervisor: false,
     canCheckin: false,
+    canConfirmStart: false,
+    hasStartedToday: false,
+    startedAt: '',
+    startedBy: '',
     checkinBlockedReason: '',
     checkinWindowStart: '',
     checkinWindowEnd: '',
-    currentApplicationStatus: ''
+    currentApplicationStatus: '',
+    submittingStart: false
   },
 
   onLoad(options) {
@@ -42,6 +47,7 @@ Page({
       const job = data.job || {}
       const checkins = data.checkins || []
       const allWorkers = data.workers || []
+      const startedPhotos = Array.isArray(data.startedPhotos) ? data.startedPhotos : []
       const checkinMap = {}
 
       checkins.forEach(checkin => {
@@ -69,15 +75,21 @@ Page({
       const checkedIn = workers.filter(worker => worker.status !== 'absent').length
       const company = job.companyName || (job.user && job.user.companyName) || '企业'
       const [startTime] = String(job.workHours || '08:00-18:00').split('-')
+      const photos = this.data.photos.length > 0 ? this.data.photos : startedPhotos
 
       this.setData({
         loading: false,
         workers,
+        photos,
         jobLat: job.lat || 0,
         jobLng: job.lng || 0,
         isSupervisor: !!data.isSupervisor,
         hasSupervisor: !!data.hasSupervisor,
         canCheckin: !!data.canCheckin,
+        canConfirmStart: !!data.canConfirmStart,
+        hasStartedToday: !!data.hasStartedToday,
+        startedAt: data.startedAt || '',
+        startedBy: data.startedBy || '',
         checkinBlockedReason: data.checkinBlockedReason || '',
         checkinWindowStart: data.checkinWindowStart || '',
         checkinWindowEnd: data.checkinWindowEnd || '',
@@ -228,20 +240,48 @@ Page({
       wx.showToast({ title: '仅临工管理员可确认开工', icon: 'none' })
       return
     }
+    if (this.data.hasStartedToday || !this.data.canConfirmStart) {
+      wx.showToast({ title: this.data.startedAt ? '今日已确认开工' : '当前不可确认开工', icon: 'none' })
+      return
+    }
+    if (this.data.submittingStart) {
+      return
+    }
+
     const notChecked = this.data.workers.filter(worker => worker.status === 'absent').length
     const content = notChecked > 0
       ? `还有 ${notChecked} 人未签到，确认开工？`
       : '确认所有人员已到位，开始工作？'
+
     wx.showModal({
       title: '确认开工',
       content,
       success: (res) => {
         if (!res.confirm) return
-        wx.setStorageSync('workSessionPhotos:' + this.data.jobId, this.data.photos)
-        wx.showToast({ title: '已确认开工', icon: 'success' })
-        setTimeout(() => wx.redirectTo({
-          url: '/pages/work-session/work-session?orderId=' + this.data.jobId + '&mode=' + this.data.mode
-        }), 1500)
+        this.setData({ submittingStart: true })
+        post('/work/session/' + this.data.jobId + '/start', {
+          photos: this.data.photos
+        }).then((response) => {
+          const result = response.data || response || {}
+          const photos = Array.isArray(result.photoUrls) && result.photoUrls.length > 0
+            ? result.photoUrls
+            : this.data.photos
+          wx.setStorageSync('workSessionPhotos:' + this.data.jobId, photos)
+          this.setData({
+            photos,
+            hasStartedToday: true,
+            canConfirmStart: false,
+            startedAt: result.startedAt || this.data.startedAt,
+            startedBy: result.startedBy || this.data.startedBy
+          })
+          wx.showToast({ title: '已确认开工', icon: 'success' })
+          setTimeout(() => wx.redirectTo({
+            url: '/pages/work-session/work-session?orderId=' + this.data.jobId + '&mode=' + this.data.mode
+          }), 1200)
+        }).catch(() => {}).finally(() => {
+          this.setData({ submittingStart: false })
+          this.loadSession(this.data.jobId)
+        })
       }
     })
   }

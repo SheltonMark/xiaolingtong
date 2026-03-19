@@ -64,7 +64,9 @@
         <view class="text-avatar" style="width:64rpx;height:64rpx;font-size:26rpx;background-color:#3B82F6;">{{item.name[0]}}</view>
         <view class="checkin-info">
           <text class="checkin-name">{{item.name}}</text>
-          <text class="checkin-time {{item.status === 'absent' ? 'text-rose' : ''}}">{{item.status === 'absent' ? '未签到' : item.time + ' 已签到' + (item.status === 'late' ? '（迟到）' : '')}}</text>
+          <text class="checkin-time {{item.status === 'absent' ? 'text-rose' : ''}}">
+            {{item.status === 'absent' ? '未签到' : item.time + ' 已签到' + (item.status === 'late' ? '（迟到）' : '')}}
+          </text>
         </view>
         <view wx:if="{{item.status === 'ontime'}}" class="check-circle check-green">
           <text class="check-mark">✓</text>
@@ -81,9 +83,13 @@
   <view class="ci-card" wx:if="{{isSupervisor}}">
     <text class="card-title">上传现场照片</text>
     <text class="photo-hint">请拍摄工作现场照片，作为签到与开工记录。</text>
+    <view class="start-status" wx:if="{{hasStartedToday}}">
+      <text class="start-status-label">今日已确认开工</text>
+      <text class="start-status-meta" wx:if="{{startedAt}}">{{startedAt}}{{startedBy ? ' · ' + startedBy : ''}}</text>
+    </view>
     <view class="photo-grid">
       <view class="photo-add" bindtap="onTakePhoto">
-        <text class="photo-add-icon">📷</text>
+        <text class="photo-add-icon">📲</text>
         <text class="photo-add-text">拍照</text>
       </view>
       <view class="photo-item" wx:for="{{photos}}" wx:key="*this">
@@ -93,6 +99,7 @@
   </view>
 
   <view class="ci-bottom" wx:if="{{isSupervisor}}">
-    <button class="btn btn-fresh" bindtap="onConfirmStart">确认开工</button>
+    <button wx:if="{{canConfirmStart}}" class="btn btn-fresh" loading="{{submittingStart}}" bindtap="onConfirmStart">确认开工</button>
+    <button wx:elif="{{hasStartedToday}}" class="btn btn-started" disabled>今日已确认开工</button>
   </view>
 </view>

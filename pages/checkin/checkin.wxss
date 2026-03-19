@@ -14,7 +14,6 @@
 .ci-stat-val { font-size: 28rpx; font-weight: 700; }
 .ci-stat-label { font-size: 20rpx; color: #94A3B8; }
 
-/* GPS区域 */
 .gps-card { padding: 0; overflow: hidden; }
 .gps-map {
   height: 288rpx; background-color: #ECFDF5; position: relative;
@@ -76,7 +75,6 @@
 }
 .gps-range { display: block; font-size: 20rpx; color: #94A3B8; margin-top: 8rpx; }
 
-/* 签到名单 */
 .ci-section { margin: 24rpx 32rpx 0; }
 .section-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -108,9 +106,26 @@
 }
 .manual-checkin-btn::after { border: none; }
 
-/* 上传照片 */
 .card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; display: block; margin-bottom: 8rpx; }
 .photo-hint { font-size: 20rpx; color: #94A3B8; display: block; margin-bottom: 16rpx; }
+.start-status {
+  margin-bottom: 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background-color: #ECFDF5;
+}
+.start-status-label {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #059669;
+}
+.start-status-meta {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #64748B;
+}
 .photo-grid { display: flex; gap: 16rpx; flex-wrap: wrap; }
 .photo-add {
   width: 128rpx; height: 128rpx;
@@ -123,8 +138,14 @@
 .photo-item { width: 128rpx; height: 128rpx; border-radius: 16rpx; overflow: hidden; }
 .photo-img { width: 100%; height: 100%; }
 
-/* 底部 */
 .ci-bottom {
   margin: 24rpx 32rpx; padding: 32rpx;
   padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
 }
+.btn-started {
+  width: 100%;
+  background-color: #CBD5E1 !important;
+  color: #FFFFFF !important;
+  box-shadow: none;
+}
+.btn-started::after { border: none; }
