@@ -1,49 +1,24 @@
 const { post } = require('../../utils/request')
 const auth = require('../../utils/auth')
 
+const TAB_BAR_ROUTES = [
+  'pages/index/index',
+  'pages/exposure-board/exposure-board',
+  'pages/publish/publish',
+  'pages/messages/messages',
+  'pages/mine/mine'
+]
+
 Page({
   data: {
-    loading: false
+    loading: false,
+    statusBarHeight: 0
   },
 
   onLoad() {
-    // Wait for the user to trigger login explicitly.
-  },
-
-  goToIndexPage() {
-    wx.reLaunch({ url: '/pages/index/index' })
-  },
-
-  completeLogin(role, user) {
-    const app = getApp()
-    const mergedUser = Object.assign({}, app.globalData.userInfo || {}, user || {}, { role })
-    wx.setStorageSync('userRole', role)
-    app.globalData.isLoggedIn = true
-    app.globalData.userInfo = mergedUser
-    app.globalData.userRole = role
-    app.globalData.userId = mergedUser.id || null
-    app.globalData.avatarUrl = mergedUser.avatarUrl || ''
-    app.globalData.beanBalance = mergedUser.beanBalance || 0
-    app.globalData.isMember = mergedUser.isMember || false
-    if (mergedUser.avatarUrl) {
-      wx.setStorageSync('avatarUrl', mergedUser.avatarUrl)
-    }
-    this.goToIndexPage()
-  },
-
-  syncRoleAfterLogin(role, user) {
-    const app = getApp()
-    return post('/auth/choose-role', { role }).then(res => {
-      const data = res.data || {}
-      if (data.token) {
-        auth.setToken(data.token)
-      }
-      const syncedRole = data.role || role
-      const mergedUser = Object.assign({}, user || {}, { role: syncedRole })
-      app.globalData.userInfo = mergedUser
-      app.globalData.userRole = syncedRole
-      wx.setStorageSync('userRole', syncedRole)
-      return { role: syncedRole, user: mergedUser }
+    const sysInfo = wx.getSystemInfoSync()
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight || 0
     })
   },
 
@@ -105,5 +80,22 @@ Page({
         this.setData({ loading: false })
       }
     })
+  },
+
+  onBack() {
+    const pages = getCurrentPages()
+    const prevPage = pages.length > 1 ? pages[pages.length - 2] : null
+
+    if (prevPage && TAB_BAR_ROUTES.includes(prevPage.route)) {
+      wx.switchTab({ url: '/' + prevPage.route })
+      return
+    }
+
+    if (prevPage) {
+      wx.navigateBack({ delta: 1 })
+      return
+    }
+
+    wx.switchTab({ url: '/pages/index/index' })
   }
 })

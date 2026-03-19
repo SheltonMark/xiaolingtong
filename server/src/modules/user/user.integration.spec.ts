@@ -58,6 +58,7 @@ describe('UserModule Integration Tests', () => {
     configService = {
       get: jest.fn((key: string, defaultValue?: any) => {
         if (key === 'NODE_ENV') return 'test';
+        if (key === 'TENCENT_CERT_SMS_ENABLED') return '1';
         if (key === 'TENCENT_SMS_MOCK') return '1';
         return defaultValue;
       }),

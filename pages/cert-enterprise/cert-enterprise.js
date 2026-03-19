@@ -1,7 +1,9 @@
 const { get, post, upload } = require('../../utils/request')
+const features = require('../../utils/features')
 
 Page({
   data: {
+    certSmsEnabled: features.certSmsVerificationEnabled,
     form: {
       companyName: '',
       fullName: '',
@@ -63,6 +65,7 @@ Page({
   },
 
   onSmsCodeInput(e) {
+    if (!this.data.certSmsEnabled) return
     const smsCode = String(e.detail.value || '').replace(/\D/g, '').slice(0, 6)
     const updates = { smsCode }
     if (smsCode !== this.data.lastCheckedSmsCode) {
@@ -183,6 +186,7 @@ Page({
   },
 
   onSendSms() {
+    if (!this.data.certSmsEnabled) return
     const phone = (this.data.form.phone || '').trim()
     if (this.data.smsCountdown > 0) return
     if (!/^1\d{10}$/.test(phone)) {
@@ -219,6 +223,7 @@ Page({
   },
 
   checkSmsCode(options = {}) {
+    if (!this.data.certSmsEnabled) return Promise.resolve(true)
     const { silent = false } = options
     const smsCode = (this.data.smsCode || '').trim()
     if (this.data.verifyingSms) return Promise.resolve(false)
@@ -261,6 +266,7 @@ Page({
   },
 
   onCheckSms() {
+    if (!this.data.certSmsEnabled) return
     if (!this.data.smsSessionId) {
       wx.showToast({ title: '请先发送验证码', icon: 'none' })
       return
@@ -290,11 +296,15 @@ Page({
       wx.showToast({ title: '请填写必填项', icon: 'none' })
       return
     }
-    if (this.data.verifyingSms) {
+    if (!/^1\d{10}$/.test((form.phone || '').trim())) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' })
+      return
+    }
+    if (this.data.certSmsEnabled && this.data.verifyingSms) {
       wx.showToast({ title: '验证码校验中', icon: 'none' })
       return
     }
-    if (!verificationToken) {
+    if (this.data.certSmsEnabled && !verificationToken) {
       const smsCode = (this.data.smsCode || '').trim()
       if (smsCode.length === 6) {
         this.checkSmsCode().then((passed) => {
@@ -307,7 +317,7 @@ Page({
     }
 
     wx.showLoading({ title: '提交中...' })
-    post('/cert/enterprise', {
+    const payload = {
       companyName: form.companyName,
       creditCode: form.creditCode,
       legalPerson: form.legalPerson || form.contactName,
@@ -318,9 +328,14 @@ Page({
       legalIdBack: idBackImage,
       companyType: selectedType,
       category: selectedCategory,
-      address: [form.city, form.addressDetail].filter(Boolean).join(' '),
-      verificationToken
-    }).then(() => {
+      address: [form.city, form.addressDetail].filter(Boolean).join(' ')
+    }
+
+    if (this.data.certSmsEnabled) {
+      payload.verificationToken = verificationToken
+    }
+
+    post('/cert/enterprise', payload).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '提交成功，等待审核', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 1500)

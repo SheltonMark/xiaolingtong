@@ -47,6 +47,10 @@ export class UserService {
     return this.normalizeText(this.config.get('NODE_ENV')) === 'production';
   }
 
+  private isCertSmsVerificationEnabled() {
+    return this.isTruthy(this.getConfigValue('TENCENT_CERT_SMS_ENABLED', '0'));
+  }
+
   private getConfigValue(key: string, defaultValue = '') {
     return this.normalizeText(this.config.get(key, defaultValue));
   }
@@ -66,6 +70,14 @@ export class UserService {
   private maskPhone(phone: string) {
     if (phone.length < 7) return phone;
     return `${phone.slice(0, 3)}****${phone.slice(-4)}`;
+  }
+
+  private ensureCertPhone(phone: string) {
+    const normalizedPhone = this.normalizeText(phone);
+    if (!/^1\d{10}$/.test(normalizedPhone)) {
+      throw new BadRequestException('请输入正确的手机号');
+    }
+    return normalizedPhone;
   }
 
   private normalizeOcrFieldMap(source: Record<string, any>, fieldMap: Record<string, string[]>) {
@@ -327,6 +339,26 @@ export class UserService {
     return session;
   }
 
+  private async resolveCertificationPhone(
+    userId: number,
+    scene: CertScene,
+    verificationToken: string,
+    fallbackPhone: string,
+  ) {
+    if (this.isCertSmsVerificationEnabled()) {
+      const session = await this.consumeVerifiedSession(userId, scene, verificationToken);
+      return {
+        phone: session.phone,
+        verified: true,
+      };
+    }
+
+    return {
+      phone: this.ensureCertPhone(fallbackPhone),
+      verified: false,
+    };
+  }
+
   private buildEnterpriseCertPayload(userId: number, dto: any, phone: string) {
     return {
       userId,
@@ -351,6 +383,7 @@ export class UserService {
       userId,
       realName: this.normalizeText(dto.realName || dto.name),
       idNo: this.normalizeText(dto.idNo || dto.idCard || dto.idNumber),
+      idValidity: this.normalizeText(dto.idValidity || dto.validDate || dto.idCardValidity) || undefined,
       idFrontImage: this.normalizeText(dto.idFrontImage || dto.frontImage),
       idBackImage: this.normalizeText(dto.idBackImage || dto.backImage),
       skills: Array.isArray(dto.skills) ? dto.skills : [],
@@ -359,17 +392,17 @@ export class UserService {
   }
 
   async submitEnterpriseCert(userId: number, dto: any) {
-    const session = await this.consumeVerifiedSession(
+    const { phone, verified } = await this.resolveCertificationPhone(
       userId,
       'enterprise_cert',
       dto.verificationToken,
+      dto.contactPhone || dto.phone,
     );
-    const payload = this.buildEnterpriseCertPayload(userId, dto, session.phone);
+    const payload = this.buildEnterpriseCertPayload(userId, dto, phone);
 
-    await this.userRepo.update(userId, {
-      verifiedPhone: session.phone,
-      phone: session.phone,
-    });
+    const userUpdatePayload: Record<string, string> = { phone };
+    if (verified) userUpdatePayload.verifiedPhone = phone;
+    await this.userRepo.update(userId, userUpdatePayload);
 
     const existing = await this.entCertRepo.findOneBy({ userId });
     if (existing) {
@@ -380,17 +413,17 @@ export class UserService {
   }
 
   async submitWorkerCert(userId: number, dto: any) {
-    const session = await this.consumeVerifiedSession(
+    const { phone, verified } = await this.resolveCertificationPhone(
       userId,
       'worker_cert',
       dto.verificationToken,
+      dto.phone,
     );
     const payload = this.buildWorkerCertPayload(userId, dto);
 
-    await this.userRepo.update(userId, {
-      verifiedPhone: session.phone,
-      phone: session.phone,
-    });
+    const userUpdatePayload: Record<string, string> = { phone };
+    if (verified) userUpdatePayload.verifiedPhone = phone;
+    await this.userRepo.update(userId, userUpdatePayload);
 
     const existing = await this.workerCertRepo.findOneBy({ userId });
     if (existing) {
@@ -401,6 +434,10 @@ export class UserService {
   }
 
   async sendCertSmsCode(userId: number, dto: any) {
+    if (!this.isCertSmsVerificationEnabled()) {
+      throw new BadRequestException('当前版本暂未开放短信验证');
+    }
+
     const phone = this.normalizeText(dto.phone);
     const scene = this.normalizeText(dto.scene) as CertScene;
 
@@ -435,6 +472,10 @@ export class UserService {
   }
 
   async checkCertSmsCode(userId: number, dto: any) {
+    if (!this.isCertSmsVerificationEnabled()) {
+      throw new BadRequestException('当前版本暂未开放短信验证');
+    }
+
     const sessionId = Number(dto.sessionId) || 0;
     const code = this.normalizeText(dto.code);
     const session = await this.verificationSessionRepo.findOneBy({ id: sessionId, userId });

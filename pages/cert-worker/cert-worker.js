@@ -1,8 +1,10 @@
 const { post, upload } = require('../../utils/request')
+const features = require('../../utils/features')
 
 Page({
   data: {
-    form: { name: '', idCard: '', phone: '' },
+    certSmsEnabled: features.certSmsVerificationEnabled,
+    form: { name: '', idCard: '', idValidity: '', phone: '' },
     skills: ['组装工', '包装工', '缝纫工', '搬运工', '质检员', '焊工', '叉车工', '普工'],
     selectedSkills: [],
     selectedSkillsMap: {},
@@ -39,6 +41,7 @@ Page({
   },
 
   onSmsCodeInput(e) {
+    if (!this.data.certSmsEnabled) return
     const smsCode = String(e.detail.value || '').replace(/\D/g, '').slice(0, 6)
     const updates = { smsCode }
     if (smsCode !== this.data.lastCheckedSmsCode) {
@@ -92,6 +95,33 @@ Page({
     return (res && res.data && res.data.url) || (res && res.data) || ''
   },
 
+  formatIdValidity(value) {
+    const text = String(value || '').trim()
+    if (!text) return ''
+    if (text.includes('长期')) {
+      const normalized = text.replace(/\s+/g, '')
+      const parts = normalized.split(/[-~至]/).filter(Boolean)
+      if (parts.length >= 2) {
+        return `${this.formatDateSegment(parts[0])}-长期`
+      }
+      return '长期'
+    }
+
+    const parts = text.replace(/\s+/g, '').split(/[-~至]/).filter(Boolean)
+    if (parts.length >= 2) {
+      return `${this.formatDateSegment(parts[0])}-${this.formatDateSegment(parts[1])}`
+    }
+    return this.formatDateSegment(text)
+  },
+
+  formatDateSegment(value) {
+    const text = String(value || '').trim()
+    if (/^\d{8}$/.test(text)) {
+      return `${text.slice(0, 4)}.${text.slice(4, 6)}.${text.slice(6, 8)}`
+    }
+    return text
+  },
+
   runOcr(api, imageUrl, applyFields) {
     if (!imageUrl) return
     wx.showLoading({ title: '识别中...' })
@@ -140,7 +170,11 @@ Page({
           .then((r) => {
             const imageUrl = this.getUploadUrl(r) || path
             this.setData({ backImage: imageUrl })
-            this.runOcr('/cert/ocr/id-card/back', imageUrl, () => {})
+            this.runOcr('/cert/ocr/id-card/back', imageUrl, (fields) => {
+              if (fields.validDate) {
+                this.setData({ 'form.idValidity': this.formatIdValidity(fields.validDate) })
+              }
+            })
           })
           .catch(() => this.setData({ backImage: path }))
       }
@@ -148,6 +182,7 @@ Page({
   },
 
   onSendSms() {
+    if (!this.data.certSmsEnabled) return
     const phone = (this.data.form.phone || '').trim()
     if (this.data.smsCountdown > 0) return
     if (!/^1\d{10}$/.test(phone)) {
@@ -184,6 +219,7 @@ Page({
   },
 
   checkSmsCode(options = {}) {
+    if (!this.data.certSmsEnabled) return Promise.resolve(true)
     const { silent = false } = options
     const smsCode = (this.data.smsCode || '').trim()
     if (this.data.verifyingSms) return Promise.resolve(false)
@@ -226,6 +262,7 @@ Page({
   },
 
   onCheckSms() {
+    if (!this.data.certSmsEnabled) return
     if (!this.data.smsSessionId) {
       wx.showToast({ title: '请先发送验证码', icon: 'none' })
       return
@@ -255,11 +292,15 @@ Page({
       wx.showToast({ title: '请填写必填项', icon: 'none' })
       return
     }
-    if (this.data.verifyingSms) {
+    if (!/^1\d{10}$/.test((form.phone || '').trim())) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' })
+      return
+    }
+    if (this.data.certSmsEnabled && this.data.verifyingSms) {
       wx.showToast({ title: '验证码校验中', icon: 'none' })
       return
     }
-    if (!verificationToken) {
+    if (this.data.certSmsEnabled && !verificationToken) {
       const smsCode = (this.data.smsCode || '').trim()
       if (smsCode.length === 6) {
         this.checkSmsCode().then((passed) => {
@@ -272,15 +313,21 @@ Page({
     }
 
     wx.showLoading({ title: '提交中...' })
-    post('/cert/worker', {
+    const payload = {
       realName: form.name,
       idNo: form.idCard,
+      idValidity: form.idValidity,
       phone: form.phone,
       idFrontImage: frontImage,
       idBackImage: backImage,
-      skills: selectedSkills,
-      verificationToken
-    }).then(() => {
+      skills: selectedSkills
+    }
+
+    if (this.data.certSmsEnabled) {
+      payload.verificationToken = verificationToken
+    }
+
+    post('/cert/worker', payload).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '提交成功，等待审核', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 1500)

@@ -113,6 +113,21 @@ tr:hover td { background:rgba(35,39,54,.5); }
 .modal-actions button { padding:8px 20px; border-radius:6px; border:none; cursor:pointer; font-size:13px; font-weight:500; }
 .modal-actions .cancel { background:var(--bg-hover); color:var(--text-sec); }
 .modal-actions .confirm { background:var(--accent); color:#fff; }
+.cert-detail-modal { width:980px; max-width:94vw; }
+.cert-detail-layout { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr); gap:20px; align-items:start; }
+.cert-detail-section { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px; }
+.cert-detail-section-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:14px; }
+.cert-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.cert-field { padding:12px; border:1px solid var(--border); border-radius:8px; background:var(--bg-card); min-width:0; }
+.cert-field-label { display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px; }
+.cert-field-value { display:block; font-size:13px; color:var(--text); line-height:1.5; word-break:break-all; }
+.cert-image-list { display:flex; flex-direction:column; gap:14px; }
+.cert-image-card { border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg-card); }
+.cert-image-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; }
+.cert-image-head span { font-size:13px; color:var(--text-sec); }
+.cert-image-head a { font-size:13px; color:var(--accent); text-decoration:none; white-space:nowrap; }
+.cert-image-preview { display:block; width:100%; max-height:280px; object-fit:contain; border-radius:8px; background:var(--bg); cursor:pointer; }
+.cert-image-empty { padding:32px 16px; border:1px dashed var(--border); border-radius:10px; text-align:center; font-size:13px; color:var(--text-muted); background:var(--bg-card); }
 
 @media(max-width:768px){
   .mobile-nav { display:block !important; }
@@ -126,6 +141,8 @@ tr:hover td { background:rgba(35,39,54,.5); }
   table { display:block; overflow-x:auto; white-space:nowrap; }
   .config-group-grid { grid-template-columns:1fr; }
   .modal { width:calc(100vw - 32px); margin:16px; }
+  .cert-detail-layout { grid-template-columns:1fr; }
+  .cert-detail-grid { grid-template-columns:1fr; }
   .login-card { width:calc(100vw - 32px); padding:32px 24px; }
   .layout { display:block !important; }
   .page-header { margin-bottom:16px; }
@@ -233,6 +250,15 @@ tr:hover td { background:rgba(35,39,54,.5); }
 <div id="toastContainer" class="toast-container"></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
 <div class="prompt-overlay" id="promptOverlay"><div class="prompt-box"><p id="promptMsg"></p><input type="text" id="promptInput"><div class="prompt-btns"><button class="pb-cancel" onclick="promptResolve(null)">取消</button><button class="pb-ok" onclick="promptResolve(document.getElementById('promptInput').value)">确认</button></div></div></div>
+<div class="modal-overlay" id="certDetailModal">
+  <div class="modal cert-detail-modal">
+    <h4 id="certDetailTitle">认证详情</h4>
+    <div id="certDetailContent"></div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="hideCertDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="certImageModal">
   <div class="modal" style="width:760px;max-width:92vw;">
     <h4>认证图片</h4>
@@ -240,10 +266,8 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="modal-actions">
       <button class="cancel" onclick="hideCertImageModal()">关闭</button>
     </div>
-  </div>
 </div>
-</body>
-</html>
+</div>
 <script>
 
 function toast(msg,type){
@@ -416,31 +440,23 @@ async function loadCerts(page){
   if(!d)return;var list=d.list||[];
   var h='';
   if(type==='enterprise'){
-    document.getElementById('certHeader').innerHTML='<th>ID</th><th>企业名称</th><th>信用代码</th><th>联系人</th><th>电话</th><th>状态</th><th>提交时间</th><th>操作</th>';
+    document.getElementById('certHeader').innerHTML='<th>ID</th><th>企业名称</th><th>信用代码</th><th>法人</th><th>联系电话</th><th>状态</th><th>提交时间</th><th>操作</th>';
     for(var i=0;i<list.length;i++){var c=list[i];
-      var sb=c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red';
-      var st=c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回';
+      var meta=certStatusMeta(c.status);
       var ops=buildCertViewBtn(c,'enterprise');
-      if(c.status==='pending'){
-        ops += '<button class="btn btn-success" onclick="auditCert(\x27enterprise\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27enterprise\x27,'+c.id+')">驳回</button>';
-      }
       if(!ops)ops='-';
-      h+='<tr><td>'+c.id+'</td><td>'+c.companyName+'</td><td>'+c.creditCode+'</td><td>'+(c.contactName||'-')+'</td><td>'+(c.contactPhone||'-')+'</td><td><span class="badge '+sb+'">'+st+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+      h+='<tr><td>'+c.id+'</td><td>'+safeDisplay(c.companyName)+'</td><td>'+safeDisplay(c.creditCode)+'</td><td>'+safeDisplay(c.legalPerson)+'</td><td>'+safeDisplay(getCertPhone(c,"enterprise"))+'</td><td><span class="badge '+meta.badge+'">'+meta.text+'</span></td><td>'+safeDisplay(formatDateShort(c.createdAt))+'</td><td>'+ops+'</td></tr>';
     }
   }else{
-    document.getElementById('certHeader').innerHTML='<th>ID</th><th>姓名</th><th>身份证号</th><th>技能</th><th>状态</th><th>提交时间</th><th>操作</th>';
+    document.getElementById('certHeader').innerHTML='<th>ID</th><th>姓名</th><th>身份证号</th><th>有效期</th><th>手机号</th><th>状态</th><th>提交时间</th><th>操作</th>';
     for(var i=0;i<list.length;i++){var c=list[i];
-      var sb=c.status==='pending'?'badge-orange':c.status==='approved'?'badge-green':'badge-red';
-      var st=c.status==='pending'?'待审核':c.status==='approved'?'已通过':'已驳回';
+      var meta=certStatusMeta(c.status);
       var ops=buildCertViewBtn(c,'worker');
-      if(c.status==='pending'){
-        ops += '<button class="btn btn-success" onclick="auditCert(\x27worker\x27,'+c.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27worker\x27,'+c.id+')">驳回</button>';
-      }
       if(!ops)ops='-';
-      h+='<tr><td>'+c.id+'</td><td>'+c.realName+'</td><td>'+c.idNo+'</td><td>'+(c.skills?c.skills.join(','):'-')+'</td><td><span class="badge '+sb+'">'+st+'</span></td><td>'+(c.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+      h+='<tr><td>'+c.id+'</td><td>'+safeDisplay(c.realName)+'</td><td>'+safeDisplay(maskIdNo(c.idNo))+'</td><td>'+safeDisplay(c.idValidity)+'</td><td>'+safeDisplay(getCertPhone(c,"worker"))+'</td><td><span class="badge '+meta.badge+'">'+meta.text+'</span></td><td>'+safeDisplay(formatDateShort(c.createdAt))+'</td><td>'+ops+'</td></tr>';
     }
   }
-  var certColspan = type==='enterprise' ? 8 : 7;
+  var certColspan = 8;
   document.getElementById('certTable').innerHTML=h||'<tr><td colspan="'+certColspan+'" class="empty">暂无数据</td></tr>';
   renderPagination('certPagination',d.total,certPage,d.pageSize,'loadCerts');
 }
@@ -448,7 +464,44 @@ async function auditCert(type,id,action){await api('/certs/'+type+'/'+id+'/audit
 async function rejectCert(type,id){var r=await xprompt('请输入驳回原因');if(r){await api('/certs/'+type+'/'+id+'/audit',{method:'PUT',body:{action:'reject',rejectReason:r}});toast('已驳回','success');loadCerts();}}
 function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function escAttr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function buildCertViewBtn(cert,type){
+function safeDisplay(value){
+  var text=String(value===undefined||value===null?'':value).trim();
+  return text?escHtml(text):'-';
+}
+function formatDateShort(value){
+  var text=String(value||'').replace('T',' ').trim();
+  return text?text.substring(0,10):'';
+}
+function formatDateTime(value){
+  var text=String(value||'').replace('T',' ').trim();
+  return text?text.substring(0,19):'';
+}
+function maskIdNo(value){
+  var text=String(value||'').trim();
+  if(!text)return '';
+  if(text.length<=8)return text;
+  return text.slice(0,4)+'********'+text.slice(-4);
+}
+function certStatusMeta(status){
+  if(status==='approved')return {text:'已通过',badge:'badge-green'};
+  if(status==='rejected')return {text:'已驳回',badge:'badge-red'};
+  if(status==='pending')return {text:'待审核',badge:'badge-orange'};
+  return {text:'未知',badge:'badge-gray'};
+}
+function getCertPhone(cert,type){
+  var user=cert&&cert.user?cert.user:{};
+  if(type==='enterprise'){
+    return cert.contactPhone||user.verifiedPhone||user.phone||'';
+  }
+  return user.verifiedPhone||user.phone||'';
+}
+function joinListText(list){
+  return Array.isArray(list)&&list.length?list.join('、'):'';
+}
+function encodeCertPayload(cert,type){
+  return encodeURIComponent(JSON.stringify({type:type,cert:cert})).replace(/'/g,'%27');
+}
+function buildCertImages(cert,type){
   var images=[];
   if(type==='enterprise'){
     if(cert.licenseImage)images.push({label:'营业执照',url:cert.licenseImage});
@@ -458,32 +511,95 @@ function buildCertViewBtn(cert,type){
     if(cert.idFrontImage)images.push({label:'身份证正面',url:cert.idFrontImage});
     if(cert.idBackImage)images.push({label:'身份证反面',url:cert.idBackImage});
   }
-  if(!images.length)return '';
-  var payload=encodeURIComponent(JSON.stringify(images));
-  return '<button class="btn btn-primary" onclick="showCertImageModal(\''+payload+'\')">查看图片</button>';
+  return images;
 }
-function showCertImageModal(payload){
-  var list=[];
-  try{list=JSON.parse(decodeURIComponent(payload||''));}catch(e){list=[];}
-  if(!list.length){toast('暂无图片','info');return;}
-  var h='';
-  for(var i=0;i<list.length;i++){
-    var item=list[i]||{};
+function buildCertViewBtn(cert,type){
+  var payload=encodeCertPayload(cert,type);
+  var ops='<button class="btn btn-primary" onclick="showCertDetailModal(\''+payload+'\')">查看详情</button>';
+  if(cert.status==='pending'){
+    ops+='<button class="btn btn-success" onclick="auditCert(\x27'+type+'\x27,'+cert.id+',\x27approve\x27)">通过</button><button class="btn btn-danger" onclick="rejectCert(\x27'+type+'\x27,'+cert.id+')">驳回</button>';
+  }
+  return ops;
+}
+function renderCertFieldList(fields){
+  var h='<div class="cert-detail-grid">';
+  for(var i=0;i<fields.length;i++){
+    var field=fields[i];
+    h+='<div class="cert-field"><span class="cert-field-label">'+escHtml(field.label)+'</span><span class="cert-field-value">'+safeDisplay(field.value)+'</span></div>';
+  }
+  h+='</div>';
+  return h;
+}
+function renderCertImageList(images){
+  if(!images.length){
+    return '<div class="cert-image-empty">暂无证件图片</div>';
+  }
+  var h='<div class="cert-image-list">';
+  for(var i=0;i<images.length;i++){
+    var item=images[i];
     var label=escHtml(item.label||('图片'+(i+1)));
     var url=String(item.url||'').trim();
     if(!url)continue;
     var safeUrl=escAttr(url);
-    h+='<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">';
-    h+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">';
-    h+='<span style="font-size:13px;color:var(--text-sec)">'+label+'</span>';
-    h+='<a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" style="font-size:13px;color:var(--accent);text-decoration:none">查看原图</a>';
-    h+='</div>';
-    h+='<img src="'+safeUrl+'" style="display:block;max-width:100%;max-height:420px;border-radius:8px;cursor:pointer" onclick="window.open(this.src,\'_blank\')">';
+    h+='<div class="cert-image-card">';
+    h+='<div class="cert-image-head"><span>'+label+'</span><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer">查看原图</a></div>';
+    h+='<img class="cert-image-preview" src="'+safeUrl+'" onclick="window.open(this.src,\'_blank\')">';
     h+='</div>';
   }
-  if(!h)h='<div class="empty">暂无图片</div>';
-  document.getElementById('certImageContent').innerHTML=h;
-  document.getElementById('certImageModal').classList.add('show');
+  h+='</div>';
+  return h;
+}
+function buildCertDetailFields(cert,type){
+  var status=certStatusMeta(cert.status);
+  if(type==='enterprise'){
+    return [
+      {label:'认证状态',value:status.text},
+      {label:'企业名称',value:cert.companyName},
+      {label:'统一社会信用代码',value:cert.creditCode},
+      {label:'法人姓名',value:cert.legalPerson},
+      {label:'法人身份证号',value:maskIdNo(cert.legalIdNo)},
+      {label:'联系人',value:cert.contactName},
+      {label:'联系电话',value:getCertPhone(cert,'enterprise')},
+      {label:'行业',value:cert.industry},
+      {label:'品类',value:cert.category},
+      {label:'地址',value:cert.address},
+      {label:'提交时间',value:formatDateTime(cert.createdAt)},
+      {label:'审核时间',value:formatDateTime(cert.reviewedAt)},
+      {label:'驳回原因',value:cert.rejectReason}
+    ];
+  }
+  return [
+    {label:'认证状态',value:status.text},
+    {label:'真实姓名',value:cert.realName},
+    {label:'身份证号',value:maskIdNo(cert.idNo)},
+    {label:'身份证有效期',value:cert.idValidity},
+    {label:'手机号',value:getCertPhone(cert,'worker')},
+    {label:'技能标签',value:joinListText(cert.skills)},
+    {label:'提交时间',value:formatDateTime(cert.createdAt)},
+    {label:'审核时间',value:formatDateTime(cert.reviewedAt)},
+    {label:'驳回原因',value:cert.rejectReason}
+  ];
+}
+function showCertDetailModal(payload){
+  var parsed={type:'enterprise',cert:null};
+  try{parsed=JSON.parse(decodeURIComponent(payload||''));}catch(e){parsed={type:'enterprise',cert:null};}
+  var cert=parsed.cert||null;
+  var type=parsed.type||'enterprise';
+  if(!cert){toast('认证详情加载失败','error');return;}
+  var title=type==='enterprise'?'企业认证详情':'临工认证详情';
+  var fields=buildCertDetailFields(cert,type);
+  var images=buildCertImages(cert,type);
+  var h='<div class="cert-detail-layout">';
+  h+='<div class="cert-detail-section"><div class="cert-detail-section-title">关键信息</div>'+renderCertFieldList(fields)+'</div>';
+  h+='<div class="cert-detail-section"><div class="cert-detail-section-title">证件图片</div>'+renderCertImageList(images)+'</div>';
+  h+='</div>';
+  document.getElementById('certDetailTitle').textContent=title;
+  document.getElementById('certDetailContent').innerHTML=h;
+  document.getElementById('certDetailModal').classList.add('show');
+}
+function hideCertDetailModal(){
+  document.getElementById('certDetailModal').classList.remove('show');
+  document.getElementById('certDetailContent').innerHTML='';
 }
 function hideCertImageModal(){
   document.getElementById('certImageModal').classList.remove('show');
@@ -905,8 +1021,5 @@ function renderPagination(elId,total,page,pageSize,fn){
 if(token){api('/dashboard').then(function(d){if(d){currentAdmin={nickname:'管理员'};showLayout();}else{doLogout();}});}
 else{document.getElementById('loginPage').style.display='flex';}
 </script>
-<div id="toastContainer" class="toast-container"></div>
-<div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
-<div class="prompt-overlay" id="promptOverlay"><div class="prompt-box"><p id="promptMsg"></p><input type="text" id="promptInput"><div class="prompt-btns"><button class="pb-cancel" onclick="promptResolve(null)">取消</button><button class="pb-ok" onclick="promptResolve(document.getElementById('promptInput').value)">确认</button></div></div></div>
 </body>
 </html>

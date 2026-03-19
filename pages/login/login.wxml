@@ -1,5 +1,11 @@
-<!--pages/login/login.wxml-->
 <view class="login-page">
+  <view class="login-top" style="padding-top: {{statusBarHeight}}px;">
+    <view class="back-btn" bindtap="onBack">
+      <text class="back-arrow">‹</text>
+      <text class="back-text">返回</text>
+    </view>
+  </view>
+
   <view class="logo-area">
     <view class="logo-box">
       <text class="logo-icon iconfont icon-tongzhi"></text>
