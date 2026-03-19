@@ -15,6 +15,9 @@ export class WorkerCert {
   @Column({ length: 32 })
   idNo: string;
 
+  @Column({ length: 64, nullable: true })
+  idValidity: string;
+
   @Column({ length: 512 })
   idFrontImage: string;
 

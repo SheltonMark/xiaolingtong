@@ -316,6 +316,7 @@ Page({
     const payload = {
       realName: form.name,
       idNo: form.idCard,
+      idValidity: form.idValidity,
       phone: form.phone,
       idFrontImage: frontImage,
       idBackImage: backImage,

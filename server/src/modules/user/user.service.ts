@@ -383,6 +383,7 @@ export class UserService {
       userId,
       realName: this.normalizeText(dto.realName || dto.name),
       idNo: this.normalizeText(dto.idNo || dto.idCard || dto.idNumber),
+      idValidity: this.normalizeText(dto.idValidity || dto.validDate || dto.idCardValidity) || undefined,
       idFrontImage: this.normalizeText(dto.idFrontImage || dto.frontImage),
       idBackImage: this.normalizeText(dto.idBackImage || dto.backImage),
       skills: Array.isArray(dto.skills) ? dto.skills : [],
