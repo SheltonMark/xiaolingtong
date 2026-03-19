@@ -10,6 +10,16 @@ Page({
     // Wait for the user to trigger login explicitly.
   },
 
+  goToIndexPage() {
+    wx.switchTab({
+      url: '/pages/index/index',
+      fail: (error) => {
+        console.error('[login] switchTab to index failed, fallback to reLaunch', error)
+        wx.reLaunch({ url: '/pages/index/index' })
+      }
+    })
+  },
+
   completeLogin(role, user) {
     const app = getApp()
     const mergedUser = Object.assign({}, app.globalData.userInfo || {}, user || {}, { role })
@@ -24,7 +34,7 @@ Page({
     if (mergedUser.avatarUrl) {
       wx.setStorageSync('avatarUrl', mergedUser.avatarUrl)
     }
-    wx.switchTab({ url: '/pages/index/index' })
+    this.goToIndexPage()
   },
 
   syncRoleAfterLogin(role, user) {

@@ -6,6 +6,15 @@ Page({
     selected: '',
     loading: false
   },
+  goToIndexPage() {
+    wx.switchTab({
+      url: '/pages/index/index',
+      fail: (error) => {
+        console.error('[identity] switchTab to index failed, fallback to reLaunch', error)
+        wx.reLaunch({ url: '/pages/index/index' })
+      }
+    })
+  },
   onSelectEnterprise() {
     this.setData({ selected: 'enterprise' })
     this.confirmRole('enterprise')
@@ -35,7 +44,7 @@ Page({
           app.globalData.userInfo = Object.assign({}, app.globalData.userInfo, { role: finalRole })
         }
         wx.setStorageSync('userRole', finalRole)
-        wx.switchTab({ url: '/pages/index/index' })
+        this.goToIndexPage()
       }).catch(() => {
         if (previousRole) {
           wx.setStorageSync('userRole', previousRole)
@@ -49,7 +58,7 @@ Page({
       })
     } else {
       // Guest mode keeps the role locally for browsing.
-      wx.switchTab({ url: '/pages/index/index' })
+      this.goToIndexPage()
       this.setData({ loading: false })
     }
   }
