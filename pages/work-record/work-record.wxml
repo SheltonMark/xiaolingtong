@@ -1,83 +1,43 @@
 <!--pages/work-record/work-record.wxml-->
-<view class="ma-page">
-  <nav-bar title="我的接单记录" />
+<view class="wr-page">
+  <nav-bar title="临工管理" />
+  <!-- 顶部提示 -->
+  <view class="wr-tip">
+    <text class="iconfont icon-anquan wr-tip-icon"></text>
+    <text class="wr-tip-text">您已被指定为临时管理员，请按时完成各项监管任务</text>
+  </view>
 
-  <!-- Tab -->
-  <view class="tab-bar">
-    <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
-          wx:for="{{tabs}}" wx:key="index"
-          data-index="{{index}}" bindtap="onTabChange">
-      <text>{{item}}</text>
+  <!-- 订单列表 -->
+  <view class="wr-list">
+    <view class="order-card" wx:for="{{orders}}" wx:key="id"
+          data-id="{{item.id}}" data-stage="{{item.stage}}" data-mode="{{item.mode}}"
+          bindtap="onOrderTap">
+      <view class="order-top">
+        <view class="text-avatar text-avatar-sm" style="background-color: {{item.avatarColor}};">{{item.avatarText}}</view>
+        <view class="order-info">
+          <text class="order-company">{{item.company}}</text>
+          <text class="order-meta">{{item.jobType}} · {{item.salary}}</text>
+        </view>
+        <view class="order-stage" style="color: {{item.stageColor}}; background-color: {{item.stageBg}};">
+          {{item.stageText}}
+        </view>
+      </view>
+      <view class="order-bottom">
+        <text class="order-detail"><text class="iconfont icon-riqixuanze"></text> {{item.dateRange}}</text>
+        <text class="order-detail"><text class="iconfont icon-worker"></text> {{item.workerCount}}人</text>
+        <text class="order-detail">{{item.mode === 'hourly' ? '计时' : '计件'}}</text>
+      </view>
     </view>
   </view>
 
   <!-- 加载状态 -->
-  <view class="loading" wx:if="{{loading}}">
-    <text>加载中...</text>
+  <view class="wr-loading" wx:if="{{loading}}">
+    <text class="wr-loading-text">加载中...</text>
   </view>
 
-  <!-- 列表 -->
-  <view class="app-list" wx:if="{{!loading}}">
-    <view class="app-card {{item.status === 'rejected' || item.status === 'released' ? 'card-faded' : ''}}"
-          wx:for="{{list}}" wx:key="id"
-          wx:if="{{currentTab === 0 || item.tabKey === tabs[currentTab]}}">
-      <!-- 头部 -->
-      <view class="app-header">
-        <view class="app-header-left">
-          <image wx:if="{{item.companyAvatarUrl}}" src="{{item.companyAvatarUrl}}" class="app-avatar-img" mode="aspectFill" />
-          <view wx:else class="text-avatar" style="width:48rpx;height:48rpx;font-size:20rpx;background-color:#10B981;">{{item.company[0]}}</view>
-          <text class="app-company">{{item.company}}</text>
-        </view>
-        <view class="status-tag status-bg-{{item.statusBg}}">
-          <view class="pulse-dot" wx:if="{{item.status === 'working'}}"></view>
-          <text>{{item.statusText}}</text>
-        </view>
-      </view>
-<!-- WXML_APPEND -->
-      <!-- 岗位+薪资 -->
-      <text class="app-job-line">{{item.title}} · <text class="text-cta">{{item.salary}}{{item.salaryUnit}}</text></text>
-      <!-- 地点 -->
-      <view class="app-location-row">
-        <text class="location-icon">📍</text>
-        <text class="app-location">{{item.location}}</text>
-      </view>
-      <!-- 工时/计件 -->
-      <view class="app-date-row" wx:if="{{item.hours || item.pieces}}">
-        <text class="date-icon">⏱</text>
-        <text class="app-date">
-          {{item.salaryType === 'hourly' ? item.hours + '小时' : item.pieces + '件'}}
-        </text>
-      </view>
-      <!-- 异常 -->
-      <view class="anomaly-row" wx:if="{{item.anomalyType !== 'normal'}}">
-        <text class="anomaly-icon">⚠️</text>
-        <text class="anomaly-text">{{item.anomalyText}}</text>
-      </view>
-      <!-- 提醒 -->
-      <view class="app-alert" wx:if="{{item.alert}}">
-        <text class="alert-icon">⏱</text>
-        <text class="alert-text">{{item.alert}}</text>
-      </view>
-      <!-- 统计 -->
-      <view class="app-stats" wx:if="{{item.stats}}">
-        <view class="stat-item" wx:for="{{item.stats}}" wx:for-item="s" wx:key="label">
-          <text class="stat-value" style="color:{{s.color || '#1E293B'}};">{{s.value}}</text>
-          <text class="stat-label">{{s.label}}</text>
-        </view>
-      </view>
-      <!-- 操作按钮 -->
-      <button class="confirm-btn" wx:if="{{item.status === 'confirmed'}}"
-              data-id="{{item.jobId}}" bindtap="onConfirmAttend">确认出勤</button>
-      <view class="app-actions" wx:if="{{item.status === 'working'}}">
-        <button class="act-btn act-blue" data-id="{{item.jobId}}" bindtap="onGoCheckin">打卡签到</button>
-        <button class="act-btn act-blue" data-id="{{item.id}}" data-job-id="{{item.jobId}}" bindtap="onOrderTap">查看详情</button>
-      </view>
-      <view class="app-actions" wx:if="{{item.status === 'done' || item.status === 'completed'}}">
-        <button class="act-btn act-blue" data-id="{{item.id}}" data-job-id="{{item.jobId}}" bindtap="onOrderTap">查看详情</button>
-        <button class="act-btn act-orange" data-id="{{item.jobId}}" bindtap="onRate">评价企业</button>
-      </view>
-    </view>
+  <!-- 空状态 -->
+  <view class="wr-empty" wx:if="{{!loading && orders.length === 0}}">
+    <text class="iconfont icon-kongkong wr-empty-icon"></text>
+    <text class="wr-empty-text">暂无管理任务</text>
   </view>
-
-  <empty-state wx:if="{{!loading && list.length === 0}}" text="暂无接单记录" subText="报名工作后会显示在这里" />
 </view>

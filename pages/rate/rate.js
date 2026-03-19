@@ -1,14 +1,15 @@
-const { post } = require('../../utils/request')
+const { get, post } = require('../../utils/request')
 
 Page({
   data: {
     jobId: '',
-    company: {},
+    enterpriseId: '',
+    company: { name: '', jobType: '', dateRange: '' },
     rateItems: [
-      { key: 'overall', label: '综合评分', score: 4 },
+      { key: 'overall', label: '综合评分', score: 5 },
       { key: 'environment', label: '工作环境', score: 5 },
-      { key: 'salary', label: '薪资准时', score: 4 },
-      { key: 'management', label: '管理态度', score: 3 }
+      { key: 'salary', label: '薪资准时', score: 5 },
+      { key: 'management', label: '管理态度', score: 5 }
     ],
     tags: [
       { label: '环境整洁', selected: false },
@@ -24,7 +25,26 @@ Page({
   },
 
   onLoad(options) {
-    if (options.jobId) this.setData({ jobId: options.jobId })
+    const jobId = options.jobId || ''
+    const enterpriseId = options.enterpriseId || ''
+    this.setData({ jobId, enterpriseId })
+    if (jobId) {
+      this.loadJobInfo(jobId)
+    }
+  },
+
+  loadJobInfo(jobId) {
+    get('/settlements/' + jobId).then(res => {
+      const d = res.data || res || {}
+      const job = d.job || {}
+      this.setData({
+        company: {
+          name: job.company || '企业',
+          jobType: job.jobType || '',
+          dateRange: job.dateRange || ''
+        }
+      })
+    }).catch(() => {})
   },
 
   onStarTap(e) {
@@ -46,17 +66,18 @@ Page({
   },
 
   onSubmit() {
+    const overallItem = this.data.rateItems.find(function(i) { return i.key === 'overall' })
+    const overallScore = (overallItem && overallItem.score) || 5
     wx.showModal({
       title: '确认提交',
       content: '评价提交后不可修改，确认提交？',
       success: (res) => {
         if (res.confirm) {
-          const scores = {}
-          this.data.rateItems.forEach(item => { scores[item.key] = item.score })
           const selectedTags = this.data.tags.filter(t => t.selected).map(t => t.label)
           post('/ratings', {
-            jobId: this.data.jobId,
-            scores,
+            jobId: Number(this.data.jobId),
+            enterpriseId: Number(this.data.enterpriseId),
+            score: overallScore,
             tags: selectedTags,
             content: this.data.content
           }).then(() => {
