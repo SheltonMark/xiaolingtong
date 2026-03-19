@@ -96,7 +96,7 @@
           <text class="dynamic-head-title">最近发布</text>
           <text class="dynamic-head-more" bindtap="onViewAllPosts">查看全部</text>
         </view>
-        <view class="dynamic-card" wx:for="{{myPosts}}" wx:key="id">
+        <view class="dynamic-card" wx:for="{{myPosts}}" wx:key="uniqueKey">
           <view class="dynamic-top">
             <text class="dynamic-type type-{{item.typeColor}}">{{item.type}}</text>
             <text class="dynamic-date">{{item.date}}</text>
@@ -131,12 +131,12 @@
           <text class="dynamic-desc" wx:if="{{item.typeKey !== 'job' && item.desc}}">{{item.desc}}</text>
 
           <view class="dynamic-meta">
-            <text class="dynamic-meta-text">{{item.views}}次浏览</text>
+            <text class="dynamic-meta-text">{{item.metaText}}</text>
             <text class="dynamic-status" style="color:{{item.statusColor}};">{{item.statusText}}</text>
           </view>
           <view class="dynamic-actions">
             <view class="dynamic-action action-view" data-id="{{item.id}}" data-type="{{item.typeKey}}" catchtap="onTapPost">查看</view>
-            <view class="dynamic-action action-delete" data-id="{{item.id}}" catchtap="onDeletePost">删除</view>
+            <view class="dynamic-action action-delete" data-id="{{item.id}}" data-type="{{item.typeKey}}" catchtap="onDeletePost">删除</view>
           </view>
         </view>
         <empty-state wx:if="{{myPosts.length === 0}}" text="暂无发布记录" subText="去发布第一条信息吧~" />

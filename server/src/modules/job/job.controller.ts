@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Query, Body } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Query, Body } from '@nestjs/common';
 import { JobService } from './job.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -78,6 +78,12 @@ export class JobController {
   @Roles('enterprise')
   update(@Param('id') id: number, @CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.jobService.update(id, userId, dto);
+  }
+
+  @Delete(':id')
+  @Roles('enterprise')
+  remove(@Param('id') id: number, @CurrentUser('sub') userId: number) {
+    return this.jobService.remove(Number(id), userId);
   }
 
   @Get('urgent/pricing')

@@ -33,7 +33,8 @@
       </view>
       <view class="photo-list">
         <view class="photo-item photo-done" wx:for="{{photoRecords}}" wx:key="id" wx:if="{{item.status === 'done'}}">
-          <view class="photo-thumb-placeholder photo-thumb-done">
+          <image wx:if="{{item.photoUrl}}" src="{{item.photoUrl}}" class="photo-thumb" mode="aspectFill" />
+          <view wx:else class="photo-thumb-placeholder photo-thumb-done">
             <text class="iconfont icon-tupian"></text>
           </view>
           <view class="photo-info">

@@ -1,4 +1,5 @@
 const { get, post, upload } = require('../../utils/request')
+const { normalizeImageUrl } = require('../../utils/image')
 
 function formatTime(date) {
   const hours = String(date.getHours()).padStart(2, '0')
@@ -9,11 +10,16 @@ function formatTime(date) {
 function normalizePhotoItem(item) {
   if (!item) return null
   if (typeof item === 'string') {
-    return { url: item, uploadedAt: new Date().toISOString() }
+    return {
+      slotId: null,
+      url: normalizeImageUrl(item),
+      uploadedAt: new Date().toISOString()
+    }
   }
   if (item.url) {
     return {
-      url: item.url,
+      slotId: item.slotId === undefined || item.slotId === null ? null : Number(item.slotId),
+      url: normalizeImageUrl(item.url),
       uploadedAt: item.uploadedAt || new Date().toISOString()
     }
   }
@@ -71,7 +77,7 @@ Page({
     return Array.from({ length: Math.max(1, Math.ceil((endHour - startHour) / 2)) }).map((_, index) => {
       const slotStart = startHour + index * 2
       const slotEnd = Math.min(slotStart + 2, endHour)
-      const matchedPhoto = normalizedPhotos.find(photo => {
+      const matchedPhoto = normalizedPhotos.find(photo => Number(photo.slotId) === slotStart) || normalizedPhotos.find(photo => {
         const uploadDate = new Date(photo.uploadedAt)
         return uploadDate.getHours() >= slotStart && uploadDate.getHours() < slotEnd
       })
@@ -79,7 +85,8 @@ Page({
         id: slotStart,
         timeRange: String(slotStart).padStart(2, '0') + ':00 - ' + String(slotEnd).padStart(2, '0') + ':00',
         status: matchedPhoto ? 'done' : (now.getHours() >= slotStart ? 'pending' : 'future'),
-        uploadTime: matchedPhoto ? formatTime(new Date(matchedPhoto.uploadedAt)) : ''
+        uploadTime: matchedPhoto ? formatTime(new Date(matchedPhoto.uploadedAt)) : '',
+        photoUrl: matchedPhoto ? matchedPhoto.url : ''
       }
     }).filter(item => item.status !== 'future')
   },
@@ -212,7 +219,8 @@ Page({
     return map[attendance] || '正常'
   },
 
-  onTakePhoto() {
+  onTakePhoto(e) {
+    const slotId = Number(e.currentTarget.dataset.id)
     wx.chooseMedia({
       count: 1,
       mediaType: ['image'],
@@ -221,19 +229,24 @@ Page({
         const path = res.tempFiles[0].tempFilePath
         upload(path).then(r => {
           const photo = {
+            slotId,
             url: r.data.url || r.data,
             uploadedAt: new Date().toISOString()
           }
-          const uploadedPhotos = [...this.data.uploadedPhotos, photo]
+          const uploadedPhotos = [
+            ...this.data.uploadedPhotos.filter(item => Number(item.slotId) !== slotId),
+            photo
+          ]
           this.persistPhotos(uploadedPhotos)
           this.setData({
             uploadedPhotos,
             photoRecords: this.data.photoRecords.map(item => {
-              if (item.status === 'pending') {
+              if (item.id === slotId) {
                 return {
                   ...item,
                   status: 'done',
-                  uploadTime: formatTime(new Date(photo.uploadedAt))
+                  uploadTime: formatTime(new Date(photo.uploadedAt)),
+                  photoUrl: normalizeImageUrl(photo.url)
                 }
               }
               return item

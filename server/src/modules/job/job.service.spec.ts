@@ -50,6 +50,7 @@ describe('JobService', () => {
     jobRepository = {
       findOne: jest.fn(),
       find: jest.fn(),
+      delete: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
       update: jest.fn(),
@@ -358,6 +359,27 @@ describe('JobService', () => {
       await expect(service.update(1, 7, { title: '新标题' })).rejects.toThrow(
         ForbiddenException,
       );
+    });
+  });
+
+  describe('remove', () => {
+    it('removes a job without applications', async () => {
+      jobRepository.findOne.mockResolvedValue({ id: 1, userId: 7 });
+      jobApplicationRepository.count.mockResolvedValue(0);
+      jobRepository.delete.mockResolvedValue({ affected: 1 });
+
+      const result = await service.remove(1, 7);
+
+      expect(jobRepository.delete).toHaveBeenCalledWith(1);
+      expect(result).toEqual(expect.objectContaining({ message: expect.any(String) }));
+    });
+
+    it('rejects deleting jobs that already have applications', async () => {
+      jobRepository.findOne.mockResolvedValue({ id: 1, userId: 7 });
+      jobApplicationRepository.count.mockResolvedValue(2);
+
+      await expect(service.remove(1, 7)).rejects.toThrow(BadRequestException);
+      expect(jobRepository.delete).not.toHaveBeenCalled();
     });
   });
 

@@ -760,6 +760,20 @@ export class JobService {
     return this.jobRepo.save(job);
   }
 
+  async remove(id: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id } });
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const applicationCount = await this.appRepo.count({ where: { jobId: id } });
+    if (applicationCount > 0) {
+      throw new BadRequestException('已有报名记录，无法直接删除，请先完成当前招工流程');
+    }
+
+    await this.jobRepo.delete(id);
+    return { message: '删除成功' };
+  }
+
   private async getConfig(key: string, defaultValue: string): Promise<string> {
     const row = await this.sysConfigRepo.findOne({ where: { key } });
     return row ? row.value : defaultValue;

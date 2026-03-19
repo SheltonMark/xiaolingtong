@@ -192,15 +192,20 @@ Page({
     wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + jobId + '&tab=' + tab })
   },
 
+  getDeletePath(type, id) {
+    return (type === 'job' ? '/jobs/' : '/posts/') + id
+  },
+
   onDeletePost(e) {
     const id = e.currentTarget.dataset.id
+    const type = e.currentTarget.dataset.type || 'post'
     wx.showModal({
       title: '确认删除',
       content: '删除后不可恢复，确认删除？',
       confirmColor: '#F43F5E',
       success: (res) => {
         if (res.confirm) {
-          del('/posts/' + id).then(() => {
+          del(this.getDeletePath(type, id)).then(() => {
             this.loadPosts()
             wx.showToast({ title: '已删除', icon: 'success' })
           }).catch(() => {})

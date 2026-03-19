@@ -41,6 +41,12 @@
   align-items: center; justify-content: center; flex-shrink: 0;
   font-size: 36rpx; color: #F59E0B;
 }
+.photo-thumb {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+}
 .photo-thumb-done { background-color: #D1FAE5; color: #10B981; }
 .photo-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
 .photo-time { font-size: 24rpx; font-weight: 500; color: #1E293B; }

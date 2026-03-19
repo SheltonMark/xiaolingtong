@@ -63,7 +63,7 @@ Page({
       { icon: '\ue624', label: '灵豆充值', bg: '#FFF7ED', iconColor: '#F97316', url: '/pages/bean-recharge/bean-recharge' },
       { icon: '\ue786', label: '企业认证', bg: '#ECFDF5', iconColor: '#10B981', url: '/pages/cert-enterprise/cert-enterprise' },
       { icon: '\ue619', label: '我要招工', bg: '#FFF1F2', iconColor: '#F43F5E', url: '/pages/post-job/post-job' },
-      { icon: '\ue8a0', label: '招工管理', bg: '#FFF7ED', iconColor: '#D97706', url: '/pages/job-manage/job-manage' },
+      { icon: '\ue61c', label: '招工管理', bg: '#FFF7ED', iconColor: '#D97706', url: '/pages/job-manage/job-manage' },
       { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' },
       { icon: '\ue661', label: '我的邀请', bg: '#F0F9FF', iconColor: '#0EA5E9', url: '/pages/my-invites/my-invites' },
       { icon: '\ue63b', label: '广告投放', bg: '#F3E8FF', iconColor: '#8B5CF6', url: '/pages/ad-purchase/ad-purchase' },
@@ -251,26 +251,27 @@ Page({
     const job = item.job || {}
     const user = job.user || {}
 
-    // 状态映射
     const statusMap = {
       pending: { text: '待审核', bg: 'amber', tabKey: '待审核' },
-      accepted: { text: '待出勤', bg: 'green', tabKey: '待出勤' },
-      confirmed: { text: '待开工', bg: 'green', tabKey: '进行中' },
-      working: { text: '进行中', bg: 'green', tabKey: '进行中' },
-      done: { text: '已完成', bg: 'gray', tabKey: '已完成' },
+      accepted: { text: '待出勤', bg: 'blue', tabKey: '待出勤', canConfirmAttendance: true },
+      confirmed: { text: '待开工', bg: 'blue', tabKey: '进行中', canOpenCheckin: true, checkinActionText: '查看签到' },
+      working: { text: '进行中', bg: 'green', tabKey: '进行中', canOpenCheckin: true, checkinActionText: '打卡签到', showPulse: true },
+      done: { text: '已完成', bg: 'gray', tabKey: '已完成', canRate: true },
       rejected: { text: '未通过', bg: 'rose', tabKey: '全部' },
       released: { text: '已释放', bg: 'gray', tabKey: '全部' },
       cancelled: { text: '已取消', bg: 'gray', tabKey: '全部' }
     }
 
-    const statusInfo = statusMap[item.status] || { text: '待审核', bg: 'amber', tabKey: '待审核' }
+    const statusInfo = statusMap[item.status] || statusMap.pending
     const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
     const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
     const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
 
     return {
       id: item.id,
+      applicationId: item.id,
       jobId: job.id,
+      enterpriseId: job.userId || user.id || 0,
       company,
       companyAvatarUrl,
       title: job.title || '',
@@ -284,12 +285,59 @@ Page({
       statusText: statusInfo.text,
       statusBg: statusInfo.bg,
       tabKey: statusInfo.tabKey,
+      canConfirmAttendance: !!statusInfo.canConfirmAttendance,
+      canOpenCheckin: !!statusInfo.canOpenCheckin,
+      checkinActionText: statusInfo.checkinActionText || '查看签到',
+      canRate: !!statusInfo.canRate,
+      showPulse: !!statusInfo.showPulse,
       alert: item.status === 'accepted'
         ? '如确认出勤，请尽快确认，避免名额释放'
         : item.status === 'confirmed'
-          ? '已确认出勤，请按时签到开工'
+          ? '已确认出勤，请在签到时间内完成签到，如未设置临工管理员将无法打卡'
+          : item.status === 'working'
+            ? '已进入工作中，可查看签到记录和当前状态'
           : ''
     }
+  },
+
+  getJobDisplayState(item, fallbackStatus) {
+    const statusMeta = fallbackStatus || { text: '审核中', color: '#F43F5E' }
+    const timeState = item.timeState || ''
+
+    if (timeState === 'settlement') {
+      return { text: '待结算', color: '#F59E0B' }
+    }
+
+    if (timeState === 'end_overdue') {
+      return { text: '待考勤', color: '#F59E0B' }
+    }
+
+    if (timeState === 'start_overdue') {
+      return { text: '已过开工', color: '#F59E0B' }
+    }
+
+    if (timeState === 'ended' && !['settled', 'closed'].includes(item.status)) {
+      return { text: '已结束', color: '#94A3B8' }
+    }
+
+    return {
+      text: statusMeta.text,
+      color: statusMeta.color
+    }
+  },
+
+  getDeletePath(type, id) {
+    return (type === 'job' ? '/jobs/' : '/posts/') + id
+  },
+
+  getPostMetaText(item) {
+    if (item.type === 'job') {
+      if (Number(item.pendingCount || 0) > 0) return `待处理 ${item.pendingCount} 人`
+      if (Number(item.appliedCount || 0) > 0) return `已报名 ${item.appliedCount} 人`
+      if (Number(item.needCount || 0) > 0) return `需招 ${item.needCount} 人`
+      return '招工进行中'
+    }
+    return `${Number(item.viewCount || 0)}次浏览`
   },
 
   mapMyPosts(list) {
@@ -315,9 +363,11 @@ Page({
     return (Array.isArray(list) ? list : []).map(item => {
       const typeMeta = typeMap[item.type] || { label: '信息', color: 'blue' }
       const statusMeta = statusMap[item.status] || { text: '审核中', color: '#F97316' }
+      const jobDisplay = item.type === 'job' ? this.getJobDisplayState(item, statusMeta) : null
       const title = item.title || (item.content || '').slice(0, 28) || '未命名发布'
       return {
         ...item,
+        uniqueKey: `${item.type}-${item.id}`,
         typeKey: item.type,
         type: typeMeta.label,
         typeColor: typeMeta.color,
@@ -325,8 +375,9 @@ Page({
         title,
         desc: item.content || '',
         views: Number(item.viewCount || 0),
-        statusText: statusMeta.text,
-        statusColor: statusMeta.color
+        metaText: this.getPostMetaText(item),
+        statusText: jobDisplay ? jobDisplay.text : statusMeta.text,
+        statusColor: jobDisplay ? jobDisplay.color : statusMeta.color
       }
     })
   },
@@ -401,13 +452,14 @@ Page({
 
   onDeletePost(e) {
     const id = e.currentTarget.dataset.id
+    const type = e.currentTarget.dataset.type || 'post'
     wx.showModal({
       title: '确认删除',
       content: '删除后不可恢复，确定删除这条发布吗？',
       confirmColor: '#F43F5E',
       success: (res) => {
         if (!res.confirm) return
-        del('/posts/' + id).then(() => {
+        del(this.getDeletePath(type, id)).then(() => {
           wx.showToast({ title: '删除成功', icon: 'success' })
           this.loadProfile()
         }).catch(() => {})
