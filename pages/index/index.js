@@ -134,7 +134,7 @@ Page({
     this.loadJobTypes()
     this.loadBannerAds()
     if (userRole === 'worker') {
-      this.loadWorkerJobs()
+      this.autoLocateAndLoadWorkerJobs()
     } else {
       this.loadData()
     }
@@ -195,7 +195,7 @@ Page({
       // 使用 loadDataByCategory 替代，支持分类筛选
       this.loadDataByCategory()
     } else {
-      this.loadWorkerJobs()
+      this.autoLocateAndLoadWorkerJobs()
     }
   },
 
@@ -205,23 +205,37 @@ Page({
       return
     }
 
+    if (this._autoLocating) {
+      return
+    }
+
+    if (this._autoLocationDenied) {
+      this.loadWorkerJobs()
+      return
+    }
+
+    this._autoLocating = true
     wx.showLoading({ title: '获取位置中...' })
     getUserLocation().then((location) => {
       wx.hideLoading()
+      this._autoLocating = false
+      this._autoLocationDenied = false
       if (DISTANCE_DEBUG) {
         console.log('[distance-debug][index] auto user location success', location)
       }
-      this.setData({ userLocation: location })
-      this.loadWorkerJobs()
+      this.setData({ userLocation: location }, () => {
+        this.loadWorkerJobs()
+      })
     }).catch((error) => {
       wx.hideLoading()
+      this._autoLocating = false
       if (DISTANCE_DEBUG) {
         console.warn('[distance-debug][index] auto user location failed', error)
       }
       const errMsg = String((error && error.errMsg) || '')
       const denied = errMsg.includes('auth deny') || errMsg.includes('auth denied') || errMsg.includes('scope.userLocation')
       if (denied) {
-        this.showLocationPermissionModal()
+        this._autoLocationDenied = true
       }
       this.loadWorkerJobs()
     })
