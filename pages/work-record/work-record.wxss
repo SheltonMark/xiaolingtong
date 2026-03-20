@@ -115,3 +115,131 @@
 .act-btn::after { border: none; }
 .act-blue { background-color: #EFF6FF; color: #3B82F6; }
 .act-orange { background-color: #FFF7ED; color: #F97316; }
+
+.wr-page {
+  min-height: 100vh;
+  background: #F8FAFC;
+}
+
+.wr-tip {
+  margin: 24rpx 24rpx 0;
+  padding: 20rpx 24rpx;
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+  background: linear-gradient(135deg, #FFF7ED 0%, #FFFFFF 100%);
+  border: 1rpx solid #FED7AA;
+  border-radius: 20rpx;
+  box-shadow: 0 10rpx 24rpx rgba(249, 115, 22, 0.08);
+}
+
+.wr-tip-icon {
+  font-size: 28rpx;
+  line-height: 1.5;
+  color: #F97316;
+}
+
+.wr-tip-text {
+  flex: 1;
+  font-size: 24rpx;
+  line-height: 1.7;
+  color: #9A3412;
+}
+
+.wr-list {
+  padding: 24rpx;
+}
+
+.order-card {
+  background-color: #FFFFFF;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.05);
+}
+
+.order-top {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.order-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.order-company {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0F172A;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-meta {
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.order-stage {
+  flex-shrink: 0;
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.order-bottom {
+  margin-top: 20rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.order-detail {
+  padding: 8rpx 16rpx;
+  border-radius: 999rpx;
+  font-size: 20rpx;
+  color: #475569;
+  background-color: #F8FAFC;
+}
+
+.wr-loading {
+  padding: 120rpx 0 40rpx;
+  display: flex;
+  justify-content: center;
+}
+
+.wr-loading-text {
+  font-size: 24rpx;
+  color: #94A3B8;
+}
+
+.wr-empty {
+  margin: 120rpx 24rpx 0;
+  padding: 52rpx 32rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18rpx;
+  background-color: #FFFFFF;
+  border-radius: 28rpx;
+  box-shadow: 0 18rpx 40rpx rgba(15, 23, 42, 0.06);
+}
+
+.wr-empty-icon {
+  font-size: 72rpx;
+  color: #CBD5E1;
+}
+
+.wr-empty-text {
+  font-size: 26rpx;
+  line-height: 1.5;
+  color: #475569;
+}
