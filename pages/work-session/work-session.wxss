@@ -1,6 +1,5 @@
 .ws-page { min-height: 100vh; background-color: #F5F5F5; padding-bottom: 40rpx; }
 
-/* 状态卡片 */
 .status-card {
   margin: 24rpx 32rpx 0; border-radius: 24rpx; padding: 32rpx;
   background: linear-gradient(to right, #3B82F6, #60A5FA); color: #fff;
@@ -21,13 +20,11 @@
 }
 .sc-stat-val { font-size: 20rpx; }
 
-/* 卡片 */
 .ws-card { background-color: #fff; margin: 24rpx 32rpx 0; border-radius: 24rpx; padding: 32rpx; }
 .card-title { font-size: 28rpx; font-weight: 600; color: #1E293B; }
 .card-title .iconfont { margin-right: 8rpx; }
 .card-header-row { margin-bottom: 20rpx; }
 
-/* 拍照记录 */
 .photo-list { display: flex; flex-direction: column; gap: 16rpx; }
 .photo-item {
   display: flex; align-items: center; gap: 20rpx;
@@ -58,7 +55,6 @@
 }
 .photo-btn::after { border: none; }
 
-/* 计件录入 */
 .piece-list { display: flex; flex-direction: column; gap: 16rpx; }
 .hour-list { display: flex; flex-direction: column; gap: 16rpx; }
 .piece-item {
@@ -93,7 +89,6 @@
 .piece-submit-primary { background-color: #3B82F6; }
 .piece-submit-btn::after { border: none; }
 
-/* 异常记录 */
 .anomaly-list { display: flex; flex-direction: column; gap: 16rpx; margin-bottom: 16rpx; }
 .anomaly-item { padding: 16rpx 20rpx; background-color: #FFF1F2; border-radius: 12rpx; }
 .anomaly-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8rpx; }
@@ -107,9 +102,15 @@
 }
 .record-anomaly-btn::after { border: none; }
 
-/* 底部 */
 .ws-bottom {
   margin: 24rpx 32rpx; padding: 32rpx;
   padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
 }
-.ws-hint { display: block; text-align: center; font-size: 20rpx; color: #94A3B8; margin-top: 12rpx; }
+.ws-finish-btn { width: 100%; }
+.ws-finish-btn-disabled {
+  background-color: #CBD5E1 !important;
+  color: #FFFFFF !important;
+  box-shadow: none;
+}
+.ws-finish-btn-disabled::after { border: none; }
+.ws-hint { display: block; text-align: center; font-size: 20rpx; color: #94A3B8; margin-top: 12rpx; line-height: 1.6; }

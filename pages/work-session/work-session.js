@@ -31,6 +31,11 @@ Page({
     orderId: '',
     mode: 'hourly',
     loading: true,
+    savingRecords: false,
+    submittingFinish: false,
+    jobStatus: '',
+    canFinishWork: true,
+    finishButtonText: '确认收工',
     status: {},
     pieceStatus: {},
     photoRecords: [],
@@ -67,6 +72,19 @@ Page({
     wx.setStorageSync(this.getPhotoStorageKey(), photos)
   },
 
+  isWorkLocked(jobStatus = this.data.jobStatus) {
+    return ['pending_settlement', 'settled', 'closed'].includes(jobStatus)
+  },
+
+  getFinishButtonText(jobStatus) {
+    const map = {
+      pending_settlement: '已提交收工',
+      settled: '结算处理中',
+      closed: '已完成'
+    }
+    return map[jobStatus] || '确认收工'
+  },
+
   buildPhotoRecords(job, photos) {
     const now = new Date()
     const workHoursParts = (job.workHours || '08:00-18:00').split('-')
@@ -99,6 +117,7 @@ Page({
       const checkins = data.checkins || []
       const logs = data.logs || []
       const allWorkers = data.workers || []
+      const jobStatus = job.status || ''
       const company = job.companyName || (job.user && job.user.companyName) || '企业'
       const cachedPhotos = this.loadCachedPhotos()
 
@@ -135,6 +154,7 @@ Page({
         const log = dailyLogMap[worker.id] || {}
         const checkInTime = log.checkInTime || (checkin ? formatTime(new Date(checkin.checkInAt)) : '')
         const attendance = log.anomalyType || (checkInTime ? 'normal' : 'absent')
+        const pieces = Number(log.pieces || 0)
         return {
           id: worker.id,
           name: worker.nickname || worker.realName || '临工',
@@ -143,10 +163,12 @@ Page({
           checkInTime,
           checkOutTime: log.checkOutTime || '',
           hours: Number(log.hours || 0),
-          pieces: Number(log.pieces || 0),
+          pieces,
           note: log.anomalyNote || '',
           hourValue: log.hours !== undefined && log.hours !== null ? String(log.hours) : '',
-          inputValue: log.pieces !== undefined && log.pieces !== null ? String(log.pieces) : ''
+          inputValue: log.pieces !== undefined && log.pieces !== null ? String(log.pieces) : '',
+          todayPieces: pieces,
+          totalPieces: pieces
         }
       })
 
@@ -173,12 +195,19 @@ Page({
       const endTime = workHoursParts[1] || '18:00'
       const uploadPhotos = Array.from(new Map(
         [...cachedPhotos, ...(logs.flatMap(log => (log.photoUrls || []).map(url => ({ url, uploadedAt: log.updatedAt || log.createdAt || new Date().toISOString() }))))]
-          .map(photo => [photo.url, normalizePhotoItem(photo)])
+          .map(photo => {
+            const normalized = normalizePhotoItem(photo)
+            return normalized ? [normalized.url, normalized] : null
+          })
+          .filter(Boolean)
       ).values())
 
       this.persistPhotos(uploadPhotos)
       this.setData({
         loading: false,
+        jobStatus,
+        canFinishWork: !this.isWorkLocked(jobStatus),
+        finishButtonText: this.getFinishButtonText(jobStatus),
         uploadedPhotos: uploadPhotos,
         photoRecords: this.buildPhotoRecords(job, uploadPhotos),
         workers,
@@ -220,6 +249,11 @@ Page({
   },
 
   onTakePhoto(e) {
+    if (!this.data.canFinishWork) {
+      wx.showToast({ title: '当前记录已提交收工', icon: 'none' })
+      return
+    }
+
     const slotId = Number(e.currentTarget.dataset.id)
     wx.chooseMedia({
       count: 1,
@@ -277,28 +311,6 @@ Page({
     })
   },
 
-  onSaveHours() {
-    const payloads = this.data.workers
-      .filter(worker => worker.hourValue !== '' || worker.checkOutTime)
-      .map(worker => post('/work/log', {
-        jobId: Number(this.data.orderId),
-        workerId: worker.id,
-        hours: Number(worker.hourValue || worker.hours || 0),
-        checkInTime: worker.checkInTime || undefined,
-        checkOutTime: worker.checkOutTime || undefined
-      }))
-
-    if (payloads.length === 0) {
-      wx.showToast({ title: '请先录入工时', icon: 'none' })
-      return
-    }
-
-    Promise.all(payloads).then(() => {
-      wx.showToast({ title: '工时已保存', icon: 'success' })
-      this.loadSession(this.data.orderId)
-    }).catch(() => {})
-  },
-
   onPieceInput(e) {
     const id = Number(e.currentTarget.dataset.id)
     const value = e.detail.value
@@ -307,32 +319,67 @@ Page({
     })
   },
 
-  onSubmitPieces() {
-    const payloads = this.data.workers
+  collectDraftPayloads() {
+    if (this.data.mode === 'hourly') {
+      return this.data.workers
+        .filter(worker => worker.hourValue !== '' || worker.checkOutTime)
+        .map(worker => ({
+          jobId: Number(this.data.orderId),
+          workerId: worker.id,
+          hours: Number(worker.hourValue || worker.hours || 0),
+          checkInTime: worker.checkInTime || undefined,
+          checkOutTime: worker.checkOutTime || undefined
+        }))
+    }
+
+    return this.data.workers
       .filter(worker => worker.inputValue !== '')
-      .map(worker => post('/work/log', {
+      .map(worker => ({
         jobId: Number(this.data.orderId),
         workerId: worker.id,
         pieces: Number(worker.inputValue || worker.pieces || 0)
       }))
+  },
 
-    if (payloads.length === 0) {
-      wx.showToast({ title: '请录入计件数', icon: 'none' })
+  onSaveHours() {
+    if (this.isWorkLocked()) {
+      wx.showToast({ title: '当前记录已提交收工', icon: 'none' })
+      return
+    }
+    if (this.data.savingRecords) {
       return
     }
 
-    Promise.all(payloads).then(() => {
-      wx.showToast({ title: '计件已保存', icon: 'success' })
+    const drafts = this.collectDraftPayloads()
+    if (drafts.length === 0) {
+      wx.showToast({ title: this.data.mode === 'hourly' ? '请先录入工时或签退时间' : '请先录入计件数量', icon: 'none' })
+      return
+    }
+
+    this.setData({ savingRecords: true })
+    Promise.all(drafts.map(payload => post('/work/log', payload))).then(() => {
+      wx.showToast({ title: this.data.mode === 'hourly' ? '记录已暂存' : '计件已暂存', icon: 'success' })
       this.loadSession(this.data.orderId)
-    }).catch(() => {})
+    }).catch(() => {}).finally(() => {
+      this.setData({ savingRecords: false })
+    })
+  },
+
+  onSubmitPieces() {
+    this.onSaveHours()
   },
 
   onRecordAnomaly() {
+    if (!this.data.canFinishWork) {
+      wx.showToast({ title: '当前记录已提交收工', icon: 'none' })
+      return
+    }
     wx.navigateTo({ url: '/pages/anomaly/anomaly?jobId=' + this.data.orderId })
   },
 
-  buildAttendanceRecords() {
-    const currentTime = formatTime(new Date())
+  buildAttendanceRecords(options = {}) {
+    const currentTime = options.currentTime || formatTime(new Date())
+    const autoFillCheckoutTime = !!options.autoFillCheckoutTime
     return this.data.workers.map(worker => {
       const attendance = worker.attendance || ((worker.checkInTime || worker.hourValue || worker.inputValue) ? 'normal' : 'absent')
       const hours = this.data.mode === 'hourly'
@@ -344,9 +391,10 @@ Page({
 
       return {
         workerId: worker.id,
+        name: worker.name,
         attendance,
         checkInTime: attendance === 'absent' ? null : (worker.checkInTime || null),
-        checkOutTime: attendance === 'absent' ? null : (worker.checkOutTime || currentTime),
+        checkOutTime: attendance === 'absent' ? null : (worker.checkOutTime || (autoFillCheckoutTime ? currentTime : null)),
         hours: attendance === 'absent' ? 0 : hours,
         pieces: attendance === 'absent' ? 0 : pieces,
         note: worker.note || ''
@@ -354,37 +402,154 @@ Page({
     })
   },
 
-  onFinishWork() {
-    const records = this.buildAttendanceRecords()
-    if (records.length === 0) {
-      wx.showToast({ title: '暂无考勤数据', icon: 'none' })
+  getWorkerNames(workers) {
+    if (!workers || workers.length === 0) return ''
+    const names = workers.map(worker => worker.name)
+    if (names.length <= 3) {
+      return names.join('、')
+    }
+    return names.slice(0, 3).join('、') + ` 等${names.length}人`
+  },
+
+  validateBeforeFinish() {
+    const currentTime = formatTime(new Date())
+    const records = this.buildAttendanceRecords({ currentTime, autoFillCheckoutTime: false })
+    const activeRecords = records.filter(record => record.attendance !== 'absent')
+
+    if (activeRecords.length === 0) {
+      return {
+        ok: false,
+        message: '至少保留 1 名出勤人员后再确认收工'
+      }
+    }
+
+    if (this.data.mode === 'hourly') {
+      const invalidHours = activeRecords.filter(record => (
+        ['normal', 'late', 'early_leave'].includes(record.attendance)
+        && Number(record.hours || 0) <= 0
+      ))
+      if (invalidHours.length > 0) {
+        return {
+          ok: false,
+          message: `${this.getWorkerNames(invalidHours)} 还未填写有效工时`
+        }
+      }
+    } else {
+      const invalidPieces = activeRecords.filter(record => (
+        ['normal', 'late'].includes(record.attendance)
+        && Number(record.pieces || 0) <= 0
+      ))
+      if (invalidPieces.length > 0) {
+        return {
+          ok: false,
+          message: `${this.getWorkerNames(invalidPieces)} 还未填写计件数量`
+        }
+      }
+    }
+
+    const missingCheckoutWorkers = this.data.mode === 'hourly'
+      ? activeRecords.filter(record => !record.checkOutTime)
+      : []
+
+    return {
+      ok: true,
+      currentTime,
+      missingCheckoutWorkers,
+      pendingPhotoCount: this.data.photoRecords.filter(item => item.status === 'pending').length
+    }
+  },
+
+  submitFinish(records) {
+    if (this.data.submittingFinish) {
       return
     }
 
-    wx.showModal({
-      title: '确认收工',
-      content: '收工后将提交考勤报告并生成结算单，请确认工时、计件和异常都已录入完成。',
-      success: (res) => {
-        if (!res.confirm) return
-
-        wx.showLoading({ title: '提交中...' })
-        post('/work/attendance', {
-          jobId: Number(this.data.orderId),
-          records,
-          photos: this.data.uploadedPhotos.map(item => item.url)
-        }).then(() => {
-          return post('/settlements/' + this.data.orderId + '/create')
-        }).then(() => {
-          wx.removeStorageSync(this.getPhotoStorageKey())
-          wx.hideLoading()
-          wx.showToast({ title: '已提交核验单', icon: 'success' })
-          setTimeout(() => wx.redirectTo({
-            url: '/pages/settlement/settlement?jobId=' + this.data.orderId + '&role=manager'
-          }), 1200)
-        }).catch(() => {
-          wx.hideLoading()
-        })
-      }
+    this.setData({ submittingFinish: true })
+    wx.showLoading({ title: '提交中...' })
+    post('/work/attendance', {
+      jobId: Number(this.data.orderId),
+      records: records.map(({ workerId, attendance, checkInTime, checkOutTime, hours, pieces, note }) => ({
+        workerId,
+        attendance,
+        checkInTime,
+        checkOutTime,
+        hours,
+        pieces,
+        note
+      })),
+      photos: this.data.uploadedPhotos.map(item => item.url)
+    }).then(() => {
+      return post('/settlements/' + this.data.orderId + '/create')
+    }).then((result) => {
+      const payload = result.data || result || {}
+      wx.removeStorageSync(this.getPhotoStorageKey())
+      wx.hideLoading()
+      wx.showToast({ title: payload.existing ? '已进入结算' : '已提交收工', icon: 'success' })
+      this.setData({
+        canFinishWork: false,
+        finishButtonText: '已提交收工',
+        jobStatus: 'pending_settlement'
+      })
+      setTimeout(() => wx.redirectTo({
+        url: '/pages/settlement/settlement?jobId=' + this.data.orderId + '&role=manager'
+      }), 1200)
+    }).catch(() => {
+      wx.hideLoading()
+    }).finally(() => {
+      this.setData({ submittingFinish: false })
     })
+  },
+
+  onFinishWork() {
+    if (this.isWorkLocked()) {
+      wx.showToast({ title: '当前记录已提交收工', icon: 'none' })
+      return
+    }
+    if (this.data.submittingFinish) {
+      return
+    }
+
+    const validation = this.validateBeforeFinish()
+    if (!validation.ok) {
+      wx.showToast({ title: validation.message, icon: 'none' })
+      return
+    }
+
+    const continueFinish = (autoFillCheckoutTime) => {
+      const records = this.buildAttendanceRecords({
+        currentTime: validation.currentTime,
+        autoFillCheckoutTime
+      })
+      const contentLines = ['收工后将提交考勤报告并生成结算单，请确认工时、计件和异常都已录入完成。']
+      if (autoFillCheckoutTime) {
+        contentLines.push(`未填写签退时间的人员将自动按 ${validation.currentTime} 收工。`)
+      }
+      if (validation.pendingPhotoCount > 0) {
+        contentLines.push(`还有 ${validation.pendingPhotoCount} 个现场拍照时段未上传，请确认是否继续。`)
+      }
+
+      wx.showModal({
+        title: '确认收工',
+        content: contentLines.join('\n'),
+        success: (res) => {
+          if (!res.confirm) return
+          this.submitFinish(records)
+        }
+      })
+    }
+
+    if (validation.missingCheckoutWorkers.length > 0) {
+      wx.showModal({
+        title: '补齐签退时间',
+        content: `${this.getWorkerNames(validation.missingCheckoutWorkers)} 未填写签退时间，将按当前时间 ${validation.currentTime} 自动补齐后收工，是否继续？`,
+        success: (res) => {
+          if (!res.confirm) return
+          continueFinish(true)
+        }
+      })
+      return
+    }
+
+    continueFinish(false)
   }
 })

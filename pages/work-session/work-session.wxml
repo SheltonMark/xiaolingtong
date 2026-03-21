@@ -1,7 +1,6 @@
-<!--pages/work-session/work-session.wxml-->
 <view class="ws-page">
   <nav-bar title="工作记录" />
-  <!-- 计时模式 -->
+
   <block wx:if="{{mode === 'hourly'}}">
     <view class="status-card">
       <view class="sc-top">
@@ -12,7 +11,7 @@
         <text class="sc-hours-big">{{status.hoursToday}}</text>
         <text class="sc-hours-unit">小时</text>
       </view>
-      <text class="sc-sub">今日已工作时长 · {{status.startTime}} 开始</text>
+      <text class="sc-sub">今日工时统计 · {{status.startTime}} 开始</text>
       <view class="sc-stats">
         <view class="sc-stat">
           <text class="sc-stat-val">出勤：{{status.todayAttend}}人</text>
@@ -26,10 +25,9 @@
       </view>
     </view>
 
-    <!-- 现场拍照 -->
     <view class="ws-card">
       <view class="card-header-row">
-        <text class="card-title"><text class="iconfont icon-xiangji"></text> 现场拍照（每2小时）</text>
+        <text class="card-title"><text class="iconfont icon-xiangji"></text> 现场拍照记录（每 2 小时）</text>
       </view>
       <view class="photo-list">
         <view class="photo-item photo-done" wx:for="{{photoRecords}}" wx:key="id" wx:if="{{item.status === 'done'}}">
@@ -51,7 +49,7 @@
             <text class="photo-time">{{item.timeRange}}</text>
             <text class="photo-status text-warm">待上传</text>
           </view>
-          <button class="photo-btn" data-id="{{item.id}}" bindtap="onTakePhoto">拍照</button>
+          <button class="photo-btn" data-id="{{item.id}}" disabled="{{!canFinishWork}}" bindtap="onTakePhoto">拍照</button>
         </view>
       </view>
     </view>
@@ -70,18 +68,17 @@
             </view>
           </view>
           <view class="hour-fields">
-            <picker mode="time" data-id="{{item.id}}" data-field="checkOutTime" bindchange="onTimeChange">
+            <picker mode="time" data-id="{{item.id}}" data-field="checkOutTime" disabled="{{!canFinishWork}}" bindchange="onTimeChange">
               <view class="time-chip">{{item.checkOutTime || '签退时间'}}</view>
             </picker>
-            <input class="piece-input" type="digit" placeholder="工时" data-id="{{item.id}}" bindinput="onHourInput" value="{{item.hourValue}}" />
+            <input class="piece-input" type="digit" placeholder="工时" data-id="{{item.id}}" disabled="{{!canFinishWork}}" bindinput="onHourInput" value="{{item.hourValue}}" />
           </view>
         </view>
       </view>
-      <button class="piece-submit-btn piece-submit-primary" bindtap="onSaveHours">保存工时</button>
+      <button class="piece-submit-btn piece-submit-primary" loading="{{savingRecords}}" disabled="{{savingRecords || !canFinishWork}}" bindtap="onSaveHours">暂存记录</button>
     </view>
   </block>
 
-  <!-- 计件模式 -->
   <block wx:if="{{mode === 'piece'}}">
     <view class="status-card status-card-piece">
       <view class="sc-top">
@@ -92,7 +89,7 @@
         <text class="sc-hours-big">{{pieceStatus.piecesToday}}</text>
         <text class="sc-hours-unit">件</text>
       </view>
-      <text class="sc-sub">今日完成 · {{pieceStatus.pricePerPiece}}元/件 · 预计收入 ¥{{pieceStatus.earningsToday}}</text>
+      <text class="sc-sub">今日完成 · {{pieceStatus.pricePerPiece}}元/件 · 预计收入 ￥{{pieceStatus.earningsToday}}</text>
       <view class="sc-stats">
         <view class="sc-stat">
           <text class="sc-stat-val">出勤：{{pieceStatus.todayAttend}}人</text>
@@ -103,7 +100,6 @@
       </view>
     </view>
 
-    <!-- 计件录入 -->
     <view class="ws-card">
       <view class="card-header-row">
         <text class="card-title"><text class="iconfont icon-jilu"></text> 今日计件录入</text>
@@ -117,14 +113,13 @@
               <text class="piece-sub">今日 {{item.todayPieces}}件 · 累计 {{item.totalPieces}}件</text>
             </view>
           </view>
-          <input class="piece-input" type="number" placeholder="录入" data-id="{{item.id}}" bindinput="onPieceInput" value="{{item.inputValue}}" />
+          <input class="piece-input" type="number" placeholder="录入件数" data-id="{{item.id}}" disabled="{{!canFinishWork}}" bindinput="onPieceInput" value="{{item.inputValue}}" />
         </view>
       </view>
-      <button class="piece-submit-btn" bindtap="onSubmitPieces">提交今日计件</button>
+      <button class="piece-submit-btn" loading="{{savingRecords}}" disabled="{{savingRecords || !canFinishWork}}" bindtap="onSubmitPieces">暂存计件</button>
     </view>
   </block>
 
-  <!-- 异常记录（共用） -->
   <view class="ws-card">
     <view class="card-header-row">
       <text class="card-title"><text class="iconfont icon-tishixinxi"></text> 异常记录</text>
@@ -138,14 +133,13 @@
         <text class="anomaly-desc">{{item.desc}}</text>
       </view>
     </view>
-    <button class="record-anomaly-btn" bindtap="onRecordAnomaly">
+    <button class="record-anomaly-btn" disabled="{{!canFinishWork}}" bindtap="onRecordAnomaly">
       <text>+ 记录异常</text>
     </button>
   </view>
 
-  <!-- 底部 -->
   <view class="ws-bottom">
-    <button class="btn btn-rose" bindtap="onFinishWork">确认收工</button>
-    <text class="ws-hint">收工后将生成结算单，请确保所有记录准确</text>
+    <button class="btn btn-rose ws-finish-btn {{!canFinishWork ? 'ws-finish-btn-disabled' : ''}}" loading="{{submittingFinish}}" disabled="{{submittingFinish || !canFinishWork}}" bindtap="onFinishWork">{{finishButtonText}}</button>
+    <text class="ws-hint">{{canFinishWork ? '确认收工会提交考勤并进入结算，请先暂存并检查记录。' : '当前订单已提交收工，后续请在结算界面继续处理。'}}</text>
   </view>
 </view>
