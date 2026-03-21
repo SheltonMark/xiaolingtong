@@ -36,6 +36,7 @@ Page({
     typeIndex: 0,
     form: { ...DEFAULT_FORM },
     images: [],
+    isUploading: false,
     categoryOptions: ['日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具', '其他'],
     deliveryOptions: ['7天内', '15天内', '30天内', '45天内', '60天内'],
     validityOptions: ['7天', '15天', '30天', '60天', '90天'],
@@ -150,6 +151,7 @@ Page({
       success: (res) => {
         const newImages = res.tempFiles.map(f => f.tempFilePath)
         const uploads = newImages.map(path => upload(path))
+        this.setData({ isUploading: true })
         Promise.allSettled(uploads).then(results => {
           const urls = results
             .filter(r => r.status === 'fulfilled')
@@ -162,6 +164,8 @@ Page({
           if (failCount > 0) {
             wx.showToast({ title: `有${failCount}张上传失败，请重试`, icon: 'none' })
           }
+        }).finally(() => {
+          this.setData({ isUploading: false })
         })
       }
     })
@@ -175,6 +179,10 @@ Page({
 
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    if (this.data.isUploading) {
+      wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
+      return
+    }
 
     const { form, phoneChecked, wechatChecked, wechatQrChecked, images, typeIndex, contactInfo } = this.data
     const types = ['purchase', 'stock', 'process']

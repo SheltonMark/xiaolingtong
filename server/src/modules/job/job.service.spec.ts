@@ -335,6 +335,45 @@ describe('JobService', () => {
       expect(result.userId).toBe(1);
     });
 
+    it('normalizes object-shaped benefits and images before saving', async () => {
+      const dto = {
+        title: '新岗位',
+        salary: 100,
+        needCount: 5,
+        location: 'Beijing',
+        contactName: 'John',
+        contactPhone: '13800000000',
+        dateStart: '2026-03-10',
+        dateEnd: '2026-03-20',
+        benefits: { 0: '包午餐', 1: '包住宿' },
+        images: { 0: 'image1.jpg', 1: 'image2.jpg' },
+      };
+
+      keywordRepository.find.mockResolvedValue([]);
+      jobRepository.create.mockImplementation((payload) => ({
+        id: 1,
+        ...payload,
+      }));
+      jobRepository.save.mockImplementation(async (payload) => payload);
+
+      const result = await service.create(1, dto);
+
+      expect(jobRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          benefits: [
+            { label: '包午餐', color: 'green' },
+            { label: '包住宿', color: 'green' },
+          ],
+          images: ['image1.jpg', 'image2.jpg'],
+        }),
+      );
+      expect(result.benefits).toEqual([
+        { label: '包午餐', color: 'green' },
+        { label: '包住宿', color: 'green' },
+      ]);
+      expect(result.images).toEqual(['image1.jpg', 'image2.jpg']);
+    });
+
     it('throws on keyword violation', async () => {
       const dto = {
         title: 'forbidden job',
@@ -510,7 +549,7 @@ describe('JobService', () => {
         id: 2,
         companyName: '某企业',
         filterKey: 'ongoing',
-        stageKey: 'working',
+        stageKey: 'attendance_due',
         actionTab: 'attendance',
         confirmedCount: 2,
         supervisorCount: 1,

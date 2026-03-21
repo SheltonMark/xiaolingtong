@@ -44,6 +44,33 @@ export class PostService {
     return String(value).trim();
   }
 
+  private normalizeStringArray(value: any): string[] | undefined {
+    if (typeof value === 'string') {
+      const text = value.trim();
+      if (!text) return undefined;
+      try {
+        return this.normalizeStringArray(JSON.parse(text));
+      } catch {
+        return [text];
+      }
+    }
+
+    if (Array.isArray(value)) {
+      const normalized = value.map((item) => this.normalizeText(item)).filter(Boolean);
+      return normalized.length ? normalized : undefined;
+    }
+
+    if (value && typeof value === 'object') {
+      const keys = Object.keys(value)
+        .filter((key) => /^\d+$/.test(key))
+        .sort((a, b) => Number(a) - Number(b));
+      if (!keys.length) return undefined;
+      return this.normalizeStringArray(keys.map((key) => value[key]));
+    }
+
+    return undefined;
+  }
+
   private parseVisibility(value: any, defaultValue = false): boolean {
     if (value === undefined || value === null || value === '') return defaultValue;
     if (typeof value === 'boolean') return value;
@@ -387,7 +414,8 @@ export class PostService {
       showWechatQr: wechatQrVisible ? 1 : 0,
     };
     if (Object.keys(structuredFields).length) postData.fields = structuredFields;
-    if (images && images.length) postData.images = images;
+    const normalizedImages = this.normalizeStringArray(images);
+    if (normalizedImages?.length) postData.images = normalizedImages;
     if (normalizedContactName) postData.contactName = normalizedContactName;
     if (normalizedContactPhone) postData.contactPhone = normalizedContactPhone;
     if (normalizedContactWechat) postData.contactWechat = normalizedContactWechat;

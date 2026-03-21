@@ -15,6 +15,35 @@ export class ExposureService {
     private commentRepo: Repository<ExposureComment>,
   ) {}
 
+  private normalizeStringArray(value: any): string[] | undefined {
+    if (typeof value === 'string') {
+      const text = value.trim();
+      if (!text) return undefined;
+      try {
+        return this.normalizeStringArray(JSON.parse(text));
+      } catch {
+        return [text];
+      }
+    }
+
+    if (Array.isArray(value)) {
+      const normalized = value
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
+      return normalized.length ? normalized : undefined;
+    }
+
+    if (value && typeof value === 'object') {
+      const keys = Object.keys(value)
+        .filter((key) => /^\d+$/.test(key))
+        .sort((a, b) => Number(a) - Number(b));
+      if (!keys.length) return undefined;
+      return this.normalizeStringArray(keys.map((key) => value[key]));
+    }
+
+    return undefined;
+  }
+
   async list(query: any) {
     const { category, page = 1, pageSize = 20 } = query;
     const qb = this.expRepo
@@ -167,7 +196,7 @@ export class ExposureService {
       personName: dto.contact,
       amount: dto.amount,
       description: dto.description,
-      images: dto.images,
+      images: this.normalizeStringArray(dto.images),
       status: 'pending',
     });
     return this.expRepo.save(exp);

@@ -298,6 +298,39 @@ describe('ExposureModule Integration Tests', () => {
       expect(exposureRepository.save).toHaveBeenCalled();
     });
 
+    it('should normalize object-shaped images before saving exposure', async () => {
+      const mockUser = { id: 1, role: 'worker' };
+      const mockCert = {
+        id: 1,
+        userId: 1,
+        status: 'approved',
+        realName: 'John',
+      };
+
+      exposureRepository.manager.findOne.mockImplementation((entity) => {
+        if (entity.name === 'User') return Promise.resolve(mockUser);
+        if (entity.name === 'WorkerCert') return Promise.resolve(mockCert);
+        return Promise.resolve(null);
+      });
+      exposureRepository.create.mockImplementation((payload) => payload);
+      exposureRepository.save.mockImplementation(async (payload) => payload);
+
+      const result = await controller.create(1, {
+        company: 'Company A',
+        contact: 'John',
+        amount: 5000,
+        description: 'Unpaid wages',
+        images: { 0: 'image1.jpg', 1: 'image2.jpg' },
+      });
+
+      expect(exposureRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          images: ['image1.jpg', 'image2.jpg'],
+        }),
+      );
+      expect(result.images).toEqual(['image1.jpg', 'image2.jpg']);
+    });
+
     it('should throw error when user not verified', async () => {
       const mockUser = { id: 1, role: 'enterprise' };
 
