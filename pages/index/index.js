@@ -4,6 +4,35 @@ const auth = require('../../utils/auth')
 const { calculateDistanceForList, getUserLocation, filterByDistance } = require('../../utils/distance')
 const DISTANCE_DEBUG = false
 
+function normalizeBenefitItems(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (!item) return null
+      if (typeof item === 'string') return { label: item, color: 'green' }
+      if (item.label) return Object.assign({}, item, { color: item.color || 'green' })
+      return null
+    }).filter(Boolean)
+  }
+  if (typeof value === 'string') {
+    const text = value.trim()
+    if (!text) return []
+    try {
+      return normalizeBenefitItems(JSON.parse(text))
+    } catch (err) {
+      return text.split(/[,\n，|]/).map((item) => item.trim()).filter(Boolean).map((label) => ({ label, color: 'green' }))
+    }
+  }
+  return []
+}
+
+function normalizeBenefitTags(value) {
+  return normalizeBenefitItems(value).map((item) => ({
+    label: item.label,
+    bg: '#ECFDF5',
+    color: '#10B981'
+  }))
+}
+
 Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
@@ -369,10 +398,21 @@ Page({
     return (Array.isArray(list) ? list : []).map((item) => {
       const user = item.user || {}
       const companyName = item.companyName || user.nickname || '企业用户'
+      const benefitTags = normalizeBenefitTags(item.tags || item.benefits)
+      const allTags = Array.isArray(item.allTags) && item.allTags.length
+        ? item.allTags
+        : benefitTags.concat(item.workHours ? [{
+            label: item.workHours,
+            bg: '#EFF6FF',
+            color: '#3B82F6'
+          }] : [])
       return {
         ...item,
         companyName,
-        avatarUrl: normalizeImageUrl(item.avatarUrl || user.avatarUrl || '')
+        avatarUrl: normalizeImageUrl(item.avatarUrl || user.avatarUrl || ''),
+        tags: benefitTags,
+        benefits: normalizeBenefitItems(item.benefits || item.tags),
+        allTags
       }
     })
   },
@@ -899,6 +939,33 @@ Page({
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
     const id = e.currentTarget.dataset.id
     wx.navigateTo({ url: '/pages/job-detail/job-detail?id=' + id })
+  },
+
+  onJobChat(e) {
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    const id = e.currentTarget.dataset.id
+    const item = (this.data.jobList || []).find((job) => String(job.id) === String(id))
+    const targetUserId = Number((item && item.user && item.user.id) || item?.userId || item?.enterpriseId || 0)
+    const jobId = Number((item && item.id) || 0)
+
+    if (!item || !targetUserId || !jobId) {
+      wx.showToast({ title: '暂不支持发起聊天', icon: 'none' })
+      return
+    }
+
+    wx.showLoading({ title: '进入聊天中...' })
+    post('/conversations/with-user/' + targetUserId, { jobId }).then((res) => {
+      const conversationId = res.data && res.data.id
+      if (!conversationId) {
+        wx.showToast({ title: '创建会话失败', icon: 'none' })
+        return
+      }
+      wx.navigateTo({ url: '/pages/chat/chat?id=' + conversationId })
+    }).catch((err) => {
+      wx.showToast({ title: (err && err.message) || '创建会话失败', icon: 'none' })
+    }).finally(() => {
+      wx.hideLoading()
+    })
   },
 
   onPreviewImage(e) {
