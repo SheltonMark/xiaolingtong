@@ -2,6 +2,8 @@ Component({
   options: { multipleSlots: true },
   properties: {
     title: { type: String, value: '' },
+    subtitle: { type: String, value: '' },
+    subtitleClass: { type: String, value: '' },
     showBack: { type: Boolean, value: true }
   },
   data: {

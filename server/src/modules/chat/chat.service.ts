@@ -11,9 +11,11 @@ import { ContactUnlock } from '../../entities/contact-unlock.entity';
 import { Post } from '../../entities/post.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
+import { User } from '../../entities/user.entity';
 import { ChatRealtimeService } from './chat-realtime.service';
 
 const VOICE_PREFIX = '__VOICE__';
+const RECENT_ACTIVE_WINDOW_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class ChatService {
@@ -42,6 +44,49 @@ export class ChatService {
     return `${hh}:${mm}`;
   }
 
+  private formatDateTime(date?: Date | null): string {
+    if (!date) return '';
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${month}-${day} ${this.formatTime(d)}`;
+  }
+
+  private formatActiveText(lastActiveAt?: Date | null, isOnline = false): string {
+    if (isOnline) return '在线';
+    if (!lastActiveAt) return '';
+
+    const activeDate = new Date(lastActiveAt);
+    if (Number.isNaN(activeDate.getTime())) return '';
+
+    const now = new Date();
+    const diffMs = now.getTime() - activeDate.getTime();
+    if (diffMs <= RECENT_ACTIVE_WINDOW_MS) {
+      return '刚刚活跃';
+    }
+
+    const isSameDay =
+      now.getFullYear() === activeDate.getFullYear() &&
+      now.getMonth() === activeDate.getMonth() &&
+      now.getDate() === activeDate.getDate();
+
+    if (isSameDay) {
+      return '今天活跃';
+    }
+
+    return `最近活跃于 ${this.formatDateTime(activeDate)}`;
+  }
+
+  private buildPresence(user?: User | null, isOnline = false) {
+    const lastActiveAt = user?.lastActiveAt || null;
+    return {
+      isOnline,
+      lastActiveAt,
+      activeText: this.formatActiveText(lastActiveAt, isOnline),
+    };
+  }
+
   private isVoicePayload(content: string): boolean {
     return typeof content === 'string' && content.startsWith(VOICE_PREFIX);
   }
@@ -53,10 +98,7 @@ export class ChatService {
     return text.length > 60 ? `${text.slice(0, 60)}...` : text;
   }
 
-  private async findConversationForUser(
-    conversationId: number,
-    userId: number,
-  ) {
+  private async findConversationForUser(conversationId: number, userId: number) {
     return this.convRepo.findOne({
       where: [
         { id: conversationId, userA: userId },
@@ -84,7 +126,28 @@ export class ChatService {
     };
   }
 
+  private resolveDisplayName(
+    fallbackUser: User | null | undefined,
+    otherId: number,
+    entCertMap: Map<number, EnterpriseCert>,
+    workerCertMap: Map<number, WorkerCert>,
+  ): string {
+    const entCert = entCertMap.get(otherId);
+    if (entCert?.companyName) {
+      return entCert.companyName;
+    }
+
+    const workerCert = workerCertMap.get(otherId);
+    if (workerCert?.realName) {
+      return workerCert.realName;
+    }
+
+    return fallbackUser?.nickname || `用户${otherId}`;
+  }
+
   async listConversations(userId: number) {
+    await this.realtime.markUserActive(userId);
+
     const list = await this.convRepo
       .createQueryBuilder('c')
       .leftJoinAndSelect('c.userARef', 'ua')
@@ -95,13 +158,11 @@ export class ChatService {
 
     if (!list.length) return [];
 
-    // 获取所有对方用户的ID
     const otherUserIds = list.map((item) => {
       const isUserA = this.toNumber(item.userA) === this.toNumber(userId);
       return this.toNumber(isUserA ? item.userB : item.userA);
     });
 
-    // 获取企业认证信息
     const entCerts = await this.entCertRepo
       .createQueryBuilder('c')
       .where('c.userId IN (:...userIds)', { userIds: otherUserIds })
@@ -110,15 +171,6 @@ export class ChatService {
       .addOrderBy('c.id', 'DESC')
       .getMany();
 
-    const entCertMap = new Map<number, EnterpriseCert>();
-    for (const cert of entCerts) {
-      const certUserId = Number(cert.userId);
-      if (!entCertMap.has(certUserId)) {
-        entCertMap.set(certUserId, cert);
-      }
-    }
-
-    // 获取临工认证信息
     const workerCerts = await this.workerCertRepo
       .createQueryBuilder('c')
       .where('c.userId IN (:...userIds)', { userIds: otherUserIds })
@@ -127,13 +179,21 @@ export class ChatService {
       .addOrderBy('c.id', 'DESC')
       .getMany();
 
+    const entCertMap = new Map<number, EnterpriseCert>();
+    entCerts.forEach((cert) => {
+      const certUserId = Number(cert.userId);
+      if (!entCertMap.has(certUserId)) {
+        entCertMap.set(certUserId, cert);
+      }
+    });
+
     const workerCertMap = new Map<number, WorkerCert>();
-    for (const cert of workerCerts) {
+    workerCerts.forEach((cert) => {
       const certUserId = Number(cert.userId);
       if (!workerCertMap.has(certUserId)) {
         workerCertMap.set(certUserId, cert);
       }
-    }
+    });
 
     const conversationIds = list.map((item) => item.id);
     const unreadRows = await this.msgRepo
@@ -156,41 +216,42 @@ export class ChatService {
 
     return list.map((item) => {
       const isUserA = this.toNumber(item.userA) === this.toNumber(userId);
-      const other = isUserA ? item.userBRef : item.userARef;
+      const other = (isUserA ? item.userBRef : item.userARef) as User | null;
       const otherId = this.toNumber(isUserA ? item.userB : item.userA);
-      const preview = this.buildLastMessagePreview(
-        'text',
-        item.lastMessage || '',
+      const displayName = this.resolveDisplayName(
+        other,
+        otherId,
+        entCertMap,
+        workerCertMap,
       );
-
-      // 获取认证名称
-      const entCert = entCertMap.get(otherId);
-      const workerCert = workerCertMap.get(otherId);
-      let displayName = (other && other.nickname) || `用户${otherId}`;
-
-      if (entCert && entCert.companyName) {
-        displayName = entCert.companyName;
-      } else if (workerCert && workerCert.realName) {
-        displayName = workerCert.realName;
-      }
+      const presence = this.buildPresence(
+        other,
+        this.realtime.isUserOnline(otherId),
+      );
 
       return {
         id: item.id,
         otherUserId: otherId,
+        postId: this.toNumber(item.postId),
+        jobId: this.toNumber(item.jobId),
         name: displayName,
-        avatarUrl: (other && other.avatarUrl) || '',
+        avatarUrl: other?.avatarUrl || '',
         avatarText: displayName ? displayName[0] : '聊',
         avatarBg: otherId % 2 === 0 ? '#3B82F6' : '#10B981',
         time: this.formatTime(item.lastMessageAt || item.createdAt),
-        lastMsg: preview || '暂无消息',
+        lastMsg:
+          this.buildLastMessagePreview('text', item.lastMessage || '') ||
+          '暂无消息',
         unreadCount: unreadMap.get(this.toNumber(item.id)) || 0,
         lastMessageAt: item.lastMessageAt,
+        ...presence,
       };
     });
   }
 
   async getMessages(conversationId: number, userId: number, query: any) {
-    const conv = await this.convRepo.createQueryBuilder('c')
+    const conv = await this.convRepo
+      .createQueryBuilder('c')
       .leftJoinAndSelect('c.userARef', 'ua')
       .leftJoinAndSelect('c.userBRef', 'ub')
       .where('c.id = :conversationId', { conversationId })
@@ -222,11 +283,12 @@ export class ChatService {
       .andWhere('readAt IS NULL')
       .execute();
 
-    // 获取对方用户ID
+    await this.realtime.markUserActive(userId);
+
     const isUserA = this.toNumber(conv.userA) === this.toNumber(userId);
     const otherId = this.toNumber(isUserA ? conv.userB : conv.userA);
+    const other = (isUserA ? conv.userBRef : conv.userARef) as User | null;
 
-    // 获取对方的认证信息
     const entCert = await this.entCertRepo.findOne({
       where: { userId: otherId, status: 'approved' },
       order: { id: 'DESC' },
@@ -237,23 +299,10 @@ export class ChatService {
       order: { id: 'DESC' },
     });
 
-    // 构建对方用户信息
-    const other = isUserA ? conv.userBRef : conv.userARef;
-    let otherName = (other && other.nickname) || `用户${otherId}`;
-
-    if (entCert && entCert.companyName) {
-      otherName = entCert.companyName;
-    } else if (workerCert && workerCert.realName) {
-      otherName = workerCert.realName;
-    }
-
-    const otherAvatarUrl = (other && other.avatarUrl) || '';
-    console.log('=== Chat getMessages Debug ===');
-    console.log('conversationId:', conversationId);
-    console.log('otherId:', otherId);
-    console.log('other:', other ? { id: other.id, nickname: other.nickname, avatarUrl: other.avatarUrl } : null);
-    console.log('otherAvatarUrl:', otherAvatarUrl);
-    console.log('=============================');
+    const entCertMap = new Map<number, EnterpriseCert>();
+    if (entCert) entCertMap.set(otherId, entCert);
+    const workerCertMap = new Map<number, WorkerCert>();
+    if (workerCert) workerCertMap.set(otherId, workerCert);
 
     return {
       list: list.map((item) => this.mapMessage(item)),
@@ -262,8 +311,9 @@ export class ChatService {
       pageSize,
       otherUser: {
         id: otherId,
-        name: otherName,
-        avatarUrl: otherAvatarUrl,
+        name: this.resolveDisplayName(other, otherId, entCertMap, workerCertMap),
+        avatarUrl: other?.avatarUrl || '',
+        ...this.buildPresence(other, this.realtime.isUserOnline(otherId)),
       },
     };
   }
@@ -289,11 +339,14 @@ export class ChatService {
       lastMessageAt: new Date(),
     });
 
+    await this.realtime.markUserActive(senderId);
+
     const mapped = this.mapMessage(saved);
     const receiverId =
       this.toNumber(conv.userA) === this.toNumber(senderId)
         ? this.toNumber(conv.userB)
         : this.toNumber(conv.userA);
+
     if (receiverId) {
       this.realtime.emitToUser(receiverId, 'new_message', mapped);
     }
@@ -305,26 +358,48 @@ export class ChatService {
     userA: number,
     userB: number,
     postId?: number | string,
+    jobId?: number | string,
   ) {
     if (!userA || !userB) throw new BadRequestException('用户信息不完整');
     if (this.toNumber(userA) === this.toNumber(userB)) {
       throw new BadRequestException('不能和自己发起会话');
     }
+
     const normalizedPostId = Math.max(0, this.toNumber(postId));
+    const normalizedJobId = Math.max(0, this.toNumber(jobId));
+
+    if (normalizedPostId > 0 && normalizedJobId > 0) {
+      throw new BadRequestException('postId 和 jobId 不能同时传入');
+    }
+
     const [a, b] = userA < userB ? [userA, userB] : [userB, userA];
     let conv = await this.convRepo.findOne({
-      where: { userA: a, userB: b, postId: normalizedPostId },
+      where: {
+        userA: a,
+        userB: b,
+        postId: normalizedPostId,
+        jobId: normalizedJobId,
+      },
     });
+
     if (!conv) {
-      // 新会话：校验发起方是否已解锁对方联系方式
-      const hasUnlock = await this.checkContactUnlock(userA, userB);
-      if (!hasUnlock) {
-        throw new ForbiddenException('请先解锁对方联系方式后再发起聊天');
+      if (normalizedJobId <= 0) {
+        const hasUnlock = await this.checkContactUnlock(userA, userB);
+        if (!hasUnlock) {
+          throw new ForbiddenException('请先解锁对方联系方式后再发起聊天');
+        }
       }
+
       conv = await this.convRepo.save(
-        this.convRepo.create({ userA: a, userB: b, postId: normalizedPostId }),
+        this.convRepo.create({
+          userA: a,
+          userB: b,
+          postId: normalizedPostId,
+          jobId: normalizedJobId,
+        }),
       );
     }
+
     return conv;
   }
 
@@ -332,7 +407,6 @@ export class ChatService {
     initiator: number,
     target: number,
   ): Promise<boolean> {
-    // 查找 initiator 是否解锁过 target 发布的任意帖子的联系方式
     const unlock = await this.unlockRepo
       .createQueryBuilder('u')
       .innerJoin(Post, 'p', 'u.postId = p.id')

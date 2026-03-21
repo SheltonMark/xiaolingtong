@@ -425,7 +425,7 @@
   font-size: 26rpx; font-weight: 500;
   display: flex; align-items: center; justify-content: center;
 }
-.job-share-wrap { position: relative; }
+.job-share-wrap { display: none; position: relative; }
 .job-share-wrap .share-overlay {
   position: absolute; top: 0; left: 0; right: 0; bottom: 0;
   opacity: 0; margin: 0; padding: 0; border: none;

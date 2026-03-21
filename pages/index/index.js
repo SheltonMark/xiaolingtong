@@ -2,6 +2,7 @@ const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 const auth = require('../../utils/auth')
 const { calculateDistanceForList, getUserLocation, filterByDistance } = require('../../utils/distance')
+const { countSystemUnread } = require('../../utils/system-messages')
 const DISTANCE_DEBUG = false
 
 function normalizeBenefitItems(value) {
@@ -623,9 +624,34 @@ Page({
 
   loadUnreadCount() {
     if (!auth.getToken()) return
+    const userRole = this.data.userRole || getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    const conversationTask = get('/conversations').catch(() => ({ data: [] }))
+
+    if (userRole === 'worker') {
+      Promise.all([
+        get('/notifications', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } })),
+        get('/wallet/transactions', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } })),
+        conversationTask
+      ]).then(([notificationRes, walletRes, chatRes]) => {
+        const notifications = notificationRes.data.list || notificationRes.data || []
+        const systemUnread = countSystemUnread({
+          userRole,
+          notifications: Array.isArray(notifications) ? notifications : [],
+          transactions: walletRes.data,
+          userId: this.getCurrentUserId()
+        })
+        const chatList = (chatRes.data || chatRes)
+        const chatCount = Array.isArray(chatList)
+          ? chatList.reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+          : (chatList.list || []).reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+        this.setData({ unreadCount: systemUnread + chatCount })
+      })
+      return
+    }
+
     Promise.all([
       get('/notifications/unread-count').catch(() => ({ data: { count: 0 } })),
-      get('/conversations').catch(() => ({ data: [] }))
+      conversationTask
     ]).then(([notiRes, chatRes]) => {
       const notiCount = (notiRes.data || notiRes).count || 0
       const chatList = (chatRes.data || chatRes)

@@ -4,11 +4,14 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { Repository } from 'typeorm';
+import { User } from '../../entities/user.entity';
 
-// ws 为间接依赖，这里用 require 规避额外类型依赖
+// ws is used indirectly, so require keeps the dependency lightweight here.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ws = require('ws');
 
@@ -26,6 +29,8 @@ export class ChatRealtimeService implements OnModuleInit, OnModuleDestroy {
     private readonly httpAdapterHost: HttpAdapterHost,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {}
 
   onModuleInit() {
@@ -71,6 +76,19 @@ export class ChatRealtimeService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  isUserOnline(userId: number): boolean {
+    const set = this.userClients.get(Number(userId));
+    return !!set && set.size > 0;
+  }
+
+  async markUserActive(userId: number): Promise<void> {
+    const normalizedUserId = Number(userId || 0);
+    if (!normalizedUserId) return;
+    await this.userRepo.update(normalizedUserId, {
+      lastActiveAt: new Date(),
+    });
+  }
+
   private async handleConnection(client: WsClient, req: IncomingMessage) {
     const token = this.extractToken(req);
     if (!token) throw new Error('token missing');
@@ -82,10 +100,10 @@ export class ChatRealtimeService implements OnModuleInit, OnModuleDestroy {
     if (!userId) throw new Error('invalid user id');
 
     this.bindClient(userId, client);
+    await this.markUserActive(userId);
     this.send(client, 'connected', { userId, ts: Date.now() });
 
     client.on('message', (raw: Buffer | string) => {
-      // 预留：后续可支持客户端心跳、输入状态等事件
       this.handleClientMessage(client, raw);
     });
 

@@ -67,6 +67,9 @@ export class User {
   @Column({ type: 'bigint', nullable: true })
   invitedBy: number;
 
+  @Column({ type: 'datetime', nullable: true })
+  lastActiveAt: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

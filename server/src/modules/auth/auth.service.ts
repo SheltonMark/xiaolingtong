@@ -27,6 +27,14 @@ export class AuthService {
     private notificationService: NotificationService,
   ) {}
 
+  private async markUserActive(userId: number) {
+    const normalizedUserId = Number(userId || 0);
+    if (!normalizedUserId) return;
+    await this.userRepo.update(normalizedUserId, {
+      lastActiveAt: new Date(),
+    });
+  }
+
   async wxLogin(code: string, inviteCode?: string) {
     const appid = this.config.get('WX_APPID');
     const secret = this.config.get('WX_SECRET');
@@ -65,6 +73,8 @@ export class AuthService {
         }
       }
     }
+
+    await this.markUserActive(user.id);
 
     const token = this.jwt.sign({ sub: user.id, role: user.role });
     return {
@@ -123,6 +133,8 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) return null;
+
+    await this.markUserActive(userId);
 
     let certStatus = 'none';
     let certName = '';

@@ -5,7 +5,10 @@ import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
+import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { BadRequestException } from '@nestjs/common';
+import { InviteService } from '../invite/invite.service';
+import { NotificationService } from '../notification/notification.service';
 import axios from 'axios';
 
 jest.mock('axios');
@@ -14,8 +17,11 @@ describe('AuthService', () => {
   let service: AuthService;
   let userRepo: any;
   let walletRepo: any;
+  let beanTxRepo: any;
   let jwtService: any;
   let configService: any;
+  let inviteService: any;
+  let notificationService: any;
 
   beforeEach(async () => {
     userRepo = {
@@ -34,12 +40,26 @@ describe('AuthService', () => {
       save: jest.fn(),
     };
 
+    beanTxRepo = {
+      create: jest.fn(),
+      save: jest.fn(),
+    };
+
     jwtService = {
       sign: jest.fn(),
     };
 
     configService = {
       get: jest.fn(),
+    };
+
+    inviteService = {
+      ensureInviteCode: jest.fn(),
+      recordInvite: jest.fn(),
+    };
+
+    notificationService = {
+      create: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -54,12 +74,24 @@ describe('AuthService', () => {
           useValue: walletRepo,
         },
         {
+          provide: getRepositoryToken(BeanTransaction),
+          useValue: beanTxRepo,
+        },
+        {
           provide: JwtService,
           useValue: jwtService,
         },
         {
           provide: ConfigService,
           useValue: configService,
+        },
+        {
+          provide: InviteService,
+          useValue: inviteService,
+        },
+        {
+          provide: NotificationService,
+          useValue: notificationService,
         },
       ],
     }).compile();
@@ -68,6 +100,33 @@ describe('AuthService', () => {
   });
 
   describe('wxLogin', () => {
+    it('updates lastActiveAt when an existing user logs in', async () => {
+      const code = 'test_code';
+      const userId = 1;
+
+      configService.get.mockReturnValue(null);
+      userRepo.findOne.mockResolvedValue({
+        id: userId,
+        openid: `dev_${code}`,
+        role: 'worker',
+        nickname: 'Test User',
+        avatarUrl: 'http://example.com/avatar.jpg',
+        beanBalance: 0,
+        isMember: false,
+        creditScore: 0,
+      });
+      jwtService.sign.mockReturnValue('test_token');
+
+      await service.wxLogin(code);
+
+      expect(userRepo.update).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({
+          lastActiveAt: expect.any(Date),
+        }),
+      );
+    });
+
     it('should login successfully with valid code in dev mode', async () => {
       const code = 'test_code';
       const userId = 1;
@@ -220,6 +279,32 @@ describe('AuthService', () => {
   });
 
   describe('getProfile', () => {
+    it('updates lastActiveAt when loading the profile', async () => {
+      const userId = 1;
+      const user = {
+        id: userId,
+        role: 'worker',
+        nickname: 'Test User',
+        avatarUrl: 'http://example.com/avatar.jpg',
+        phone: '13800138000',
+        beanBalance: 100,
+        isMember: false,
+        creditScore: 80,
+      };
+
+      userRepo.findOne.mockResolvedValue(user);
+      userRepo.manager.findOne.mockResolvedValue(null);
+
+      await service.getProfile(userId);
+
+      expect(userRepo.update).toHaveBeenCalledWith(
+        userId,
+        expect.objectContaining({
+          lastActiveAt: expect.any(Date),
+        }),
+      );
+    });
+
     it('should return user profile with no certification', async () => {
       const userId = 1;
       const user = {
