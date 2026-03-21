@@ -18,16 +18,6 @@ SET @old_unique_index_name := (
   LIMIT 1
 );
 
-SET @drop_old_unique_sql := IF(
-  @old_unique_index_name IS NULL,
-  'SELECT 1',
-  CONCAT('ALTER TABLE conversations DROP INDEX ', @old_unique_index_name)
-);
-
-PREPARE drop_old_unique_stmt FROM @drop_old_unique_sql;
-EXECUTE drop_old_unique_stmt;
-DEALLOCATE PREPARE drop_old_unique_stmt;
-
 SET @new_unique_exists := (
   SELECT COUNT(*)
   FROM information_schema.STATISTICS
@@ -45,3 +35,13 @@ SET @create_new_unique_sql := IF(
 PREPARE create_new_unique_stmt FROM @create_new_unique_sql;
 EXECUTE create_new_unique_stmt;
 DEALLOCATE PREPARE create_new_unique_stmt;
+
+SET @drop_old_unique_sql := IF(
+  @old_unique_index_name IS NULL OR @old_unique_index_name = 'uk_conversations_users_context',
+  'SELECT 1',
+  CONCAT('ALTER TABLE conversations DROP INDEX ', @old_unique_index_name)
+);
+
+PREPARE drop_old_unique_stmt FROM @drop_old_unique_sql;
+EXECUTE drop_old_unique_stmt;
+DEALLOCATE PREPARE drop_old_unique_stmt;
