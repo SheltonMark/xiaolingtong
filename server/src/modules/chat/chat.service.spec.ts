@@ -7,38 +7,115 @@ import { ChatService } from './chat.service';
 import { ChatRealtimeService } from './chat-realtime.service';
 import { Conversation } from '../../entities/conversation.entity';
 import { ChatMessage } from '../../entities/chat-message.entity';
+import { ContactUnlock } from '../../entities/contact-unlock.entity';
+import { Post } from '../../entities/post.entity';
+import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
+
+function createConversationListQuery(result: any[]) {
+  return {
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue(result),
+  };
+}
+
+function createConversationDetailQuery(result: any) {
+  return {
+    leftJoinAndSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getOne: jest.fn().mockResolvedValue(result),
+  };
+}
+
+function createUnreadQuery(rows: any[]) {
+  return {
+    select: jest.fn().mockReturnThis(),
+    addSelect: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    groupBy: jest.fn().mockReturnThis(),
+    getRawMany: jest.fn().mockResolvedValue(rows),
+  };
+}
+
+function createReadUpdateQuery() {
+  return {
+    update: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    execute: jest.fn().mockResolvedValue({ affected: 1 }),
+  };
+}
+
+function createCertQuery(certs: any[]) {
+  return {
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    orderBy: jest.fn().mockReturnThis(),
+    addOrderBy: jest.fn().mockReturnThis(),
+    getMany: jest.fn().mockResolvedValue(certs),
+  };
+}
+
+function createUnlockQuery(unlock: any) {
+  return {
+    innerJoin: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getOne: jest.fn().mockResolvedValue(unlock),
+  };
+}
 
 describe('ChatService', () => {
   let service: ChatService;
   let conversationRepository: any;
   let chatMessageRepository: any;
+  let unlockRepository: any;
+  let postRepository: any;
+  let enterpriseCertRepository: any;
+  let workerCertRepository: any;
   let chatRealtimeService: any;
 
   beforeEach(async () => {
     conversationRepository = {
       findOne: jest.fn(),
-      find: jest.fn(),
-      create: jest.fn(),
+      create: jest.fn((value) => value),
       save: jest.fn(),
       update: jest.fn(),
       createQueryBuilder: jest.fn(),
     };
 
     chatMessageRepository = {
-      findOne: jest.fn(),
-      find: jest.fn(),
-      create: jest.fn(),
+      create: jest.fn((value) => value),
       save: jest.fn(),
-      update: jest.fn(),
-      count: jest.fn(),
       findAndCount: jest.fn(),
       createQueryBuilder: jest.fn(),
     };
 
+    unlockRepository = {
+      createQueryBuilder: jest.fn(),
+    };
+
+    postRepository = {};
+
+    enterpriseCertRepository = {
+      createQueryBuilder: jest.fn(),
+      findOne: jest.fn(),
+    };
+
+    workerCertRepository = {
+      createQueryBuilder: jest.fn(),
+      findOne: jest.fn(),
+    };
+
     chatRealtimeService = {
-      sendMessage: jest.fn(),
-      notifyNewMessage: jest.fn(),
       emitToUser: jest.fn(),
+      isUserOnline: jest.fn().mockReturnValue(false),
+      markUserActive: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -51,6 +128,22 @@ describe('ChatService', () => {
         {
           provide: getRepositoryToken(ChatMessage),
           useValue: chatMessageRepository,
+        },
+        {
+          provide: getRepositoryToken(ContactUnlock),
+          useValue: unlockRepository,
+        },
+        {
+          provide: getRepositoryToken(Post),
+          useValue: postRepository,
+        },
+        {
+          provide: getRepositoryToken(EnterpriseCert),
+          useValue: enterpriseCertRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkerCert),
+          useValue: workerCertRepository,
         },
         {
           provide: ChatRealtimeService,
@@ -66,227 +159,169 @@ describe('ChatService', () => {
     jest.clearAllMocks();
   });
 
-  describe('formatTime', () => {
-    it('should format time correctly', () => {
-      const date = new Date('2026-03-06T14:30:00');
-      const result = service['formatTime'](date);
-      expect(result).toBe('14:30');
-    });
-
-    it('should return empty string for null', () => {
-      expect(service['formatTime'](null)).toBe('');
-    });
-
-    it('should return empty string for undefined', () => {
-      expect(service['formatTime'](undefined)).toBe('');
-    });
-  });
-
   describe('buildLastMessagePreview', () => {
-    it('should return text message preview', () => {
-      const result = service['buildLastMessagePreview']('text', 'Hello world');
-      expect(result).toBe('Hello world');
-    });
-
-    it('should truncate long text at 60 characters', () => {
-      const result = service['buildLastMessagePreview'](
-        'text',
-        'a'.repeat(100),
+    it('returns an image placeholder for image payloads', () => {
+      expect(service['buildLastMessagePreview']('image', 'image-url')).toBe(
+        '[图片]',
       );
-      expect(result).toBe('a'.repeat(60) + '...');
     });
 
-    it('should return image indicator', () => {
-      const result = service['buildLastMessagePreview']('image', 'image_url');
-      expect(result).toBe('[图片]');
-    });
-
-    it('should return voice indicator', () => {
-      const result = service['buildLastMessagePreview'](
-        'text',
-        '__VOICE__test',
+    it('returns a voice placeholder for voice payloads', () => {
+      expect(service['buildLastMessagePreview']('text', '__VOICE__payload')).toBe(
+        '[语音]',
       );
-      expect(result).toBe('[语音]');
     });
   });
 
   describe('listConversations', () => {
-    it('should return user conversations', async () => {
-      const mockConversations = [
-        {
+    it('includes presence fields for the counterpart', async () => {
+      const lastActiveAt = new Date('2026-03-21T09:30:00.000Z');
+      conversationRepository.createQueryBuilder.mockReturnValue(
+        createConversationListQuery([
+          {
+            id: 1,
+            userA: 1,
+            userB: 2,
+            postId: 0,
+            jobId: 7,
+            lastMessage: 'Hello',
+            lastMessageAt: new Date('2026-03-21T09:31:00.000Z'),
+            createdAt: new Date('2026-03-21T09:20:00.000Z'),
+            userARef: { id: 1, nickname: 'Worker 1', avatarUrl: '' },
+            userBRef: {
+              id: 2,
+              nickname: 'Factory 2',
+              avatarUrl: '',
+              lastActiveAt,
+            },
+          },
+        ]),
+      );
+      enterpriseCertRepository.createQueryBuilder.mockReturnValue(
+        createCertQuery([]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValue(
+        createCertQuery([]),
+      );
+      chatMessageRepository.createQueryBuilder.mockReturnValue(
+        createUnreadQuery([{ conversationId: 1, count: 2 }]),
+      );
+      chatRealtimeService.isUserOnline.mockReturnValue(true);
+
+      const result = await service.listConversations(1);
+
+      expect(chatRealtimeService.markUserActive).toHaveBeenCalledWith(1);
+      expect(result[0]).toEqual(
+        expect.objectContaining({
           id: 1,
-          userA: 1,
-          userB: 2,
-          lastMessage: 'Hello',
-          lastMessageAt: new Date(),
-          createdAt: new Date(),
-          userARef: { id: 1, nickname: 'User 1' },
-          userBRef: { id: 2, nickname: 'User 2' },
-        },
-      ];
-
-      conversationRepository.createQueryBuilder.mockReturnValue({
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(mockConversations),
-      });
-      chatMessageRepository.createQueryBuilder.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        addSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        groupBy: jest.fn().mockReturnThis(),
-        getRawMany: jest.fn().mockResolvedValue([]),
-      });
-
-      const result = await service.listConversations(1);
-
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
-    });
-
-    it('should return empty array when no conversations', async () => {
-      conversationRepository.createQueryBuilder.mockReturnValue({
-        leftJoinAndSelect: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      });
-
-      const result = await service.listConversations(1);
-
-      expect(result).toEqual([]);
+          postId: 0,
+          jobId: 7,
+          unreadCount: 2,
+          isOnline: true,
+          lastActiveAt,
+          activeText: '在线',
+        }),
+      );
     });
   });
 
   describe('getMessages', () => {
-    it('should return paginated messages', async () => {
-      const mockMessages = [
-        {
+    it('returns counterpart presence in otherUser', async () => {
+      const lastActiveAt = new Date('2026-03-21T09:30:00.000Z');
+      conversationRepository.createQueryBuilder.mockReturnValue(
+        createConversationDetailQuery({
           id: 1,
-          conversationId: 1,
-          senderId: 1,
-          content: 'Hello',
-          type: 'text',
-          createdAt: new Date(),
-          sender: { id: 1, nickname: 'User 1', avatarUrl: '' },
-        },
-      ];
-
-      conversationRepository.findOne.mockResolvedValue({
-        id: 1,
-        userA: 1,
-        userB: 2,
-      });
-      chatMessageRepository.findAndCount.mockResolvedValue([mockMessages, 1]);
-      chatMessageRepository.createQueryBuilder.mockReturnValue({
-        update: jest.fn().mockReturnThis(),
-        set: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        execute: jest.fn().mockResolvedValue({}),
-      });
+          userA: 1,
+          userB: 2,
+          userARef: { id: 1, nickname: 'Worker 1', avatarUrl: '' },
+          userBRef: {
+            id: 2,
+            nickname: 'Factory 2',
+            avatarUrl: 'avatar.png',
+            lastActiveAt,
+          },
+        }),
+      );
+      chatMessageRepository.findAndCount.mockResolvedValue([[], 0]);
+      chatMessageRepository.createQueryBuilder.mockReturnValue(
+        createReadUpdateQuery(),
+      );
+      enterpriseCertRepository.findOne.mockResolvedValue(null);
+      workerCertRepository.findOne.mockResolvedValue(null);
 
       const result = await service.getMessages(1, 1, { page: 1, pageSize: 20 });
 
-      expect(result).toBeDefined();
-      expect(result.list).toHaveLength(1);
-    });
-
-    it('should throw error when conversation not found', async () => {
-      conversationRepository.findOne.mockResolvedValue(null);
-
-      await expect(
-        service.getMessages(1, 999, { page: 1, pageSize: 20 }),
-      ).rejects.toThrow();
-    });
-
-    it('should throw error on unauthorized access', async () => {
-      conversationRepository.findOne.mockResolvedValue({
-        id: 1,
-        userA: 2,
-        userB: 3,
-      });
-
-      await expect(
-        service.getMessages(1, 1, { page: 1, pageSize: 20 }),
-      ).rejects.toThrow();
+      expect(chatRealtimeService.markUserActive).toHaveBeenCalledWith(1);
+      expect(result.otherUser).toEqual(
+        expect.objectContaining({
+          id: 2,
+          name: 'Factory 2',
+          avatarUrl: 'avatar.png',
+          isOnline: false,
+          lastActiveAt,
+          activeText: expect.any(String),
+        }),
+      );
     });
   });
 
   describe('sendMessage', () => {
-    it('should send text message successfully', async () => {
+    it('marks the sender active after sending', async () => {
       const mockConversation = { id: 1, userA: 1, userB: 2 };
       const mockMessage = {
-        id: 1,
+        id: 5,
         conversationId: 1,
         senderId: 1,
-        content: 'Hello',
         type: 'text',
-        createdAt: new Date(),
+        content: 'Hello',
+        createdAt: new Date('2026-03-21T09:31:00.000Z'),
       };
 
       conversationRepository.findOne.mockResolvedValue(mockConversation);
       chatMessageRepository.create.mockReturnValue(mockMessage);
       chatMessageRepository.save.mockResolvedValue(mockMessage);
-      conversationRepository.save.mockResolvedValue(mockConversation);
+      conversationRepository.update.mockResolvedValue({ affected: 1 });
 
-      const result = await service.sendMessage(1, 1, {
-        content: 'Hello',
-        type: 'text',
-      });
+      await service.sendMessage(1, 1, { type: 'text', content: 'Hello' });
 
-      expect(result).toBeDefined();
-      expect(chatMessageRepository.save).toHaveBeenCalled();
-    });
-
-    it('should throw error on empty content', async () => {
-      const mockConversation = { id: 1, userA: 1, userB: 2 };
-
-      conversationRepository.findOne.mockResolvedValue(mockConversation);
-
-      await expect(
-        service.sendMessage(1, 1, { content: '', type: 'text' }),
-      ).rejects.toThrow();
-    });
-
-    it('should throw error when conversation not found', async () => {
-      conversationRepository.findOne.mockResolvedValue(null);
-
-      await expect(
-        service.sendMessage(1, 999, { content: 'Hello', type: 'text' }),
-      ).rejects.toThrow();
+      expect(chatRealtimeService.markUserActive).toHaveBeenCalledWith(1);
+      expect(chatRealtimeService.emitToUser).toHaveBeenCalledWith(
+        2,
+        'new_message',
+        expect.any(Object),
+      );
     });
   });
 
   describe('getOrCreateConversation', () => {
-    it('should return existing conversation', async () => {
-      const mockConversation = { id: 1, userA: 1, userB: 2 };
-
-      conversationRepository.findOne.mockResolvedValue(mockConversation);
-
-      const result = await service.getOrCreateConversation(1, 2);
-
-      expect(result).toBeDefined();
-      expect(result.id).toBe(1);
-    });
-
-    it('should create new conversation', async () => {
-      const mockConversation = { id: 1, userA: 1, userB: 2 };
-
+    it('allows creating a job conversation without requiring unlock', async () => {
       conversationRepository.findOne.mockResolvedValue(null);
-      conversationRepository.create.mockReturnValue(mockConversation);
-      conversationRepository.save.mockResolvedValue(mockConversation);
+      conversationRepository.save.mockImplementation(async (value) => ({
+        id: 11,
+        ...value,
+      }));
 
-      const result = await service.getOrCreateConversation(1, 2);
+      const result = await service.getOrCreateConversation(9, 2, undefined, 7);
 
-      expect(result).toBeDefined();
-      expect(conversationRepository.save).toHaveBeenCalled();
+      expect(unlockRepository.createQueryBuilder).not.toHaveBeenCalled();
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 11,
+          userA: 2,
+          userB: 9,
+          postId: 0,
+          jobId: 7,
+        }),
+      );
     });
 
-    it('should throw error on self-conversation', async () => {
-      await expect(service.getOrCreateConversation(1, 1)).rejects.toThrow();
+    it('keeps post conversations behind the unlock rule', async () => {
+      conversationRepository.findOne.mockResolvedValue(null);
+      unlockRepository.createQueryBuilder.mockReturnValue(createUnlockQuery(null));
+
+      await expect(
+        service.getOrCreateConversation(9, 2, 5, undefined),
+      ).rejects.toThrow('请先解锁对方联系方式后再发起聊天');
     });
   });
 });

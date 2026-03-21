@@ -101,7 +101,6 @@
         <text class="contact-label">微信联系</text>
         <view class="contact-action" bindtap="onWechat">
           <text class="contact-action-text">查看微信</text>
-          <text class="contact-action-hint">{{job.company.wechatQrImage ? '长按二维码识别' : '点击查看并复制'}}</text>
         </view>
       </view>
     </view>

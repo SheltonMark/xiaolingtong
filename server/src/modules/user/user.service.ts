@@ -23,6 +23,7 @@ type TencentCloudRequest = {
 @Injectable()
 export class UserService {
   private readonly logger = new Logger(UserService.name);
+  private readonly certSmsExpireMinutes = 5;
 
   constructor(
     private config: ConfigService,
@@ -259,7 +260,7 @@ export class UserService {
           SmsSdkAppId: appId,
           SignName: signName,
           TemplateId: templateId,
-          TemplateParamSet: [code],
+          TemplateParamSet: [code, String(this.certSmsExpireMinutes)],
           SessionContext: scene,
         },
       },
@@ -456,14 +457,14 @@ export class UserService {
       verificationToken: null,
       verifiedAt: null,
       ocrPayload: null,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + this.certSmsExpireMinutes * 60 * 1000),
     });
     const saved = await this.verificationSessionRepo.save(session);
 
     return {
       sessionId: saved.id,
       maskedPhone: this.maskPhone(phone),
-      expiresIn: 5 * 60,
+      expiresIn: this.certSmsExpireMinutes * 60,
       channel: sendResult.channel,
       // Only expose the debug code outside production so front-end flow can continue
       // before Tencent Cloud SMS credentials and template approvals are ready.

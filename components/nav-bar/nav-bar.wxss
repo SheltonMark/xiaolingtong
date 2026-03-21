@@ -19,14 +19,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .back-arrow {
   font-size: 48rpx;
   color: #64748B;
   line-height: 1;
 }
-.nav-title {
+.nav-title-wrap {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.nav-title {
+  width: 100%;
   text-align: center;
   font-size: 30rpx;
   font-weight: 600;
@@ -35,9 +44,23 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.nav-subtitle {
+  max-width: 100%;
+  margin-top: 4rpx;
+  font-size: 20rpx;
+  line-height: 1.2;
+  color: #94A3B8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.nav-subtitle-online {
+  color: #10B981;
+}
 .nav-right {
   min-width: 60rpx;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  flex-shrink: 0;
 }

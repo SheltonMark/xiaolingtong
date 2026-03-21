@@ -1,6 +1,6 @@
 <!--pages/chat/chat.wxml-->
 <view class="chat-page">
-  <nav-bar title="{{otherName || '在线聊天'}}" />
+  <nav-bar title="{{otherName || '在线聊天'}}" subtitle="{{otherActiveText}}" subtitleClass="{{otherIsOnline ? 'nav-subtitle-online' : ''}}" />
   <view class="recording-mask" wx:if="{{recording}}">
     <view class="recording-panel {{cancelVoice ? 'recording-panel-cancel' : ''}}">
       <view class="recording-mic iconfont icon-yuyin"></view>

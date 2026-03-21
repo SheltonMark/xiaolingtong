@@ -12,6 +12,8 @@ Page({
     otherAvatarUrl: '',
     otherAvatarText: '',
     otherName: '',
+    otherActiveText: '',
+    otherIsOnline: false,
     myAvatarUrl: '',
     myAvatarText: '',
     messages: [],
@@ -83,6 +85,9 @@ Page({
     })
   },
   onShow() {
+    if (this.data.conversationId) {
+      this.loadMessages(this.data.conversationId)
+    }
     wsChat.connect()
     if (!this._wsUnsubscribe) {
       this._wsUnsubscribe = wsChat.subscribe((event, data) => this.onWsEvent(event, data))
@@ -127,7 +132,9 @@ Page({
         this.setData({
           otherAvatarUrl: normalizeImageUrl(otherUser.avatarUrl || ''),
           otherAvatarText: otherUser.name ? otherUser.name[0] : '对',
-          otherName: otherUser.name || '对方'
+          otherName: otherUser.name || '对方',
+          otherActiveText: otherUser.activeText || '',
+          otherIsOnline: !!otherUser.isOnline
         })
       } else {
         // 兼容旧逻辑：从消息中提取对方头像
@@ -138,7 +145,9 @@ Page({
           this.setData({
             otherAvatarUrl: normalizeImageUrl(otherMsg.sender.avatarUrl || ''),
             otherAvatarText: otherMsg.sender.nickname ? otherMsg.sender.nickname[0] : '对',
-            otherName: otherMsg.sender.nickname || '对方'
+            otherName: otherMsg.sender.nickname || '对方',
+            otherActiveText: '',
+            otherIsOnline: false
           })
         }
       }

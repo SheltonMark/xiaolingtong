@@ -6,11 +6,13 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  Index,
 } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('conversations')
-@Unique(['userA', 'userB', 'postId'])
+@Index('idx_conversations_userA', ['userA'])
+@Unique(['userA', 'userB', 'postId', 'jobId'])
 export class Conversation {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   id: number;
@@ -23,6 +25,9 @@ export class Conversation {
 
   @Column({ type: 'bigint', default: 0 })
   postId: number;
+
+  @Column({ type: 'bigint', default: 0 })
+  jobId: number;
 
   @Column({ type: 'text', nullable: true })
   lastMessage: string;

@@ -33,12 +33,13 @@ export class ChatController {
   withUser(
     @CurrentUser('sub') currentUserId: number,
     @Param('userId') userId: number,
-    @Body() body: { postId?: number | string },
+    @Body() body: { postId?: number | string; jobId?: number | string },
   ) {
     return this.chatService.getOrCreateConversation(
       currentUserId,
       userId,
       body?.postId,
+      body?.jobId,
     );
   }
 }

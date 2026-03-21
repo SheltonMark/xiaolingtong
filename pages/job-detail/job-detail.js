@@ -3,6 +3,37 @@ const { normalizeImageList } = require('../../utils/image')
 const { calculateDistanceForList, getUserLocation } = require('../../utils/distance')
 const auth = require('../../utils/auth')
 
+function normalizeBenefits(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => {
+      if (!item) return null
+      if (typeof item === 'string') return { label: item, color: 'green' }
+      if (item.label) return Object.assign({}, item, { color: item.color || 'green' })
+      return null
+    }).filter(Boolean)
+  }
+  if (typeof value === 'string') {
+    const text = value.trim()
+    if (!text) return []
+    try {
+      return normalizeBenefits(JSON.parse(text))
+    } catch (err) {
+      return text.split(/[,\n，|]/).map((item) => item.trim()).filter(Boolean).map((label) => ({ label, color: 'green' }))
+    }
+  }
+  return []
+}
+
+function hasBenefitValue(value) {
+  if (Array.isArray(value)) return value.length > 0
+  if (typeof value === 'string') return !!value.trim()
+  return !!value
+}
+
+function pickBenefitValue(primary, fallback) {
+  return hasBenefitValue(primary) ? primary : fallback
+}
+
 Page({
   data: {
     userRole: 'worker',
@@ -27,7 +58,8 @@ Page({
       const job = res.data || {}
       const jobData = {
         ...job,
-        images: normalizeImageList(job.images)
+        images: normalizeImageList(job.images),
+        benefits: normalizeBenefits(pickBenefitValue(job.benefits, job.tags))
       }
       this.setData({ job: jobData, wechatCardVisible: false })
 

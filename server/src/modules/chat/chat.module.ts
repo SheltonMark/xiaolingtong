@@ -10,6 +10,7 @@ import { Post } from '../../entities/post.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { ChatRealtimeService } from './chat-realtime.service';
+import { User } from '../../entities/user.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ChatRealtimeService } from './chat-realtime.service';
       Post,
       EnterpriseCert,
       WorkerCert,
+      User,
     ]),
     AuthModule,
   ],

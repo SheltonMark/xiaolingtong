@@ -87,16 +87,48 @@ export class JobService {
   }
 
   private normalizeBenefits(value: any) {
+    if (typeof value === 'string') {
+      const text = value.trim();
+      if (!text) return undefined;
+      try {
+        return this.normalizeBenefits(JSON.parse(text));
+      } catch {
+        return this.normalizeBenefits(
+          text
+            .split(/[,\n，|]/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+        );
+      }
+    }
     if (!Array.isArray(value)) return undefined;
     const normalized = value
       .map((item: any) => {
         if (!item) return null;
         if (typeof item === 'string') return { label: item, color: 'green' };
-        if (item.label) return item;
+        if (item.label) return { ...item, color: item.color || 'green' };
         return null;
       })
       .filter(Boolean);
     return normalized.length ? normalized : undefined;
+  }
+
+  private buildBenefitTags(benefits: Array<{ label: string; color?: string }> = []) {
+    return benefits.map((item) => ({
+      label: item.label,
+      bg: '#ECFDF5',
+      color: '#10B981',
+    }));
+  }
+
+  private buildAllTags(benefits: Array<{ label: string; color?: string }> = [], workHours?: string) {
+    const benefitTags = this.buildBenefitTags(benefits);
+    const timeTags = workHours ? [{
+      label: workHours,
+      bg: '#EFF6FF',
+      color: '#3B82F6',
+    }] : [];
+    return [...benefitTags, ...timeTags];
   }
 
   private normalizeImages(value: any) {
@@ -259,7 +291,7 @@ export class JobService {
       dateEnd,
       workHours,
       description: this.normalizeText(dto.description || dto.content),
-      benefits: this.normalizeBenefits(dto.benefits),
+      benefits: this.normalizeBenefits(dto.benefits ?? dto.tags),
       images: this.normalizeImages(dto.images),
       urgent: dto.urgent ? 1 : 0,
     };
@@ -314,19 +346,9 @@ export class JobService {
       const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
       const cert = certMap.get(job.userId);
 
-      const benefitTags = (job.benefits || []).map((b: any) => ({
-        label: typeof b === 'string' ? b : b.label,
-        bg: '#ECFDF5',
-        color: '#10B981'
-      }));
-
-      const timeTags = job.workHours ? [{
-        label: job.workHours,
-        bg: '#EFF6FF',
-        color: '#3B82F6'
-      }] : [];
-
-      const allTags = [...benefitTags, ...timeTags];
+      const normalizedBenefits = this.normalizeBenefits(job.benefits) || [];
+      const benefitTags = this.buildBenefitTags(normalizedBenefits);
+      const allTags = this.buildAllTags(normalizedBenefits, job.workHours);
 
       return {
         id: job.id,
@@ -347,6 +369,7 @@ export class JobService {
         desc: job.description || '',
         urgent: job.urgent === 1,
         images: job.images || [],
+        benefits: normalizedBenefits,
         tags: benefitTags,
         allTags,
         companyName: cert?.companyName || job.user?.nickname || '企业用户',
@@ -390,6 +413,8 @@ export class JobService {
       ? `${job.dateStart} 至 ${job.dateEnd}`
       : '待定';
     const contactInfo = this.buildVisibleContactInfo(job);
+    const normalizedBenefits = this.normalizeBenefits(job.benefits) || [];
+    const allTags = this.buildAllTags(normalizedBenefits, job.workHours);
 
     return {
       ...job,
@@ -400,6 +425,9 @@ export class JobService {
       dateRange,
       hours: job.workHours || '待定',
       cityDistrict: this.extractCityDistrict(job.location),
+      benefits: normalizedBenefits,
+      tags: this.buildBenefitTags(normalizedBenefits),
+      allTags,
       company: {
         name: companyName,
         verified,
@@ -449,6 +477,9 @@ export class JobService {
         pendingCount,
         acceptedCount,
         confirmedCount,
+        benefits: this.normalizeBenefits(job.benefits) || [],
+        tags: this.buildBenefitTags(this.normalizeBenefits(job.benefits) || []),
+        allTags: this.buildAllTags(this.normalizeBenefits(job.benefits) || [], job.workHours),
         dateStart: job.dateStart,
         dateEnd: job.dateEnd,
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
