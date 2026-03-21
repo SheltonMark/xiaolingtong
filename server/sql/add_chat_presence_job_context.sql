@@ -23,9 +23,7 @@ SET @user_a_index_exists := (
   FROM information_schema.STATISTICS
   WHERE TABLE_SCHEMA = DATABASE()
     AND TABLE_NAME = 'conversations'
-    AND INDEX_NAME <> COALESCE(@old_unique_index_name, '')
-    AND SEQ_IN_INDEX = 1
-    AND COLUMN_NAME = 'userA'
+    AND INDEX_NAME = 'idx_conversations_userA'
 );
 
 SET @create_user_a_index_sql := IF(
