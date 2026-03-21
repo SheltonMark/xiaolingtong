@@ -87,6 +87,20 @@ export class JobService {
   }
 
   private normalizeBenefits(value: any) {
+    if (typeof value === 'string') {
+      const text = value.trim();
+      if (!text) return undefined;
+      try {
+        return this.normalizeBenefits(JSON.parse(text));
+      } catch {
+        return this.normalizeBenefits(
+          text
+            .split(/[,\n，|]/)
+            .map((item) => item.trim())
+            .filter(Boolean),
+        );
+      }
+    }
     if (!Array.isArray(value)) return undefined;
     const normalized = value
       .map((item: any) => {
@@ -277,7 +291,7 @@ export class JobService {
       dateEnd,
       workHours,
       description: this.normalizeText(dto.description || dto.content),
-      benefits: this.normalizeBenefits(dto.benefits),
+      benefits: this.normalizeBenefits(dto.benefits ?? dto.tags),
       images: this.normalizeImages(dto.images),
       urgent: dto.urgent ? 1 : 0,
     };

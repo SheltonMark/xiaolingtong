@@ -34,6 +34,16 @@ function normalizeBenefitTags(value) {
   }))
 }
 
+function hasBenefitValue(value) {
+  if (Array.isArray(value)) return value.length > 0
+  if (typeof value === 'string') return !!value.trim()
+  return !!value
+}
+
+function pickBenefitValue(primary, fallback) {
+  return hasBenefitValue(primary) ? primary : fallback
+}
+
 Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
@@ -399,7 +409,8 @@ Page({
     return (Array.isArray(list) ? list : []).map((item) => {
       const user = item.user || {}
       const companyName = item.companyName || user.nickname || '企业用户'
-      const benefitTags = normalizeBenefitTags(item.tags || item.benefits)
+      const benefitSource = pickBenefitValue(item.benefits, item.tags)
+      const benefitTags = normalizeBenefitTags(benefitSource)
       const allTags = Array.isArray(item.allTags) && item.allTags.length
         ? item.allTags
         : benefitTags.concat(item.workHours ? [{
@@ -412,7 +423,7 @@ Page({
         companyName,
         avatarUrl: normalizeImageUrl(item.avatarUrl || user.avatarUrl || ''),
         tags: benefitTags,
-        benefits: normalizeBenefitItems(item.benefits || item.tags),
+        benefits: normalizeBenefitItems(benefitSource),
         allTags
       }
     })

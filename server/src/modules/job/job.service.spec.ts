@@ -182,6 +182,22 @@ describe('JobService', () => {
     });
   });
 
+  describe('normalizeBenefits', () => {
+    it('normalizes JSON string benefits into label objects', () => {
+      expect(service['normalizeBenefits']('["包午餐","包住宿"]')).toEqual([
+        { label: '包午餐', color: 'green' },
+        { label: '包住宿', color: 'green' },
+      ]);
+    });
+
+    it('normalizes comma-separated benefits into label objects', () => {
+      expect(service['normalizeBenefits']('包午餐, 包住宿')).toEqual([
+        { label: '包午餐', color: 'green' },
+        { label: '包住宿', color: 'green' },
+      ]);
+    });
+  });
+
   describe('checkKeywords', () => {
     it('allows content without prohibited keywords', async () => {
       keywordRepository.find.mockResolvedValue([{ word: 'forbidden' }]);

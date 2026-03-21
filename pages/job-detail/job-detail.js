@@ -24,6 +24,16 @@ function normalizeBenefits(value) {
   return []
 }
 
+function hasBenefitValue(value) {
+  if (Array.isArray(value)) return value.length > 0
+  if (typeof value === 'string') return !!value.trim()
+  return !!value
+}
+
+function pickBenefitValue(primary, fallback) {
+  return hasBenefitValue(primary) ? primary : fallback
+}
+
 Page({
   data: {
     userRole: 'worker',
@@ -49,7 +59,7 @@ Page({
       const jobData = {
         ...job,
         images: normalizeImageList(job.images),
-        benefits: normalizeBenefits(job.benefits || job.tags)
+        benefits: normalizeBenefits(pickBenefitValue(job.benefits, job.tags))
       }
       this.setData({ job: jobData, wechatCardVisible: false })
 
