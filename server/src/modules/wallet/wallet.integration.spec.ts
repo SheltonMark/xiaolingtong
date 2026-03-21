@@ -29,6 +29,7 @@ describe('WalletModule Integration Tests', () => {
 
     walletTransactionRepository = {
       createQueryBuilder: jest.fn(),
+      find: jest.fn().mockResolvedValue([]),
       create: jest.fn(),
       save: jest.fn(),
     };
@@ -41,6 +42,7 @@ describe('WalletModule Integration Tests', () => {
     paymentService = {
       transferToWallet: jest.fn(),
       generateOutTradeNo: jest.fn().mockReturnValue('WD_1_123456_abc'),
+      queryTransferDetail: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

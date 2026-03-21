@@ -82,7 +82,7 @@ export class PaymentService {
 
   /** 生成商户订单号: PREFIX_ORDERID_TIMESTAMP_RAND */
   generateOutTradeNo(prefix: string, orderId?: number) {
-    const ts = Date.now().toString();
+    const ts = Date.now().toString(36);
     const rand = crypto.randomBytes(4).toString('hex');
     return orderId
       ? `${prefix}_${orderId}_${ts}_${rand}`
@@ -157,7 +157,10 @@ export class PaymentService {
     amount: number; // 单位：分
     remark: string;
   }) {
-    // 商家转账到零钱 V3 接口
+    if (!this.pay?.batches_transfer) {
+      throw new Error('微信商家转账未初始化');
+    }
+
     const result = await this.pay.batches_transfer({
       appid: this.appid,
       out_batch_no: params.outBatchNo,
@@ -174,8 +177,36 @@ export class PaymentService {
         },
       ],
     });
-    this.logger.log(`转账: ${params.outDetailNo}, amount: ${params.amount}`);
-    return result;
+
+    if (result?.status === 200 && result.data?.out_batch_no) {
+      this.logger.log(`转账受理: ${params.outDetailNo}, amount: ${params.amount}`);
+      return result.data;
+    }
+
+    this.logger.error(`转账受理失败: ${JSON.stringify(result)}`);
+    throw new Error(result?.error || '微信提现请求失败');
+  }
+
+  /** 查询商家转账明细 */
+  async queryTransferDetail(params: {
+    outBatchNo: string;
+    outDetailNo: string;
+  }) {
+    if (!this.pay?.query_batches_transfer_detail) {
+      throw new Error('微信商家转账未初始化');
+    }
+
+    const result = await this.pay.query_batches_transfer_detail({
+      out_batch_no: params.outBatchNo,
+      out_detail_no: params.outDetailNo,
+    });
+
+    if (result?.status === 200 && result.data) {
+      return result.data;
+    }
+
+    this.logger.error(`查询转账明细失败: ${JSON.stringify(result)}`);
+    throw new Error(result?.error || '查询微信提现状态失败');
   }
 
   /** 查询订单状态 */

@@ -26,6 +26,7 @@ describe('WalletService', () => {
 
     txRepo = {
       createQueryBuilder: jest.fn(),
+      find: jest.fn(),
       save: jest.fn(),
       create: jest.fn(),
     };
@@ -37,6 +38,7 @@ describe('WalletService', () => {
     paymentService = {
       generateOutTradeNo: jest.fn(),
       transferToWallet: jest.fn(),
+      queryTransferDetail: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -62,6 +64,7 @@ describe('WalletService', () => {
     }).compile();
 
     service = module.get<WalletService>(WalletService);
+    txRepo.find.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -69,6 +72,43 @@ describe('WalletService', () => {
   });
 
   describe('getBalance', () => {
+    it('should reconcile pending withdrawals before returning balance', async () => {
+      const userId = 1;
+      const mockWallet = {
+        id: 1,
+        userId,
+        balance: 1000,
+        totalIncome: 5000,
+        totalWithdraw: 4000,
+      };
+      const mockTx = {
+        id: 9,
+        userId,
+        type: 'withdraw',
+        amount: 20,
+        status: 'pending',
+        refType: 'WD_9_123456_abcd',
+        refId: 9,
+        remark: '提现处理中',
+      };
+
+      txRepo.find.mockResolvedValue([mockTx]);
+      txRepo.save.mockResolvedValue(mockTx);
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      paymentService.queryTransferDetail.mockResolvedValue({
+        detail_status: 'SUCCESS',
+      });
+
+      const result = await service.getBalance(userId);
+
+      expect(paymentService.queryTransferDetail).toHaveBeenCalledWith({
+        outBatchNo: 'WD_9_123456_abcd',
+        outDetailNo: '9',
+      });
+      expect(mockTx.status).toBe('success');
+      expect(result).toEqual(mockWallet);
+    });
+
     it('should return existing wallet', async () => {
       const userId = 1;
       const mockWallet = {
@@ -339,7 +379,7 @@ describe('WalletService', () => {
   });
 
   describe('withdraw', () => {
-    it('should withdraw successfully', async () => {
+    it('should keep withdrawal pending after transfer request is accepted', async () => {
       const userId = 1;
       const amount = 100;
       const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
@@ -361,8 +401,13 @@ describe('WalletService', () => {
 
       const result = await service.withdraw(userId, amount);
 
-      expect(result.message).toBe('提现成功');
+      expect(result.message).toBe('提现申请已提交');
       expect(result.balance).toBe(400);
+      expect(result.status).toBe('pending');
+      expect(mockTx.status).toBe('pending');
+      expect(mockTx.refType).toBe('WD_1_123456_abcd');
+      expect(mockTx.refId).toBe(1);
+      expect(mockTx.remark).toBe('提现处理中');
       expect(walletRepo.save).toHaveBeenCalled();
       expect(txRepo.save).toHaveBeenCalled();
     });
@@ -486,6 +531,68 @@ describe('WalletService', () => {
 
       expect(mockWallet.balance).toBe(400);
       expect(mockWallet.totalWithdraw).toBe(300);
+    });
+
+    it('should reconcile pending withdrawal to success after transfer detail succeeds', async () => {
+      const mockTx = {
+        id: 9,
+        userId: 2,
+        type: 'withdraw',
+        amount: 20,
+        status: 'pending',
+        refType: 'WD_9_123456_abcd',
+        refId: 9,
+        remark: '提现处理中',
+      };
+
+      txRepo.find.mockResolvedValue([mockTx]);
+      paymentService.queryTransferDetail.mockResolvedValue({
+        detail_status: 'SUCCESS',
+      });
+
+      await service.syncPendingWithdrawals();
+
+      expect(paymentService.queryTransferDetail).toHaveBeenCalledWith({
+        outBatchNo: 'WD_9_123456_abcd',
+        outDetailNo: '9',
+      });
+      expect(mockTx.status).toBe('success');
+      expect(mockTx.remark).toBe('提现成功');
+      expect(txRepo.save).toHaveBeenCalledWith(mockTx);
+    });
+
+    it('should rollback wallet when pending withdrawal detail fails', async () => {
+      const mockTx = {
+        id: 10,
+        userId: 3,
+        type: 'withdraw',
+        amount: 20,
+        status: 'pending',
+        refType: 'WD_10_123456_abcd',
+        refId: 10,
+        remark: '提现处理中',
+      };
+      const mockWallet = {
+        id: 3,
+        userId: 3,
+        balance: 100,
+        totalWithdraw: 50,
+      };
+
+      txRepo.find.mockResolvedValue([mockTx]);
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      paymentService.queryTransferDetail.mockResolvedValue({
+        detail_status: 'FAIL',
+        fail_reason: 'ACCOUNT_FROZEN',
+      });
+
+      await service.syncPendingWithdrawals();
+
+      expect(mockTx.status).toBe('failed');
+      expect(mockTx.remark).toBe('提现失败: ACCOUNT_FROZEN');
+      expect(mockWallet.balance).toBe(120);
+      expect(mockWallet.totalWithdraw).toBe(30);
+      expect(walletRepo.save).toHaveBeenCalledWith(mockWallet);
     });
   });
 });
