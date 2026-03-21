@@ -22,6 +22,49 @@ Page({
     })
   },
 
+  goToIndexPage() {
+    wx.switchTab({
+      url: '/pages/index/index',
+      fail: (error) => {
+        console.error('[login] switchTab to index failed, fallback to reLaunch', error)
+        wx.reLaunch({ url: '/pages/index/index' })
+      }
+    })
+  },
+
+  completeLogin(role, user) {
+    const app = getApp()
+    const mergedUser = Object.assign({}, app.globalData.userInfo || {}, user || {}, { role })
+    wx.setStorageSync('userRole', role)
+    app.globalData.isLoggedIn = true
+    app.globalData.userInfo = mergedUser
+    app.globalData.userRole = role
+    app.globalData.userId = mergedUser.id || null
+    app.globalData.avatarUrl = mergedUser.avatarUrl || ''
+    app.globalData.beanBalance = mergedUser.beanBalance || 0
+    app.globalData.isMember = mergedUser.isMember || false
+    if (mergedUser.avatarUrl) {
+      wx.setStorageSync('avatarUrl', mergedUser.avatarUrl)
+    }
+    this.goToIndexPage()
+  },
+
+  syncRoleAfterLogin(role, user) {
+    const app = getApp()
+    return post('/auth/choose-role', { role }).then(res => {
+      const data = res.data || {}
+      if (data.token) {
+        auth.setToken(data.token)
+      }
+      const syncedRole = data.role || role
+      const mergedUser = Object.assign({}, user || {}, { role: syncedRole })
+      app.globalData.userInfo = mergedUser
+      app.globalData.userRole = syncedRole
+      wx.setStorageSync('userRole', syncedRole)
+      return { role: syncedRole, user: mergedUser }
+    })
+  },
+
   onWxLogin() {
     if (this.data.loading) return
     this.setData({ loading: true })
