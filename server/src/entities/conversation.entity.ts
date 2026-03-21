@@ -6,10 +6,12 @@ import {
   ManyToOne,
   JoinColumn,
   Unique,
+  Index,
 } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('conversations')
+@Index('idx_conversations_userA', ['userA'])
 @Unique(['userA', 'userB', 'postId', 'jobId'])
 export class Conversation {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })

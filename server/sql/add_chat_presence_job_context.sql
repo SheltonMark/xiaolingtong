@@ -18,6 +18,26 @@ SET @old_unique_index_name := (
   LIMIT 1
 );
 
+SET @user_a_index_exists := (
+  SELECT COUNT(*)
+  FROM information_schema.STATISTICS
+  WHERE TABLE_SCHEMA = DATABASE()
+    AND TABLE_NAME = 'conversations'
+    AND INDEX_NAME <> COALESCE(@old_unique_index_name, '')
+    AND SEQ_IN_INDEX = 1
+    AND COLUMN_NAME = 'userA'
+);
+
+SET @create_user_a_index_sql := IF(
+  @user_a_index_exists > 0,
+  'SELECT 1',
+  'ALTER TABLE conversations ADD KEY idx_conversations_userA (userA)'
+);
+
+PREPARE create_user_a_index_stmt FROM @create_user_a_index_sql;
+EXECUTE create_user_a_index_stmt;
+DEALLOCATE PREPARE create_user_a_index_stmt;
+
 SET @new_unique_exists := (
   SELECT COUNT(*)
   FROM information_schema.STATISTICS
