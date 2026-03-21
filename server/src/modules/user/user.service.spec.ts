@@ -749,7 +749,10 @@ describe('UserService', () => {
       expect(cloudSpy).toHaveBeenCalledWith(expect.objectContaining({
         service: 'sms',
         action: 'SendSms',
-      }), '短信发送失败');
+        payload: expect.objectContaining({
+          TemplateParamSet: [expect.any(String), '5'],
+        }),
+      }), expect.any(String));
       expect(result.channel).toBe('tencent');
     });
   });
