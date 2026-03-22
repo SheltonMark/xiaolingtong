@@ -15,7 +15,8 @@ Page({
     maxWithdrawPerTime: 200,
     withdrawSubmitting: false,
     canWithdraw: true,
-    withdrawDisabledReason: ''
+    withdrawDisabledReason: '',
+    withdrawSubmitHint: ''
   },
 
   onShow() {
@@ -68,6 +69,7 @@ Page({
       showWithdrawModal: true,
       withdrawAmount: '',
       withdrawSubmitting: false,
+      withdrawSubmitHint: '',
       withdrawLimit: Math.min(Number(this.data.balance), this.data.maxWithdrawPerTime).toFixed(2)
     })
   },
@@ -77,7 +79,8 @@ Page({
 
     this.setData({
       showWithdrawModal: false,
-      withdrawAmount: ''
+      withdrawAmount: '',
+      withdrawSubmitHint: ''
     })
   },
 
@@ -120,7 +123,10 @@ Page({
     }
 
     const amount = Number(this.data.withdrawAmount)
-    this.setData({ withdrawSubmitting: true })
+    this.setData({
+      withdrawSubmitting: true,
+      withdrawSubmitHint: '正在提交提现申请，请稍候...'
+    })
     wx.showLoading({ title: '提交中...' })
 
     post('/wallet/withdraw', { amount }).then(() => {
@@ -129,12 +135,19 @@ Page({
       this.setData({
         showWithdrawModal: false,
         withdrawAmount: '',
-        withdrawSubmitting: false
+        withdrawSubmitting: false,
+        withdrawSubmitHint: ''
       })
       this.loadWallet()
-    }).catch(() => {
+    }).catch((error) => {
       wx.hideLoading()
-      this.setData({ withdrawSubmitting: false })
+      this.setData({
+        withdrawSubmitting: false,
+        withdrawSubmitHint: error && error.message ? error.message : '提现提交失败，请重试'
+      })
+      if (error && error.message) {
+        wx.showToast({ title: error.message, icon: 'none' })
+      }
     })
   },
 
