@@ -1,6 +1,17 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 
+function normalizeTimeText(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+  if (!match) return text
+  const hours = match[1].padStart(2, '0')
+  const minutes = match[2]
+  const seconds = (match[3] || '00').padStart(2, '0')
+  return `${hours}:${minutes}:${seconds}`
+}
+
 function getAttendanceMeta(status, confirmedAt) {
   const normalized = status || 'submitted'
   if (normalized === 'confirmed') {
@@ -76,14 +87,27 @@ Page({
     })
   },
 
-  buildApplicantTabs(summary) {
+  buildApplicantTabs(summary, applicants) {
     const base = summary || {}
+    const list = Array.isArray(applicants) ? applicants : []
+    const useList = list.length > 0
+    const counts = {
+      totalCount: useList ? list.length : (base.totalCount || 0),
+      pendingCount: useList ? list.filter(item => item.status === 'pending').length : (base.pendingCount || 0),
+      acceptedCount: useList ? list.filter(item => item.status === 'accepted').length : (base.acceptedCount || 0),
+      confirmedCount: useList ? list.filter(item => item.status === 'confirmed').length : (base.confirmedCount || 0),
+      workingCount: useList ? list.filter(item => item.status === 'working').length : (base.workingCount || 0),
+      doneCount: useList ? list.filter(item => item.status === 'done').length : (base.doneCount || 0),
+      rejectedCount: useList ? list.filter(item => item.status === 'rejected').length : (base.rejectedCount || 0)
+    }
     return [
-      { key: 'all', label: '全部', count: (base.totalCount || 0) },
-      { key: 'pending', label: '待审核', count: (base.pendingCount || 0) },
-      { key: 'accepted', label: '已录用', count: (base.acceptedCount || 0) },
-      { key: 'confirmed', label: '已到岗', count: (base.confirmedCount || 0) },
-      { key: 'rejected', label: '已拒绝', count: (base.rejectedCount || 0) }
+      { key: 'all', label: '全部', count: counts.totalCount },
+      { key: 'pending', label: '待审核', count: counts.pendingCount },
+      { key: 'accepted', label: '已录用', count: counts.acceptedCount },
+      { key: 'confirmed', label: '已确认', count: counts.confirmedCount },
+      { key: 'working', label: '进行中', count: counts.workingCount },
+      { key: 'done', label: '已完工', count: counts.doneCount },
+      { key: 'rejected', label: '已拒绝', count: counts.rejectedCount }
     ]
   },
 
@@ -92,10 +116,7 @@ Page({
     const applicants = this.data.applicants || []
     const filteredApplicants = filter === 'all'
       ? applicants
-      : applicants.filter(item => {
-          if (filter === 'confirmed') return ['confirmed', 'working', 'done'].includes(item.status)
-          return item.status === filter
-        })
+      : applicants.filter(item => item.status === filter)
     this.setData({ filteredApplicants })
   },
 
@@ -119,18 +140,25 @@ Page({
       const applicants = (data.applicants || []).map(item => this.normalizeApplicant(item))
       const summary = {
         ...data.summary,
-        totalCount: applicants.length
+        totalCount: applicants.length,
+        pendingCount: applicants.filter(item => item.status === 'pending').length,
+        acceptedCount: applicants.filter(item => item.status === 'accepted').length,
+        confirmedCount: applicants.filter(item => item.status === 'confirmed').length,
+        workingCount: applicants.filter(item => item.status === 'working').length,
+        doneCount: applicants.filter(item => item.status === 'done').length,
+        rejectedCount: applicants.filter(item => item.status === 'rejected').length,
+        activeCount: applicants.filter(item => ['confirmed', 'working', 'done'].includes(item.status)).length
       }
       this.setData({
         manageJob: data.job || {},
         manageSummary: summary,
         applicants,
-        applicantTabs: this.buildApplicantTabs(summary),
+        applicantTabs: this.buildApplicantTabs(summary, applicants),
         job: Object.keys(this.data.job || {}).length ? this.data.job : {
           company: (data.job || {}).companyName || '',
           jobType: (data.job || {}).title || '',
           dateRange: (data.job || {}).dateRange || '',
-          totalWorkers: summary.confirmedCount || 0
+          totalWorkers: summary.activeCount || 0
         }
       })
       this.updateFilteredApplicants()
@@ -178,7 +206,14 @@ Page({
       }
       const records = (data.records || []).map(item => {
         const status = statusMap[item.attendance] || statusMap.normal
-        return { ...item, statusText: status.text, statusColor: status.color, statusIcon: status.icon }
+        return {
+          ...item,
+          checkInTime: normalizeTimeText(item.checkInTime),
+          checkOutTime: normalizeTimeText(item.checkOutTime),
+          statusText: status.text,
+          statusColor: status.color,
+          statusIcon: status.icon
+        }
       })
       const attendanceMeta = getAttendanceMeta(data.status, data.confirmedAt)
       this.setData({

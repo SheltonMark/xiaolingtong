@@ -44,7 +44,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '新的临工报名',
         content: '张三报名了您的工作"搬家工"',
-        link: '/job/1/applications',
+        link: '/pages/job-process/job-process?jobId=1&tab=applications',
         data: { jobId: 1, jobTitle: '搬家工', workerName: '张三' },
       };
 
@@ -62,7 +62,7 @@ describe('NotificationService - Event Notifications', () => {
       expect(result.title).toBe('新的临工报名');
       expect(result.content).toContain('张三');
       expect(result.content).toContain('搬家工');
-      expect(result.link).toBe('/job/1/applications');
+      expect(result.link).toBe('/pages/job-process/job-process?jobId=1&tab=applications');
       expect(result.data.jobId).toBe(1);
     });
 
@@ -73,7 +73,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '新的临工报名',
         content: '李四报名了您的工作"清洁工"',
-        link: '/job/2/applications',
+        link: '/pages/job-process/job-process?jobId=2&tab=applications',
         data: { jobId: 2, jobTitle: '清洁工', workerName: '李四' },
       };
 
@@ -101,7 +101,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '新的临工报名',
         content: '王五报名了您的工作"装修工"',
-        link: '/job/3/applications',
+        link: '/pages/job-process/job-process?jobId=3&tab=applications',
         data: { jobId: 3, jobTitle: '装修工', workerName: '王五' },
       };
 
@@ -123,7 +123,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '报名已接受',
         content: 'ABC公司接受了您对"搬家工"的报名',
-        link: '/application/1',
+        link: '/pages/my-applications/my-applications',
         data: { jobId: 1, jobTitle: '搬家工', enterpriseName: 'ABC公司' },
       };
 
@@ -141,7 +141,7 @@ describe('NotificationService - Event Notifications', () => {
       expect(result.title).toBe('报名已接受');
       expect(result.content).toContain('ABC公司');
       expect(result.content).toContain('搬家工');
-      expect(result.link).toBe('/application/1');
+      expect(result.link).toBe('/pages/my-applications/my-applications');
     });
 
     it('should include enterprise name in notification content', async () => {
@@ -151,7 +151,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '报名已接受',
         content: 'XYZ工厂接受了您对"焊接工"的报名',
-        link: '/application/2',
+        link: '/pages/my-applications/my-applications',
         data: { jobId: 2, jobTitle: '焊接工', enterpriseName: 'XYZ工厂' },
       };
 
@@ -178,7 +178,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '报名已拒绝',
         content: 'DEF公司拒绝了您对"清洁工"的报名',
-        link: '/application/3',
+        link: '/pages/my-applications/my-applications',
         data: { jobId: 3, jobTitle: '清洁工', enterpriseName: 'DEF公司' },
       };
 
@@ -205,7 +205,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '报名已拒绝',
         content: 'GHI工厂拒绝了您对"装修工"的报名',
-        link: '/application/4',
+        link: '/pages/my-applications/my-applications',
         data: { jobId: 4, jobTitle: '装修工', enterpriseName: 'GHI工厂' },
       };
 
@@ -232,7 +232,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '工作即将开始',
         content: '您报名的工作"搬家工"即将开始，请准时到达',
-        link: '/job/1',
+        link: '/pages/checkin/checkin?jobId=1',
         data: { jobId: 1, jobTitle: '搬家工', isWorker: true },
       };
 
@@ -254,7 +254,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '工作已开始',
         content: '您发布的工作"搬家工"已开始',
-        link: '/job/1',
+        link: '/pages/job-process/job-process?jobId=1&tab=attendance',
         data: { jobId: 1, jobTitle: '搬家工', isWorker: false },
       };
 
@@ -275,7 +275,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '工作即将开始',
         content: '您报名的工作"清洁工"即将开始，请准时到达',
-        link: '/job/2',
+        link: '/pages/checkin/checkin?jobId=2',
         data: { jobId: 2, jobTitle: '清洁工', isWorker: true },
       };
 
@@ -285,7 +285,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '工作已开始',
         content: '您发布的工作"清洁工"已开始',
-        link: '/job/2',
+        link: '/pages/job-process/job-process?jobId=2&tab=attendance',
         data: { jobId: 2, jobTitle: '清洁工', isWorker: false },
       };
 
@@ -311,7 +311,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"搬家工"已结算，获得500元',
-        link: '/settlement/1',
+        link: '/pages/settlement/settlement?jobId=1&role=worker&viewOnly=1',
         data: { jobId: 1, jobTitle: '搬家工', amount: 500 },
       };
 
@@ -333,7 +333,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"清洁工"已结算，获得300元',
-        link: '/settlement/2',
+        link: '/pages/settlement/settlement?jobId=2&role=worker&viewOnly=1',
         data: { jobId: 2, jobTitle: '清洁工', amount: 300 },
       };
 
@@ -353,7 +353,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"装修工"已结算，获得1000元',
-        link: '/settlement/3',
+        link: '/pages/settlement/settlement?jobId=3&role=worker&viewOnly=1',
         data: { jobId: 3, jobTitle: '装修工', amount: 1000 },
       };
 
@@ -375,7 +375,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '企业评价提醒',
         content: 'ABC公司还未对您的工作进行评价，请耐心等待',
-        link: '/rating/1',
+        link: '/pages/settlement/settlement?jobId=1&role=worker&viewOnly=1',
         data: { jobId: 1, jobTitle: '搬家工', targetName: 'ABC公司', isWorker: true },
       };
 
@@ -403,7 +403,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '临工评价提醒',
         content: '请对临工张三的工作进行评价',
-        link: '/rating/1',
+        link: '/pages/job-process/job-process?jobId=1&tab=settlement',
         data: { jobId: 1, jobTitle: '搬家工', targetName: '张三', isWorker: false },
       };
 
@@ -430,7 +430,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '企业评价提醒',
         content: 'XYZ工厂还未对您的工作进行评价，请耐心等待',
-        link: '/rating/2',
+        link: '/pages/settlement/settlement?jobId=2&role=worker&viewOnly=1',
         data: { jobId: 2, jobTitle: '清洁工', targetName: 'XYZ工厂', isWorker: true },
       };
 
@@ -440,7 +440,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '临工评价提醒',
         content: '请对临工李四的工作进行评价',
-        link: '/rating/2',
+        link: '/pages/job-process/job-process?jobId=2&tab=settlement',
         data: { jobId: 2, jobTitle: '清洁工', targetName: '李四', isWorker: false },
       };
 
@@ -476,7 +476,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '企业评价提醒',
         content: 'DEF公司还未对您的工作进行评价，请耐心等待',
-        link: '/rating/3',
+        link: '/pages/settlement/settlement?jobId=3&role=worker&viewOnly=1',
         data: { jobId: 3, jobTitle: '装修工', targetName: 'DEF公司', isWorker: true },
       };
 
@@ -561,7 +561,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '新的临工报名',
         content: '测试报名',
-        link: '/job/1/applications',
+        link: '/pages/job-process/job-process?jobId=1&tab=applications',
         data: { jobId: 1, jobTitle: '测试工作', workerName: '测试工人' },
         status: 'active',
         isRead: 0,
@@ -590,7 +590,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'job_apply',
         title: '新的临工报名',
         content: '张三报名了您的工作"搬家工"',
-        link: '/job/1/applications',
+        link: '/pages/job-process/job-process?jobId=1&tab=applications',
         data: { jobId: 1, jobTitle: '搬家工', workerName: '张三' },
       };
 
@@ -600,7 +600,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"搬家工"已结算，获得500元',
-        link: '/settlement/1',
+        link: '/pages/settlement/settlement?jobId=1&role=worker&viewOnly=1',
         data: { jobId: 1, jobTitle: '搬家工', amount: 500 },
       };
 

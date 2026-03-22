@@ -72,7 +72,7 @@ export class NotificationService {
       type: 'job_apply',
       title: '新的临工报名',
       content: `${workerName}报名了您的工作"${jobTitle}"`,
-      link: `/job/${jobId}/applications`,
+      link: `/pages/job-process/job-process?jobId=${jobId}&tab=applications`,
       data: { jobId, jobTitle, workerName },
     });
   }
@@ -91,7 +91,7 @@ export class NotificationService {
       type: 'job_apply',
       title: '报名已接受',
       content: `${enterpriseName}接受了您对"${jobTitle}"的报名`,
-      link: `/application/${jobId}`,
+      link: '/pages/my-applications/my-applications',
       data: { jobId, jobTitle, enterpriseName },
     });
   }
@@ -110,7 +110,7 @@ export class NotificationService {
       type: 'job_apply',
       title: '报名已拒绝',
       content: `${enterpriseName}拒绝了您对"${jobTitle}"的报名`,
-      link: `/application/${jobId}`,
+      link: '/pages/my-applications/my-applications',
       data: { jobId, jobTitle, enterpriseName },
     });
   }
@@ -134,7 +134,9 @@ export class NotificationService {
       type: 'job_apply',
       title,
       content,
-      link: `/job/${jobId}`,
+      link: isWorker
+        ? `/pages/checkin/checkin?jobId=${jobId}`
+        : `/pages/job-process/job-process?jobId=${jobId}&tab=attendance`,
       data: { jobId, jobTitle, isWorker },
     });
   }
@@ -153,7 +155,7 @@ export class NotificationService {
       type: 'settlement',
       title: '工作结算完成',
       content: `您的工作"${jobTitle}"已结算，获得${amount}元`,
-      link: `/settlement/${jobId}`,
+      link: `/pages/settlement/settlement?jobId=${jobId}&role=worker&viewOnly=1`,
       data: { jobId, jobTitle, amount },
     });
   }
@@ -178,7 +180,9 @@ export class NotificationService {
       type: 'promotion',
       title,
       content,
-      link: `/rating/${jobId}`,
+      link: isWorker
+        ? `/pages/settlement/settlement?jobId=${jobId}&role=worker&viewOnly=1`
+        : `/pages/job-process/job-process?jobId=${jobId}&tab=settlement`,
       data: { jobId, jobTitle, targetName, isWorker },
     });
   }

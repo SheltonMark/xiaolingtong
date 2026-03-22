@@ -138,6 +138,24 @@ export class WorkService {
     return { hours, minutes, seconds };
   }
 
+  private hasSecondPrecision(value?: string | null): boolean {
+    return /^\d{1,2}:\d{2}:\d{2}$/.test(String(value || '').trim());
+  }
+
+  private normalizeClockValue(
+    value?: string | null,
+    fallbackDate?: Date | null,
+  ): string | null {
+    const parsed = this.parseClock(value);
+    if (parsed) {
+      return `${`${parsed.hours}`.padStart(2, '0')}:${`${parsed.minutes}`.padStart(2, '0')}:${`${parsed.seconds}`.padStart(2, '0')}`;
+    }
+    if (fallbackDate) {
+      return this.formatTime(fallbackDate, true);
+    }
+    return null;
+  }
+
   private getJobStartTime(job: Partial<Job>): string {
     const startText = String(job.workHours || '').split('-')[0]?.trim();
     const parsed = this.parseClock(startText);
@@ -338,8 +356,11 @@ export class WorkService {
     workerCert?: WorkerCert | null,
   ) {
     const worker = app.worker || ({} as User);
-    const checkInTime = log?.checkInTime || (checkin ? this.formatTime(new Date(checkin.checkInAt), true) : '');
-    const checkOutTime = log?.checkOutTime || '';
+    const checkInTime = this.normalizeClockValue(
+      log?.checkInTime,
+      checkin ? new Date(checkin.checkInAt) : null,
+    ) || '';
+    const checkOutTime = this.normalizeClockValue(log?.checkOutTime) || '';
     const checkoutMeta = this.getCheckoutMeta(job, checkOutTime || null, dateText);
     const derivedAttendance = this.normalizeAttendanceStatus(log?.anomalyType)
       || (checkInTime ? 'normal' : 'absent');
@@ -638,8 +659,8 @@ export class WorkService {
       workerId: this.toNumber(record.workerId),
       workerName: String(record.workerName || '').trim() || '临工',
       attendance: this.normalizeAttendanceStatus(record.attendance) || 'normal',
-      checkInTime: record.checkInTime ?? null,
-      checkOutTime: record.checkOutTime ?? null,
+      checkInTime: this.normalizeClockValue(record.checkInTime) ?? null,
+      checkOutTime: this.normalizeClockValue(record.checkOutTime) ?? null,
       hours: this.toNumber(record.hours),
       pieces: this.toNumber(record.pieces),
       note: String(record.note || '').trim() || null,
@@ -676,13 +697,13 @@ export class WorkService {
         workerId: item.workerId,
         name: item.workerName,
         attendance: item.attendance,
-        checkInTime: item.checkInTime || null,
-        checkOutTime: item.checkOutTime || null,
+        checkInTime: this.normalizeClockValue(item.checkInTime) || null,
+        checkOutTime: this.normalizeClockValue(item.checkOutTime) || null,
         hours: this.toNumber(item.hours),
         pieces: this.toNumber(item.pieces),
         note: item.note || '',
         photos: [],
-        checkoutMeta: this.getCheckoutMeta(job, item.checkOutTime, sheet.date),
+        checkoutMeta: this.getCheckoutMeta(job, this.normalizeClockValue(item.checkOutTime), sheet.date),
       })),
       supervisor: sheet.supervisorId ? {
         id: sheet.supervisorId,
@@ -1063,7 +1084,7 @@ export class WorkService {
     );
 
     await this.upsertDailyLog(jobId, targetWorkerId, today, {
-      checkInTime: this.formatTime(now),
+      checkInTime: this.formatTime(now, true),
       anomalyType: 'normal',
       photoUrls: dto.photoUrl ? [dto.photoUrl] : undefined,
     });
@@ -1076,13 +1097,25 @@ export class WorkService {
     const targetWorkerId = await this.resolveTargetWorker(jobId, userId, dto.workerId);
     const date = this.normalizeDate(dto.date);
     const job = await this.ensureJob(jobId);
-    const checkoutMeta = this.getCheckoutMeta(job, dto.checkOutTime, date);
+    const normalizedCheckInTime = dto.checkInTime === undefined
+      ? undefined
+      : this.normalizeClockValue(dto.checkInTime);
+    const normalizedCheckOutTime = dto.checkOutTime === undefined
+      ? undefined
+      : this.normalizeClockValue(dto.checkOutTime);
+    const checkoutMeta = this.getCheckoutMeta(job, normalizedCheckOutTime, date);
     const existingLog = await this.workLogRepo.findOne({
       where: { jobId, workerId: targetWorkerId, date },
     });
-    const resolvedCheckInTime = dto.checkInTime ?? existingLog?.checkInTime ?? null;
+    const resolvedCheckInTime = normalizedCheckInTime
+      ?? this.normalizeClockValue(existingLog?.checkInTime)
+      ?? null;
     const calculatedHours = dto.hours === undefined
-      ? this.calculateHours(resolvedCheckInTime, dto.checkOutTime ?? existingLog?.checkOutTime ?? null, date)
+      ? this.calculateHours(
+          resolvedCheckInTime,
+          normalizedCheckOutTime ?? this.normalizeClockValue(existingLog?.checkOutTime) ?? null,
+          date,
+        )
       : this.toNumber(dto.hours);
     const anomalyType = dto.attendance !== undefined && dto.attendance !== null && dto.attendance !== ''
       ? dto.attendance
@@ -1095,8 +1128,8 @@ export class WorkService {
     const log = await this.upsertDailyLog(jobId, targetWorkerId, date, {
       hours: calculatedHours === null ? undefined : calculatedHours,
       pieces: dto.pieces === undefined ? undefined : this.toNumber(dto.pieces),
-      checkInTime: dto.checkInTime,
-      checkOutTime: dto.checkOutTime,
+      checkInTime: normalizedCheckInTime,
+      checkOutTime: normalizedCheckOutTime,
       anomalyNote: dto.note,
       anomalyType,
       photoUrls: dto.photoUrls,
@@ -1127,8 +1160,12 @@ export class WorkService {
       where: { jobId, workerId: targetWorkerId },
       order: { id: 'DESC' },
     });
-    const checkInTime = existingLog?.checkInTime
-      || (latestCheckin && this.isSameDate(latestCheckin.checkInAt, date) ? this.formatTime(new Date(latestCheckin.checkInAt), true) : null);
+    const preciseCheckInTime = latestCheckin && this.isSameDate(latestCheckin.checkInAt, date)
+      ? this.formatTime(new Date(latestCheckin.checkInAt), true)
+      : null;
+    const checkInTime = preciseCheckInTime && !this.hasSecondPrecision(existingLog?.checkInTime)
+      ? preciseCheckInTime
+      : this.normalizeClockValue(existingLog?.checkInTime) || preciseCheckInTime;
 
     if (!checkInTime) {
       throw new BadRequestException('请先签到');
@@ -1406,14 +1443,17 @@ export class WorkService {
       const inferredAttendance = log?.attendance
         || (checkin ? 'normal' : 'absent');
       const attendance = inferredAttendance || 'normal';
-      const checkOutTime = log?.checkOutTime || null;
+      const checkOutTime = this.normalizeClockValue(log?.checkOutTime);
       const checkoutMeta = this.getCheckoutMeta(job, checkOutTime, targetDate);
 
       return {
         workerId: worker.id,
         name: this.getDisplayName(worker, workerCertMap.get(Number(worker.id)) || null),
         attendance,
-        checkInTime: log?.checkInTime || (checkin ? this.formatTime(new Date(checkin.checkInAt)) : null),
+        checkInTime: this.normalizeClockValue(
+          log?.checkInTime,
+          checkin ? new Date(checkin.checkInAt) : null,
+        ),
         checkOutTime,
         hours: log?.hours || 0,
         pieces: log?.pieces || 0,

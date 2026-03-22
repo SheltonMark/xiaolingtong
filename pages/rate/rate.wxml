@@ -14,12 +14,12 @@
   <!-- 评分项 -->
   <view class="rate-card">
     <text class="card-title">请为本次工作打分</text>
-    <view class="rate-item" wx:for="{{rateItems}}" wx:key="key">
-      <text class="rate-label">{{item.label}}</text>
+    <view class="rate-item" wx:for="{{rateItems}}" wx:key="key" wx:for-item="rateItem">
+      <text class="rate-label">{{rateItem.label}}</text>
       <view class="stars">
-        <text class="star {{starIdx < item.score ? 'star-on' : 'star-off'}}"
-              wx:for="{{5}}" wx:for-index="starIdx" wx:key="starIdx"
-              data-key="{{item.key}}" data-score="{{starIdx + 1}}" bindtap="onStarTap">★</text>
+        <text class="star {{starValue <= rateItem.score ? 'star-on' : 'star-off'}}"
+              wx:for="{{starOptions}}" wx:key="starValue" wx:for-item="starValue"
+              data-key="{{rateItem.key}}" data-score="{{starValue}}" bindtap="onStarTap">★</text>
       </view>
     </view>
   </view>
@@ -44,7 +44,7 @@
 
   <!-- 提交 -->
   <view class="rate-bottom">
-    <button class="btn btn-primary" bindtap="onSubmit">提交评价</button>
+    <button class="btn btn-primary" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting}}">提交评价</button>
     <text class="rate-hint">评价提交后不可修改，请认真填写</text>
   </view>
 </view>

@@ -1,5 +1,16 @@
 const { get, post } = require('../../utils/request')
 
+function normalizeTimeText(value) {
+  const text = String(value || '').trim()
+  if (!text) return ''
+  const match = text.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/)
+  if (!match) return text
+  const hours = match[1].padStart(2, '0')
+  const minutes = match[2]
+  const seconds = (match[3] || '00').padStart(2, '0')
+  return `${hours}:${minutes}:${seconds}`
+}
+
 function getAttendanceMeta(status, confirmedAt) {
   const normalized = status || 'submitted'
   if (normalized === 'confirmed') {
@@ -104,7 +115,14 @@ Page({
       }
       const records = (data.records || []).map(r => {
         const s = statusMap[r.attendance] || statusMap.normal
-        return { ...r, statusText: s.text, statusColor: s.color, statusIcon: s.icon }
+        return {
+          ...r,
+          checkInTime: normalizeTimeText(r.checkInTime),
+          checkOutTime: normalizeTimeText(r.checkOutTime),
+          statusText: s.text,
+          statusColor: s.color,
+          statusIcon: s.icon
+        }
       })
       const attendanceMeta = getAttendanceMeta(data.status, data.confirmedAt)
       this.setData({
