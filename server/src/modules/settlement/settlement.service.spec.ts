@@ -369,6 +369,51 @@ describe('SettlementService', () => {
       }));
     });
 
+    it('should cap supervisor fee within factory total when creating settlement', async () => {
+      const mockJob = {
+        id: 1,
+        userId: 1,
+        title: 'Tiny Job',
+        salary: 0.3,
+        salaryType: 'hourly',
+      };
+      const mockApplications = [
+        { id: 1, workerId: 2, status: 'done', isSupervisor: 1 },
+      ];
+      const mockSettlement = {
+        id: 1,
+        jobId: 1,
+        enterpriseId: 1,
+        status: 'pending',
+      };
+
+      jobRepository.findOneBy.mockResolvedValue(mockJob);
+      settlementRepository.findOne.mockResolvedValue(null);
+      jobApplicationRepository.find.mockResolvedValue(mockApplications);
+      attendanceSheetRepository.find.mockResolvedValue([]);
+      workLogRepository.find.mockResolvedValue([
+        { id: 1, hours: 0.02, pieces: 0, jobId: 1, workerId: 2 },
+      ]);
+      sysConfigRepository.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ key: 'default_commission_rate', value: '20' })
+        .mockResolvedValueOnce({ key: 'manager_service_fee', value: '5' });
+      settlementRepository.create.mockImplementation((payload) => payload);
+      settlementRepository.save.mockResolvedValue(mockSettlement);
+      settlementItemRepository.create.mockImplementation((payload) => payload);
+      settlementItemRepository.save.mockResolvedValue({});
+      jobRepository.update.mockResolvedValue({});
+
+      await service.createSettlement(1, 1);
+
+      expect(settlementRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+        factoryTotal: 0.01,
+        workerTotal: 0,
+        supervisorFee: 0.01,
+        platformFee: 0,
+      }));
+    });
+
     it('should throw error when job not found', async () => {
       jobRepository.findOneBy.mockResolvedValue(null);
 

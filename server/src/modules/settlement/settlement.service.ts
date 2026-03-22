@@ -267,8 +267,12 @@ export class SettlementService {
 
     if (items.length === 0) throw new BadRequestException('暂无有效考勤记录，无法生成结算单');
 
-    const supervisorFee = supervisorId ? +(items.length * totalHours * managerFeeUnit).toFixed(2) : 0;
-    const platformFee = +(factoryTotal - workerTotal - supervisorFee).toFixed(2);
+    const remainingAmount = +(factoryTotal - workerTotal).toFixed(2);
+    const rawSupervisorFee = supervisorId
+      ? +(items.length * totalHours * managerFeeUnit).toFixed(2)
+      : 0;
+    const supervisorFee = Math.max(0, Math.min(rawSupervisorFee, remainingAmount));
+    const platformFee = +(remainingAmount - supervisorFee).toFixed(2);
 
     const settlementEntity = this.settleRepo.create({
       jobId,
