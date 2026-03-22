@@ -1,5 +1,10 @@
 const { get, post, upload } = require('../../utils/request')
 
+function getCurrentTimeText() {
+  const now = new Date()
+  return `${`${now.getHours()}`.padStart(2, '0')}:${`${now.getMinutes()}`.padStart(2, '0')}`
+}
+
 Page({
   data: {
     jobId: '',
@@ -12,7 +17,7 @@ Page({
       { key: 'injury', icon: '\ue601', label: '受伤' }
     ],
     selectedType: 'early_leave',
-    time: '18:00',
+    time: getCurrentTimeText(),
     actualHours: 0,
     desc: '',
     photos: []
@@ -20,7 +25,10 @@ Page({
 
   onLoad(options) {
     const jobId = options.jobId || ''
-    this.setData({ jobId })
+    this.setData({
+      jobId,
+      time: getCurrentTimeText()
+    })
     if (jobId) {
       this.loadWorkers(jobId)
     }
@@ -31,17 +39,25 @@ Page({
       const data = res.data || res || {}
       const checkins = data.checkins || []
       const logs = data.logs || []
-      const workers = (data.workers || []).map(app => {
-        const worker = app.worker || {}
-        const log = logs.find(item => item.workerId === worker.id) || {}
-        const checkin = checkins.find(item => item.workerId === worker.id)
-        return {
-          id: worker.id,
-          name: worker.nickname || worker.realName || '临工',
-          hours: Number(log.hours || 0),
-          checkInTime: log.checkInTime || (checkin ? new Date(checkin.checkInAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '')
-        }
-      })
+      const sessionWorkers = Array.isArray(data.sessionWorkers) ? data.sessionWorkers : []
+      const workers = sessionWorkers.length > 0
+        ? sessionWorkers.map(item => ({
+            id: item.workerId,
+            name: item.displayName || '临工',
+            hours: Number(item.hours || 0),
+            checkInTime: item.checkInTime || ''
+          }))
+        : (data.workers || []).map(app => {
+            const worker = app.worker || {}
+            const log = logs.find(item => item.workerId === worker.id) || {}
+            const checkin = checkins.find(item => item.workerId === worker.id)
+            return {
+              id: worker.id,
+              name: worker.name || worker.nickname || '临工',
+              hours: Number(log.hours || 0),
+              checkInTime: log.checkInTime || (checkin ? new Date(checkin.checkInAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '')
+            }
+          })
       this.setData({
         workerOptions: workers,
         selectedWorker: workers[0]

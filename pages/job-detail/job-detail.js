@@ -128,8 +128,12 @@ Page({
 
   onNavigate() {
     const { job } = this.data
-    const lat = job.lat || 30.1925
-    const lng = job.lng || 120.2103
+    const lat = Number(job.lat)
+    const lng = Number(job.lng)
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || (!lat && !lng)) {
+      wx.showToast({ title: '岗位暂未配置导航坐标', icon: 'none' })
+      return
+    }
     wx.navigateTo({
       url: `/pages/navigation/navigation?lat=${lat}&lng=${lng}&name=${encodeURIComponent(job.title || '工作地点')}&address=${encodeURIComponent(job.location || '')}`
     })

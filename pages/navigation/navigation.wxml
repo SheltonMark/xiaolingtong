@@ -1,10 +1,10 @@
 <view class="nav-page">
   <!-- 地图区域 - 占大部分屏幕 -->
   <map
-    wx:if="{{targetLocation && userLocation}}"
+    wx:if="{{targetLocation}}"
     class="map-view"
-    latitude="{{(targetLocation.latitude + userLocation.latitude) / 2}}"
-    longitude="{{(targetLocation.longitude + userLocation.longitude) / 2}}"
+    latitude="{{userLocation ? (targetLocation.latitude + userLocation.latitude) / 2 : targetLocation.latitude}}"
+    longitude="{{userLocation ? (targetLocation.longitude + userLocation.longitude) / 2 : targetLocation.longitude}}"
     scale="13"
     markers="{{markers}}"
     polyline="{{polyline}}"
@@ -25,6 +25,7 @@
         <view class="route-content">
           <text class="route-label">我的位置</text>
           <text class="route-sub" wx:if="{{userLocation}}">{{userLocation.latitude.toFixed(4)}}, {{userLocation.longitude.toFixed(4)}}</text>
+          <text class="route-sub" wx:elif="{{locationUnavailable}}">未获取当前位置，不影响目标导航</text>
           <text class="route-sub" wx:else>定位中...</text>
         </view>
       </view>

@@ -5,7 +5,7 @@ Page({
     jobId: '',
     mode: 'hourly',
     jobInfo: {},
-    distance: 0,
+    distance: null,
     maxDistance: 500,
     workers: [],
     photos: [],
@@ -21,7 +21,13 @@ Page({
     checkinWindowStart: '',
     checkinWindowEnd: '',
     currentApplicationStatus: '',
-    submittingStart: false
+    submittingStart: false,
+    latitude: null,
+    longitude: null,
+    locationReady: false,
+    canCheckinButton: false,
+    localBlockedReason: '',
+    locationError: ''
   },
 
   onLoad(options) {
@@ -37,7 +43,7 @@ Page({
       }
       this.loadSession(jobId)
     }
-    this.getLocation()
+    this.getLocation(true)
   },
 
   loadSession(jobId) {
@@ -47,30 +53,32 @@ Page({
       const job = data.job || {}
       const checkins = data.checkins || []
       const allWorkers = data.workers || []
+      const sessionWorkers = data.sessionWorkers || []
       const startedPhotos = Array.isArray(data.startedPhotos) ? data.startedPhotos : []
-      const checkinMap = {}
-
-      checkins.forEach(checkin => {
-        checkinMap[checkin.workerId] = checkin
-      })
-
-      const workers = allWorkers.map(app => {
-        const worker = app.worker || {}
-        const checkin = checkinMap[worker.id]
-        let status = 'absent'
-        let time = ''
-        if (checkin) {
-          const checkinTime = new Date(checkin.checkInAt)
-          time = `${`${checkinTime.getHours()}`.padStart(2, '0')}:${`${checkinTime.getMinutes()}`.padStart(2, '0')}`
-          status = 'ontime'
-        }
-        return {
-          id: worker.id,
-          name: worker.nickname || worker.realName || '临工',
-          status,
-          time
-        }
-      })
+      const workers = Array.isArray(sessionWorkers) && sessionWorkers.length > 0
+        ? sessionWorkers.map(item => ({
+            id: item.workerId,
+            name: item.displayName || '临工',
+            status: item.checkInTime ? (item.attendanceStatus === 'late' ? 'late' : 'ontime') : 'absent',
+            time: item.checkInTime ? String(item.checkInTime).slice(0, 5) : ''
+          }))
+        : allWorkers.map(app => {
+            const worker = app.worker || {}
+            const checkin = checkins.find(item => Number(item.workerId) === Number(worker.id))
+            let status = 'absent'
+            let time = ''
+            if (checkin) {
+              const checkinTime = new Date(checkin.checkInAt)
+              time = `${`${checkinTime.getHours()}`.padStart(2, '0')}:${`${checkinTime.getMinutes()}`.padStart(2, '0')}`
+              status = 'ontime'
+            }
+            return {
+              id: worker.id,
+              name: worker.name || worker.nickname || '临工',
+              status,
+              time
+            }
+          })
 
       const checkedIn = workers.filter(worker => worker.status !== 'absent').length
       const company = job.companyName || (job.user && job.user.companyName) || '企业'
@@ -81,8 +89,8 @@ Page({
         loading: false,
         workers,
         photos,
-        jobLat: job.lat || 0,
-        jobLng: job.lng || 0,
+        jobLat: Number(job.lat) || 0,
+        jobLng: Number(job.lng) || 0,
         isSupervisor: !!data.isSupervisor,
         hasSupervisor: !!data.hasSupervisor,
         canCheckin: !!data.canCheckin,
@@ -104,27 +112,54 @@ Page({
           checkedIn,
           notCheckedIn: workers.length - checkedIn
         }
+      }, () => {
+        this.calcDistance()
+        this.updateCheckinState()
       })
-      this.calcDistance()
     }).catch(() => {
       this.setData({ loading: false })
     })
   },
 
-  getLocation() {
+  getLocation(silent = false) {
     wx.getLocation({
       type: 'gcj02',
       success: (res) => {
-        this.setData({ latitude: res.latitude, longitude: res.longitude })
-        this.calcDistance()
+        this.setData({
+          latitude: res.latitude,
+          longitude: res.longitude,
+          locationError: ''
+        }, () => {
+          this.calcDistance()
+          this.updateCheckinState()
+          if (!silent) {
+            wx.showToast({ title: '位置已刷新', icon: 'none' })
+          }
+        })
       },
-      fail: () => {}
+      fail: () => {
+        const locationError = '定位信息获取失败，请授权定位后重试'
+        this.setData({
+          latitude: null,
+          longitude: null,
+          distance: null,
+          locationError
+        }, () => {
+          this.updateCheckinState()
+          if (!silent) {
+            wx.showToast({ title: locationError, icon: 'none' })
+          }
+        })
+      }
     })
   },
 
   calcDistance() {
     const { latitude, longitude, jobLat, jobLng } = this.data
-    if (!latitude || !longitude || !jobLat || !jobLng) return
+    if (!latitude || !longitude || !jobLat || !jobLng) {
+      this.setData({ distance: null })
+      return
+    }
 
     const rad = Math.PI / 180
     const dLat = (jobLat - latitude) * rad
@@ -137,13 +172,37 @@ Page({
     this.setData({ distance })
   },
 
+  updateCheckinState() {
+    const { canCheckin, checkinBlockedReason, distance, maxDistance, latitude, longitude, jobLat, jobLng, locationError } = this.data
+    const hasUserLocation = !!latitude && !!longitude
+    const hasJobLocation = !!jobLat && !!jobLng
+    let localBlockedReason = ''
+
+    if (!hasJobLocation) {
+      localBlockedReason = '岗位未配置签到坐标'
+    } else if (!hasUserLocation) {
+      localBlockedReason = locationError || '定位信息获取失败，请刷新位置'
+    } else if (distance === null || distance === undefined) {
+      localBlockedReason = '正在计算位置距离'
+    } else if (distance > maxDistance) {
+      localBlockedReason = `当前位置距签到点 ${distance}m，已超出范围`
+    }
+
+    const locationReady = hasUserLocation && hasJobLocation && distance !== null
+    this.setData({
+      locationReady,
+      localBlockedReason,
+      canCheckinButton: !!canCheckin && !localBlockedReason && !checkinBlockedReason
+    })
+  },
+
   onCheckin() {
-    if (!this.data.canCheckin) {
-      wx.showToast({ title: this.data.checkinBlockedReason || '当前不可打卡', icon: 'none' })
+    if (this.data.localBlockedReason) {
+      wx.showToast({ title: this.data.localBlockedReason, icon: 'none' })
       return
     }
-    if (this.data.distance > this.data.maxDistance) {
-      wx.showToast({ title: '超出签到范围', icon: 'none' })
+    if (!this.data.canCheckin) {
+      wx.showToast({ title: this.data.checkinBlockedReason || '当前不可打卡', icon: 'none' })
       return
     }
     post('/work/checkin', {
@@ -158,8 +217,7 @@ Page({
   },
 
   onRefreshLocation() {
-    this.getLocation()
-    wx.showToast({ title: '位置已刷新', icon: 'none' })
+    this.getLocation(false)
   },
 
   onManualCheckin(e) {
