@@ -435,6 +435,56 @@ describe('WorkService', () => {
     expect(result.sessionWorkers.some((item: any) => item.displayName === '张三')).toBe(true);
   });
 
+  it('maps session workers correctly when repository ids are returned as strings', async () => {
+    jobRepo.findOne.mockResolvedValue({
+      id: 17,
+      title: '测试工单',
+      status: 'working',
+      dateStart: '2026-03-22',
+      dateEnd: '2026-03-22',
+      workHours: '09:12-09:20',
+      userId: 8,
+      user: { nickname: '企业B' },
+    });
+    checkinRepo.find.mockResolvedValue([
+      {
+        id: '3',
+        jobId: '17',
+        workerId: '12',
+        checkInAt: new Date(2026, 2, 22, 10, 5, 0),
+        worker: { id: '12', name: '张三' },
+      },
+    ]);
+    workLogRepo.find.mockResolvedValue([
+      {
+        id: '3',
+        jobId: '17',
+        workerId: '12',
+        date: '2026-03-22',
+        hours: '8.00',
+        anomalyType: 'normal',
+        anomalyNote: '',
+        checkInTime: '10:05',
+        checkOutTime: '18:00',
+      },
+    ]);
+    appRepo.find.mockResolvedValue([
+      { jobId: '17', workerId: '12', isSupervisor: 1, status: 'working', worker: { id: '12', name: '张三' } },
+    ]);
+    workStartRepo.findOne.mockResolvedValue(null);
+
+    const result = await service.getSession(17, 12);
+
+    expect(result.sessionWorkers[0]).toEqual(expect.objectContaining({
+      workerId: 12,
+      displayName: '张三',
+      checkInTime: '10:05',
+      checkOutTime: '18:00',
+      checkedOut: true,
+    }));
+    expect(result.summary.checkedOutCount).toBe(1);
+  });
+
   it('confirms attendance and advances the workflow', async () => {
     jobRepo.findOne.mockResolvedValue({ id: 1, userId: 8, status: 'working', user: { nickname: '企业B' } });
     workLogRepo.count.mockResolvedValue(2);

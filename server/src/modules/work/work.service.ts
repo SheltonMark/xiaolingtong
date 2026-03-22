@@ -628,14 +628,16 @@ export class WorkService {
     checkins
       .filter((checkin) => this.isSameDate(checkin.checkInAt, today))
       .forEach((checkin) => {
-        if (!checkinMap.has(checkin.workerId)) {
-          checkinMap.set(checkin.workerId, checkin);
+        const workerId = Number(checkin.workerId);
+        if (!checkinMap.has(workerId)) {
+          checkinMap.set(workerId, checkin);
         }
       });
     const logMap = new Map<number, WorkLog>();
     logs.forEach((log) => {
-      if (!logMap.has(log.workerId)) {
-        logMap.set(log.workerId, log);
+      const workerId = Number(log.workerId);
+      if (!logMap.has(workerId)) {
+        logMap.set(workerId, log);
       }
     });
     const sessionWorkers = confirmedWorkers.map((workerApp) => this.buildSessionWorker(
