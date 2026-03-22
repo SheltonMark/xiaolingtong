@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
@@ -21,18 +25,25 @@ import { PaymentService } from '../payment/payment.service';
 export class SettlementService {
   constructor(
     @InjectRepository(Settlement) private settleRepo: Repository<Settlement>,
-    @InjectRepository(SettlementItem) private itemRepo: Repository<SettlementItem>,
+    @InjectRepository(SettlementItem)
+    private itemRepo: Repository<SettlementItem>,
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
-    @InjectRepository(WalletTransaction) private walletTxRepo: Repository<WalletTransaction>,
+    @InjectRepository(WalletTransaction)
+    private walletTxRepo: Repository<WalletTransaction>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(WorkLog) private workLogRepo: Repository<WorkLog>,
-    @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
+    @InjectRepository(JobApplication)
+    private appRepo: Repository<JobApplication>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
-    @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
-    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
-    @InjectRepository(AttendanceSheet) private attendanceSheetRepo: Repository<AttendanceSheet>,
-    @InjectRepository(AttendanceSheetItem) private attendanceSheetItemRepo: Repository<AttendanceSheetItem>,
+    @InjectRepository(EnterpriseCert)
+    private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkerCert)
+    private workerCertRepo: Repository<WorkerCert>,
+    @InjectRepository(AttendanceSheet)
+    private attendanceSheetRepo: Repository<AttendanceSheet>,
+    @InjectRepository(AttendanceSheetItem)
+    private attendanceSheetItemRepo: Repository<AttendanceSheetItem>,
     private paymentService: PaymentService,
     private config: ConfigService,
   ) {}
@@ -42,7 +53,10 @@ export class SettlementService {
     return c ? c.value : defaultVal;
   }
 
-  private async getCompanyName(userId: number, fallbackNickname?: string): Promise<string> {
+  private async getCompanyName(
+    userId: number,
+    fallbackNickname?: string,
+  ): Promise<string> {
     const cert = await this.entCertRepo.findOne({
       where: { userId, status: 'approved' },
       order: { id: 'DESC' },
@@ -50,18 +64,23 @@ export class SettlementService {
     return cert?.companyName || fallbackNickname || '企业';
   }
 
-  private async getWorkerCertMap(userIds: Array<number | string>): Promise<Map<number, WorkerCert>> {
-    const normalizedIds = Array.from(new Set(
-      userIds
-        .map((id) => Number(id))
-        .filter((id) => Number.isFinite(id) && id > 0),
-    ));
+  private async getWorkerCertMap(
+    userIds: Array<number | string>,
+  ): Promise<Map<number, WorkerCert>> {
+    const normalizedIds = Array.from(
+      new Set(
+        userIds
+          .map((id) => Number(id))
+          .filter((id) => Number.isFinite(id) && id > 0),
+      ),
+    );
     const certMap = new Map<number, WorkerCert>();
     if (normalizedIds.length === 0) {
       return certMap;
     }
 
-    const certs = await this.workerCertRepo.createQueryBuilder('cert')
+    const certs = await this.workerCertRepo
+      .createQueryBuilder('cert')
       .where('cert.userId IN (:...userIds)', { userIds: normalizedIds })
       .andWhere('cert.status = :status', { status: 'approved' })
       .orderBy('cert.userId', 'ASC')
@@ -76,19 +95,32 @@ export class SettlementService {
     return certMap;
   }
 
-  private getWorkerDisplayName(user?: Partial<User> | null, workerCert?: Partial<WorkerCert> | null): string {
-    return String(workerCert?.realName || user?.name || user?.nickname || '').trim() || '临工';
+  private getWorkerDisplayName(
+    user?: Partial<User> | null,
+    workerCert?: Partial<WorkerCert> | null,
+  ): string {
+    return (
+      String(
+        workerCert?.realName || user?.name || user?.nickname || '',
+      ).trim() || '临工'
+    );
   }
 
-  private isEffectiveAttendanceItem(item: Partial<AttendanceSheetItem>): boolean {
-    return item.attendance !== 'absent'
-      || Number(item.hours || 0) > 0
-      || Number(item.pieces || 0) > 0
-      || !!item.checkInTime
-      || !!item.checkOutTime;
+  private isEffectiveAttendanceItem(
+    item: Partial<AttendanceSheetItem>,
+  ): boolean {
+    return (
+      item.attendance !== 'absent' ||
+      Number(item.hours || 0) > 0 ||
+      Number(item.pieces || 0) > 0 ||
+      !!item.checkInTime ||
+      !!item.checkOutTime
+    );
   }
 
-  private async getAttendanceSheetItems(jobId: number): Promise<AttendanceSheetItem[]> {
+  private async getAttendanceSheetItems(
+    jobId: number,
+  ): Promise<AttendanceSheetItem[]> {
     const sheets = await this.attendanceSheetRepo.find({
       where: { jobId },
       order: { date: 'ASC', id: 'ASC' },
@@ -122,11 +154,13 @@ export class SettlementService {
   }
 
   private buildAttendanceSheetDateLabel(sheets: AttendanceSheet[]): string {
-    const dates = Array.from(new Set(
-      sheets
-        .map((sheet) => String(sheet.date || '').slice(0, 10))
-        .filter((date) => !!date),
-    ));
+    const dates = Array.from(
+      new Set(
+        sheets
+          .map((sheet) => String(sheet.date || '').slice(0, 10))
+          .filter((date) => !!date),
+      ),
+    );
     if (dates.length === 0) {
       return '';
     }
@@ -136,7 +170,10 @@ export class SettlementService {
     return `${dates[0]} ~ ${dates[dates.length - 1]}（${dates.length}天）`;
   }
 
-  private normalizeCommissionRate(rawValue: string | number | null | undefined, fallback = 0.2): number {
+  private normalizeCommissionRate(
+    rawValue: string | number | null | undefined,
+    fallback = 0.2,
+  ): number {
     const parsed = Number(rawValue);
     if (!Number.isFinite(parsed) || parsed < 0) {
       return fallback;
@@ -148,6 +185,25 @@ export class SettlementService {
       return fallback;
     }
     return +parsed.toFixed(4);
+  }
+
+  private formatCommissionRateText(rate: number): string {
+    const percent = (Number(rate || 0) * 100).toFixed(2).replace(/\.?0+$/, '');
+    return `${percent}%`;
+  }
+
+  private async getGlobalCommissionConfigValue(): Promise<string> {
+    const primary = await this.getConfig('default_commission_rate', '');
+    if (primary) {
+      return primary;
+    }
+    return this.getConfig('platform_fee_rate', '0.20');
+  }
+
+  private async getCommissionRateForJob(jobId: number): Promise<number> {
+    const jobCommission = await this.getConfig(`job_commission_${jobId}`, '');
+    const globalCommission = await this.getGlobalCommissionConfigValue();
+    return this.normalizeCommissionRate(jobCommission || globalCommission, 0.2);
   }
 
   async createSettlement(jobId: number, userId: number) {
@@ -176,12 +232,7 @@ export class SettlementService {
       };
     }
 
-    const jobCommission = await this.getConfig(`job_commission_${jobId}`, '');
-    const globalCommission = await this.getConfig('default_commission_rate', '0.20');
-    const commissionRate = this.normalizeCommissionRate(
-      jobCommission || globalCommission,
-      0.2,
-    );
+    const commissionRate = await this.getCommissionRateForJob(jobId);
 
     const managerFeeStr = await this.getConfig('manager_service_fee', '5');
     const managerFeeUnit = +managerFeeStr;
@@ -189,24 +240,41 @@ export class SettlementService {
     const apps = await this.appRepo.find({
       where: { jobId },
     });
-    const workerApps = apps.filter((a) => ['confirmed', 'working', 'done'].includes(a.status));
-    if (workerApps.length === 0) throw new BadRequestException('没有进入考勤阶段的临工');
+    const workerApps = apps.filter((a) =>
+      ['confirmed', 'working', 'done'].includes(a.status),
+    );
+    if (workerApps.length === 0)
+      throw new BadRequestException('没有进入考勤阶段的临工');
 
     const supervisorApp = apps.find((a) => a.isSupervisor === 1);
     const supervisorId = supervisorApp ? supervisorApp.workerId : undefined;
-    const activeWorkerIds = new Set(workerApps.map((app) => Number(app.workerId)));
+    const activeWorkerIds = new Set(
+      workerApps.map((app) => Number(app.workerId)),
+    );
 
     let totalHours = 0;
+    let totalSettlementUnits = 0;
     let factoryTotal = 0;
     let workerTotal = 0;
-    const items: { workerId: number; hours: number; factoryPay: number; workerPay: number }[] = [];
+    const items: {
+      workerId: number;
+      hours: number;
+      factoryPay: number;
+      workerPay: number;
+    }[] = [];
 
     const attendanceItems = await this.getAttendanceSheetItems(jobId);
     if (attendanceItems.length > 0) {
-      const totalsByWorker = new Map<number, { hours: number; pieces: number }>();
+      const totalsByWorker = new Map<
+        number,
+        { hours: number; pieces: number }
+      >();
       for (const item of attendanceItems) {
         const workerId = Number(item.workerId);
-        if (!activeWorkerIds.has(workerId) || !this.isEffectiveAttendanceItem(item)) {
+        if (
+          !activeWorkerIds.has(workerId) ||
+          !this.isEffectiveAttendanceItem(item)
+        ) {
           continue;
         }
         const current = totalsByWorker.get(workerId) || { hours: 0, pieces: 0 };
@@ -223,32 +291,44 @@ export class SettlementService {
 
         const hours = totals.hours;
         const pieces = totals.pieces;
-        const factoryPay = job.salaryType === 'piece'
-          ? pieces * +job.salary
-          : hours * +job.salary;
+        const factoryPay =
+          job.salaryType === 'piece'
+            ? pieces * +job.salary
+            : hours * +job.salary;
         const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
+        const settlementUnits = job.salaryType === 'piece' ? pieces : hours;
 
         totalHours += hours;
+        totalSettlementUnits += settlementUnits;
         factoryTotal += factoryPay;
         workerTotal += workerPay;
         items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
       }
     } else {
       for (const app of workerApps) {
-        const logs = await this.workLogRepo.find({ where: { jobId, workerId: app.workerId } });
-        const effectiveLogs = logs.filter((log) => (
-          log.anomalyType !== 'absent'
-          || (Number(log.hours || 0)) > 0
-          || (Number(log.pieces || 0)) > 0
-          || !!log.checkInTime
-          || !!log.checkOutTime
-        ));
+        const logs = await this.workLogRepo.find({
+          where: { jobId, workerId: app.workerId },
+        });
+        const effectiveLogs = logs.filter(
+          (log) =>
+            log.anomalyType !== 'absent' ||
+            Number(log.hours || 0) > 0 ||
+            Number(log.pieces || 0) > 0 ||
+            !!log.checkInTime ||
+            !!log.checkOutTime,
+        );
         if (effectiveLogs.length === 0) {
           continue;
         }
 
-        const hours = effectiveLogs.reduce((sum, l) => sum + Number(l.hours || 0), 0);
-        const pieces = effectiveLogs.reduce((sum, l) => sum + Number(l.pieces || 0), 0);
+        const hours = effectiveLogs.reduce(
+          (sum, l) => sum + Number(l.hours || 0),
+          0,
+        );
+        const pieces = effectiveLogs.reduce(
+          (sum, l) => sum + Number(l.pieces || 0),
+          0,
+        );
 
         let factoryPay: number;
         if (job.salaryType === 'piece') {
@@ -257,21 +337,27 @@ export class SettlementService {
           factoryPay = hours * +job.salary;
         }
         const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
+        const settlementUnits = job.salaryType === 'piece' ? pieces : hours;
 
         totalHours += hours;
+        totalSettlementUnits += settlementUnits;
         factoryTotal += factoryPay;
         workerTotal += workerPay;
         items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
       }
     }
 
-    if (items.length === 0) throw new BadRequestException('暂无有效考勤记录，无法生成结算单');
+    if (items.length === 0)
+      throw new BadRequestException('暂无有效考勤记录，无法生成结算单');
 
     const remainingAmount = +(factoryTotal - workerTotal).toFixed(2);
     const rawSupervisorFee = supervisorId
-      ? +(items.length * totalHours * managerFeeUnit).toFixed(2)
+      ? +(totalSettlementUnits * managerFeeUnit).toFixed(2)
       : 0;
-    const supervisorFee = Math.max(0, Math.min(rawSupervisorFee, remainingAmount));
+    const supervisorFee = Math.max(
+      0,
+      Math.min(rawSupervisorFee, remainingAmount),
+    );
     const platformFee = +(remainingAmount - supervisorFee).toFixed(2);
 
     const settlementEntity = this.settleRepo.create({
@@ -290,13 +376,15 @@ export class SettlementService {
     const settlement = await this.settleRepo.save(settlementEntity);
 
     for (const it of items) {
-      await this.itemRepo.save(this.itemRepo.create({
-        settlementId: settlement.id,
-        workerId: it.workerId,
-        hours: it.hours,
-        factoryPay: it.factoryPay,
-        workerPay: it.workerPay,
-      }));
+      await this.itemRepo.save(
+        this.itemRepo.create({
+          settlementId: settlement.id,
+          workerId: it.workerId,
+          hours: it.hours,
+          factoryPay: it.factoryPay,
+          workerPay: it.workerPay,
+        }),
+      );
     }
 
     await this.jobRepo.update(jobId, { status: 'pending_settlement' });
@@ -316,10 +404,15 @@ export class SettlementService {
       });
       if (!job) throw new BadRequestException('招工不存在');
 
-      const companyName = await this.getCompanyName(job.userId, job.user?.nickname);
-      const dateRange = job.dateStart && job.dateEnd
-        ? job.dateStart.slice(5) + ' ~ ' + job.dateEnd.slice(5)
-        : '';
+      const commissionRate = await this.getCommissionRateForJob(jobId);
+      const companyName = await this.getCompanyName(
+        job.userId,
+        job.user?.nickname,
+      );
+      const dateRange =
+        job.dateStart && job.dateEnd
+          ? job.dateStart.slice(5) + ' ~ ' + job.dateEnd.slice(5)
+          : '';
 
       return {
         exists: false,
@@ -337,6 +430,7 @@ export class SettlementService {
         fees: {
           factoryTotal: '0.00',
           platformFee: '0.00',
+          platformFeeRateText: this.formatCommissionRateText(commissionRate),
           managerFee: '0.00',
           workerTotal: '0.00',
         },
@@ -350,20 +444,27 @@ export class SettlementService {
       where: { settlementId: settlement.id },
       relations: ['worker'],
     });
-    const workerCertMap = await this.getWorkerCertMap(items.map((item) => item.workerId));
+    const workerCertMap = await this.getWorkerCertMap(
+      items.map((item) => item.workerId),
+    );
     const attendanceSheets = await this.attendanceSheetRepo.find({
       where: { jobId },
       order: { date: 'ASC', id: 'ASC' },
     });
-    const attendanceSheetDateLabel = this.buildAttendanceSheetDateLabel(attendanceSheets);
+    const attendanceSheetDateLabel =
+      this.buildAttendanceSheetDateLabel(attendanceSheets);
 
-    const job = settlement.job || {} as any;
-    const enterprise = job.user || {} as any;
-    const companyName = await this.getCompanyName(job.userId, enterprise.nickname);
+    const job = settlement.job || ({} as any);
+    const enterprise = job.user || ({} as any);
+    const companyName = await this.getCompanyName(
+      job.userId,
+      enterprise.nickname,
+    );
 
-    const dateRange = job.dateStart && job.dateEnd
-      ? job.dateStart.slice(5) + ' ~ ' + job.dateEnd.slice(5)
-      : '';
+    const dateRange =
+      job.dateStart && job.dateEnd
+        ? job.dateStart.slice(5) + ' ~ ' + job.dateEnd.slice(5)
+        : '';
 
     const workers = items.map((it) => ({
       name: this.getWorkerDisplayName(
@@ -383,17 +484,33 @@ export class SettlementService {
       {
         label: '管理员提交核验单',
         done: true,
-        time: settlement.createdAt ? new Date(settlement.createdAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '',
+        time: settlement.createdAt
+          ? new Date(settlement.createdAt).toLocaleString('zh-CN', {
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '',
       },
       {
         label: '企业确认支付',
         done: ['paid', 'distributed', 'completed'].includes(settlement.status),
-        time: settlement.paidAt ? new Date(settlement.paidAt).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '待确认',
+        time: settlement.paidAt
+          ? new Date(settlement.paidAt).toLocaleString('zh-CN', {
+              month: '2-digit',
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          : '待确认',
       },
       {
         label: '工资发放完成',
         done: ['distributed', 'completed'].includes(settlement.status),
-        time: ['distributed', 'completed'].includes(settlement.status) ? '已发放' : '待发放',
+        time: ['distributed', 'completed'].includes(settlement.status)
+          ? '已发放'
+          : '待发放',
       },
       {
         label: '临工全部确认',
@@ -420,20 +537,27 @@ export class SettlementService {
       fees: {
         factoryTotal: (+settlement.factoryTotal).toFixed(2),
         platformFee: (+settlement.platformFee).toFixed(2),
+        platformFeeRateText: this.formatCommissionRateText(
+          +settlement.commissionRate || 0,
+        ),
         managerFee: (+settlement.supervisorFee).toFixed(2),
         workerTotal: (+settlement.workerTotal).toFixed(2),
       },
       steps,
       status: settlement.status,
-      currentWorkerSettlement: currentWorkerItem ? {
-        workerId: currentWorkerItem.workerId,
-        hours: +currentWorkerItem.hours,
-        factoryPay: (+currentWorkerItem.factoryPay).toFixed(2),
-        workerPay: (+currentWorkerItem.workerPay).toFixed(2),
-        confirmed: currentWorkerItem.confirmed === 1,
-        confirmedAt: currentWorkerItem.confirmedAt || null,
-        canConfirm: currentWorkerItem.confirmed !== 1 && ['paid', 'distributed', 'completed'].includes(settlement.status),
-      } : null,
+      currentWorkerSettlement: currentWorkerItem
+        ? {
+            workerId: currentWorkerItem.workerId,
+            hours: +currentWorkerItem.hours,
+            factoryPay: (+currentWorkerItem.factoryPay).toFixed(2),
+            workerPay: (+currentWorkerItem.workerPay).toFixed(2),
+            confirmed: currentWorkerItem.confirmed === 1,
+            confirmedAt: currentWorkerItem.confirmedAt || null,
+            canConfirm:
+              currentWorkerItem.confirmed !== 1 &&
+              ['paid', 'distributed', 'completed'].includes(settlement.status),
+          }
+        : null,
     };
   }
 
@@ -444,13 +568,18 @@ export class SettlementService {
       settlement.enterpriseId = Number(settlement.enterpriseId) as any;
     }
     if (!settlement) throw new BadRequestException('结算单不存在');
-    if (settlement.enterpriseId !== normalizedEnterpriseId) throw new ForbiddenException('无权操作');
-    if (settlement.status !== 'pending') throw new BadRequestException('结算单状态异常');
+    if (settlement.enterpriseId !== normalizedEnterpriseId)
+      throw new ForbiddenException('无权操作');
+    if (settlement.status !== 'pending')
+      throw new BadRequestException('结算单状态异常');
 
     const user = await this.userRepo.findOneBy({ id: normalizedEnterpriseId });
     if (!user) throw new BadRequestException('用户不存在');
 
-    const outTradeNo = this.paymentService.generateOutTradeNo('STL', settlement.id);
+    const outTradeNo = this.paymentService.generateOutTradeNo(
+      'STL',
+      settlement.id,
+    );
     const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
@@ -467,22 +596,33 @@ export class SettlementService {
     const settlement = await this.settleRepo.findOne({ where: { jobId } });
     if (!settlement) throw new BadRequestException('结算单不存在');
 
-    const item = await this.itemRepo.findOne({ where: { settlementId: settlement.id, workerId } });
+    const item = await this.itemRepo.findOne({
+      where: { settlementId: settlement.id, workerId },
+    });
     if (!item) throw new BadRequestException('未找到结算记录');
 
     item.confirmed = 1;
     item.confirmedAt = new Date();
     await this.itemRepo.save(item);
 
-    const unconfirmed = await this.itemRepo.count({ where: { settlementId: settlement.id, confirmed: 0 } });
-    if (unconfirmed === 0 && ['distributed', 'completed'].includes(settlement.status)) {
+    const unconfirmed = await this.itemRepo.count({
+      where: { settlementId: settlement.id, confirmed: 0 },
+    });
+    if (
+      unconfirmed === 0 &&
+      ['distributed', 'completed'].includes(settlement.status)
+    ) {
       settlement.status = 'completed';
       await this.settleRepo.save(settlement);
       await this.jobRepo.update(jobId, { status: 'closed' });
 
-      await this.appRepo.createQueryBuilder()
-        .update().set({ status: 'done' })
-        .where("jobId = :jobId AND status IN ('confirmed','working')", { jobId })
+      await this.appRepo
+        .createQueryBuilder()
+        .update()
+        .set({ status: 'done' })
+        .where("jobId = :jobId AND status IN ('confirmed','working')", {
+          jobId,
+        })
         .execute();
     }
 

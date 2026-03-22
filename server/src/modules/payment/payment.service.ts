@@ -187,7 +187,9 @@ export class PaymentService {
     });
 
     if (result?.status === 200 && result.data?.out_batch_no) {
-      this.logger.log(`转账受理: ${params.outDetailNo}, amount: ${params.amount}`);
+      this.logger.log(
+        `转账受理: ${params.outDetailNo}, amount: ${params.amount}`,
+      );
       return result.data;
     }
 
@@ -505,85 +507,118 @@ export class PaymentService {
   /** 用工结算支付回调 */
   private async handleSettlementPay(outTradeNo: string, result: any) {
     const stlId = this.extractId(outTradeNo);
-    const stl = await this.settlementRepo.findOne({ where: { id: stlId } });
-    if (!stl || stl.status !== 'pending') return;
-    stl.status = 'paid';
-    stl.paidAt = new Date();
-    await this.settlementRepo.save(stl);
+    await this.settlementRepo.manager.transaction(async (manager) => {
+      const settlementRepo = manager.getRepository(Settlement);
+      const settlementItemRepo = manager.getRepository(SettlementItem);
+      const walletRepo = manager.getRepository(Wallet);
+      const walletTxRepo = manager.getRepository(WalletTransaction);
+      const notificationRepo = manager.getRepository(Notification);
 
-    // 分发工资到各临工钱包
-    const items = await this.settlementItemRepo.find({
-      where: { settlementId: stl.id },
+      const stl = await settlementRepo.findOne({ where: { id: stlId } });
+      if (!stl || ['distributed', 'completed'].includes(stl.status)) return;
+
+      if (stl.status === 'pending') {
+        stl.status = 'paid';
+        stl.paidAt = new Date();
+        await settlementRepo.save(stl);
+      } else if (stl.status !== 'paid') {
+        return;
+      }
+
+      // 分发工资到各临工钱包
+      const items = await settlementItemRepo.find({
+        where: { settlementId: stl.id },
+      });
+      for (const item of items) {
+        const existingTx = await walletTxRepo.findOne({
+          where: {
+            userId: item.workerId,
+            refType: 'settlement',
+            refId: stl.id,
+          },
+        });
+        if (existingTx) {
+          continue;
+        }
+
+        let wallet = await walletRepo.findOne({
+          where: { userId: item.workerId },
+        });
+        if (!wallet) {
+          wallet = walletRepo.create({ userId: item.workerId });
+          wallet = await walletRepo.save(wallet);
+        }
+        wallet.balance = +wallet.balance + +item.workerPay;
+        wallet.totalIncome = +wallet.totalIncome + +item.workerPay;
+        await walletRepo.save(wallet);
+
+        await walletTxRepo.save(
+          walletTxRepo.create({
+            userId: item.workerId,
+            type: 'income',
+            amount: item.workerPay,
+            refType: 'settlement',
+            refId: stl.id,
+            status: 'success',
+            remark: '工资结算',
+          }),
+        );
+
+        // 完工信用分 +2
+        await manager.increment(User, { id: item.workerId }, 'creditScore', 2);
+
+        // 通知临工工资到账
+        await notificationRepo.save(
+          notificationRepo.create({
+            userId: item.workerId,
+            type: 'settlement' as any,
+            title: '工资到账',
+            content: `您有一笔工资¥${item.workerPay}已到账，信用分+2`,
+          }),
+        );
+      }
+
+      // 分发管理员服务费
+      if (stl.supervisorId && +stl.supervisorFee > 0) {
+        const existingSupervisorTx = await walletTxRepo.findOne({
+          where: {
+            userId: stl.supervisorId,
+            refType: 'settlement',
+            refId: stl.id,
+          },
+        });
+        if (!existingSupervisorTx) {
+          let supWallet = await walletRepo.findOne({
+            where: { userId: stl.supervisorId },
+          });
+          if (!supWallet) {
+            supWallet = walletRepo.create({ userId: stl.supervisorId });
+            supWallet = await walletRepo.save(supWallet);
+          }
+          supWallet.balance = +supWallet.balance + +stl.supervisorFee;
+          supWallet.totalIncome = +supWallet.totalIncome + +stl.supervisorFee;
+          await walletRepo.save(supWallet);
+
+          await walletTxRepo.save(
+            walletTxRepo.create({
+              userId: stl.supervisorId,
+              type: 'income',
+              amount: stl.supervisorFee,
+              refType: 'settlement',
+              refId: stl.id,
+              status: 'success',
+              remark: '管理员服务费',
+            }),
+          );
+        }
+      }
+
+      stl.status = 'distributed';
+      await settlementRepo.save(stl);
+
+      // Job 状态改为 settled
+      await manager.update(Job, stl.jobId, { status: 'settled' });
     });
-    for (const item of items) {
-      let wallet = await this.walletRepo.findOne({
-        where: { userId: item.workerId },
-      });
-      if (!wallet) {
-        wallet = this.walletRepo.create({ userId: item.workerId });
-        wallet = await this.walletRepo.save(wallet);
-      }
-      wallet.balance = +wallet.balance + +item.workerPay;
-      wallet.totalIncome = +wallet.totalIncome + +item.workerPay;
-      await this.walletRepo.save(wallet);
-
-      await this.walletTxRepo.save(
-        this.walletTxRepo.create({
-          userId: item.workerId,
-          type: 'income',
-          amount: item.workerPay,
-          refType: 'settlement',
-          refId: stl.id,
-          status: 'success',
-          remark: '工资结算',
-        }),
-      );
-
-      // 完工信用分 +2
-      await this.userRepo.increment({ id: item.workerId }, 'creditScore', 2);
-
-      // 通知临工工资到账
-      await this.notiRepo.save(
-        this.notiRepo.create({
-          userId: item.workerId,
-          type: 'settlement' as any,
-          title: '工资到账',
-          content: `您有一笔工资¥${item.workerPay}已到账，信用分+2`,
-        }),
-      );
-    }
-
-    // 分发管理员服务费
-    if (stl.supervisorId && +stl.supervisorFee > 0) {
-      let supWallet = await this.walletRepo.findOne({
-        where: { userId: stl.supervisorId },
-      });
-      if (!supWallet) {
-        supWallet = this.walletRepo.create({ userId: stl.supervisorId });
-        supWallet = await this.walletRepo.save(supWallet);
-      }
-      supWallet.balance = +supWallet.balance + +stl.supervisorFee;
-      supWallet.totalIncome = +supWallet.totalIncome + +stl.supervisorFee;
-      await this.walletRepo.save(supWallet);
-
-      await this.walletTxRepo.save(
-        this.walletTxRepo.create({
-          userId: stl.supervisorId,
-          type: 'income',
-          amount: stl.supervisorFee,
-          refType: 'settlement',
-          refId: stl.id,
-          status: 'success',
-          remark: '管理员服务费',
-        }),
-      );
-    }
-
-    stl.status = 'distributed';
-    await this.settlementRepo.save(stl);
-
-    // Job 状态改为 settled
-    await this.jobRepo.update(stl.jobId, { status: 'settled' });
   }
 
   private extractId(outTradeNo: string): number {

@@ -346,15 +346,43 @@ export class AdminService {
 
   // 系统配置
   async configList() {
-    return this.configRepo.find({ order: { group: 'ASC', key: 'ASC' } });
+    const configs = await this.configRepo.find({
+      order: { group: 'ASC', key: 'ASC' },
+    });
+    const defaultCommission = configs.find(
+      (item) => item.key === 'default_commission_rate',
+    );
+    const platformFee = configs.find(
+      (item) => item.key === 'platform_fee_rate',
+    );
+    if (
+      defaultCommission &&
+      platformFee &&
+      defaultCommission.value !== platformFee.value
+    ) {
+      platformFee.value = defaultCommission.value;
+    }
+    return configs;
   }
 
   async updateConfig(key: string, value: string) {
-    const existing = await this.configRepo.findOne({ where: { key } });
-    if (existing) {
-      await this.configRepo.update(existing.id, { value });
-    } else {
-      await this.configRepo.save(this.configRepo.create({ key, value }));
+    const syncKeys = ['default_commission_rate', 'platform_fee_rate'].includes(
+      key,
+    )
+      ? ['default_commission_rate', 'platform_fee_rate']
+      : [key];
+
+    for (const syncKey of syncKeys) {
+      const existing = await this.configRepo.findOne({
+        where: { key: syncKey },
+      });
+      if (existing) {
+        await this.configRepo.update(existing.id, { value });
+      } else {
+        await this.configRepo.save(
+          this.configRepo.create({ key: syncKey, value }),
+        );
+      }
     }
     return { message: '已更新' };
   }
@@ -589,53 +617,52 @@ export class AdminService {
       commissionNet,
       managerServiceFeeExpense,
       withdrawTotal,
-    ] =
-      await Promise.all([
-        this.memberOrderRepo
-          .createQueryBuilder('o')
-          .select('COALESCE(SUM(o.price),0)', 'total')
-          .where('o.payStatus = :s', { s: 'paid' })
-          .getRawOne(),
-        this.adRepo
-          .createQueryBuilder('a')
-          .select('COALESCE(SUM(a.price),0)', 'total')
-          .where('a.status != :s', { s: 'pending' })
-          .getRawOne(),
-        this.beanTxRepo
-          .createQueryBuilder('b')
-          .select('COALESCE(SUM(b.amount),0)', 'total')
-          .where('b.type = :t', { t: 'recharge' })
-          .getRawOne(),
-        this.settlementRepo
-          .createQueryBuilder('s')
-          .select('COALESCE(SUM(s.platformFee + s.supervisorFee),0)', 'total')
-          .where('s.status IN (:...st)', {
-            st: ['paid', 'distributed', 'completed'],
-          })
-          .getRawOne(),
-        this.settlementRepo
-          .createQueryBuilder('s')
-          .select('COALESCE(SUM(s.platformFee),0)', 'total')
-          .where('s.status IN (:...st)', {
-            st: ['paid', 'distributed', 'completed'],
-          })
-          .getRawOne(),
-        this.settlementRepo
-          .createQueryBuilder('s')
-          .select('COALESCE(SUM(s.supervisorFee),0)', 'total')
-          .where('s.status IN (:...st)', {
-            st: ['paid', 'distributed', 'completed'],
-          })
-          .getRawOne(),
-        this.walletTxRepo
-          .createQueryBuilder('w')
-          .select('COALESCE(SUM(w.amount),0)', 'total')
-          .where('w.type = :t AND w.status = :s', {
-            t: 'withdraw',
-            s: 'success',
-          })
-          .getRawOne(),
-      ]);
+    ] = await Promise.all([
+      this.memberOrderRepo
+        .createQueryBuilder('o')
+        .select('COALESCE(SUM(o.price),0)', 'total')
+        .where('o.payStatus = :s', { s: 'paid' })
+        .getRawOne(),
+      this.adRepo
+        .createQueryBuilder('a')
+        .select('COALESCE(SUM(a.price),0)', 'total')
+        .where('a.status != :s', { s: 'pending' })
+        .getRawOne(),
+      this.beanTxRepo
+        .createQueryBuilder('b')
+        .select('COALESCE(SUM(b.amount),0)', 'total')
+        .where('b.type = :t', { t: 'recharge' })
+        .getRawOne(),
+      this.settlementRepo
+        .createQueryBuilder('s')
+        .select('COALESCE(SUM(s.platformFee + s.supervisorFee),0)', 'total')
+        .where('s.status IN (:...st)', {
+          st: ['paid', 'distributed', 'completed'],
+        })
+        .getRawOne(),
+      this.settlementRepo
+        .createQueryBuilder('s')
+        .select('COALESCE(SUM(s.platformFee),0)', 'total')
+        .where('s.status IN (:...st)', {
+          st: ['paid', 'distributed', 'completed'],
+        })
+        .getRawOne(),
+      this.settlementRepo
+        .createQueryBuilder('s')
+        .select('COALESCE(SUM(s.supervisorFee),0)', 'total')
+        .where('s.status IN (:...st)', {
+          st: ['paid', 'distributed', 'completed'],
+        })
+        .getRawOne(),
+      this.walletTxRepo
+        .createQueryBuilder('w')
+        .select('COALESCE(SUM(w.amount),0)', 'total')
+        .where('w.type = :t AND w.status = :s', {
+          t: 'withdraw',
+          s: 'success',
+        })
+        .getRawOne(),
+    ]);
     return {
       income: {
         member: +memberIncome.total,
@@ -850,7 +877,7 @@ export class AdminService {
       },
       {
         key: 'platform_fee_rate',
-        value: '5',
+        value: '20',
         label: '平台服务费比例(%)',
         group: 'work',
       },

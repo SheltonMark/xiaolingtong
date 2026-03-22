@@ -309,12 +309,14 @@ describe('SettlementService', () => {
 
       await service.createSettlement(1, 1);
 
-      expect(settlementItemRepository.save).toHaveBeenCalledWith(expect.objectContaining({
-        workerId: 2,
-        hours: 7,
-        factoryPay: 700,
-        workerPay: 560,
-      }));
+      expect(settlementItemRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workerId: 2,
+          hours: 7,
+          factoryPay: 700,
+          workerPay: 560,
+        }),
+      );
       expect(workLogRepository.find).not.toHaveBeenCalled();
     });
 
@@ -355,18 +357,22 @@ describe('SettlementService', () => {
 
       await service.createSettlement(1, 1);
 
-      expect(settlementRepository.create).toHaveBeenCalledWith(expect.objectContaining({
-        commissionRate: 0.2,
-        factoryTotal: 100,
-        platformFee: 20,
-        workerTotal: 80,
-      }));
-      expect(settlementItemRepository.save).toHaveBeenCalledWith(expect.objectContaining({
-        workerId: 2,
-        hours: 1,
-        factoryPay: 100,
-        workerPay: 80,
-      }));
+      expect(settlementRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          commissionRate: 0.2,
+          factoryTotal: 100,
+          platformFee: 20,
+          workerTotal: 80,
+        }),
+      );
+      expect(settlementItemRepository.save).toHaveBeenCalledWith(
+        expect.objectContaining({
+          workerId: 2,
+          hours: 1,
+          factoryPay: 100,
+          workerPay: 80,
+        }),
+      );
     });
 
     it('should cap supervisor fee within factory total when creating settlement', async () => {
@@ -406,12 +412,60 @@ describe('SettlementService', () => {
 
       await service.createSettlement(1, 1);
 
-      expect(settlementRepository.create).toHaveBeenCalledWith(expect.objectContaining({
-        factoryTotal: 0.01,
-        workerTotal: 0,
-        supervisorFee: 0.01,
-        platformFee: 0,
-      }));
+      expect(settlementRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          factoryTotal: 0.01,
+          workerTotal: 0,
+          supervisorFee: 0.01,
+          platformFee: 0,
+        }),
+      );
+    });
+
+    it('should calculate supervisor fee from total settlement units without multiplying worker count twice', async () => {
+      const mockJob = {
+        id: 1,
+        userId: 1,
+        title: 'Managed Job',
+        salary: 100,
+        salaryType: 'hourly',
+      };
+      const mockApplications = [
+        { id: 1, workerId: 2, status: 'done', isSupervisor: 1 },
+        { id: 2, workerId: 3, status: 'done', isSupervisor: 0 },
+      ];
+
+      jobRepository.findOneBy.mockResolvedValue(mockJob);
+      settlementRepository.findOne.mockResolvedValue(null);
+      jobApplicationRepository.find.mockResolvedValue(mockApplications);
+      attendanceSheetRepository.find.mockResolvedValue([]);
+      workLogRepository.find
+        .mockResolvedValueOnce([
+          { id: 1, hours: 2, pieces: 0, jobId: 1, workerId: 2 },
+        ])
+        .mockResolvedValueOnce([
+          { id: 2, hours: 2, pieces: 0, jobId: 1, workerId: 3 },
+        ]);
+      sysConfigRepository.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({ key: 'default_commission_rate', value: '20' })
+        .mockResolvedValueOnce({ key: 'manager_service_fee', value: '5' });
+      settlementRepository.create.mockImplementation((payload) => payload);
+      settlementRepository.save.mockResolvedValue({ id: 1, status: 'pending' });
+      settlementItemRepository.create.mockImplementation((payload) => payload);
+      settlementItemRepository.save.mockResolvedValue({});
+      jobRepository.update.mockResolvedValue({});
+
+      await service.createSettlement(1, 1);
+
+      expect(settlementRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          factoryTotal: 400,
+          workerTotal: 320,
+          supervisorFee: 20,
+          platformFee: 60,
+        }),
+      );
     });
 
     it('should throw error when job not found', async () => {
@@ -429,10 +483,12 @@ describe('SettlementService', () => {
 
       const result = await service.createSettlement(1, 1);
 
-      expect(result).toEqual(expect.objectContaining({
-        existing: true,
-        settlementId: 1,
-      }));
+      expect(result).toEqual(
+        expect.objectContaining({
+          existing: true,
+          settlementId: 1,
+        }),
+      );
     });
   });
 
@@ -476,7 +532,9 @@ describe('SettlementService', () => {
       attendanceSheetRepository.find.mockResolvedValue([
         { id: 11, jobId: 1, date: '2026-03-18' },
       ]);
-      enterpriseCertRepository.findOne.mockResolvedValue({ companyName: 'Test Company' });
+      enterpriseCertRepository.findOne.mockResolvedValue({
+        companyName: 'Test Company',
+      });
 
       const result = await service.detail(1, 2);
 
@@ -484,11 +542,13 @@ describe('SettlementService', () => {
       expect(result.job.company).toBe('Test Company');
       expect(result.job.settlementGeneratedAt).toBe('2026-03-18 08:00');
       expect(result.job.attendanceSheetDateLabel).toBe('2026-03-18');
-      expect(result.currentWorkerSettlement).toEqual(expect.objectContaining({
-        workerId: 2,
-        confirmed: false,
-        canConfirm: true,
-      }));
+      expect(result.currentWorkerSettlement).toEqual(
+        expect.objectContaining({
+          workerId: 2,
+          confirmed: false,
+          canConfirm: true,
+        }),
+      );
     });
 
     it('should return empty settlement state when settlement not found', async () => {

@@ -27,6 +27,7 @@ import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { JobApplication } from '../../entities/job-application.entity';
+import { Notification } from '../../entities/notification.entity';
 
 describe('AdminModule Integration Tests', () => {
   let controller: AdminController;
@@ -52,6 +53,7 @@ describe('AdminModule Integration Tests', () => {
   let walletTxRepository: any;
   let beanTxRepository: any;
   let appRepository: any;
+  let notificationRepository: any;
   let jwtService: any;
 
   beforeEach(async () => {
@@ -212,6 +214,12 @@ describe('AdminModule Integration Tests', () => {
       find: jest.fn(),
     };
 
+    notificationRepository = {
+      find: jest.fn(),
+      save: jest.fn(),
+      create: jest.fn(),
+    };
+
     jwtService = {
       sign: jest.fn().mockReturnValue('test_token'),
     };
@@ -303,6 +311,10 @@ describe('AdminModule Integration Tests', () => {
         {
           provide: getRepositoryToken(JobApplication),
           useValue: appRepository,
+        },
+        {
+          provide: getRepositoryToken(Notification),
+          useValue: notificationRepository,
         },
         {
           provide: JwtService,
@@ -709,6 +721,30 @@ describe('AdminModule Integration Tests', () => {
       expect(result).toBeDefined();
       expect(configRepository.save).toHaveBeenCalled();
     });
+
+    it('should sync default commission config with platform fee config', async () => {
+      configRepository.findOne
+        .mockResolvedValueOnce({
+          id: 1,
+          key: 'default_commission_rate',
+          value: '20',
+        })
+        .mockResolvedValueOnce({ id: 2, key: 'platform_fee_rate', value: '5' });
+      configRepository.update.mockResolvedValue({ affected: 1 });
+
+      await controller.updateConfig({
+        key: 'platform_fee_rate',
+        value: '15',
+      });
+
+      expect(configRepository.update).toHaveBeenCalledTimes(2);
+      expect(configRepository.update).toHaveBeenNthCalledWith(1, 1, {
+        value: '15',
+      });
+      expect(configRepository.update).toHaveBeenNthCalledWith(2, 2, {
+        value: '15',
+      });
+    });
   });
 
   describe('financeOverview Integration', () => {
@@ -721,15 +757,21 @@ describe('AdminModule Integration Tests', () => {
     }
 
     it('should return gross commission and manager service fee expense separately', async () => {
-      memberOrderRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('100'));
+      memberOrderRepository.createQueryBuilder = jest.fn(() =>
+        mockTotalQuery('100'),
+      );
       adRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('200'));
-      beanTxRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('300'));
+      beanTxRepository.createQueryBuilder = jest.fn(() =>
+        mockTotalQuery('300'),
+      );
       settlementRepository.createQueryBuilder = jest
         .fn()
         .mockImplementationOnce(() => mockTotalQuery('80'))
         .mockImplementationOnce(() => mockTotalQuery('50'))
         .mockImplementationOnce(() => mockTotalQuery('30'));
-      walletTxRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('40'));
+      walletTxRepository.createQueryBuilder = jest.fn(() =>
+        mockTotalQuery('40'),
+      );
 
       const result = await controller.financeOverview();
 
