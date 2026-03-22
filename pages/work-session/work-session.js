@@ -51,7 +51,7 @@ function calculateHours(checkInTime, checkOutTime) {
 
 function formatHoursText(hours) {
   const value = Number(hours || 0)
-  return `${value.toFixed(1)}h`
+  return `${value.toFixed(2)}h`
 }
 
 function parseDateValue(value) {
@@ -419,7 +419,7 @@ Page({
     return {
       company,
       jobType: job.title || '临时工',
-      hoursToday: workers.reduce((sum, worker) => sum + Number(worker.hours || 0), 0).toFixed(1),
+      hoursToday: workers.reduce((sum, worker) => sum + Number(worker.hours || 0), 0).toFixed(2),
       startTime: (job.workHours || '08:00-18:00').split('-')[0] || '08:00',
       todayAttend: summary.presentCount,
       todayAnomaly: summary.abnormalCount,
