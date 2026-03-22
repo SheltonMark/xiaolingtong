@@ -27,6 +27,20 @@ function buildTabs(summary) {
   }))
 }
 
+function normalizeTabKey(value) {
+  const key = String(value || '').trim()
+  if (key === 'pending') return 'pending'
+  if (key === 'accepted') return 'accepted'
+  if (key === 'confirmed' || key === 'working' || key === 'ongoing') return 'ongoing'
+  if (key === 'done') return 'done'
+  return 'all'
+}
+
+function findTabIndexByKey(key) {
+  const index = TAB_CONFIG.findIndex(tab => tab.key === key)
+  return index >= 0 ? index : 0
+}
+
 Page({
   data: {
     currentTab: 0,
@@ -43,8 +57,20 @@ Page({
     }
   },
 
+  onLoad(options) {
+    this.applyRouteOptions(options)
+  },
+
   onShow() {
     this.loadApplications()
+  },
+
+  applyRouteOptions(options = {}) {
+    const nextTabKey = normalizeTabKey(options.tab || options.status)
+    const nextTabIndex = findTabIndexByKey(nextTabKey)
+    if (nextTabIndex !== this.data.currentTab) {
+      this.setData({ currentTab: nextTabIndex })
+    }
   },
 
   loadApplications() {
