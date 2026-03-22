@@ -435,14 +435,15 @@ export class SettlementService {
 
   async pay(jobId: number, enterpriseId: number) {
     const settlement = await this.settleRepo.findOne({ where: { jobId } });
+    const normalizedEnterpriseId = Number(enterpriseId || 0);
     if (settlement) {
       settlement.enterpriseId = Number(settlement.enterpriseId) as any;
     }
     if (!settlement) throw new BadRequestException('结算单不存在');
-    if (settlement.enterpriseId !== enterpriseId) throw new ForbiddenException('无权操作');
+    if (settlement.enterpriseId !== normalizedEnterpriseId) throw new ForbiddenException('无权操作');
     if (settlement.status !== 'pending') throw new BadRequestException('结算单状态异常');
 
-    const user = await this.userRepo.findOneBy({ id: enterpriseId });
+    const user = await this.userRepo.findOneBy({ id: normalizedEnterpriseId });
     if (!user) throw new BadRequestException('用户不存在');
 
     const outTradeNo = this.paymentService.generateOutTradeNo('STL', settlement.id);
