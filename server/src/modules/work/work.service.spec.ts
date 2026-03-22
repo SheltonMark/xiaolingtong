@@ -10,6 +10,7 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkStart } from '../../entities/work-start.entity';
 
 describe('WorkService', () => {
   let service: WorkService;
@@ -19,6 +20,7 @@ describe('WorkService', () => {
   let jobRepo: any;
   let userRepo: any;
   let entCertRepo: any;
+  let workStartRepo: any;
 
   beforeEach(async () => {
     checkinRepo = {
@@ -56,6 +58,12 @@ describe('WorkService', () => {
       findOne: jest.fn(),
     };
 
+    workStartRepo = {
+      findOne: jest.fn(),
+      create: jest.fn((payload) => payload),
+      save: jest.fn(async (payload) => payload),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkService,
@@ -65,6 +73,7 @@ describe('WorkService', () => {
         { provide: getRepositoryToken(Job), useValue: jobRepo },
         { provide: getRepositoryToken(User), useValue: userRepo },
         { provide: getRepositoryToken(EnterpriseCert), useValue: entCertRepo },
+        { provide: getRepositoryToken(WorkStart), useValue: workStartRepo },
       ],
     }).compile();
 
@@ -127,6 +136,15 @@ describe('WorkService', () => {
       .mockResolvedValueOnce({ jobId: 1, workerId: 99, isSupervisor: 1, status: 'working' })
       .mockResolvedValueOnce({ jobId: 1, workerId: 2, status: 'working' });
     workLogRepo.findOne.mockResolvedValue(null);
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'working',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-18',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '浼佷笟A' },
+    });
 
     await service.submitLog(99, { jobId: 1, workerId: 2, pieces: 12 });
 
@@ -137,6 +155,92 @@ describe('WorkService', () => {
     }));
   });
 
+  it('returns overtime checkout metadata when check-out exceeds the flexible window', async () => {
+    appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 2, status: 'working' });
+    workLogRepo.findOne.mockResolvedValue(null);
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'working',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-18',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业A' },
+    });
+
+    const result = await service.submitLog(2, {
+      jobId: 1,
+      workerId: 2,
+      hours: 9,
+      checkOutTime: '19:40',
+    });
+
+    expect(result.checkoutMeta.status).toBe('overtime');
+    expect(result.checkoutMeta.requiresEnterpriseConfirm).toBe(true);
+    expect(result.checkoutMeta.overtimeMinutes).toBe(100);
+  });
+
+  it('quick-checks out with server time and auto-calculated hours', async () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 2, 18, 17, 58, 27));
+    appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 2, status: 'working' });
+    workLogRepo.findOne.mockResolvedValue(null);
+    checkinRepo.findOne.mockResolvedValue({
+      id: 11,
+      jobId: 1,
+      workerId: 2,
+      checkInAt: new Date(2026, 2, 18, 8, 12, 0),
+    });
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'working',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-18',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业A' },
+    });
+
+    const result = await service.quickCheckout(2, {
+      jobId: 1,
+      workerId: 2,
+    });
+
+    expect(result.checkOutTime).toBe('17:58:27');
+    expect(result.checkInTime).toBe('08:12:00');
+    expect(result.hours).toBeCloseTo(9.77, 2);
+    expect(result.checkedOut).toBe(true);
+    expect(workLogRepo.create).toHaveBeenCalledWith(expect.objectContaining({
+      checkOutTime: '17:58:27',
+      checkInTime: '08:12:00',
+    }));
+  });
+
+  it('updates inline attendance status and note', async () => {
+    appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 2, status: 'working' });
+    workLogRepo.findOne.mockResolvedValue({
+      id: 6,
+      jobId: 1,
+      workerId: 2,
+      date: '2026-03-18',
+      anomalyType: 'normal',
+      anomalyNote: '',
+    });
+
+    const result = await service.updateLogStatus(2, {
+      jobId: 1,
+      workerId: 2,
+      attendanceStatus: 'injury',
+      statusNote: '手部受伤',
+    });
+
+    expect(result.attendanceStatus).toBe('injury');
+    expect(result.statusSource).toBe('manual');
+    expect(workLogRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      anomalyType: 'injury',
+      anomalyNote: '手部受伤',
+    }));
+  });
+
   it('upserts attendance report records for supervisor', async () => {
     appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 99, isSupervisor: 1, status: 'working' });
     appRepo.find.mockResolvedValue([
@@ -144,6 +248,15 @@ describe('WorkService', () => {
       { jobId: 1, workerId: 3, status: 'confirmed' },
     ]);
     workLogRepo.findOne.mockResolvedValue(null);
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'working',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-18',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '浼佷笟A' },
+    });
 
     const result = await service.submitAttendance(99, {
       jobId: 1,
@@ -156,6 +269,44 @@ describe('WorkService', () => {
 
     expect(result.count).toBe(2);
     expect(workLogRepo.create).toHaveBeenCalledTimes(2);
+  });
+
+  it('clears derived early-leave state when checkout time is adjusted back into the normal window', async () => {
+    appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 2, status: 'working' });
+    const existingLog = {
+      id: 10,
+      jobId: 1,
+      workerId: 2,
+      date: '2026-03-18',
+      anomalyType: 'early_leave',
+      checkOutTime: '17:00',
+      hours: 8,
+      pieces: 0,
+      photoUrls: [],
+    };
+    workLogRepo.findOne.mockResolvedValue(existingLog);
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      status: 'working',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-18',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '浼佷笟A' },
+    });
+
+    const result = await service.submitLog(2, {
+      jobId: 1,
+      workerId: 2,
+      hours: 8,
+      checkOutTime: '18:10',
+    });
+
+    expect(workLogRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      anomalyType: 'normal',
+      checkOutTime: '18:10',
+    }));
+    expect(result.checkoutMeta.status).toBe('normal');
   });
 
   it('returns attendance summary with photos and supervisor info', async () => {
@@ -254,6 +405,34 @@ describe('WorkService', () => {
     expect(result.checkinBlockedReason).toContain('未到签到时间');
     expect(result.startTime).toBe('08:00');
     expect(result.isSupervisor).toBe(false);
+  });
+
+  it('returns checkout rule metadata in session response', async () => {
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      title: '装配工',
+      status: 'working',
+      dateStart: '2026-03-18',
+      dateEnd: '2026-03-20',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业B' },
+    });
+    checkinRepo.find.mockResolvedValue([]);
+    workLogRepo.find.mockResolvedValue([]);
+    appRepo.find.mockResolvedValue([
+      { jobId: 1, workerId: 99, isSupervisor: 1, status: 'working', worker: { id: 99, nickname: '主管' } },
+      { jobId: 1, workerId: 2, isSupervisor: 0, status: 'working', worker: { id: 2, nickname: '张三' } },
+    ]);
+    workStartRepo.findOne.mockResolvedValue(null);
+
+    const result = await service.getSession(1, 2);
+
+    expect(result.checkoutRule.plannedCheckOutTime).toBe('18:00');
+    expect(result.checkoutRule.checkoutWindowStartTime).toBe('17:30');
+    expect(result.checkoutRule.checkoutWindowEndTime).toBe('19:00');
+    expect(result.summary.presentCount).toBe(0);
+    expect(result.sessionWorkers.some((item: any) => item.displayName === '张三')).toBe(true);
   });
 
   it('confirms attendance and advances the workflow', async () => {

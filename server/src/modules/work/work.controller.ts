@@ -31,6 +31,16 @@ export class WorkController {
     return this.workService.submitLog(userId, dto);
   }
 
+  @Post('log/quick-checkout')
+  quickCheckout(@CurrentUser('sub') userId: number, @Body() dto: any) {
+    return this.workService.quickCheckout(userId, dto);
+  }
+
+  @Post('log/status')
+  updateLogStatus(@CurrentUser('sub') userId: number, @Body() dto: any) {
+    return this.workService.updateLogStatus(userId, dto);
+  }
+
   @Post('anomaly')
   recordAnomaly(@CurrentUser('sub') userId: number, @Body() dto: any) {
     return this.workService.recordAnomaly(userId, dto);

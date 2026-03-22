@@ -28,6 +28,8 @@ type AttendanceRecordDto = {
 export class WorkService {
   private readonly checkinAdvanceMinutes = 30;
   private readonly checkinDeadlineMinutes = 120;
+  private readonly checkoutEarlyMinutes = 30;
+  private readonly checkoutLateMinutes = 60;
 
   constructor(
     @InjectRepository(Checkin) private checkinRepo: Repository<Checkin>,
@@ -80,10 +82,14 @@ export class WorkService {
     return `${year}-${month}-${day}`;
   }
 
-  private formatTime(date: Date): string {
+  private formatTime(date: Date, withSeconds = false): string {
     const hours = `${date.getHours()}`.padStart(2, '0');
     const minutes = `${date.getMinutes()}`.padStart(2, '0');
-    return `${hours}:${minutes}`;
+    if (!withSeconds) {
+      return `${hours}:${minutes}`;
+    }
+    const seconds = `${date.getSeconds()}`.padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
   }
 
   private formatDateTime(date?: Date | null): string {
@@ -98,26 +104,30 @@ export class WorkService {
     return target.slice(0, 10) === dateText;
   }
 
-  private parseClock(value?: string | null): { hours: number; minutes: number } | null {
-    const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})$/);
+  private parseClock(value?: string | null): { hours: number; minutes: number; seconds: number } | null {
+    const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
     if (!match) {
       return null;
     }
 
     const hours = Number(match[1]);
     const minutes = Number(match[2]);
+    const seconds = Number(match[3] || 0);
     if (
       !Number.isInteger(hours)
       || !Number.isInteger(minutes)
+      || !Number.isInteger(seconds)
       || hours < 0
       || hours > 23
       || minutes < 0
       || minutes > 59
+      || seconds < 0
+      || seconds > 59
     ) {
       return null;
     }
 
-    return { hours, minutes };
+    return { hours, minutes, seconds };
   }
 
   private getJobStartTime(job: Partial<Job>): string {
@@ -127,6 +137,82 @@ export class WorkService {
       return '08:00';
     }
     return `${`${parsed.hours}`.padStart(2, '0')}:${`${parsed.minutes}`.padStart(2, '0')}`;
+  }
+
+  private getJobEndTime(job: Partial<Job>): string {
+    const endText = String(job.workHours || '').split('-')[1]?.trim();
+    const parsed = this.parseClock(endText);
+    if (!parsed) {
+      return '18:00';
+    }
+    return `${`${parsed.hours}`.padStart(2, '0')}:${`${parsed.minutes}`.padStart(2, '0')}`;
+  }
+
+  private getCheckoutRule(job: Partial<Job>, dateText = this.formatLocalDate()) {
+    const plannedCheckOutTime = this.getJobEndTime(job);
+    const plannedCheckOutAt = this.buildDateTime(dateText, plannedCheckOutTime);
+    const checkoutWindowStart = plannedCheckOutAt
+      ? this.addMinutes(plannedCheckOutAt, -this.checkoutEarlyMinutes)
+      : null;
+    const checkoutWindowEnd = plannedCheckOutAt
+      ? this.addMinutes(plannedCheckOutAt, this.checkoutLateMinutes)
+      : null;
+
+    return {
+      plannedCheckOutTime,
+      checkoutWindowStartTime: checkoutWindowStart ? this.formatTime(checkoutWindowStart) : '',
+      checkoutWindowEndTime: checkoutWindowEnd ? this.formatTime(checkoutWindowEnd) : '',
+      earlyMinutes: this.checkoutEarlyMinutes,
+      lateMinutes: this.checkoutLateMinutes,
+    };
+  }
+
+  private getCheckoutMeta(job: Partial<Job>, checkOutTime?: string | null, dateText = this.formatLocalDate()) {
+    const parsedCheckOut = this.parseClock(checkOutTime);
+    if (!parsedCheckOut) {
+      return null;
+    }
+
+    const rule = this.getCheckoutRule(job, dateText);
+    const actualCheckOutAt = this.buildDateTime(dateText, checkOutTime);
+    const plannedCheckOutAt = this.buildDateTime(dateText, rule.plannedCheckOutTime);
+    const checkoutWindowStart = this.buildDateTime(dateText, rule.checkoutWindowStartTime);
+    const checkoutWindowEnd = this.buildDateTime(dateText, rule.checkoutWindowEndTime);
+
+    if (!actualCheckOutAt || !plannedCheckOutAt || !checkoutWindowStart || !checkoutWindowEnd) {
+      return null;
+    }
+
+    let status: 'normal' | 'early_leave' | 'overtime' = 'normal';
+    let statusText = '正常签退';
+    let hint = `正常签退窗口 ${rule.checkoutWindowStartTime}-${rule.checkoutWindowEndTime}`;
+    let requiresEnterpriseConfirm = false;
+    let earlyLeaveMinutes = 0;
+    let overtimeMinutes = 0;
+
+    if (actualCheckOutAt < checkoutWindowStart) {
+      status = 'early_leave';
+      statusText = '早退';
+      earlyLeaveMinutes = Math.max(0, Math.round((checkoutWindowStart.getTime() - actualCheckOutAt.getTime()) / 60000));
+      hint = `早于正常签退窗口 ${earlyLeaveMinutes} 分钟，建议补充原因`;
+    } else if (actualCheckOutAt > checkoutWindowEnd) {
+      status = 'overtime';
+      statusText = '超时签退';
+      requiresEnterpriseConfirm = true;
+      overtimeMinutes = Math.max(0, Math.round((actualCheckOutAt.getTime() - plannedCheckOutAt.getTime()) / 60000));
+      hint = `超出计划签退 ${overtimeMinutes} 分钟，超出部分待企业确认`;
+    }
+
+    return {
+      status,
+      statusText,
+      hint,
+      requiresEnterpriseConfirm,
+      earlyLeaveMinutes,
+      overtimeMinutes,
+      actualCheckOutTime: checkOutTime,
+      ...rule,
+    };
   }
 
   private buildDateTime(dateText?: string | null, timeText?: string | null): Date | null {
@@ -144,11 +230,111 @@ export class WorkService {
       return null;
     }
 
-    return new Date(year, month - 1, day, parsedClock.hours, parsedClock.minutes, 0, 0);
+    return new Date(year, month - 1, day, parsedClock.hours, parsedClock.minutes, parsedClock.seconds, 0);
   }
 
   private addMinutes(date: Date, minutes: number): Date {
     return new Date(date.getTime() + minutes * 60 * 1000);
+  }
+
+  private roundHours(value: number): number {
+    return Math.max(0, Math.round(value * 100) / 100);
+  }
+
+  private calculateHours(checkInTime?: string | null, checkOutTime?: string | null, dateText = this.formatLocalDate()): number | null {
+    const checkInAt = this.buildDateTime(dateText, checkInTime);
+    const checkOutAt = this.buildDateTime(dateText, checkOutTime);
+    if (!checkInAt || !checkOutAt || checkOutAt < checkInAt) {
+      return null;
+    }
+    return this.roundHours((checkOutAt.getTime() - checkInAt.getTime()) / 3600000);
+  }
+
+  private normalizeAttendanceStatus(status?: string | null): WorkLog['anomalyType'] | null {
+    const normalized = String(status || '').trim();
+    if (!normalized) {
+      return null;
+    }
+    const statusMap: Record<string, WorkLog['anomalyType']> = {
+      normal: 'normal',
+      late: 'late',
+      early_leave: 'early_leave',
+      absent: 'absent',
+      injury: 'injury',
+      other: 'fraud',
+      fraud: 'fraud',
+    };
+    return statusMap[normalized] || null;
+  }
+
+  private getAttendanceStatusText(status?: string | null): string {
+    const normalized = this.normalizeAttendanceStatus(status) || 'normal';
+    const textMap: Record<string, string> = {
+      normal: '正常',
+      late: '迟到',
+      early_leave: '早退',
+      absent: '缺勤',
+      injury: '受伤',
+      fraud: '其他异常',
+    };
+    return textMap[normalized] || '正常';
+  }
+
+  private getDisplayName(user?: Partial<User> | null): string {
+    return String(user?.name || user?.nickname || '').trim() || '临工';
+  }
+
+  private getStatusSource(anomalyType?: string | null, checkoutMeta?: { status?: string } | null): 'system' | 'manual' {
+    const normalized = this.normalizeAttendanceStatus(anomalyType) || 'normal';
+    if (normalized === 'normal') {
+      return 'system';
+    }
+    if (normalized === 'early_leave' && checkoutMeta?.status === 'early_leave') {
+      return 'system';
+    }
+    return 'manual';
+  }
+
+  private buildSessionWorker(
+    app: JobApplication,
+    checkin: Checkin | undefined,
+    log: WorkLog | null | undefined,
+    job: Job,
+    dateText: string,
+  ) {
+    const worker = app.worker || ({} as User);
+    const checkInTime = log?.checkInTime || (checkin ? this.formatTime(new Date(checkin.checkInAt), true) : '');
+    const checkOutTime = log?.checkOutTime || '';
+    const checkoutMeta = this.getCheckoutMeta(job, checkOutTime || null, dateText);
+    const derivedAttendance = this.normalizeAttendanceStatus(log?.anomalyType)
+      || (checkInTime ? 'normal' : 'absent');
+    const hours = log?.hours ?? this.calculateHours(checkInTime || null, checkOutTime || null, dateText) ?? 0;
+    const attendanceStatus = checkoutMeta?.status === 'early_leave' && derivedAttendance === 'normal'
+      ? 'early_leave'
+      : derivedAttendance;
+
+    return {
+      workerId: Number(worker.id),
+      displayName: this.getDisplayName(worker),
+      attendanceStatus,
+      attendanceStatusText: this.getAttendanceStatusText(attendanceStatus),
+      statusSource: this.getStatusSource(attendanceStatus, checkoutMeta),
+      statusNote: log?.anomalyNote || '',
+      checkInTime,
+      checkOutTime,
+      hours: this.roundHours(this.toNumber(hours)),
+      checkedOut: !!checkOutTime,
+      canQuickCheckout: !!checkInTime && !checkOutTime,
+      checkoutMeta,
+    };
+  }
+
+  private buildSessionSummary(workers: Array<{ attendanceStatus?: string; checkedOut?: boolean }>) {
+    return {
+      presentCount: workers.filter((worker) => worker.attendanceStatus !== 'absent').length,
+      abnormalCount: workers.filter((worker) => worker.attendanceStatus && worker.attendanceStatus !== 'normal').length,
+      checkedOutCount: workers.filter((worker) => !!worker.checkedOut).length,
+    };
   }
 
   private isActiveSupervisor(app?: Partial<JobApplication> | null): boolean {
@@ -438,6 +624,27 @@ export class WorkService {
       relations: ['worker'],
     });
     const confirmedWorkers = workers.filter((worker) => ['confirmed', 'working', 'done'].includes(worker.status));
+    const checkinMap = new Map<number, Checkin>();
+    checkins
+      .filter((checkin) => this.isSameDate(checkin.checkInAt, today))
+      .forEach((checkin) => {
+        if (!checkinMap.has(checkin.workerId)) {
+          checkinMap.set(checkin.workerId, checkin);
+        }
+      });
+    const logMap = new Map<number, WorkLog>();
+    logs.forEach((log) => {
+      if (!logMap.has(log.workerId)) {
+        logMap.set(log.workerId, log);
+      }
+    });
+    const sessionWorkers = confirmedWorkers.map((workerApp) => this.buildSessionWorker(
+      workerApp,
+      checkinMap.get(Number(workerApp.workerId)),
+      logMap.get(Number(workerApp.workerId)),
+      job,
+      today,
+    ));
     const currentApp = userId
       ? workers.find((worker) => Number(worker.workerId) === Number(userId)) || null
       : null;
@@ -449,8 +656,14 @@ export class WorkService {
     return {
       job: { ...job, companyName },
       checkins: checkins.filter((checkin) => this.isSameDate(checkin.checkInAt, today)),
-      logs,
+      logs: logs.map((log) => ({
+        ...log,
+        checkoutMeta: this.getCheckoutMeta(job, log.checkOutTime, log.date),
+      })),
       workers: confirmedWorkers,
+      sessionWorkers,
+      summary: this.buildSessionSummary(sessionWorkers),
+      checkoutRule: this.getCheckoutRule(job, today),
       supervisor: supervisorApp ? {
         id: supervisorApp.workerId,
         name: supervisorApp.worker?.nickname || '管理员',
@@ -590,14 +803,30 @@ export class WorkService {
     const jobId = this.normalizeJobId(dto.jobId);
     const targetWorkerId = await this.resolveTargetWorker(jobId, userId, dto.workerId);
     const date = this.normalizeDate(dto.date);
+    const job = await this.ensureJob(jobId);
+    const checkoutMeta = this.getCheckoutMeta(job, dto.checkOutTime, date);
+    const existingLog = await this.workLogRepo.findOne({
+      where: { jobId, workerId: targetWorkerId, date },
+    });
+    const resolvedCheckInTime = dto.checkInTime ?? existingLog?.checkInTime ?? null;
+    const calculatedHours = dto.hours === undefined
+      ? this.calculateHours(resolvedCheckInTime, dto.checkOutTime ?? existingLog?.checkOutTime ?? null, date)
+      : this.toNumber(dto.hours);
+    const anomalyType = dto.attendance !== undefined && dto.attendance !== null && dto.attendance !== ''
+      ? dto.attendance
+      : checkoutMeta?.status === 'early_leave'
+        ? 'early_leave'
+        : existingLog?.anomalyType === 'early_leave'
+          ? 'normal'
+          : undefined;
 
     const log = await this.upsertDailyLog(jobId, targetWorkerId, date, {
-      hours: dto.hours === undefined ? undefined : this.toNumber(dto.hours),
+      hours: calculatedHours === null ? undefined : calculatedHours,
       pieces: dto.pieces === undefined ? undefined : this.toNumber(dto.pieces),
       checkInTime: dto.checkInTime,
       checkOutTime: dto.checkOutTime,
       anomalyNote: dto.note,
-      anomalyType: dto.attendance,
+      anomalyType,
       photoUrls: dto.photoUrls,
     });
 
@@ -606,7 +835,105 @@ export class WorkService {
       { status: 'working' },
     );
 
-    return log;
+    return {
+      ...log,
+      checkoutMeta,
+    };
+  }
+
+  async quickCheckout(userId: number, dto: any) {
+    const jobId = this.normalizeJobId(dto.jobId);
+    const targetWorkerId = await this.resolveTargetWorker(jobId, userId, dto.workerId);
+    const date = this.normalizeDate(dto.date);
+    const job = await this.ensureJob(jobId);
+    const now = new Date();
+    const checkOutTime = this.formatTime(now, true);
+    const existingLog = await this.workLogRepo.findOne({
+      where: { jobId, workerId: targetWorkerId, date },
+    });
+    const latestCheckin = await this.checkinRepo.findOne({
+      where: { jobId, workerId: targetWorkerId },
+      order: { id: 'DESC' },
+    });
+    const checkInTime = existingLog?.checkInTime
+      || (latestCheckin && this.isSameDate(latestCheckin.checkInAt, date) ? this.formatTime(new Date(latestCheckin.checkInAt), true) : null);
+
+    if (!checkInTime) {
+      throw new BadRequestException('请先签到');
+    }
+    if (existingLog?.checkOutTime) {
+      throw new BadRequestException('该工人已签退');
+    }
+
+    const checkoutMeta = this.getCheckoutMeta(job, checkOutTime, date);
+    const hours = this.calculateHours(checkInTime, checkOutTime, date);
+    if (hours === null) {
+      throw new BadRequestException('工时计算失败');
+    }
+    const preservedStatus = this.normalizeAttendanceStatus(existingLog?.anomalyType);
+    const anomalyType = checkoutMeta?.status === 'early_leave'
+      ? 'early_leave'
+      : preservedStatus && !['normal', 'early_leave', 'absent'].includes(preservedStatus)
+        ? preservedStatus
+        : 'normal';
+
+    const log = await this.upsertDailyLog(jobId, targetWorkerId, date, {
+      checkInTime,
+      checkOutTime,
+      hours,
+      anomalyType,
+    });
+
+    await this.appRepo.update(
+      { jobId, workerId: targetWorkerId, status: 'confirmed' },
+      { status: 'working' },
+    );
+
+    return {
+      ...log,
+      checkInTime,
+      checkOutTime,
+      hours,
+      anomalyType,
+      attendanceStatus: anomalyType,
+      attendanceStatusText: this.getAttendanceStatusText(anomalyType),
+      statusSource: this.getStatusSource(anomalyType, checkoutMeta),
+      checkedOut: true,
+      checkoutMeta,
+    };
+  }
+
+  async updateLogStatus(userId: number, dto: any) {
+    const jobId = this.normalizeJobId(dto.jobId);
+    const targetWorkerId = await this.resolveTargetWorker(jobId, userId, dto.workerId);
+    const date = this.normalizeDate(dto.date);
+    const nextStatus = this.normalizeAttendanceStatus(dto.attendanceStatus);
+    if (!nextStatus) {
+      throw new BadRequestException('状态无效');
+    }
+
+    const existingLog = await this.workLogRepo.findOne({
+      where: { jobId, workerId: targetWorkerId, date },
+    });
+    const patch: Partial<WorkLog> = {
+      anomalyType: nextStatus,
+      anomalyNote: dto.statusNote === undefined ? existingLog?.anomalyNote : String(dto.statusNote || '').trim(),
+    };
+
+    if (nextStatus === 'absent') {
+      patch.hours = 0;
+      patch.checkInTime = null;
+      patch.checkOutTime = null;
+    }
+
+    const log = await this.upsertDailyLog(jobId, targetWorkerId, date, patch);
+    return {
+      ...log,
+      attendanceStatus: nextStatus,
+      attendanceStatusText: this.getAttendanceStatusText(nextStatus),
+      statusSource: 'manual',
+      statusNote: log.anomalyNote || '',
+    };
   }
 
   async recordAnomaly(userId: number, dto: any) {
@@ -671,6 +998,7 @@ export class WorkService {
   async submitAttendance(supervisorId: number, dto: any) {
     const jobId = this.normalizeJobId(dto.jobId);
     await this.ensureSupervisor(jobId, supervisorId);
+    const job = await this.ensureJob(jobId);
 
     const date = this.normalizeDate(dto.date);
     const records = Array.isArray(dto.records) ? (dto.records as AttendanceRecordDto[]) : [];
@@ -698,9 +1026,13 @@ export class WorkService {
 
       const attendance = record.attendance
         || ((record.checkInTime || this.toNumber(record.hours) > 0 || this.toNumber(record.pieces) > 0) ? 'normal' : 'absent');
+      const checkoutMeta = this.getCheckoutMeta(job, record.checkOutTime, date);
+      const anomalyType = attendance === 'normal' && checkoutMeta?.status === 'early_leave'
+        ? 'early_leave'
+        : attendance;
 
       const log = await this.upsertDailyLog(jobId, workerId, date, {
-        anomalyType: attendance,
+        anomalyType,
         checkInTime: record.checkInTime ?? null,
         checkOutTime: record.checkOutTime ?? null,
         hours: this.toNumber(record.hours),
@@ -766,17 +1098,20 @@ export class WorkService {
       const inferredAttendance = log?.attendance
         || (checkin ? 'normal' : 'absent');
       const attendance = inferredAttendance || 'normal';
+      const checkOutTime = log?.checkOutTime || null;
+      const checkoutMeta = this.getCheckoutMeta(job, checkOutTime, targetDate);
 
       return {
         workerId: worker.id,
-        name: worker.nickname || '临工',
+        name: this.getDisplayName(worker),
         attendance,
         checkInTime: log?.checkInTime || (checkin ? this.formatTime(new Date(checkin.checkInAt)) : null),
-        checkOutTime: log?.checkOutTime || null,
+        checkOutTime,
         hours: log?.hours || 0,
         pieces: log?.pieces || 0,
         note: log?.note || '',
         photos: log?.photos || [],
+        checkoutMeta,
       };
     });
 
@@ -799,6 +1134,7 @@ export class WorkService {
         company: companyName,
         date: targetDate,
       },
+      checkoutRule: this.getCheckoutRule(job, targetDate),
       summary: { totalExpected, totalPresent, totalAbsent },
       records,
       supervisor: supervisor ? {
