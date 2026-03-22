@@ -1,6 +1,14 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 
+const TAB_CONFIG = [
+  { label: '全部', key: 'all', countKey: 'totalRecords' },
+  { label: '待审核', key: 'pending', countKey: 'pendingRecords' },
+  { label: '待出勤', key: 'accepted', countKey: 'awaitingAttendanceRecords' },
+  { label: '进行中', key: 'ongoing', countKey: 'ongoingRecords' },
+  { label: '已完成', key: 'done', countKey: 'completedRecords' }
+]
+
 function isGenericCompanyName(name) {
   const text = String(name || '').trim()
   return !text || text === '企业' || text === '企业用户'
@@ -12,15 +20,24 @@ function formatJobDate(job) {
   return ''
 }
 
+function buildTabs(summary) {
+  return TAB_CONFIG.map(tab => ({
+    ...tab,
+    count: Number(summary[tab.countKey] || 0)
+  }))
+}
+
 Page({
   data: {
     currentTab: 0,
-    tabs: ['全部', '待审核', '待出勤', '进行中', '已完成'],
+    tabs: buildTabs({}),
     list: [],
     filteredList: [],
     summary: {
       totalRecords: 0,
       activeRecords: 0,
+      pendingRecords: 0,
+      awaitingAttendanceRecords: 0,
       ongoingRecords: 0,
       completedRecords: 0
     }
@@ -33,22 +50,22 @@ Page({
   loadApplications() {
     get('/applications').then(res => {
       const rawList = res.data.list || res.data || []
-      const summary = (res.data && res.data.summary) || this.data.summary
+      const summary = { ...this.data.summary, ...((res.data && res.data.summary) || {}) }
       const baseList = rawList.map(item => this.normalizeApplication(item))
       this.enrichApplicationsByJobDetail(baseList).then(list => {
-        this.setData({ list, summary }, () => this.applyFilter())
+        this.setData({ list, summary, tabs: buildTabs(summary) }, () => this.applyFilter())
       }).catch(() => {
-        this.setData({ list: baseList, summary }, () => this.applyFilter())
+        this.setData({ list: baseList, summary, tabs: buildTabs(summary) }, () => this.applyFilter())
       })
     }).catch(() => {})
   },
 
   applyFilter() {
-    const tab = this.data.tabs[this.data.currentTab] || '全部'
+    const currentTab = this.data.tabs[this.data.currentTab] || { key: 'all' }
     const list = Array.isArray(this.data.list) ? this.data.list : []
-    const filteredList = tab === '全部'
+    const filteredList = currentTab.key === 'all'
       ? list
-      : list.filter(item => item.tabKey === tab)
+      : list.filter(item => item.filterKey === currentTab.key)
     this.setData({ filteredList })
   },
 
@@ -94,20 +111,20 @@ Page({
     const job = item.job || {}
     const user = job.user || {}
     const statusMap = {
-      pending: { text: '待审核', bg: 'amber', tabKey: '待审核' },
-      accepted: { text: '待出勤', bg: 'blue', tabKey: '待出勤', canConfirmAttendance: true },
-      confirmed: { text: '待开工', bg: 'blue', tabKey: '进行中', canOpenCheckin: true, checkinActionText: '查看签到' },
-      working: { text: '进行中', bg: 'green', tabKey: '进行中', canOpenCheckin: true, checkinActionText: '打卡签到', showPulse: true },
-      done: { text: '已完成', bg: 'gray', tabKey: '已完成', canRate: true },
-      rejected: { text: '未通过', bg: 'rose', tabKey: '全部' },
-      released: { text: '已释放', bg: 'gray', tabKey: '全部' },
-      cancelled: { text: '已取消', bg: 'gray', tabKey: '全部' }
+      pending: { text: '待审核', bg: 'amber', filterKey: 'pending' },
+      accepted: { text: '待出勤', bg: 'blue', filterKey: 'accepted', canConfirmAttendance: true },
+      confirmed: { text: '待开工', bg: 'blue', filterKey: 'ongoing', canOpenCheckin: true, checkinActionText: '查看签到' },
+      working: { text: '进行中', bg: 'green', filterKey: 'ongoing', canOpenCheckin: true, checkinActionText: '打卡签到', showPulse: true },
+      done: { text: '已完成', bg: 'gray', filterKey: 'done', canRate: true },
+      rejected: { text: '未通过', bg: 'rose', filterKey: 'all' },
+      released: { text: '已释放', bg: 'gray', filterKey: 'all' },
+      cancelled: { text: '已取消', bg: 'gray', filterKey: 'all' }
     }
 
     const statusInfo = statusMap[item.status] || statusMap.pending
     const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
     const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
-    const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
+    const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/天')
 
     return {
       id: item.id,
@@ -126,18 +143,18 @@ Page({
       status: item.status,
       statusText: statusInfo.text,
       statusBg: statusInfo.bg,
-      tabKey: statusInfo.tabKey,
+      filterKey: statusInfo.filterKey,
       canConfirmAttendance: !!statusInfo.canConfirmAttendance,
       canOpenCheckin: !!statusInfo.canOpenCheckin,
       checkinActionText: statusInfo.checkinActionText || '查看签到',
       canRate: !!statusInfo.canRate,
       showPulse: !!statusInfo.showPulse,
       alert: item.status === 'accepted'
-        ? '如确认出勤，请尽快确认，避免名额释放'
+        ? '如确认出勤，请尽快确认，避免名额被释放。'
         : item.status === 'confirmed'
-          ? '已确认出勤，请在签到时间内完成签到，如未设置临工管理员将无法打卡'
+          ? '已确认出勤，请在签到时间内完成签到。'
           : item.status === 'working'
-            ? '已进入工作中，可查看签到记录和当前状态'
+            ? '当前处于工作中，可查看签到记录和当前状态。'
             : ''
     }
   },
@@ -150,7 +167,7 @@ Page({
     const jobId = e.currentTarget.dataset.jobId
     wx.showModal({
       title: '确认出勤',
-      content: '确认会按时到岗后，系统将保留你的录用资格。',
+      content: '确认后需按时到岗，系统会继续保留你的录用资格。',
       success: (res) => {
         if (!res.confirm) return
         post('/jobs/' + jobId + '/confirm').then(() => {
