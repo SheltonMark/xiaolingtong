@@ -2,18 +2,76 @@
   <nav-bar title="{{pageTitle}}" />
 
   <view class="shell-loading" wx:if="{{redirecting}}">
-    <text class="shell-title">正在跳转到统一工作流页…</text>
-    <text class="shell-sub">结算页已并入用工流程页，系统正在为你打开对应工单。</text>
+    <text class="shell-title">正在跳转到统一工作流</text>
+    <text class="shell-sub">结算页已并入用工流程，系统正在为你打开对应工单。</text>
   </view>
 
-  <empty-state
-    wx:else
-    text="请从具体工单进入结算"
-    subText="当前入口缺少 jobId，无法直接定位到结算单。你可以回到“我的发布 / 用工记录 / 通知”重新进入。"
-  >
-    <view class="shell-actions">
-      <button class="btn btn-primary" wx:if="{{targetUrl}}" bindtap="onOpenWorkflow">重新打开工作流</button>
-      <button class="btn btn-outline" bindtap="onBackMine">返回我的</button>
+  <view class="hub-page" wx:elif="{{hubMode}}">
+    <view class="hub-hero">
+      <text class="hub-kicker">{{summaryTitle}}</text>
+      <text class="hub-title">{{summaryHeadline}}</text>
+      <text class="hub-sub">{{summaryText}}</text>
     </view>
-  </empty-state>
+
+    <empty-state
+      wx:if="{{notLoggedIn}}"
+      text="登录后查看结算工单"
+      subText="当前入口会按角色聚合可处理的工单和结算记录。"
+    >
+      <view class="shell-actions">
+        <button class="btn btn-primary" bindtap="onGoLogin">去登录</button>
+        <button class="btn btn-outline" bindtap="onBackMine">返回我的</button>
+      </view>
+    </empty-state>
+
+    <view class="hub-panel" wx:elif="{{loading}}">
+      <view class="section-head">
+        <text class="section-title">正在加载</text>
+        <text class="section-meta">请稍候</text>
+      </view>
+      <view class="loading-card" wx:for="{{[1, 2, 3]}}" wx:key="*this">
+        <view class="loading-line loading-line-lg"></view>
+        <view class="loading-line"></view>
+        <view class="loading-line loading-line-sm"></view>
+      </view>
+    </view>
+
+    <view class="hub-panel" wx:elif="{{records.length}}">
+      <view class="section-head">
+        <text class="section-title">相关工单</text>
+        <text class="section-meta">{{records.length}} 条</text>
+      </view>
+
+      <view
+        class="record-card"
+        wx:for="{{records}}"
+        wx:key="id"
+        data-url="{{item.targetUrl}}"
+        bindtap="onOpenRecord"
+        hover-class="record-card-hover"
+      >
+        <view class="record-top">
+          <text class="record-title">{{item.title}}</text>
+          <text class="record-badge badge-{{item.badgeTone}}">{{item.badgeText}}</text>
+        </view>
+        <text class="record-subtitle" wx:if="{{item.subtitle}}">{{item.subtitle}}</text>
+        <text class="record-hint">{{item.hint}}</text>
+        <view class="record-footer">
+          <text class="record-action">{{item.actionText}}</text>
+          <text class="record-arrow">></text>
+        </view>
+      </view>
+    </view>
+
+    <empty-state
+      wx:else
+      text="{{emptyTitle}}"
+      subText="{{emptySubText}}"
+    >
+      <view class="shell-actions">
+        <button class="btn btn-primary" bindtap="onOpenPrimaryList">{{primaryListLabel}}</button>
+        <button class="btn btn-outline" bindtap="onBackMine">返回我的</button>
+      </view>
+    </empty-state>
+  </view>
 </view>
