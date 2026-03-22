@@ -6,6 +6,7 @@ const qqmapsdk = new QQMapWX({
 })
 
 const geocodeCache = Object.create(null)
+const reverseGeocodeCache = Object.create(null)
 const DISTANCE_DEBUG = false
 const FORCE_FIXED_LOCATION = false
 const FIXED_USER_LOCATION = { latitude: 30.179079, longitude: 120.154664 }
@@ -205,6 +206,88 @@ function geocodeByAddress(address) {
           status: error && (error.status || error.code || ''),
           error
         })
+        resolve(null)
+      }
+    })
+  })
+}
+
+function getLocationTextFromResult(result) {
+  if (!result || typeof result !== 'object') return ''
+
+  const address = typeof result.address === 'string' ? result.address.trim() : ''
+  const formatted = typeof result.formatted_addresses === 'object' && result.formatted_addresses
+    ? result.formatted_addresses
+    : null
+  const recommend = formatted && typeof formatted.recommend === 'string'
+    ? formatted.recommend.trim()
+    : ''
+  const rough = formatted && typeof formatted.rough === 'string'
+    ? formatted.rough.trim()
+    : ''
+  const addressComponent = result.address_component || {}
+  const parts = [
+    addressComponent.city,
+    addressComponent.district,
+    addressComponent.street,
+    addressComponent.street_number
+  ].filter(Boolean)
+  const componentText = parts.join('')
+
+  return recommend || address || rough || componentText || ''
+}
+
+function reverseGeocode(point) {
+  return new Promise((resolve) => {
+    const normalizedPoint = normalizePoint(point, { allowZero: false })
+    if (!normalizedPoint) {
+      resolve(null)
+      return
+    }
+
+    const cacheKey = `${normalizedPoint.latitude.toFixed(6)},${normalizedPoint.longitude.toFixed(6)}`
+    const memoryCached = reverseGeocodeCache[cacheKey]
+    if (memoryCached && memoryCached.address) {
+      resolve(memoryCached)
+      return
+    }
+
+    const storageKey = `reverse-geo:${cacheKey}`
+    try {
+      const cached = wx.getStorageSync(storageKey)
+      if (cached && cached.address) {
+        reverseGeocodeCache[cacheKey] = cached
+        resolve(cached)
+        return
+      }
+      if (cached) {
+        wx.removeStorageSync(storageKey)
+      }
+    } catch (e) {}
+
+    qqmapsdk.reverseGeocoder({
+      location: normalizedPoint,
+      success: (res) => {
+        const result = res && res.result
+        const location = normalizePoint(result && result.location, { allowZero: false }) || normalizedPoint
+        const address = getLocationTextFromResult(result)
+        if (!address) {
+          resolve(null)
+          return
+        }
+
+        const data = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          address
+        }
+        reverseGeocodeCache[cacheKey] = data
+        try {
+          wx.setStorageSync(storageKey, data)
+        } catch (e) {}
+        resolve(data)
+      },
+      fail: () => {
         resolve(null)
       }
     })
@@ -418,5 +501,6 @@ module.exports = {
   calculateDistance,
   calculateDistanceForList,
   getUserLocation,
+  reverseGeocode,
   filterByDistance
 }

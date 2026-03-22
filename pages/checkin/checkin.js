@@ -1,4 +1,5 @@
 const { get, post, upload } = require('../../utils/request')
+const { getUserLocation, reverseGeocode } = require('../../utils/distance')
 
 Page({
   data: {
@@ -24,10 +25,14 @@ Page({
     submittingStart: false,
     latitude: null,
     longitude: null,
+    jobLat: 0,
+    jobLng: 0,
     locationReady: false,
     canCheckinButton: false,
     localBlockedReason: '',
-    locationError: ''
+    locationError: '',
+    currentLocationText: '',
+    jobLocationText: ''
   },
 
   onLoad(options) {
@@ -36,19 +41,21 @@ Page({
       jobId,
       mode: options.mode || 'hourly'
     })
+
     if (jobId) {
-      const cachedPhotos = wx.getStorageSync('workSessionPhotos:' + jobId) || []
+      const cachedPhotos = wx.getStorageSync(`workSessionPhotos:${jobId}`) || []
       if (Array.isArray(cachedPhotos) && cachedPhotos.length > 0) {
         this.setData({ photos: cachedPhotos })
       }
       this.loadSession(jobId)
     }
+
     this.getLocation(true)
   },
 
   loadSession(jobId) {
     this.setData({ loading: true })
-    get('/work/session/' + jobId).then(res => {
+    get(`/work/session/${jobId}`).then((res) => {
       const data = res.data || res || {}
       const job = data.job || {}
       const checkins = data.checkins || []
@@ -67,11 +74,13 @@ Page({
             const checkin = checkins.find(item => Number(item.workerId) === Number(worker.id))
             let status = 'absent'
             let time = ''
+
             if (checkin) {
               const checkinTime = new Date(checkin.checkInAt)
               time = `${`${checkinTime.getHours()}`.padStart(2, '0')}:${`${checkinTime.getMinutes()}`.padStart(2, '0')}`
               status = 'ontime'
             }
+
             return {
               id: worker.id,
               name: worker.name || worker.nickname || '临工',
@@ -91,6 +100,7 @@ Page({
         photos,
         jobLat: Number(job.lat) || 0,
         jobLng: Number(job.lng) || 0,
+        jobLocationText: job.location || '',
         isSupervisor: !!data.isSupervisor,
         hasSupervisor: !!data.hasSupervisor,
         canCheckin: !!data.canCheckin,
@@ -115,6 +125,7 @@ Page({
       }, () => {
         this.calcDistance()
         this.updateCheckinState()
+        this.resolveJobLocationText()
       })
     }).catch(() => {
       this.setData({ loading: false })
@@ -122,36 +133,67 @@ Page({
   },
 
   getLocation(silent = false) {
-    wx.getLocation({
-      type: 'gcj02',
-      success: (res) => {
+    getUserLocation().then((res) => {
+      this.setData({
+        latitude: res.latitude,
+        longitude: res.longitude,
+        locationError: '',
+        currentLocationText: '定位成功，正在解析具体位置...'
+      }, () => {
+        this.calcDistance()
+        this.updateCheckinState()
+        if (!silent) {
+          wx.showToast({ title: '位置已刷新', icon: 'none' })
+        }
+      })
+      return reverseGeocode(res)
+    }).then((location) => {
+      if (!location) {
         this.setData({
-          latitude: res.latitude,
-          longitude: res.longitude,
-          locationError: ''
-        }, () => {
-          this.calcDistance()
-          this.updateCheckinState()
-          if (!silent) {
-            wx.showToast({ title: '位置已刷新', icon: 'none' })
-          }
+          currentLocationText: '已获取当前位置，但暂时无法解析详细地址'
         })
-      },
-      fail: () => {
-        const locationError = '定位信息获取失败，请授权定位后重试'
-        this.setData({
-          latitude: null,
-          longitude: null,
-          distance: null,
-          locationError
-        }, () => {
-          this.updateCheckinState()
-          if (!silent) {
-            wx.showToast({ title: locationError, icon: 'none' })
-          }
-        })
+        return
       }
+
+      this.setData({
+        currentLocationText: location.address
+      })
+    }).catch(() => {
+      const locationError = '定位信息获取失败，请授权定位后重试'
+      this.setData({
+        latitude: null,
+        longitude: null,
+        distance: null,
+        locationError,
+        currentLocationText: ''
+      }, () => {
+        this.updateCheckinState()
+        if (!silent) {
+          wx.showToast({ title: locationError, icon: 'none' })
+        }
+      })
     })
+  },
+
+  resolveJobLocationText() {
+    if (this.data.jobLocationText) {
+      return
+    }
+
+    const { jobLat, jobLng } = this.data
+    if (!jobLat || !jobLng) {
+      return
+    }
+
+    reverseGeocode({ latitude: jobLat, longitude: jobLng }).then((location) => {
+      if (!location) {
+        return
+      }
+
+      this.setData({
+        jobLocationText: location.address
+      })
+    }).catch(() => {})
   },
 
   calcDistance() {
@@ -185,7 +227,7 @@ Page({
     } else if (distance === null || distance === undefined) {
       localBlockedReason = '正在计算位置距离'
     } else if (distance > maxDistance) {
-      localBlockedReason = `当前位置距签到点 ${distance}m，已超出范围`
+      localBlockedReason = `当前位置距离签到点 ${distance}m，已超出范围`
     }
 
     const locationReady = hasUserLocation && hasJobLocation && distance !== null
@@ -201,10 +243,12 @@ Page({
       wx.showToast({ title: this.data.localBlockedReason, icon: 'none' })
       return
     }
+
     if (!this.data.canCheckin) {
       wx.showToast({ title: this.data.checkinBlockedReason || '当前不可打卡', icon: 'none' })
       return
     }
+
     post('/work/checkin', {
       jobId: Number(this.data.jobId),
       lat: this.data.latitude,
@@ -225,6 +269,7 @@ Page({
       wx.showToast({ title: '仅临工管理员可代打卡', icon: 'none' })
       return
     }
+
     const id = e.currentTarget.dataset.id
     wx.showModal({
       title: '手动签到',
@@ -248,11 +293,13 @@ Page({
       wx.showToast({ title: '仅临工管理员可批量签到', icon: 'none' })
       return
     }
+
     const absent = this.data.workers.filter(worker => worker.status === 'absent')
     if (absent.length === 0) {
       wx.showToast({ title: '全部已签到', icon: 'none' })
       return
     }
+
     wx.showModal({
       title: '全部签到',
       content: `确认将 ${absent.length} 名未签到人员标记为已签到？`,
@@ -282,11 +329,11 @@ Page({
         Promise.all(uploads).then(results => {
           const urls = results.map(result => result.data.url || result.data)
           const photos = [...this.data.photos, ...urls]
-          wx.setStorageSync('workSessionPhotos:' + this.data.jobId, photos)
+          wx.setStorageSync(`workSessionPhotos:${this.data.jobId}`, photos)
           this.setData({ photos })
         }).catch(() => {
           const photos = [...this.data.photos, ...newPhotos]
-          wx.setStorageSync('workSessionPhotos:' + this.data.jobId, photos)
+          wx.setStorageSync(`workSessionPhotos:${this.data.jobId}`, photos)
           this.setData({ photos })
         })
       }
@@ -298,10 +345,12 @@ Page({
       wx.showToast({ title: '仅临工管理员可确认开工', icon: 'none' })
       return
     }
+
     if (this.data.hasStartedToday || !this.data.canConfirmStart) {
       wx.showToast({ title: this.data.startedAt ? '今日已确认开工' : '当前不可确认开工', icon: 'none' })
       return
     }
+
     if (this.data.submittingStart) {
       return
     }
@@ -316,15 +365,17 @@ Page({
       content,
       success: (res) => {
         if (!res.confirm) return
+
         this.setData({ submittingStart: true })
-        post('/work/session/' + this.data.jobId + '/start', {
+        post(`/work/session/${this.data.jobId}/start`, {
           photos: this.data.photos
         }).then((response) => {
           const result = response.data || response || {}
           const photos = Array.isArray(result.photoUrls) && result.photoUrls.length > 0
             ? result.photoUrls
             : this.data.photos
-          wx.setStorageSync('workSessionPhotos:' + this.data.jobId, photos)
+
+          wx.setStorageSync(`workSessionPhotos:${this.data.jobId}`, photos)
           this.setData({
             photos,
             hasStartedToday: true,
@@ -334,7 +385,7 @@ Page({
           })
           wx.showToast({ title: '已确认开工', icon: 'success' })
           setTimeout(() => wx.redirectTo({
-            url: '/pages/work-session/work-session?orderId=' + this.data.jobId + '&mode=' + this.data.mode
+            url: `/pages/work-session/work-session?orderId=${this.data.jobId}&mode=${this.data.mode}`
           }), 1200)
         }).catch(() => {}).finally(() => {
           this.setData({ submittingStart: false })
