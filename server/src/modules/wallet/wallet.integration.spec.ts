@@ -43,6 +43,7 @@ describe('WalletModule Integration Tests', () => {
       transferToWallet: jest.fn(),
       generateOutTradeNo: jest.fn().mockReturnValue('WD_1_123456_abc'),
       queryTransferDetail: jest.fn(),
+      isWalletTransferReady: jest.fn().mockReturnValue(true),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -81,10 +82,12 @@ describe('WalletModule Integration Tests', () => {
       const mockBalance = { id: 1, userId: 1, balance: 1000 };
 
       walletRepository.findOne.mockResolvedValue(mockBalance);
+      userRepository.findOneBy.mockResolvedValue({ id: 1, openid: 'test_openid' });
 
       const result = await controller.getBalance(1);
 
       expect(result.balance).toBe(1000);
+      expect(result.canWithdraw).toBe(true);
       expect(walletRepository.findOne).toHaveBeenCalled();
     });
 
@@ -94,6 +97,7 @@ describe('WalletModule Integration Tests', () => {
       walletRepository.findOne.mockResolvedValue(null);
       walletRepository.create.mockReturnValue(mockWallet);
       walletRepository.save.mockResolvedValue(mockWallet);
+      userRepository.findOneBy.mockResolvedValue({ id: 1, openid: 'test_openid' });
 
       const result = await controller.getBalance(1);
 

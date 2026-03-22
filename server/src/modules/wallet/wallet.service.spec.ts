@@ -39,6 +39,7 @@ describe('WalletService', () => {
       generateOutTradeNo: jest.fn(),
       transferToWallet: jest.fn(),
       queryTransferDetail: jest.fn(),
+      isWalletTransferReady: jest.fn().mockReturnValue(true),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -95,6 +96,7 @@ describe('WalletService', () => {
       txRepo.find.mockResolvedValue([mockTx]);
       txRepo.save.mockResolvedValue(mockTx);
       walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
       paymentService.queryTransferDetail.mockResolvedValue({
         detail_status: 'SUCCESS',
       });
@@ -106,7 +108,12 @@ describe('WalletService', () => {
         outDetailNo: '9',
       });
       expect(mockTx.status).toBe('success');
-      expect(result).toEqual(mockWallet);
+      expect(result).toMatchObject({
+        ...mockWallet,
+        canWithdraw: true,
+        withdrawStatus: 'enabled',
+        withdrawDisabledReason: '',
+      });
     });
 
     it('should return existing wallet', async () => {
@@ -120,11 +127,17 @@ describe('WalletService', () => {
       };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
 
       const result = await service.getBalance(userId);
 
       expect(walletRepo.findOne).toHaveBeenCalledWith({ where: { userId } });
-      expect(result).toEqual(mockWallet);
+      expect(result).toMatchObject({
+        ...mockWallet,
+        canWithdraw: true,
+        withdrawStatus: 'enabled',
+        withdrawDisabledReason: '',
+      });
     });
 
     it('should create wallet if not exists', async () => {
@@ -140,12 +153,18 @@ describe('WalletService', () => {
       walletRepo.findOne.mockResolvedValue(null);
       walletRepo.create.mockReturnValue(newWallet);
       walletRepo.save.mockResolvedValue(newWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
 
       const result = await service.getBalance(userId);
 
       expect(walletRepo.create).toHaveBeenCalledWith({ userId });
       expect(walletRepo.save).toHaveBeenCalled();
-      expect(result).toEqual(newWallet);
+      expect(result).toMatchObject({
+        ...newWallet,
+        canWithdraw: true,
+        withdrawStatus: 'enabled',
+        withdrawDisabledReason: '',
+      });
     });
 
     it('should handle wallet with zero balance', async () => {
@@ -159,10 +178,33 @@ describe('WalletService', () => {
       };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
 
       const result = await service.getBalance(userId);
 
       expect(result.balance).toBe(0);
+    });
+
+    it('should expose disabled withdraw capability when user has not bound wechat', async () => {
+      const userId = 1;
+      const mockWallet = {
+        id: 1,
+        userId,
+        balance: 100,
+        totalIncome: 100,
+        totalWithdraw: 0,
+      };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: '' });
+
+      const result = await service.getBalance(userId);
+
+      expect(result).toMatchObject({
+        canWithdraw: false,
+        withdrawStatus: 'wechat_unbound',
+        withdrawDisabledReason: '请先绑定微信后再提现',
+      });
     });
   });
 
@@ -436,6 +478,18 @@ describe('WalletService', () => {
 
       await expect(service.withdraw(userId, amount)).rejects.toThrow(
         BadRequestException,
+      );
+    });
+
+    it('should throw explicit error when transfer channel is unavailable', async () => {
+      const userId = 1;
+      const amount = 100;
+
+      paymentService.isWalletTransferReady.mockReturnValue(false);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
+
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        '提现通道未开通，请联系管理员',
       );
     });
 

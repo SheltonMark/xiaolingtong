@@ -13,7 +13,9 @@ Page({
     withdrawAmount: '',
     withdrawLimit: '0.00',
     maxWithdrawPerTime: 200,
-    withdrawSubmitting: false
+    withdrawSubmitting: false,
+    canWithdraw: true,
+    withdrawDisabledReason: ''
   },
 
   onShow() {
@@ -45,12 +47,18 @@ Page({
         balance: summary.balance,
         totalIncome: summary.totalIncome,
         records: records.slice(0, 5),
-        withdrawLimit: Math.min(Number(summary.balance), this.data.maxWithdrawPerTime).toFixed(2)
+        withdrawLimit: Math.min(Number(summary.balance), this.data.maxWithdrawPerTime).toFixed(2),
+        canWithdraw: wallet.canWithdraw !== false,
+        withdrawDisabledReason: wallet.withdrawDisabledReason || ''
       })
     })
   },
 
   onWithdraw() {
+    if (!this.data.canWithdraw) {
+      wx.showToast({ title: this.data.withdrawDisabledReason || '提现通道暂不可用', icon: 'none' })
+      return
+    }
     if (Number(this.data.balance) <= 0) {
       wx.showToast({ title: '可提现余额不足', icon: 'none' })
       return

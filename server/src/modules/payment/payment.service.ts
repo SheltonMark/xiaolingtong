@@ -150,6 +150,14 @@ export class PaymentService {
   }
 
   /** 商家转账到零钱（提现用） */
+  isWalletTransferReady() {
+    return !!this.pay?.batches_transfer
+      && !!this.pay?.query_batches_transfer_detail
+      && !!this.appid
+      && !!this.mchid
+      && !!this.apiv3Key;
+  }
+
   async transferToWallet(params: {
     outBatchNo: string;
     outDetailNo: string;

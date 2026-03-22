@@ -25,7 +25,13 @@ export class WalletService {
     if (!wallet) {
       wallet = await this.walletRepo.save(this.walletRepo.create({ userId }));
     }
-    return wallet;
+    const capability = await this.getWithdrawCapability(userId);
+    return {
+      ...wallet,
+      canWithdraw: capability.canWithdraw,
+      withdrawStatus: capability.status,
+      withdrawDisabledReason: capability.reason,
+    };
   }
 
   async getTransactions(userId: number, query: any) {
@@ -62,13 +68,16 @@ export class WalletService {
   async withdraw(userId: number, amount: number) {
     if (!amount || amount <= 0)
       throw new BadRequestException('提现金额必须大于0');
+    const capability = await this.getWithdrawCapability(userId);
+    if (!capability.canWithdraw) {
+      throw new BadRequestException(capability.reason || '提现通道暂不可用');
+    }
     const wallet = await this.walletRepo.findOne({ where: { userId } });
     if (!wallet || +wallet.balance <= 0 || +wallet.balance < amount)
       throw new BadRequestException('余额不足');
 
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
-    if (!user.openid) throw new BadRequestException('请先绑定微信后再提现');
 
     wallet.balance = +wallet.balance - amount;
     wallet.totalWithdraw = +wallet.totalWithdraw + amount;
@@ -103,7 +112,7 @@ export class WalletService {
       tx.remark = this.buildWithdrawFailureRemark(e?.message);
       await this.txRepo.save(tx);
       await this.rollbackWalletWithdraw(tx, wallet);
-      throw new BadRequestException('提现失败，请稍后重试');
+      throw new BadRequestException(this.getWithdrawSubmitErrorMessage(e?.message));
     }
 
     return {
@@ -159,6 +168,61 @@ export class WalletService {
 
   private buildWithdrawFailureRemark(reason?: string) {
     return `提现失败${reason ? `: ${reason}` : ''}`.slice(0, 128);
+  }
+
+  private async getWithdrawCapability(userId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) {
+      return {
+        canWithdraw: false,
+        status: 'user_missing',
+        reason: '用户不存在',
+      };
+    }
+
+    if (!user.openid) {
+      return {
+        canWithdraw: false,
+        status: 'wechat_unbound',
+        reason: '请先绑定微信后再提现',
+      };
+    }
+
+    if (!this.paymentService.isWalletTransferReady()) {
+      return {
+        canWithdraw: false,
+        status: 'channel_unavailable',
+        reason: '提现通道未开通，请联系管理员',
+      };
+    }
+
+    return {
+      canWithdraw: true,
+      status: 'enabled',
+      reason: '',
+    };
+  }
+
+  private getWithdrawSubmitErrorMessage(reason?: string) {
+    const message = String(reason || '').trim();
+    if (!message) {
+      return '提现失败，请稍后重试';
+    }
+    if (message.includes('未初始化')) {
+      return '提现通道未开通，请联系管理员';
+    }
+    if (
+      message.includes('NO_AUTH')
+      || message.includes('产品')
+      || message.includes('权限')
+      || message.includes('商家转账')
+    ) {
+      return '提现通道暂不可用，请联系管理员';
+    }
+    if (message.includes('openid') || message.includes('绑定微信')) {
+      return '请先绑定微信后再提现';
+    }
+    return '提现失败，请稍后重试';
   }
 
   private async rollbackWalletWithdraw(tx: WalletTransaction, wallet?: Wallet) {

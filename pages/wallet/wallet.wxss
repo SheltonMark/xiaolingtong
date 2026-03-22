@@ -96,10 +96,24 @@
   color: #F97316 !important;
 }
 
+.wl-btn-primary-disabled {
+  background-color: rgba(255, 255, 255, 0.45) !important;
+  color: rgba(249, 115, 22, 0.75) !important;
+}
+
 .wl-btn-outline {
   background-color: rgba(255, 255, 255, 0.2) !important;
   color: #fff !important;
   border: 2rpx solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.wl-disabled-tip {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 20rpx;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.82);
+  position: relative;
 }
 
 .wl-section {

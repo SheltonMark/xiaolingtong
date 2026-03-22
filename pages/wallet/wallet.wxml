@@ -12,9 +12,10 @@
     </view>
     <text class="wl-total">{{totalIncomeLabel}} ¥{{totalIncome}}</text>
     <view class="wl-btn-row">
-      <button class="wl-btn wl-btn-primary" bindtap="onWithdraw">立即提现</button>
+      <button class="wl-btn wl-btn-primary {{!canWithdraw ? 'wl-btn-primary-disabled' : ''}}" bindtap="onWithdraw" disabled="{{!canWithdraw}}">立即提现</button>
       <button class="wl-btn wl-btn-outline" bindtap="onWithdrawHistory">提现记录</button>
     </view>
+    <text class="wl-disabled-tip" wx:if="{{!canWithdraw && withdrawDisabledReason}}">{{withdrawDisabledReason}}</text>
   </view>
 
   <view class="wl-section">
