@@ -79,7 +79,7 @@
         <text class="fee-value">¥{{fees.factoryTotal}}</text>
       </view>
       <view class="fee-row">
-        <text class="fee-label">平台服务费（20%）</text>
+        <text class="fee-label">平台服务费（{{fees.platformFeeRateText || '--'}}）</text>
         <text class="fee-value fee-minus">-¥{{fees.platformFee}}</text>
       </view>
       <view class="fee-row">

@@ -99,6 +99,7 @@ describe('PaymentService', () => {
     } as jest.Mocked<any>;
 
     walletTxRepo = {
+      findOne: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
     } as jest.Mocked<any>;
@@ -116,6 +117,27 @@ describe('PaymentService', () => {
       create: jest.fn((payload: any) => payload),
       save: jest.fn(),
     } as jest.Mocked<any>;
+
+    const transactionalManager = {
+      getRepository: jest.fn((entity: any) => {
+        if (entity === Settlement) return settlementRepo;
+        if (entity === SettlementItem) return settlementItemRepo;
+        if (entity === Wallet) return walletRepo;
+        if (entity === WalletTransaction) return walletTxRepo;
+        if (entity === Notification) return notiRepo;
+        throw new Error(
+          `Unexpected repository request: ${entity && entity.name}`,
+        );
+      }),
+      increment: jest.fn(),
+      update: jest.fn(),
+    };
+
+    settlementRepo.manager = {
+      transaction: jest.fn(async (callback: any) =>
+        callback(transactionalManager),
+      ),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -535,6 +557,39 @@ describe('PaymentService', () => {
       expect(settlementRepo.findOne).toHaveBeenCalled();
       expect(settlementItemRepo.find).toHaveBeenCalled();
       expect(walletRepo.save).toHaveBeenCalled();
+    });
+
+    it('should resume settlement distribution when callback is retried in paid status', async () => {
+      const outTradeNo = 'STL_3_1234567890_abcd1234';
+      const result = { amount: { total: 10000 } };
+      const settlement = {
+        id: 3,
+        status: 'paid',
+        jobId: 9,
+        supervisorId: null,
+        supervisorFee: 0,
+      };
+      const items = [{ id: 1, settlementId: 3, workerId: 1, workerPay: 5000 }];
+      const wallet = { id: 1, userId: 1, balance: 0, totalIncome: 0 };
+
+      settlementRepo.findOne.mockResolvedValue(settlement);
+      settlementItemRepo.find.mockResolvedValue(items);
+      walletTxRepo.findOne.mockResolvedValue(null);
+      walletRepo.findOne.mockResolvedValue(wallet);
+      walletRepo.save.mockResolvedValue(wallet);
+      walletTxRepo.create.mockImplementation((payload: any) => payload);
+      walletTxRepo.save.mockResolvedValue({ id: 1 });
+      settlementRepo.save.mockResolvedValue({
+        ...settlement,
+        status: 'distributed',
+      });
+
+      await service.handlePaySuccess(outTradeNo, result);
+
+      expect(walletRepo.save).toHaveBeenCalled();
+      expect(settlementRepo.save).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'distributed' }),
+      );
     });
 
     it('should skip unknown payment prefix', async () => {
