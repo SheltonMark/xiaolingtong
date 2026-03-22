@@ -711,6 +711,47 @@ describe('AdminModule Integration Tests', () => {
     });
   });
 
+  describe('financeOverview Integration', () => {
+    function mockTotalQuery(total: number | string) {
+      return {
+        select: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        getRawOne: jest.fn().mockResolvedValue({ total }),
+      };
+    }
+
+    it('should return gross commission and manager service fee expense separately', async () => {
+      memberOrderRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('100'));
+      adRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('200'));
+      beanTxRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('300'));
+      settlementRepository.createQueryBuilder = jest
+        .fn()
+        .mockImplementationOnce(() => mockTotalQuery('80'))
+        .mockImplementationOnce(() => mockTotalQuery('50'))
+        .mockImplementationOnce(() => mockTotalQuery('30'));
+      walletTxRepository.createQueryBuilder = jest.fn(() => mockTotalQuery('40'));
+
+      const result = await controller.financeOverview();
+
+      expect(result).toEqual({
+        income: {
+          member: 100,
+          ad: 200,
+          bean: 300,
+          commission: 80,
+          commissionGross: 80,
+          commissionNet: 50,
+          total: 680,
+        },
+        expense: {
+          managerServiceFee: 30,
+          withdraw: 40,
+          total: 70,
+        },
+      });
+    });
+  });
+
   describe('userDetail Integration', () => {
     it('should return user detail with stats', async () => {
       const mockUser = { id: 1, nickname: 'User 1' };

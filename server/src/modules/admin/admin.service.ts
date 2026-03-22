@@ -581,7 +581,15 @@ export class AdminService {
 
   // 财务管理
   async financeOverview() {
-    const [memberIncome, adIncome, beanIncome, settlementCount, withdrawTotal] =
+    const [
+      memberIncome,
+      adIncome,
+      beanIncome,
+      commissionGross,
+      commissionNet,
+      managerServiceFeeExpense,
+      withdrawTotal,
+    ] =
       await Promise.all([
         this.memberOrderRepo
           .createQueryBuilder('o')
@@ -600,7 +608,21 @@ export class AdminService {
           .getRawOne(),
         this.settlementRepo
           .createQueryBuilder('s')
+          .select('COALESCE(SUM(s.platformFee + s.supervisorFee),0)', 'total')
+          .where('s.status IN (:...st)', {
+            st: ['paid', 'distributed', 'completed'],
+          })
+          .getRawOne(),
+        this.settlementRepo
+          .createQueryBuilder('s')
           .select('COALESCE(SUM(s.platformFee),0)', 'total')
+          .where('s.status IN (:...st)', {
+            st: ['paid', 'distributed', 'completed'],
+          })
+          .getRawOne(),
+        this.settlementRepo
+          .createQueryBuilder('s')
+          .select('COALESCE(SUM(s.supervisorFee),0)', 'total')
           .where('s.status IN (:...st)', {
             st: ['paid', 'distributed', 'completed'],
           })
@@ -619,16 +641,19 @@ export class AdminService {
         member: +memberIncome.total,
         ad: +adIncome.total,
         bean: +beanIncome.total,
-        commission: +settlementCount.total,
+        commission: +commissionGross.total,
+        commissionGross: +commissionGross.total,
+        commissionNet: +commissionNet.total,
         total:
           +memberIncome.total +
           +adIncome.total +
           +beanIncome.total +
-          +settlementCount.total,
+          +commissionGross.total,
       },
       expense: {
+        managerServiceFee: +managerServiceFeeExpense.total,
         withdraw: +withdrawTotal.total,
-        total: +withdrawTotal.total,
+        total: +managerServiceFeeExpense.total + +withdrawTotal.total,
       },
     };
   }
