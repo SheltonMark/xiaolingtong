@@ -123,7 +123,7 @@ Page({
   },
 
   onGoSettlement() {
-    wx.navigateTo({ url: '/pages/settlement/settlement?jobId=' + this.data.job.id })
+    wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + this.data.job.id + '&tab=settlement' })
   },
 
   onNavigate() {

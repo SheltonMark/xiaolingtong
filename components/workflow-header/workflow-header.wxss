@@ -1,0 +1,68 @@
+.workflow-hero {
+  margin: 24rpx;
+  padding: 32rpx;
+  border-radius: 32rpx;
+  background: linear-gradient(135deg, #FFFFFF 0%, #EEF4FF 100%);
+  box-shadow: 0 18rpx 44rpx rgba(15, 23, 42, 0.06);
+}
+
+.workflow-pill-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.workflow-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.workflow-pill-role {
+  background-color: #0F172A;
+  color: #FFFFFF;
+}
+
+.workflow-pill-blue {
+  background-color: #EFF6FF;
+  color: #2563EB;
+}
+
+.workflow-pill-amber {
+  background-color: #FFFBEB;
+  color: #D97706;
+}
+
+.workflow-pill-green {
+  background-color: #ECFDF5;
+  color: #16A34A;
+}
+
+.workflow-title {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.workflow-subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #64748B;
+  line-height: 1.6;
+}
+
+.workflow-hint {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 22rpx;
+  color: #2563EB;
+  line-height: 1.6;
+}

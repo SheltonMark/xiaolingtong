@@ -1,6 +1,10 @@
 {
   "usingComponents": {
-    "nav-bar": "/components/nav-bar/nav-bar"
+    "nav-bar": "/components/nav-bar/nav-bar",
+    "workflow-header": "/components/workflow-header/workflow-header",
+    "applications-panel": "/components/applications-panel/applications-panel",
+    "attendance-panel": "/components/attendance-panel/attendance-panel",
+    "settlement-panel": "/components/settlement-panel/settlement-panel"
   },
   "navigationStyle": "custom"
 }

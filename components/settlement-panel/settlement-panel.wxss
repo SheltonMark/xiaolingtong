@@ -1,0 +1,287 @@
+.st-card {
+  margin: 20rpx 24rpx 0;
+  padding: 30rpx;
+  border-radius: 28rpx;
+  background-color: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
+}
+
+.st-money-card {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FFF8ED 100%);
+}
+
+.card-title {
+  display: block;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.st-note-row {
+  margin-top: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  flex-wrap: wrap;
+}
+
+.st-note {
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.st-money-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.st-money-label {
+  display: block;
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.st-money-value {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #EA580C;
+}
+
+.st-money-pill {
+  padding: 8rpx 18rpx;
+  border-radius: 999rpx;
+  background-color: #FFFBEB;
+  color: #D97706;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.st-money-grid {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 28rpx;
+}
+
+.st-money-item {
+  flex: 1;
+  padding: 18rpx 16rpx;
+  border-radius: 20rpx;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.st-money-item-val {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.st-money-item-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+.step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.step-dot {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22rpx;
+  flex-shrink: 0;
+}
+
+.dot-done {
+  background-color: #ECFDF5;
+  color: #16A34A;
+}
+
+.dot-pending {
+  background-color: #FFFBEB;
+  color: #D97706;
+}
+
+.step-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.step-label {
+  font-size: 24rpx;
+  color: #0F172A;
+}
+
+.step-time {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+.st-worker-card {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #EEF2F7;
+}
+
+.st-worker-card:last-child {
+  border-bottom: none;
+}
+
+.st-worker-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.st-worker-name {
+  display: block;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.st-worker-sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.st-worker-side {
+  text-align: right;
+}
+
+.st-worker-pay {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #EA580C;
+}
+
+.st-worker-status {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+}
+
+.fee-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.fee-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fee-label {
+  font-size: 24rpx;
+  color: #64748B;
+}
+
+.fee-value {
+  font-size: 24rpx;
+  color: #0F172A;
+}
+
+.fee-minus {
+  color: #64748B;
+}
+
+.fee-divider {
+  height: 1rpx;
+  background-color: #E2E8F0;
+  margin: 8rpx 0;
+}
+
+.fee-total .fee-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.fee-total .fee-value {
+  font-size: 32rpx;
+  font-weight: 700;
+}
+
+.st-bottom {
+  margin: 24rpx 32rpx;
+  padding: 24rpx 0 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.st-hint {
+  display: block;
+  margin-top: 12rpx;
+  text-align: center;
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+.st-hint-left {
+  text-align: left;
+  margin-top: 0;
+  margin-bottom: 10rpx;
+}
+
+.att-btn-group {
+  display: flex;
+  gap: 20rpx;
+}
+
+.att-btn-group .btn {
+  flex: 1;
+}
+
+.btn-outline::after {
+  border: none;
+}
+
+.view-all {
+  display: block;
+  margin-top: 20rpx;
+  text-align: center;
+  font-size: 24rpx;
+  color: #2563EB;
+}
+
+.st-empty-card {
+  text-align: center;
+}
+
+.st-empty-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.st-empty-sub {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #64748B;
+}

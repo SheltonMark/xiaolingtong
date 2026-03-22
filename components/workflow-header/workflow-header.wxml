@@ -1,0 +1,9 @@
+<view class="workflow-hero">
+  <view class="workflow-pill-row">
+    <text class="workflow-pill workflow-pill-role" wx:if="{{roleLabel}}">{{roleLabel}}</text>
+    <text class="workflow-pill workflow-pill-{{statusTone || 'blue'}}" wx:if="{{statusLabel}}">{{statusLabel}}</text>
+  </view>
+  <text class="workflow-title">{{title || '用工流程'}}</text>
+  <text class="workflow-subtitle" wx:if="{{subtitle}}">{{subtitle}}</text>
+  <text class="workflow-hint" wx:if="{{hint}}">{{hint}}</text>
+</view>

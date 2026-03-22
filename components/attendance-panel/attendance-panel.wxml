@@ -1,0 +1,76 @@
+<view class="st-card st-empty-card" wx:if="{{!attendance}}">
+  <text class="st-empty-title">考勤汇总暂未生成</text>
+  <text class="st-empty-sub">主管提交后，这里会展示出勤、工时和现场照片。</text>
+</view>
+
+<block wx:elif="{{attendance}}">
+  <view class="st-card">
+    <text class="card-title">考勤概览</text>
+    <view class="st-summary">
+      <view class="st-sum-item">
+        <text class="st-sum-val text-primary">{{attendance.summary.totalExpected}}</text>
+        <text class="st-sum-label">应到人数</text>
+      </view>
+      <view class="st-sum-item">
+        <text class="st-sum-val text-fresh">{{attendance.summary.totalPresent}}</text>
+        <text class="st-sum-label">实到人数</text>
+      </view>
+      <view class="st-sum-item">
+        <text class="st-sum-val text-rose">{{attendance.summary.totalAbsent}}</text>
+        <text class="st-sum-label">缺勤人数</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="st-card">
+    <text class="card-title">考勤明细</text>
+    <view class="att-grid-head">
+      <text class="att-col att-col-name att-col-head">人员</text>
+      <text class="att-col att-col-time att-col-head">签到</text>
+      <text class="att-col att-col-time att-col-head">签退</text>
+      <text class="att-col att-col-hours att-col-head">工时</text>
+      <text class="att-col att-col-status att-col-head">状态</text>
+    </view>
+    <view class="att-record" wx:for="{{attendance.records}}" wx:key="workerId">
+      <view class="att-col att-col-name">
+        <text class="att-name">{{item.name}}</text>
+        <text class="att-note" wx:if="{{item.note}}">{{item.note}}</text>
+      </view>
+      <text class="att-col att-col-time att-time">{{item.checkInTime || '--'}}</text>
+      <text class="att-col att-col-time att-time">{{item.checkOutTime || '--'}}</text>
+      <text class="att-col att-col-hours att-hours">{{item.hours}}h</text>
+      <text class="att-col att-col-status {{item.statusColor}}">{{item.statusIcon}} {{item.statusText}}</text>
+    </view>
+  </view>
+
+  <view class="st-card" wx:if="{{attendance.supervisor}}">
+    <text class="card-title">主管信息</text>
+    <view class="att-supervisor">
+      <text>{{attendance.supervisor.name}}</text>
+    </view>
+    <view class="att-meta" wx:if="{{attendance.statusText}}">
+      <text>汇总单状态：{{attendance.statusText}}</text>
+    </view>
+    <view class="att-meta" wx:if="{{attendance.submittedAt}}">
+      <text>提交时间：{{attendance.submittedAt}}</text>
+    </view>
+    <view class="att-meta" wx:if="{{attendance.statusHint}}">
+      <text>{{attendance.statusHint}}</text>
+    </view>
+    <view class="att-photo-link" wx:if="{{attendance.photos.length}}" bindtap="onPreviewPhotos">
+      <text>现场照片：查看 {{attendance.photos.length}} 张</text>
+    </view>
+  </view>
+
+  <view class="st-bottom" wx:if="{{role === 'enterprise' && !viewOnly}}">
+    <view class="att-btn-group">
+      <button class="btn btn-fresh" bindtap="onConfirm" disabled="{{attendance.status === 'confirmed'}}">
+        {{attendance.status === 'confirmed' ? '已确认汇总单' : '确认汇总单'}}
+      </button>
+      <button class="btn btn-outline" bindtap="onDispute">汇总单异议</button>
+    </view>
+    <text class="st-hint">
+      {{attendance.status === 'confirmed' ? '汇总单已确认，可直接切换到结算查看。' : '确认后将按当前考勤汇总单生成结算明细。'}}
+    </text>
+  </view>
+</block>

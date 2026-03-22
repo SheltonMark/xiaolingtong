@@ -155,7 +155,7 @@ export class NotificationService {
       type: 'settlement',
       title: '工作结算完成',
       content: `您的工作"${jobTitle}"已结算，获得${amount}元`,
-      link: `/pages/settlement/settlement?jobId=${jobId}&role=worker&viewOnly=1`,
+      link: `/pages/job-process/job-process?jobId=${jobId}&tab=settlement&role=worker&viewOnly=1`,
       data: { jobId, jobTitle, amount },
     });
   }
@@ -181,7 +181,7 @@ export class NotificationService {
       title,
       content,
       link: isWorker
-        ? `/pages/settlement/settlement?jobId=${jobId}&role=worker&viewOnly=1`
+        ? `/pages/job-process/job-process?jobId=${jobId}&tab=settlement&role=worker&viewOnly=1`
         : `/pages/job-process/job-process?jobId=${jobId}&tab=settlement`,
       data: { jobId, jobTitle, targetName, isWorker },
     });

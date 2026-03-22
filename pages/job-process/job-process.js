@@ -1,6 +1,87 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 
+function getRoleText(role) {
+  const map = {
+    enterprise: '企业工作台',
+    manager: '主管视角',
+    worker: '工人视角'
+  }
+  return map[role] || '用工流程'
+}
+
+function getPageTitle(role) {
+  const map = {
+    enterprise: '用工流程',
+    manager: '考勤与结算',
+    worker: '工资结算'
+  }
+  return map[role] || '用工流程'
+}
+
+function getTabLabel(tab) {
+  const map = {
+    applications: '报名处理',
+    attendance: '考勤汇总',
+    settlement: '结算明细'
+  }
+  return map[tab] || '用工流程'
+}
+
+function getTabTone(tab) {
+  const map = {
+    applications: 'blue',
+    attendance: 'amber',
+    settlement: 'green'
+  }
+  return map[tab] || 'blue'
+}
+
+function getTabHint(role, tab) {
+  if (role === 'worker') {
+    return '可查看工时、收益、支付状态，并在可确认时完成本人结算确认。'
+  }
+  if (role === 'manager') {
+    return tab === 'attendance'
+      ? '这里展示主管提交的考勤汇总和现场照片，也可切换查看结算结果。'
+      : '这里展示按考勤汇总生成的结算单，供主管复核支付进度。'
+  }
+  if (tab === 'applications') {
+    return '报名筛选、录用和主管设置统一在这里处理。'
+  }
+  if (tab === 'attendance') {
+    return '主管提交后，企业在这里确认考勤汇总，再进入结算。'
+  }
+  return '考勤确认后自动生成结算单，支付和回执都在这里统一查看。'
+}
+
+function buildTabs(role) {
+  if (role === 'worker') return []
+  if (role === 'manager') {
+    return [
+      { key: 'attendance', label: '考勤汇总' },
+      { key: 'settlement', label: '结算明细' }
+    ]
+  }
+  return [
+    { key: 'applications', label: '报名管理' },
+    { key: 'attendance', label: '考勤汇总' },
+    { key: 'settlement', label: '结算明细' }
+  ]
+}
+
+function resolveRole(role) {
+  if (role === 'worker' || role === 'manager') return role
+  return 'enterprise'
+}
+
+function resolveActiveTab(role, requestedTab) {
+  const allowedTabs = buildTabs(role).map(item => item.key)
+  if (role === 'worker') return 'settlement'
+  if (allowedTabs.includes(requestedTab)) return requestedTab
+  return allowedTabs[0] || 'settlement'
+}
+
 function normalizeTimeText(value) {
   const text = String(value || '').trim()
   if (!text) return ''
@@ -34,7 +115,14 @@ Page({
     viewOnly: false,
     role: 'enterprise',
     jobId: '',
+    workflowTabs: [],
     activeTab: 'settlement',
+    headerTitle: '用工流程',
+    headerSubtitle: '',
+    headerRoleLabel: '企业工作台',
+    headerStatusLabel: '报名处理',
+    headerStatusTone: 'blue',
+    headerHint: '',
     applicantFilter: 'all',
     applicantTabs: [],
     manageJob: {},
@@ -53,37 +141,67 @@ Page({
 
   onLoad(options) {
     const jobId = options.jobId || ''
-    const requestedTab = options.tab || 'settlement'
-    const role = options.role || (getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise')
+    const storedRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    const role = resolveRole(options.role || storedRole)
+    const requestedTab = options.tab || (role === 'enterprise' ? 'applications' : role === 'manager' ? 'attendance' : 'settlement')
+    const activeTab = resolveActiveTab(role, requestedTab)
     const isWorker = role === 'worker'
 
     this.setData({
       jobId,
-      role: isWorker ? 'worker' : role,
+      role,
+      workflowTabs: buildTabs(role),
       viewOnly: options.viewOnly === '1' || isWorker,
-      activeTab: isWorker ? 'settlement' : requestedTab,
-      pageTitle: isWorker ? '工资结算' : '用工流程'
-    })
+      activeTab,
+      pageTitle: getPageTitle(role)
+    }, () => this.refreshHeader())
 
     if (jobId) {
-      this.loadManage(jobId)
-      if (this.data.activeTab === 'settlement') {
-        this.loadSettlement(jobId)
-      } else if (this.data.activeTab === 'attendance') {
-        this.loadAttendance(jobId)
+      if (role === 'enterprise') this.loadManage(jobId)
+      if (!(role === 'enterprise' && activeTab === 'applications')) {
+        this.loadActiveTabData(jobId, activeTab)
       }
     }
   },
 
+  loadActiveTabData(jobId, activeTab) {
+    if (!jobId) return
+    if (activeTab === 'applications' && this.data.role === 'enterprise') {
+      this.loadManage(jobId)
+      return
+    }
+    if (activeTab === 'attendance') {
+      this.loadAttendance(jobId)
+      return
+    }
+    this.loadSettlement(jobId)
+  },
+
+  refreshHeader() {
+    const manageJob = this.data.manageJob || {}
+    const job = this.data.job || {}
+    const attendanceJob = (this.data.attendance && this.data.attendance.job) || {}
+    const title = manageJob.title || job.title || job.jobType || attendanceJob.title || '用工流程'
+    const companyName = manageJob.companyName || job.companyName || job.company || attendanceJob.company || ''
+    const dateRange = manageJob.dateRange || job.dateRange || attendanceJob.date || ''
+    const subtitle = [companyName, dateRange].filter(Boolean).join(' · ')
+
+    this.setData({
+      headerTitle: title,
+      headerSubtitle: subtitle,
+      headerRoleLabel: getRoleText(this.data.role),
+      headerStatusLabel: getTabLabel(this.data.activeTab),
+      headerStatusTone: getTabTone(this.data.activeTab),
+      headerHint: getTabHint(this.data.role, this.data.activeTab)
+    })
+  },
+
   onTabChange(e) {
     const activeTab = e.currentTarget.dataset.tab
+    if (!activeTab || activeTab === this.data.activeTab) return
     this.setData({ activeTab }, () => {
-      if (!this.data.jobId) return
-      if (activeTab === 'settlement') {
-        this.loadSettlement(this.data.jobId)
-      } else if (activeTab === 'attendance') {
-        this.loadAttendance(this.data.jobId)
-      }
+      this.refreshHeader()
+      this.loadActiveTabData(this.data.jobId, activeTab)
     })
   },
 
@@ -130,7 +248,7 @@ Page({
       ...applicant,
       name,
       avatarUrl,
-      avatarText: name.charAt(0) || '临'
+      avatarText: name.charAt(0) || '工'
     }
   },
 
@@ -160,7 +278,7 @@ Page({
           dateRange: (data.job || {}).dateRange || '',
           totalWorkers: summary.activeCount || 0
         }
-      })
+      }, () => this.refreshHeader())
       this.updateFilteredApplicants()
     }).catch(() => {})
   },
@@ -177,7 +295,7 @@ Page({
           workers: [],
           fees: data.fees || {},
           currentWorkerSettlement: null
-        })
+        }, () => this.refreshHeader())
         return
       }
       this.setData({
@@ -188,7 +306,7 @@ Page({
         workers: data.workers || [],
         fees: data.fees || {},
         currentWorkerSettlement: data.currentWorkerSettlement || null
-      })
+      }, () => this.refreshHeader())
     }).catch(() => {
       this.setData({ settlementReady: false })
     })
@@ -216,7 +334,15 @@ Page({
         }
       })
       const attendanceMeta = getAttendanceMeta(data.status, data.confirmedAt)
+      const attendanceJob = data.job || {}
       this.setData({
+        job: {
+          ...(this.data.job || {}),
+          title: this.data.job.title || attendanceJob.title || '',
+          jobType: this.data.job.jobType || attendanceJob.title || '',
+          company: this.data.job.company || attendanceJob.company || '',
+          dateRange: this.data.job.dateRange || attendanceJob.date || ''
+        },
         attendance: {
           ...data,
           records,
@@ -226,16 +352,17 @@ Page({
           statusText: attendanceMeta.statusText,
           statusHint: attendanceMeta.statusHint
         }
-      })
+      }, () => this.refreshHeader())
     }).catch(() => {})
   },
 
   onApplicantFilterChange(e) {
-    this.setData({ applicantFilter: e.currentTarget.dataset.key }, () => this.updateFilteredApplicants())
+    const key = (e.detail && e.detail.key) || e.currentTarget.dataset.key
+    this.setData({ applicantFilter: key }, () => this.updateFilteredApplicants())
   },
 
   onAcceptApplicant(e) {
-    const workerId = e.currentTarget.dataset.id
+    const workerId = (e.detail && e.detail.id) || e.currentTarget.dataset.id
     wx.showModal({
       title: '录用临工',
       content: '录用后该工人将进入待出勤确认阶段。',
@@ -250,7 +377,7 @@ Page({
   },
 
   onRejectApplicant(e) {
-    const workerId = e.currentTarget.dataset.id
+    const workerId = (e.detail && e.detail.id) || e.currentTarget.dataset.id
     wx.showModal({
       title: '拒绝报名',
       content: '确认拒绝该工人的报名？',
@@ -266,7 +393,7 @@ Page({
   },
 
   onSetSupervisor(e) {
-    const workerId = e.currentTarget.dataset.id
+    const workerId = (e.detail && e.detail.id) || e.currentTarget.dataset.id
     wx.showModal({
       title: '设置主管',
       content: '设置后该临工将负责现场签到和考勤提交。',
@@ -288,7 +415,10 @@ Page({
   onConfirmAttendance() {
     if (this.data.attendance && this.data.attendance.status === 'confirmed') {
       wx.showToast({ title: '汇总单已确认', icon: 'none' })
-      this.setData({ activeTab: 'settlement' })
+      this.setData({ activeTab: 'settlement' }, () => {
+        this.refreshHeader()
+        this.loadSettlement(this.data.jobId)
+      })
       return
     }
     wx.showModal({
@@ -300,7 +430,7 @@ Page({
           wx.showToast({ title: '考勤汇总单已确认', icon: 'success' })
           this.loadAttendance(this.data.jobId)
           this.loadSettlement(this.data.jobId)
-          this.setData({ activeTab: 'settlement' })
+          this.setData({ activeTab: 'settlement' }, () => this.refreshHeader())
         }).catch(() => {})
       }
     })

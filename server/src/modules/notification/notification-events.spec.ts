@@ -311,7 +311,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"搬家工"已结算，获得500元',
-        link: '/pages/settlement/settlement?jobId=1&role=worker&viewOnly=1',
+        link: '/pages/job-process/job-process?jobId=1&tab=settlement&role=worker&viewOnly=1',
         data: { jobId: 1, jobTitle: '搬家工', amount: 500 },
       };
 
@@ -333,7 +333,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"清洁工"已结算，获得300元',
-        link: '/pages/settlement/settlement?jobId=2&role=worker&viewOnly=1',
+        link: '/pages/job-process/job-process?jobId=2&tab=settlement&role=worker&viewOnly=1',
         data: { jobId: 2, jobTitle: '清洁工', amount: 300 },
       };
 
@@ -353,7 +353,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"装修工"已结算，获得1000元',
-        link: '/pages/settlement/settlement?jobId=3&role=worker&viewOnly=1',
+        link: '/pages/job-process/job-process?jobId=3&tab=settlement&role=worker&viewOnly=1',
         data: { jobId: 3, jobTitle: '装修工', amount: 1000 },
       };
 
@@ -375,7 +375,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '企业评价提醒',
         content: 'ABC公司还未对您的工作进行评价，请耐心等待',
-        link: '/pages/settlement/settlement?jobId=1&role=worker&viewOnly=1',
+        link: '/pages/job-process/job-process?jobId=1&tab=settlement&role=worker&viewOnly=1',
         data: { jobId: 1, jobTitle: '搬家工', targetName: 'ABC公司', isWorker: true },
       };
 
@@ -430,7 +430,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '企业评价提醒',
         content: 'XYZ工厂还未对您的工作进行评价，请耐心等待',
-        link: '/pages/settlement/settlement?jobId=2&role=worker&viewOnly=1',
+        link: '/pages/job-process/job-process?jobId=2&tab=settlement&role=worker&viewOnly=1',
         data: { jobId: 2, jobTitle: '清洁工', targetName: 'XYZ工厂', isWorker: true },
       };
 
@@ -476,7 +476,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'promotion',
         title: '企业评价提醒',
         content: 'DEF公司还未对您的工作进行评价，请耐心等待',
-        link: '/pages/settlement/settlement?jobId=3&role=worker&viewOnly=1',
+        link: '/pages/job-process/job-process?jobId=3&tab=settlement&role=worker&viewOnly=1',
         data: { jobId: 3, jobTitle: '装修工', targetName: 'DEF公司', isWorker: true },
       };
 
@@ -600,7 +600,7 @@ describe('NotificationService - Event Notifications', () => {
         type: 'settlement',
         title: '工作结算完成',
         content: '您的工作"搬家工"已结算，获得500元',
-        link: '/pages/settlement/settlement?jobId=1&role=worker&viewOnly=1',
+        link: '/pages/job-process/job-process?jobId=1&tab=settlement&role=worker&viewOnly=1',
         data: { jobId: 1, jobTitle: '搬家工', amount: 500 },
       };
 

@@ -66,8 +66,8 @@ Page({
     const routes = {
       checkin: '/pages/checkin/checkin?orderId=' + id + '&mode=' + mode,
       working: '/pages/work-session/work-session?orderId=' + id + '&mode=' + mode,
-      settlement: '/pages/settlement/settlement?jobId=' + id,
-      done: '/pages/settlement/settlement?jobId=' + id + '&viewOnly=1'
+      settlement: '/pages/job-process/job-process?jobId=' + id + '&tab=settlement&role=worker&viewOnly=1',
+      done: '/pages/job-process/job-process?jobId=' + id + '&tab=settlement&role=worker&viewOnly=1'
     }
     wx.navigateTo({ url: routes[stage] })
   }

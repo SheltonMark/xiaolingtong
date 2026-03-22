@@ -1,0 +1,108 @@
+<view class="st-card st-empty-card" wx:if="{{!settlementReady}}">
+  <text class="st-empty-title">结算单尚未生成</text>
+  <text class="st-empty-sub">结算明细会根据已确认的考勤汇总单自动生成。</text>
+</view>
+
+<block wx:elif="{{settlementReady}}">
+  <view class="st-card st-money-card">
+    <view class="st-money-top">
+      <view>
+        <text class="st-money-label">工厂应付总额</text>
+        <text class="st-money-value">¥{{job.factoryTotal || fees.factoryTotal || 0}}</text>
+      </view>
+      <view class="st-money-pill">结算中</view>
+    </view>
+    <view class="st-note-row" wx:if="{{job.settlementGeneratedAt || job.attendanceSheetDateLabel}}">
+      <text class="st-note" wx:if="{{job.settlementGeneratedAt}}">生成时间：{{job.settlementGeneratedAt}}</text>
+      <text class="st-note" wx:if="{{job.attendanceSheetDateLabel}}">汇总单日期：{{job.attendanceSheetDateLabel}}</text>
+    </view>
+    <view class="st-money-grid">
+      <view class="st-money-item">
+        <text class="st-money-item-val">{{job.totalWorkers || workers.length || 0}}</text>
+        <text class="st-money-item-label">实到人数</text>
+      </view>
+      <view class="st-money-item">
+        <text class="st-money-item-val">{{job.totalHours || 0}}</text>
+        <text class="st-money-item-label">总工时</text>
+      </view>
+      <view class="st-money-item">
+        <text class="st-money-item-val">¥{{fees.workerTotal || 0}}</text>
+        <text class="st-money-item-label">实发总额</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="st-card">
+    <text class="card-title">流程状态</text>
+    <view class="step-list">
+      <view class="step-item" wx:for="{{steps}}" wx:key="label">
+        <view class="step-dot {{item.done ? 'dot-done' : 'dot-pending'}}">
+          <text wx:if="{{item.done}}">✓</text>
+          <text wx:else>•</text>
+        </view>
+        <view class="step-content">
+          <text class="step-label">{{item.label}}</text>
+          <text class="step-time">{{item.time}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="st-card">
+    <text class="card-title">人员结算明细</text>
+    <text class="st-hint st-hint-left">以下结算明细来源于已确认的考勤汇总单。</text>
+    <view class="st-worker-card" wx:for="{{workers}}" wx:key="name">
+      <view class="st-worker-main">
+        <view>
+          <text class="st-worker-name">{{item.name}}</text>
+          <text class="st-worker-sub">{{item.hours}}h · 工厂价 ¥{{item.factoryPay}}</text>
+        </view>
+        <view class="st-worker-side">
+          <text class="st-worker-pay">¥{{item.workerPay}}</text>
+          <text class="st-worker-status {{item.confirmed ? 'text-fresh' : 'text-warm'}}">{{item.confirmed ? '已确认' : '待确认'}}</text>
+        </view>
+      </view>
+    </view>
+    <text class="view-all" wx:if="{{workers.length > 0}}" bindtap="onViewAll">查看全部{{job.totalWorkers || workers.length}}人明细</text>
+  </view>
+
+  <view class="st-card">
+    <text class="card-title">费用拆分</text>
+    <view class="fee-list">
+      <view class="fee-row">
+        <text class="fee-label">工厂总支付</text>
+        <text class="fee-value">¥{{fees.factoryTotal || 0}}</text>
+      </view>
+      <view class="fee-row">
+        <text class="fee-label">平台服务费</text>
+        <text class="fee-value fee-minus">-¥{{fees.platformFee || 0}}</text>
+      </view>
+      <view class="fee-row">
+        <text class="fee-label">管理员服务费</text>
+        <text class="fee-value fee-minus">-¥{{fees.managerFee || 0}}</text>
+      </view>
+      <view class="fee-divider"></view>
+      <view class="fee-row fee-total">
+        <text class="fee-label">工人实发总额</text>
+        <text class="fee-value text-cta">¥{{fees.workerTotal || 0}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="st-bottom" wx:if="{{role !== 'worker' && !viewOnly}}">
+    <button class="btn btn-primary" wx:if="{{role === 'enterprise'}}" bindtap="onPay">确认支付 ¥{{job.factoryTotal || fees.factoryTotal || 0}}</button>
+    <text class="st-hint" wx:if="{{role === 'enterprise'}}">支付后工资将自动发放至临工钱包。</text>
+    <text class="st-hint" wx:if="{{role === 'manager'}}">结算单已生成，等待企业确认支付。</text>
+  </view>
+
+  <view class="st-bottom" wx:if="{{role === 'worker'}}">
+    <view class="att-btn-group" wx:if="{{currentWorkerSettlement && currentWorkerSettlement.canConfirm}}">
+      <button class="btn btn-primary" bindtap="onConfirmSettlement">确认工时</button>
+      <button class="btn btn-outline" bindtap="onRate">评价企业</button>
+    </view>
+    <button class="btn btn-outline" wx:if="{{!currentWorkerSettlement || !currentWorkerSettlement.canConfirm}}" bindtap="onRate">评价企业</button>
+    <text class="st-hint" wx:if="{{currentWorkerSettlement && currentWorkerSettlement.canConfirm}}">企业支付后可确认工时与实收金额。</text>
+    <text class="st-hint" wx:if="{{currentWorkerSettlement && currentWorkerSettlement.confirmed}}">本次结算你已确认。</text>
+    <text class="st-hint" wx:if="{{currentWorkerSettlement && !currentWorkerSettlement.confirmed && !currentWorkerSettlement.canConfirm}}">等待企业支付后再确认工时。</text>
+  </view>
+</block>

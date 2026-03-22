@@ -856,7 +856,7 @@ Page({
         jobStatus: 'pending_settlement'
       })
       setTimeout(() => wx.redirectTo({
-        url: '/pages/settlement/settlement?jobId=' + this.data.orderId + '&role=manager'
+        url: '/pages/job-process/job-process?jobId=' + this.data.orderId + '&tab=settlement&role=manager'
       }), 1200)
     }).catch(() => {
       wx.hideLoading()
@@ -918,7 +918,7 @@ Page({
   onGoSettlement() {
     if (!this.data.orderId) return
     wx.redirectTo({
-      url: '/pages/settlement/settlement?jobId=' + this.data.orderId + '&role=manager'
+      url: '/pages/job-process/job-process?jobId=' + this.data.orderId + '&tab=settlement&role=manager'
     })
   }
 })

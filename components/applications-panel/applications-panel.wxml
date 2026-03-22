@@ -1,0 +1,65 @@
+<view class="st-card">
+  <text class="card-title">招聘概览</text>
+  <view class="st-summary">
+    <view class="st-sum-item">
+      <text class="st-sum-val text-primary">{{manageSummary.totalCount || 0}}</text>
+      <text class="st-sum-label">已报名</text>
+    </view>
+    <view class="st-sum-item">
+      <text class="st-sum-val text-rose">{{manageSummary.pendingCount || 0}}</text>
+      <text class="st-sum-label">待审核</text>
+    </view>
+    <view class="st-sum-item">
+      <text class="st-sum-val text-fresh">{{manageSummary.confirmedCount || 0}}</text>
+      <text class="st-sum-label">已确认出勤</text>
+    </view>
+  </view>
+  <view class="st-note-row">
+    <text class="st-note">工作时段：{{manageJob.workHours || '待定'}}</text>
+    <text class="st-note">已录用 {{manageSummary.acceptedCount || 0}} 人</text>
+    <text class="st-note">进行中 {{manageSummary.workingCount || 0}} 人</text>
+    <text class="st-note">已完工 {{manageSummary.doneCount || 0}} 人</text>
+    <text class="st-note">需招：{{manageJob.needCount || 0}} 人</text>
+  </view>
+</view>
+
+<scroll-view class="st-filter-row" scroll-x enable-flex show-scrollbar="{{false}}">
+  <view
+    wx:for="{{applicantTabs}}"
+    wx:key="key"
+    class="st-filter-chip {{applicantFilter === item.key ? 'st-filter-chip-active' : ''}}"
+    data-key="{{item.key}}"
+    bindtap="onFilterChange"
+  >
+    {{item.label}} {{item.count}}
+  </view>
+</scroll-view>
+
+<view class="st-card" wx:if="{{filteredApplicants.length > 0}}">
+  <text class="card-title">报名列表</text>
+  <view class="st-applicant-card" wx:for="{{filteredApplicants}}" wx:key="workerId">
+    <view class="st-applicant-main">
+      <image wx:if="{{item.avatarUrl}}" class="st-avatar-img" src="{{item.avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="text-avatar st-avatar">{{item.avatarText}}</view>
+      <view class="st-applicant-info">
+        <view class="st-applicant-name-row">
+          <text class="st-applicant-name">{{item.name}}</text>
+          <text class="st-status-pill st-status-{{item.statusTone}}">{{item.statusText}}</text>
+          <text class="st-supervisor-pill" wx:if="{{item.isSupervisor}}">主管</text>
+        </view>
+        <text class="st-applicant-meta">信用分 {{item.creditScore}} · 历史完工 {{item.doneCount}} 次</text>
+        <text class="st-applicant-meta">报名时间 {{item.applyTime}}</text>
+      </view>
+    </view>
+    <view class="st-applicant-actions">
+      <button class="st-mini-btn st-mini-primary" wx:if="{{item.canAccept}}" data-id="{{item.workerId}}" bindtap="onAccept">录用</button>
+      <button class="st-mini-btn st-mini-ghost" wx:if="{{item.canReject}}" data-id="{{item.workerId}}" bindtap="onReject">拒绝</button>
+      <button class="st-mini-btn st-mini-warm" wx:if="{{item.canSetSupervisor && !item.isSupervisor}}" data-id="{{item.workerId}}" bindtap="onSetSupervisor">设为主管</button>
+    </view>
+  </view>
+</view>
+
+<view class="st-card st-empty-card" wx:if="{{filteredApplicants.length === 0}}">
+  <text class="st-empty-title">当前筛选下暂无报名记录</text>
+  <text class="st-empty-sub">新的报名进来后会在这里统一处理。</text>
+</view>

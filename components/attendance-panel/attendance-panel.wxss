@@ -1,0 +1,188 @@
+.st-card {
+  margin: 20rpx 24rpx 0;
+  padding: 30rpx;
+  border-radius: 28rpx;
+  background-color: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12rpx 32rpx rgba(15, 23, 42, 0.05);
+}
+
+.card-title {
+  display: block;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.st-summary {
+  display: flex;
+  gap: 12rpx;
+}
+
+.st-sum-item {
+  flex: 1;
+  background-color: #F8FAFC;
+  border-radius: 20rpx;
+  padding: 20rpx 16rpx;
+  text-align: center;
+}
+
+.st-sum-val {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.st-sum-label {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+.att-grid-head,
+.att-record {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.att-grid-head {
+  padding: 8rpx 0 16rpx;
+  border-bottom: 1rpx solid #E2E8F0;
+}
+
+.att-record {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.att-record:last-child {
+  border-bottom: none;
+}
+
+.att-col {
+  font-size: 22rpx;
+  color: #1E293B;
+}
+
+.att-col-head {
+  font-size: 20rpx;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.att-col-name {
+  flex: 1.3;
+  min-width: 0;
+}
+
+.att-col-time {
+  flex: 1;
+  text-align: center;
+}
+
+.att-col-hours {
+  flex: 0.8;
+  text-align: center;
+}
+
+.att-col-status {
+  flex: 1;
+  text-align: center;
+}
+
+.att-name {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.att-note {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #94A3B8;
+  line-height: 1.4;
+}
+
+.att-time,
+.att-hours {
+  font-family: "SFMono-Regular", "Consolas", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.st-status-green {
+  color: #16A34A;
+}
+
+.st-status-amber {
+  color: #D97706;
+}
+
+.st-status-rose {
+  color: #E11D48;
+}
+
+.att-supervisor {
+  font-size: 26rpx;
+  color: #0F172A;
+}
+
+.att-meta {
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  color: #64748B;
+}
+
+.att-photo-link {
+  margin-top: 12rpx;
+  font-size: 24rpx;
+  color: #2563EB;
+}
+
+.st-bottom {
+  margin: 24rpx 32rpx;
+  padding: 24rpx 0 32rpx;
+  padding-bottom: calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.att-btn-group {
+  display: flex;
+  gap: 20rpx;
+}
+
+.att-btn-group .btn {
+  flex: 1;
+}
+
+.btn-outline::after {
+  border: none;
+}
+
+.st-hint {
+  display: block;
+  margin-top: 12rpx;
+  text-align: center;
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
+.st-empty-card {
+  text-align: center;
+}
+
+.st-empty-title {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.st-empty-sub {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #64748B;
+}
