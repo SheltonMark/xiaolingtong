@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
@@ -13,6 +13,8 @@ import { SysConfig } from '../../entities/sys-config.entity';
 
 @Injectable()
 export class JobService {
+  private static readonly CREATE_DEDUP_WINDOW_MS = 10 * 1000;
+
   constructor(
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Keyword) private keywordRepo: Repository<Keyword>,
@@ -321,6 +323,33 @@ export class JobService {
       images: this.normalizeImages(dto.images),
       urgent: dto.urgent ? 1 : 0,
     };
+  }
+
+  private async findRecentDuplicateJob(userId: number, payload: any) {
+    return this.jobRepo.findOne({
+      where: {
+        userId,
+        title: payload.title,
+        salary: payload.salary,
+        salaryType: payload.salaryType,
+        salaryUnit: payload.salaryUnit,
+        needCount: payload.needCount,
+        location: payload.location,
+        contactName: payload.contactName,
+        contactPhone: payload.contactPhone,
+        contactWechat: payload.contactWechat,
+        contactWechatQr: payload.contactWechatQr,
+        showPhone: payload.showPhone,
+        showWechat: payload.showWechat,
+        showWechatQr: payload.showWechatQr,
+        dateStart: payload.dateStart,
+        dateEnd: payload.dateEnd,
+        workHours: payload.workHours,
+        description: payload.description,
+        createdAt: MoreThan(new Date(Date.now() - JobService.CREATE_DEDUP_WINDOW_MS)),
+      },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   async list(query: any) {
@@ -806,6 +835,8 @@ export class JobService {
     if (!payload.dateStart || !payload.dateEnd) throw new BadRequestException('请选择工作日期');
 
     await this.checkKeywords(payload.title + (payload.description || ''));
+    const existing = await this.findRecentDuplicateJob(userId, payload);
+    if (existing) return existing;
     const job = this.jobRepo.create({ ...payload, userId });
     return this.jobRepo.save(job);
   }

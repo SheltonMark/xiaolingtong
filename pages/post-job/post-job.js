@@ -35,6 +35,7 @@ Page({
     ],
     images: [],
     isUploading: false,
+    submitting: false,
     phoneChecked: false,
     wechatChecked: false,
     wechatQrChecked: false
@@ -170,6 +171,9 @@ Page({
 
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    if (this.data.submitting) {
+      return
+    }
     if (this.data.isUploading) {
       wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
       return
@@ -191,6 +195,7 @@ Page({
     if (wechatQrChecked && !form.contactWechatQr) { wx.showToast({ title: '请先上传微信二维码', icon: 'none' }); return }
 
     const selectedBenefits = benefits.filter(b => b.selected).map(b => b.label)
+    this.setData({ submitting: true })
     wx.showLoading({ title: '发布中...' })
     post('/jobs', {
       title: form.title,
@@ -219,7 +224,11 @@ Page({
       wx.hideLoading()
       wx.showToast({ title: '发布成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 1500)
-    }).catch(() => { wx.hideLoading() })
+    }).catch(() => {
+      wx.hideLoading()
+    }).finally(() => {
+      this.setData({ submitting: false })
+    })
   },
 
   onShow() {

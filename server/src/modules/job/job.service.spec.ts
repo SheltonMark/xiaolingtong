@@ -316,6 +316,7 @@ describe('JobService', () => {
       };
 
       keywordRepository.find.mockResolvedValue([]);
+      jobRepository.findOne.mockResolvedValue(null);
       jobRepository.create.mockImplementation((payload) => ({
         id: 1,
         ...payload,
@@ -350,6 +351,7 @@ describe('JobService', () => {
       };
 
       keywordRepository.find.mockResolvedValue([]);
+      jobRepository.findOne.mockResolvedValue(null);
       jobRepository.create.mockImplementation((payload) => ({
         id: 1,
         ...payload,
@@ -372,6 +374,44 @@ describe('JobService', () => {
         { label: '包住宿', color: 'green' },
       ]);
       expect(result.images).toEqual(['image1.jpg', 'image2.jpg']);
+    });
+
+    it('returns the recent existing job for duplicate submits', async () => {
+      const dto = {
+        title: 'duplicate job',
+        salary: 100,
+        needCount: 5,
+        location: 'Beijing',
+        contactName: 'John',
+        contactPhone: '13800000000',
+        dateStart: '2026-03-10',
+        dateEnd: '2026-03-20',
+      };
+      const existingJob = {
+        id: 9,
+        userId: 1,
+        ...dto,
+        createdAt: new Date(),
+      };
+
+      keywordRepository.find.mockResolvedValue([]);
+      jobRepository.findOne.mockResolvedValue(existingJob);
+
+      const result = await service.create(1, dto);
+
+      expect(result).toBe(existingJob);
+      expect(jobRepository.create).not.toHaveBeenCalled();
+      expect(jobRepository.save).not.toHaveBeenCalled();
+      expect(jobRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 1,
+            title: 'duplicate job',
+            createdAt: expect.any(Object),
+          }),
+          order: { createdAt: 'DESC' },
+        }),
+      );
     });
 
     it('throws on keyword violation', async () => {

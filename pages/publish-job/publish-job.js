@@ -23,7 +23,8 @@ Page({
     benefits: ['包午餐', '有空调', '包住宿', '有班车', '长期合作', '熟手优先'],
     selectedBenefits: [],
     images: [],
-    isUploading: false
+    isUploading: false,
+    submitting: false
   },
 
   onInput(e) {
@@ -96,6 +97,9 @@ Page({
   },
 
   onSubmit() {
+    if (this.data.submitting) {
+      return
+    }
     if (this.data.isUploading) {
       wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
       return
@@ -139,12 +143,15 @@ Page({
       images
     }
     wx.showLoading({ title: '发布中...' })
+    this.setData({ submitting: true })
     post('/jobs', data).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '发布成功', icon: 'success' })
       setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
     }).catch(() => {
       wx.hideLoading()
+    }).finally(() => {
+      this.setData({ submitting: false })
     })
   }
 })
