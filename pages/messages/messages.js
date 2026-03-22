@@ -26,6 +26,28 @@ const TAB_BAR_PAGE_PATHS = [
   '/pages/mine/mine'
 ]
 
+function getSystemNoticeCopy(userRole) {
+  if (userRole === 'worker') {
+    return {
+      systemTabLabel: '临工通知',
+      systemPanelTitle: '临工系统通知',
+      systemPanelHint: '录用、开工、工资到账和提现进度会统一汇总在这里。',
+      systemEmptyText: '暂无临工系统通知',
+      systemEmptySubText: '后续与你相关的录用、结算和钱包提醒会显示在这里。',
+      systemRoleBadgeText: '临工'
+    }
+  }
+
+  return {
+    systemTabLabel: '企业通知',
+    systemPanelTitle: '企业系统通知',
+    systemPanelHint: '报名、考勤、结算和平台提醒会统一汇总在这里。',
+    systemEmptyText: '暂无企业系统通知',
+    systemEmptySubText: '后续与你发布工单和平台处理相关的提醒会显示在这里。',
+    systemRoleBadgeText: '企业'
+  }
+}
+
 Page({
   data: {
     currentTab: 0,
@@ -36,16 +58,25 @@ Page({
     chatMessages: [],
     systemMessages: [],
     notLoggedIn: false,
-    userRole: 'enterprise'
+    userRole: 'enterprise',
+    systemTabLabel: '企业通知',
+    systemPanelTitle: '企业系统通知',
+    systemPanelHint: '报名、考勤、结算和平台提醒会统一汇总在这里。',
+    systemEmptyText: '暂无企业系统通知',
+    systemEmptySubText: '后续与你发布工单和平台处理相关的提醒会显示在这里。',
+    systemRoleBadgeText: '企业'
   },
 
   onShow() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+    const systemNoticeCopy = getSystemNoticeCopy(userRole)
 
     if (!auth.isLoggedIn()) {
       this.setData({
         notLoggedIn: true,
-        currentTab: userRole === 'worker' ? 0 : this.data.currentTab
+        currentTab: userRole === 'worker' ? 0 : this.data.currentTab,
+        userRole,
+        ...systemNoticeCopy
       })
       if (typeof this.getTabBar === 'function' && this.getTabBar()) {
         this.getTabBar().setData({ selected: userRole === 'enterprise' ? 3 : 2, userRole })
@@ -56,7 +87,8 @@ Page({
     this.setData({
       notLoggedIn: false,
       currentTab: userRole === 'worker' ? 0 : this.data.currentTab,
-      userRole
+      userRole,
+      ...systemNoticeCopy
     })
 
     this.loadMessages()
@@ -201,7 +233,8 @@ Page({
       icon: style.icon,
       iconBg: style.iconBg,
       iconColor: style.iconColor,
-      accentColor: style.accentColor
+      accentColor: style.accentColor,
+      roleBadgeText: this.data.systemRoleBadgeText || '企业'
     }
   },
 

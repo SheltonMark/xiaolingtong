@@ -49,6 +49,31 @@
 }
 .tab-badge-float { position: absolute; left: 100%; top: 0; margin-left: 6rpx; margin-top: -10rpx; }
 .msg-list { padding: 24rpx 32rpx; display: flex; flex-direction: column; gap: 16rpx; }
+.system-panel-head {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background: linear-gradient(135deg, #EEF4FF 0%, #F8FAFC 100%);
+  border: 1rpx solid #DBEAFE;
+}
+.system-panel-title-row { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.system-panel-title { font-size: 28rpx; font-weight: 700; color: #1E3A8A; }
+.system-role-badge,
+.msg-role-chip {
+  flex-shrink: 0;
+  padding: 6rpx 14rpx;
+  border-radius: 999rpx;
+  font-size: 18rpx;
+  font-weight: 600;
+  color: #1D4ED8;
+  background-color: rgba(59, 130, 246, 0.12);
+}
+.system-panel-hint {
+  display: block;
+  margin-top: 12rpx;
+  font-size: 22rpx;
+  color: #64748B;
+  line-height: 1.6;
+}
 .msg-card { background-color: #fff; border-radius: 20rpx; padding: 24rpx; display: flex; align-items: center; gap: 20rpx; }
 .msg-unread { background-color: #FFFEFE; }
 .system-card { gap: 16rpx; }
@@ -69,6 +94,7 @@
 .msg-icon-text { font-size: 28rpx; }
 .msg-body { flex: 1; min-width: 0; }
 .msg-top-row { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin-bottom: 8rpx; }
+.msg-system-title-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12rpx; }
 .msg-name-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12rpx; }
 .msg-title {
   font-size: 24rpx;

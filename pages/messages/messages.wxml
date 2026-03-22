@@ -17,7 +17,7 @@
       </view>
       <view class="tab-item {{currentTab === 1 ? 'tab-active' : ''}}" data-index="{{1}}" bindtap="onTabChange">
         <view class="tab-text-wrap">
-          <text class="tab-label">系统通知</text>
+          <text class="tab-label">{{systemTabLabel}}</text>
           <view class="tab-badge tab-badge-float" wx:if="{{systemUnreadCount > 0}}">{{systemUnreadDisplay}}</view>
         </view>
       </view>
@@ -45,6 +45,14 @@
     </view>
 
     <view class="msg-list" wx:if="{{currentTab === 1}}">
+      <view class="system-panel-head">
+        <view class="system-panel-title-row">
+          <text class="system-panel-title">{{systemPanelTitle}}</text>
+          <text class="system-role-badge">{{systemRoleBadgeText}}</text>
+        </view>
+        <text class="system-panel-hint">{{systemPanelHint}}</text>
+      </view>
+
       <view class="msg-card system-card {{item.unread ? 'msg-unread' : ''}}" wx:for="{{systemMessages}}" wx:key="id" bindtap="onTapMsg" data-item="{{item}}">
         <view class="msg-brace" style="border-color: {{item.accentColor}};"></view>
         <view class="msg-icon-wrap" style="background-color: {{item.iconBg}}; color: {{item.iconColor}};">
@@ -52,7 +60,10 @@
         </view>
         <view class="msg-body">
           <view class="msg-top-row">
-            <text class="msg-title {{item.unread ? '' : 'msg-title-read'}}">{{item.title}}</text>
+            <view class="msg-system-title-row">
+              <text class="msg-title {{item.unread ? '' : 'msg-title-read'}}">{{item.title}}</text>
+              <text class="msg-role-chip">{{item.roleBadgeText}}</text>
+            </view>
             <view class="msg-time-wrap">
               <view class="unread-dot" wx:if="{{item.unread}}"></view>
               <text class="msg-time">{{item.time}}</text>
@@ -61,7 +72,7 @@
           <text class="msg-desc {{item.unread ? '' : 'msg-desc-read'}}">{{item.desc}}</text>
         </view>
       </view>
-      <empty-state wx:if="{{systemMessages.length === 0}}" text="暂无系统通知" />
+      <empty-state wx:if="{{systemMessages.length === 0}}" text="{{systemEmptyText}}" subText="{{systemEmptySubText}}" />
     </view>
   </block>
 </view>
