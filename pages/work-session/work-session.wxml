@@ -29,20 +29,70 @@
     <view class="ws-card">
       <view class="card-header-row">
         <text class="card-title"><text class="iconfont icon-jilu"></text> 工时记录</text>
-        <text class="card-tip">签到、签退和工时集中展示，异常与备注可展开编辑</text>
+        <text class="card-tip">状态、工时事实、异常说明和编辑操作分层展示，方便核对与对账</text>
       </view>
       <view class="hour-list">
         <view class="worker-card" wx:for="{{workers}}" wx:key="id">
-          <view class="worker-main">
+          <view class="record-head">
             <view class="piece-worker">
               <view class="text-avatar text-avatar-sm" style="background-color: #3B82F6;">{{item.displayName[0]}}</view>
               <view class="piece-info">
                 <text class="piece-name">{{item.displayName}}</text>
-                <text class="piece-sub">{{item.attendanceStatusText}} · {{item.checkedOut ? '已签退' : '待签退'}}</text>
+                <text class="piece-sub">{{item.recordSummaryText}}</text>
               </view>
             </view>
+            <view class="record-badges">
+              <text class="record-badge record-badge-{{item.primaryStatusClass}} {{item.isAbnormal ? 'record-badge-' + item.abnormalAccentClass : ''}}">{{item.primaryStatusText}}</text>
+              <text class="record-badge record-badge-sub record-badge-{{item.recordStatusClass}}">{{item.recordStatusText}}</text>
+            </view>
+          </view>
+
+          <view class="record-facts">
+            <view class="record-fact">
+              <text class="metric-label">签到时间</text>
+              <text class="metric-value">{{item.checkInTime || '--'}}</text>
+            </view>
+            <view class="record-fact">
+              <text class="metric-label">签退时间</text>
+              <text class="metric-value">{{item.checkOutTime || '--'}}</text>
+            </view>
+            <view class="record-fact record-fact-strong record-fact-wide">
+              <text class="metric-label">结算工时</text>
+              <text class="metric-value">{{item.hoursText}}</text>
+            </view>
+          </view>
+
+          <view class="record-explain" wx:if="{{item.showExplainSection}}">
+            <view class="record-explain-item" wx:if="{{item.isAbnormal}}">
+              <text class="record-explain-label">异常类型</text>
+              <text class="record-explain-value record-explain-value-warning record-explain-value-{{item.abnormalAccentClass}}">{{item.abnormalTypeText}}</text>
+            </view>
+            <view class="record-explain-item" wx:if="{{item.hasNote}}">
+              <text class="record-explain-label">备注说明</text>
+              <text class="record-note">{{item.statusNote}}</text>
+            </view>
+          </view>
+
+          <view class="record-trace">
+            <text class="record-trace-text">最后修改：{{item.modifiedAtText || '--'}}</text>
+            <text class="record-trace-text">{{item.statusSource === 'manual' ? '当前状态已人工调整' : '当前状态按考勤自动判断'}}</text>
+          </view>
+
+          <view class="record-actions">
+            <button class="record-action-btn record-action-btn-secondary" data-id="{{item.id}}" bindtap="onToggleRemark">
+              {{item.remarkExpanded ? '收起编辑' : '编辑记录'}}
+            </button>
             <button
-              class="checkout-btn {{item.checkedOut ? 'checkout-btn-done' : ''}}"
+              wx:if="{{item.checkedOut}}"
+              class="record-action-btn record-action-btn-plain"
+              data-id="{{item.id}}"
+              bindtap="onToggleEditCheckoutTime"
+            >
+              {{item.editingCheckoutTime ? '收起修改签退' : '修改签退'}}
+            </button>
+            <button
+              wx:if="{{!item.checkedOut && item.checkInTime}}"
+              class="record-action-btn checkout-btn {{item.checkedOut ? 'checkout-btn-done' : ''}}"
               loading="{{item.signingOut}}"
               disabled="{{item.checkoutDisabled || item.signingOut || item.checkedOut}}"
               data-id="{{item.id}}"
@@ -52,55 +102,50 @@
             </button>
           </view>
 
-          <view class="worker-summary">
-            <view class="worker-metric">
-              <text class="metric-label">签到</text>
-              <text class="metric-value">{{item.checkInTime || '--'}}</text>
-            </view>
-            <view class="worker-metric">
-              <text class="metric-label">签退</text>
-              <text class="metric-value">{{item.checkOutTime || '--'}}</text>
-            </view>
-            <view class="worker-metric worker-metric-strong">
-              <text class="metric-label">工时</text>
-              <text class="metric-value">{{item.hoursText}}</text>
-            </view>
-          </view>
-
-          <view class="worker-tags">
-            <text class="ws-tag ws-tag-{{item.attendanceStatus}}">{{item.attendanceStatusText}}</text>
-            <text class="ws-inline-link" data-id="{{item.id}}" bindtap="onToggleRemark">异常/备注</text>
-            <text class="ws-inline-link" wx:if="{{item.checkedOut}}" data-id="{{item.id}}" bindtap="onToggleEditCheckoutTime">修改时间</text>
-          </view>
-
-          <view class="worker-expand" wx:if="{{item.remarkExpanded}}">
-            <view class="expand-row">
-              <text class="expand-label">状态</text>
+          <view class="record-editor" wx:if="{{item.remarkExpanded}}">
+            <view class="editor-field {{item.activeEditorField === 'status' ? 'editor-field-active' : ''}}">
+              <view class="editor-field-head">
+                <text class="editor-field-label">考勤状态</text>
+                <text class="editor-field-helper">用于归类正常或异常</text>
+              </view>
               <picker
                 mode="selector"
                 range="{{attendanceOptions}}"
                 range-key="label"
                 data-id="{{item.id}}"
+                data-field="status"
+                bindtap="onEditorFieldFocus"
                 bindchange="onStatusChange"
               >
-                <view class="picker-field">{{item.attendanceStatusText}}</view>
+                <view class="picker-field {{item.activeEditorField === 'status' ? 'picker-field-active' : ''}}">{{item.attendanceStatusText}}</view>
               </picker>
             </view>
-            <view class="expand-row">
-              <text class="expand-label">备注</text>
-              <input
-                class="remark-input"
-                placeholder="补充原因说明"
+            <view class="editor-field editor-field-remark {{item.activeEditorField === 'remark' ? 'editor-field-active' : ''}}">
+              <view class="editor-field-head">
+                <text class="editor-field-label">备注说明</text>
+                <text class="editor-field-helper">会同步到考勤汇总与结算说明</text>
+              </view>
+              <textarea
+                class="remark-textarea {{item.activeEditorField === 'remark' ? 'remark-textarea-active' : ''}}"
+                placeholder="补充原因说明，可输入多行备注"
                 value="{{item.statusNote}}"
                 data-id="{{item.id}}"
+                data-field="remark"
+                auto-height="true"
+                maxlength="300"
+                bindfocus="onEditorFieldFocus"
                 bindinput="onRemarkInput"
                 bindblur="onRemarkBlur"
-              />
+              ></textarea>
+              <text class="editor-field-tip">建议填写异常原因、协商结果或需要企业对账关注的信息</text>
             </view>
-            <view class="expand-row" wx:if="{{item.editingCheckoutTime}}">
-              <text class="expand-label">签退</text>
-              <picker mode="time" data-id="{{item.id}}" bindchange="onManualCheckoutChange">
-                <view class="picker-field">{{item.manualCheckoutTime || '选择签退时间'}}</view>
+            <view class="editor-field {{item.activeEditorField === 'checkout' ? 'editor-field-active' : ''}}" wx:if="{{item.editingCheckoutTime}}">
+              <view class="editor-field-head">
+                <text class="editor-field-label">修改签退</text>
+                <text class="editor-field-helper">调整后会重新计算工时</text>
+              </view>
+              <picker mode="time" data-id="{{item.id}}" data-field="checkout" bindtap="onEditorFieldFocus" bindchange="onManualCheckoutChange">
+                <view class="picker-field {{item.activeEditorField === 'checkout' ? 'picker-field-active' : ''}}">{{item.manualCheckoutTime || '选择签退时间'}}</view>
               </picker>
             </view>
           </view>

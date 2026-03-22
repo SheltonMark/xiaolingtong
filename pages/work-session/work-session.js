@@ -54,6 +54,39 @@ function formatHoursText(hours) {
   return `${value.toFixed(1)}h`
 }
 
+function parseDateValue(value) {
+  if (!value) return 0
+  const timestamp = new Date(value).getTime()
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function formatModifiedAt(value) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) {
+    return String(value).replace('T', ' ').slice(0, 16)
+  }
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hours}:${minutes}`
+}
+
+function buildLatestLogMap(logs = []) {
+  return logs.reduce((map, log) => {
+    const workerId = Number(log.workerId)
+    if (!workerId) return map
+    const current = map[workerId]
+    const currentTime = parseDateValue(current && (current.updatedAt || current.createdAt))
+    const nextTime = parseDateValue(log.updatedAt || log.createdAt)
+    if (!current || nextTime >= currentTime) {
+      map[workerId] = log
+    }
+    return map
+  }, {})
+}
+
 function normalizePhotoItem(item) {
   if (!item) return null
   if (typeof item === 'string') {
@@ -249,12 +282,68 @@ Page({
     }).filter(item => item.status !== 'future')
   },
 
+  decorateHourlyWorker(worker) {
+    const attendanceStatus = worker.attendanceStatus || 'normal'
+    const checkedOut = !!worker.checkedOut || !!worker.checkOutTime
+    const canQuickCheckout = !!worker.canQuickCheckout || (!!worker.checkInTime && !checkedOut && attendanceStatus !== 'absent')
+    const checkoutDisabled = worker.checkoutDisabled !== undefined
+      ? !!worker.checkoutDisabled
+      : (!this.data.canFinishWork || !canQuickCheckout)
+    const attendanceStatusText = worker.attendanceStatusText || getAttendanceText(attendanceStatus)
+    const isAbnormal = attendanceStatus !== 'normal'
+    const modifiedAtText = worker.modifiedAtText || formatModifiedAt(worker.lastModifiedAt)
+    let recordStatusText = '待签到'
+    let recordStatusClass = 'pending'
+
+    if (attendanceStatus === 'absent') {
+      recordStatusText = '未出勤'
+      recordStatusClass = 'muted'
+    } else if (checkedOut) {
+      recordStatusText = '已签退'
+      recordStatusClass = 'done'
+    } else if (worker.checkInTime) {
+      recordStatusText = '待签退'
+      recordStatusClass = 'pending'
+    }
+
+    let recordSummaryText = '待补充出勤记录'
+    if (isAbnormal) {
+      recordSummaryText = `${attendanceStatusText}，请核对说明`
+    } else if (checkedOut) {
+      recordSummaryText = '已完成工时记录'
+    } else if (worker.checkInTime) {
+      recordSummaryText = '待签退确认后进入结算'
+    }
+
+    return {
+      ...worker,
+      attendanceStatus,
+      attendanceStatusText,
+      checkedOut,
+      canQuickCheckout,
+      checkoutDisabled,
+      checkoutButtonText: checkedOut ? '已签退' : (checkoutDisabled ? '签退' : `${this.data.currentClock || formatClock(new Date(), true)} 签退`),
+      primaryStatusText: isAbnormal ? '异常' : '正常',
+      primaryStatusClass: isAbnormal ? 'abnormal' : 'normal',
+      recordStatusText,
+      recordStatusClass,
+      recordSummaryText,
+      isAbnormal,
+      abnormalAccentClass: isAbnormal ? attendanceStatus : '',
+      abnormalTypeText: isAbnormal ? attendanceStatusText : '',
+      hasNote: !!worker.statusNote,
+      showExplainSection: isAbnormal || !!worker.statusNote,
+      lastModifiedAt: worker.lastModifiedAt || '',
+      modifiedAtText
+    }
+  },
+
   normalizeHourlyWorker(item) {
     const attendanceStatus = item.attendanceStatus || item.attendance || 'normal'
     const checkedOut = !!item.checkedOut || !!item.checkOutTime
     const canQuickCheckout = !!item.canQuickCheckout || (!!item.checkInTime && !checkedOut && attendanceStatus !== 'absent')
     const checkoutDisabled = !this.data.canFinishWork || !canQuickCheckout
-    return {
+    return this.decorateHourlyWorker({
       id: Number(item.workerId || item.id),
       displayName: item.displayName || item.name || '临工',
       attendanceStatus,
@@ -271,9 +360,11 @@ Page({
       signingOut: false,
       remarkExpanded: false,
       editingCheckoutTime: false,
+      activeEditorField: '',
+      lastModifiedAt: item.lastModifiedAt || item.updatedAt || item.createdAt || '',
       manualCheckoutTime: item.checkOutTime ? String(item.checkOutTime).slice(0, 5) : '',
       checkoutButtonText: checkedOut ? '已签退' : (checkoutDisabled ? '签退' : `${this.data.currentClock || formatClock(new Date(), true)} 签退`)
-    }
+    })
   },
 
   buildFallbackHourlyWorkers(allWorkers, checkins, logs) {
@@ -297,6 +388,7 @@ Page({
       current.anomalyNote = log.anomalyNote || current.anomalyNote
       current.checkInTime = log.checkInTime || current.checkInTime
       current.checkOutTime = log.checkOutTime || current.checkOutTime
+      current.lastModifiedAt = log.updatedAt || log.createdAt || current.lastModifiedAt
       dailyLogMap[log.workerId] = current
     })
 
@@ -316,6 +408,7 @@ Page({
         checkInTime,
         checkOutTime,
         hours,
+        lastModifiedAt: log.updatedAt || log.createdAt || '',
         checkedOut: !!checkOutTime,
         canQuickCheckout: !!checkInTime && !checkOutTime
       })
@@ -337,18 +430,19 @@ Page({
   },
 
   setHourlyWorkers(workers) {
+    const decoratedWorkers = (workers || []).map(worker => this.decorateHourlyWorker(worker))
     const summary = {
-      presentCount: workers.filter(worker => worker.attendanceStatus !== 'absent').length,
-      abnormalCount: workers.filter(worker => worker.attendanceStatus !== 'normal').length,
-      checkedOutCount: workers.filter(worker => !!worker.checkedOut).length
+      presentCount: decoratedWorkers.filter(worker => worker.attendanceStatus !== 'absent').length,
+      abnormalCount: decoratedWorkers.filter(worker => worker.attendanceStatus !== 'normal').length,
+      checkedOutCount: decoratedWorkers.filter(worker => !!worker.checkedOut).length
     }
     this.setData({
-      workers,
+      workers: decoratedWorkers,
       status: this.buildHourlyStatus(
         this.data.jobInfo,
         this.data.status.company || '',
         summary,
-        workers,
+        decoratedWorkers,
         this.data.status.checkoutRule
       )
     })
@@ -363,6 +457,7 @@ Page({
       const checkins = data.checkins || []
       const allWorkers = data.workers || []
       const sessionWorkers = data.sessionWorkers || []
+      const latestLogMap = buildLatestLogMap(logs)
       const jobStatus = job.status || ''
       const canFinishWork = !this.isWorkLocked(jobStatus)
       const company = job.companyName || (job.user && job.user.companyName) || '企业'
@@ -392,6 +487,10 @@ Page({
       })
 
       const hourlyWorkers = (sessionWorkers.length ? sessionWorkers : this.buildFallbackHourlyWorkers(allWorkers, checkins, logs))
+        .map(item => ({
+          ...item,
+          lastModifiedAt: item.lastModifiedAt || (latestLogMap[Number(item.workerId || item.id)] && (latestLogMap[Number(item.workerId || item.id)].updatedAt || latestLogMap[Number(item.workerId || item.id)].createdAt)) || ''
+        }))
         .map(item => this.normalizeHourlyWorker(item))
         .map(worker => ({
           ...worker,
@@ -510,6 +609,7 @@ Page({
         statusNote: result.statusNote !== undefined ? result.statusNote : worker.statusNote,
         checkInTime: result.checkInTime || worker.checkInTime,
         checkOutTime: result.checkOutTime || worker.checkOutTime,
+        lastModifiedAt: result.updatedAt || result.createdAt || new Date().toISOString(),
         manualCheckoutTime: result.checkOutTime ? String(result.checkOutTime).slice(0, 5) : worker.manualCheckoutTime,
         hours,
         hoursText: formatHoursText(hours),
@@ -570,8 +670,34 @@ Page({
   onToggleRemark(e) {
     const workerId = Number(e.currentTarget.dataset.id)
     this.setData({
+      workers: this.data.workers.map(worker => {
+        if (worker.id !== workerId) return worker
+        const remarkExpanded = !worker.remarkExpanded
+        return {
+          ...worker,
+          remarkExpanded,
+          editingCheckoutTime: remarkExpanded ? worker.editingCheckoutTime : false,
+          activeEditorField: remarkExpanded ? worker.activeEditorField : ''
+        }
+      })
+    })
+  },
+
+  onEditorFieldFocus(e) {
+    const workerId = Number(e.currentTarget.dataset.id)
+    const field = e.currentTarget.dataset.field || ''
+    this.setData({
       workers: this.data.workers.map(worker => worker.id === workerId
-        ? { ...worker, remarkExpanded: !worker.remarkExpanded }
+        ? { ...worker, activeEditorField: field }
+        : worker)
+    })
+  },
+
+  onEditorFieldBlur(e) {
+    const workerId = Number(e.currentTarget.dataset.id)
+    this.setData({
+      workers: this.data.workers.map(worker => worker.id === workerId
+        ? { ...worker, activeEditorField: '' }
         : worker)
     })
   },
@@ -595,7 +721,8 @@ Page({
       workers: this.data.workers.map(item => item.id === workerId ? {
         ...item,
         attendanceStatus: option.value,
-        attendanceStatusText: option.label
+        attendanceStatusText: option.label,
+        activeEditorField: 'status'
       } : item)
     })
 
@@ -616,6 +743,8 @@ Page({
           attendanceStatusText: result.attendanceStatusText || option.label,
           statusSource: result.statusSource || 'manual',
           statusNote: result.statusNote !== undefined ? result.statusNote : item.statusNote,
+          lastModifiedAt: result.updatedAt || result.createdAt || new Date().toISOString(),
+          activeEditorField: '',
           checkInTime: isAbsent ? '' : item.checkInTime,
           checkOutTime: isAbsent ? '' : item.checkOutTime,
           manualCheckoutTime: isAbsent ? '' : item.manualCheckoutTime,
@@ -653,7 +782,9 @@ Page({
       const result = res.data || res || {}
       const workers = this.data.workers.map(item => item.id === workerId ? {
         ...item,
-        statusNote: result.statusNote !== undefined ? result.statusNote : (e.detail.value || '')
+        statusNote: result.statusNote !== undefined ? result.statusNote : (e.detail.value || ''),
+        lastModifiedAt: result.updatedAt || result.createdAt || new Date().toISOString(),
+        activeEditorField: ''
       } : item)
       this.setHourlyWorkers(workers)
     }).catch(() => {
@@ -665,7 +796,12 @@ Page({
     const workerId = Number(e.currentTarget.dataset.id)
     this.setData({
       workers: this.data.workers.map(worker => worker.id === workerId
-        ? { ...worker, editingCheckoutTime: !worker.editingCheckoutTime, remarkExpanded: true }
+        ? {
+          ...worker,
+          editingCheckoutTime: !worker.editingCheckoutTime,
+          remarkExpanded: true,
+          activeEditorField: !worker.editingCheckoutTime ? 'checkout' : ''
+        }
         : worker)
     })
   },
@@ -692,11 +828,13 @@ Page({
         attendanceStatus,
         attendanceStatusText: getAttendanceText(attendanceStatus),
         checkOutTime: result.checkOutTime || checkOutTime,
+        lastModifiedAt: result.updatedAt || result.createdAt || new Date().toISOString(),
         manualCheckoutTime: (result.checkOutTime || checkOutTime || '').slice(0, 5),
         hours,
         hoursText: formatHoursText(hours),
         checkedOut: !!(result.checkOutTime || checkOutTime),
         editingCheckoutTime: false,
+        activeEditorField: '',
         checkoutDisabled: !item.canQuickCheckout || !!(result.checkOutTime || checkOutTime),
         checkoutButtonText: '已签退'
       } : item)
