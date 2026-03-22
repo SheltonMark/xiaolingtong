@@ -53,26 +53,47 @@
         <text class="system-panel-hint">{{systemPanelHint}}</text>
       </view>
 
-      <view class="msg-card system-card {{item.unread ? 'msg-unread' : ''}}" wx:for="{{systemMessages}}" wx:key="id" bindtap="onTapMsg" data-item="{{item}}">
-        <view class="msg-brace" style="border-color: {{item.accentColor}};"></view>
-        <view class="msg-icon-wrap" style="background-color: {{item.iconBg}}; color: {{item.iconColor}};">
-          <text class="msg-icon-text">{{item.icon}}</text>
-        </view>
-        <view class="msg-body">
-          <view class="msg-top-row">
-            <view class="msg-system-title-row">
-              <text class="msg-title {{item.unread ? '' : 'msg-title-read'}}">{{item.title}}</text>
-              <text class="msg-role-chip">{{item.roleBadgeText}}</text>
+      <block wx:if="{{systemSections.length > 0}}">
+        <view class="system-section" wx:for="{{systemSections}}" wx:key="key" wx:for-item="section">
+          <view class="system-section-head">
+            <view class="system-section-title-wrap">
+              <text class="system-section-title">{{section.title}}</text>
+              <text class="system-section-count">{{section.count}} 条</text>
             </view>
-            <view class="msg-time-wrap">
-              <view class="unread-dot" wx:if="{{item.unread}}"></view>
-              <text class="msg-time">{{item.time}}</text>
+            <text class="system-section-unread" wx:if="{{section.unreadCount > 0}}">{{section.unreadCount}} 条未读</text>
+          </view>
+          <text class="system-section-hint">{{section.hint}}</text>
+
+          <view
+            class="msg-card system-card {{item.unread ? 'msg-unread' : ''}}"
+            wx:for="{{section.items}}"
+            wx:key="id"
+            wx:for-item="item"
+            bindtap="onTapMsg"
+            data-item="{{item}}"
+          >
+            <view class="msg-brace" style="border-color: {{item.accentColor}};"></view>
+            <view class="msg-icon-wrap" style="background-color: {{item.iconBg}}; color: {{item.iconColor}};">
+              <text class="msg-icon-text">{{item.icon}}</text>
+            </view>
+            <view class="msg-body">
+              <view class="msg-top-row">
+                <view class="msg-system-title-row">
+                  <text class="msg-title {{item.unread ? '' : 'msg-title-read'}}">{{item.title}}</text>
+                  <text class="msg-role-chip">{{item.roleBadgeText}}</text>
+                </view>
+                <view class="msg-time-wrap">
+                  <view class="unread-dot" wx:if="{{item.unread}}"></view>
+                  <text class="msg-time">{{item.time}}</text>
+                </view>
+              </view>
+              <text class="msg-desc {{item.unread ? '' : 'msg-desc-read'}}">{{item.desc}}</text>
             </view>
           </view>
-          <text class="msg-desc {{item.unread ? '' : 'msg-desc-read'}}">{{item.desc}}</text>
         </view>
-      </view>
-      <empty-state wx:if="{{systemMessages.length === 0}}" text="{{systemEmptyText}}" subText="{{systemEmptySubText}}" />
+      </block>
+
+      <empty-state wx:else text="{{systemEmptyText}}" subText="{{systemEmptySubText}}" />
     </view>
   </block>
 </view>

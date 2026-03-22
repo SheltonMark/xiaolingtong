@@ -48,6 +48,89 @@ function getSystemNoticeCopy(userRole) {
   }
 }
 
+function includesAny(text, keywords) {
+  const source = String(text || '')
+  return keywords.some((keyword) => source.includes(keyword))
+}
+
+function getSystemCategoryConfigs(userRole) {
+  if (userRole === 'worker') {
+    return [
+      { key: 'order', title: '订单通知', hint: '报名、开工、考勤和完工相关提醒' },
+      { key: 'wallet', title: '钱包通知', hint: '工资、提现和结算到账提醒' },
+      { key: 'rating', title: '评价认证', hint: '评价、认证和信用相关提醒' },
+      { key: 'platform', title: '平台通知', hint: '邀请、活动和系统公告' }
+    ]
+  }
+
+  return [
+    { key: 'work', title: '用工通知', hint: '报名、考勤、结算和评价提醒' },
+    { key: 'promotion', title: '推广通知', hint: '广告、置顶和推广状态提醒' },
+    { key: 'asset', title: '会员资产', hint: '会员、灵豆和返佣相关提醒' },
+    { key: 'platform', title: '平台通知', hint: '认证结果与系统公告' }
+  ]
+}
+
+function resolveSystemCategory(item, userRole) {
+  const title = String(item.title || '')
+  const desc = String(item.content || item.desc || '')
+  const text = `${title} ${desc}`
+  const type = String(item.type || '')
+
+  if (userRole === 'worker') {
+    if (
+      item.sourceType === 'wallet' ||
+      ['settlement', 'income', 'withdraw'].includes(type) ||
+      includesAny(text, ['工资到账', '提现'])
+    ) {
+      return 'wallet'
+    }
+    if (type === 'job_apply') return 'order'
+    if (type === 'cert') return 'rating'
+    if (type === 'promotion' && includesAny(text, ['评价', '认证'])) return 'rating'
+    return 'platform'
+  }
+
+  if (type === 'job_apply') return 'work'
+  if (type === 'promotion' && includesAny(text, ['评价'])) return 'work'
+  if (type === 'promotion' || includesAny(text, ['广告', '推广', '置顶'])) return 'promotion'
+  if (type === 'invite') return 'asset'
+  if (type === 'system' && includesAny(text, ['会员', '灵豆', '充值', '返佣'])) return 'asset'
+  return 'platform'
+}
+
+function buildSystemSections(messages, userRole) {
+  const configs = getSystemCategoryConfigs(userRole)
+  const grouped = {}
+
+  configs.forEach((config) => {
+    grouped[config.key] = []
+  })
+
+  ;(Array.isArray(messages) ? messages : []).forEach((item) => {
+    const key = resolveSystemCategory(item, userRole)
+    if (!grouped[key]) grouped[key] = []
+    grouped[key].push({
+      ...item,
+      categoryKey: key
+    })
+  })
+
+  return configs
+    .map((config) => {
+      const items = grouped[config.key] || []
+      return {
+        key: config.key,
+        title: config.title,
+        hint: config.hint,
+        count: items.length,
+        unreadCount: items.filter((item) => item.unread).length,
+        items
+      }
+    })
+    .filter((section) => section.count > 0)
+}
+
 Page({
   data: {
     currentTab: 0,
@@ -57,6 +140,7 @@ Page({
     systemUnreadDisplay: '',
     chatMessages: [],
     systemMessages: [],
+    systemSections: [],
     notLoggedIn: false,
     userRole: 'enterprise',
     systemTabLabel: '企业通知',
@@ -240,8 +324,10 @@ Page({
 
   setSystemMessages(systemMessages) {
     const systemUnreadCount = systemMessages.filter((m) => m.unread).length
+    const systemSections = buildSystemSections(systemMessages, this.data.userRole || 'enterprise')
     this.setData({
       systemMessages,
+      systemSections,
       systemUnreadCount,
       systemUnreadDisplay: systemUnreadCount > 99 ? '99+' : (systemUnreadCount ? String(systemUnreadCount) : '')
     })
