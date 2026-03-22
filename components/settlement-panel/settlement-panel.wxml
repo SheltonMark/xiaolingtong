@@ -63,7 +63,6 @@
         </view>
       </view>
     </view>
-    <text class="view-all" wx:if="{{workers.length > 0}}" bindtap="onViewAll">查看全部{{job.totalWorkers || workers.length}}人明细</text>
   </view>
 
   <view class="st-card">

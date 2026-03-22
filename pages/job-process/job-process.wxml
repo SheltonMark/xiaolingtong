@@ -58,6 +58,5 @@
     bind:pay="onPay"
     bind:confirmsettlement="onConfirmSettlement"
     bind:rate="onRateEnterprise"
-    bind:viewall="onViewAll"
   />
 </view>

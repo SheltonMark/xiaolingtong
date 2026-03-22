@@ -21,10 +21,6 @@ Component({
 
     onRate() {
       this.triggerEvent('rate')
-    },
-
-    onViewAll() {
-      this.triggerEvent('viewall')
     }
   }
 })

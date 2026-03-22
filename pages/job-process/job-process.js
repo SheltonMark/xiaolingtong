@@ -408,10 +408,6 @@ Page({
     })
   },
 
-  onViewAll() {
-    wx.showToast({ title: '查看全部明细', icon: 'none' })
-  },
-
   onConfirmAttendance() {
     if (this.data.attendance && this.data.attendance.status === 'confirmed') {
       wx.showToast({ title: '汇总单已确认', icon: 'none' })
