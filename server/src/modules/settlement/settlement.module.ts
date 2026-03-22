@@ -38,5 +38,6 @@ import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity
   ],
   controllers: [SettlementController],
   providers: [SettlementService],
+  exports: [SettlementService],
 })
 export class SettlementModule {}

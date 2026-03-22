@@ -14,6 +14,7 @@ import { WorkerCert } from '../../entities/worker-cert.entity';
 import { WorkStart } from '../../entities/work-start.entity';
 import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
 import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
+import { SettlementService } from '../settlement/settlement.service';
 
 describe('WorkService', () => {
   let service: WorkService;
@@ -27,6 +28,7 @@ describe('WorkService', () => {
   let workStartRepo: any;
   let attendanceSheetRepo: any;
   let attendanceSheetItemRepo: any;
+  let settlementService: any;
 
   beforeEach(async () => {
     checkinRepo = {
@@ -94,6 +96,10 @@ describe('WorkService', () => {
       delete: jest.fn(),
     };
 
+    settlementService = {
+      createSettlement: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WorkService,
@@ -107,6 +113,7 @@ describe('WorkService', () => {
         { provide: getRepositoryToken(WorkStart), useValue: workStartRepo },
         { provide: getRepositoryToken(AttendanceSheet), useValue: attendanceSheetRepo },
         { provide: getRepositoryToken(AttendanceSheetItem), useValue: attendanceSheetItemRepo },
+        { provide: SettlementService, useValue: settlementService },
       ],
     }).compile();
 
@@ -603,16 +610,23 @@ describe('WorkService', () => {
       confirmedBy: null,
       confirmedAt: null,
     });
+    settlementService.createSettlement.mockResolvedValue({
+      settlementId: 101,
+      existing: false,
+    });
 
     const result = await service.confirmAttendance(8, 1);
 
     expect(result.message).toContain('进入结算流程');
     expect(result.date).toBe('2026-03-18');
+    expect(result.settlementId).toBe(101);
+    expect(result.settlementExisting).toBe(false);
     expect(attendanceSheetRepo.save).toHaveBeenCalledWith(expect.objectContaining({
       id: 21,
       status: 'confirmed',
       confirmedBy: 8,
     }));
+    expect(settlementService.createSettlement).toHaveBeenCalledWith(1, 8);
     expect(jobRepo.update).toHaveBeenCalledWith(1, { status: 'pending_settlement' });
     expect(appRepo.update).toHaveBeenCalledWith(
       { jobId: 1, status: 'working' },

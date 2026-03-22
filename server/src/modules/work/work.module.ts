@@ -12,20 +12,24 @@ import { WorkerCert } from '../../entities/worker-cert.entity';
 import { WorkStart } from '../../entities/work-start.entity';
 import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
 import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
+import { SettlementModule } from '../settlement/settlement.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([
-    Checkin,
-    WorkLog,
-    JobApplication,
-    Job,
-    User,
-    EnterpriseCert,
-    WorkerCert,
-    WorkStart,
-    AttendanceSheet,
-    AttendanceSheetItem,
-  ])],
+  imports: [
+    TypeOrmModule.forFeature([
+      Checkin,
+      WorkLog,
+      JobApplication,
+      Job,
+      User,
+      EnterpriseCert,
+      WorkerCert,
+      WorkStart,
+      AttendanceSheet,
+      AttendanceSheetItem,
+    ]),
+    SettlementModule,
+  ],
   controllers: [WorkController],
   providers: [WorkService],
 })

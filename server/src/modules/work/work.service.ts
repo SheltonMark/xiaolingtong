@@ -16,6 +16,7 @@ import { WorkerCert } from '../../entities/worker-cert.entity';
 import { WorkStart } from '../../entities/work-start.entity';
 import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
 import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
+import { SettlementService } from '../settlement/settlement.service';
 
 type AttendanceRecordDto = {
   workerId: number;
@@ -47,6 +48,7 @@ export class WorkService {
     @InjectRepository(WorkStart) private workStartRepo: Repository<WorkStart>,
     @InjectRepository(AttendanceSheet) private attendanceSheetRepo: Repository<AttendanceSheet>,
     @InjectRepository(AttendanceSheetItem) private attendanceSheetItemRepo: Repository<AttendanceSheetItem>,
+    private settlementService: SettlementService,
   ) {}
 
   private async getCompanyName(userId: number, fallbackNickname?: string): Promise<string> {
@@ -1547,6 +1549,8 @@ export class WorkService {
       confirmedAt: new Date(),
     });
 
+    const settlementResult = await this.settlementService.createSettlement(normalizedJobId, enterpriseId);
+
     if (!['pending_settlement', 'settled', 'closed'].includes(job.status)) {
       await this.jobRepo.update(normalizedJobId, { status: 'pending_settlement' });
     }
@@ -1560,6 +1564,8 @@ export class WorkService {
       message: '考勤已确认，进入结算流程',
       date: sheet.date,
       sheetId: sheet.id,
+      settlementId: settlementResult?.settlementId,
+      settlementExisting: !!settlementResult?.existing,
     };
   }
 }
