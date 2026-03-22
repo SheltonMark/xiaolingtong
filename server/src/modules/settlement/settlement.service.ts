@@ -136,6 +136,20 @@ export class SettlementService {
     return `${dates[0]} ~ ${dates[dates.length - 1]}（${dates.length}天）`;
   }
 
+  private normalizeCommissionRate(rawValue: string | number | null | undefined, fallback = 0.2): number {
+    const parsed = Number(rawValue);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      return fallback;
+    }
+    if (parsed > 1) {
+      if (parsed <= 100) {
+        return +(parsed / 100).toFixed(4);
+      }
+      return fallback;
+    }
+    return +parsed.toFixed(4);
+  }
+
   async createSettlement(jobId: number, userId: number) {
     const job = await this.jobRepo.findOneBy({ id: jobId });
     if (!job) throw new BadRequestException('招工不存在');
@@ -164,7 +178,10 @@ export class SettlementService {
 
     const jobCommission = await this.getConfig(`job_commission_${jobId}`, '');
     const globalCommission = await this.getConfig('default_commission_rate', '0.20');
-    const commissionRate = jobCommission ? +jobCommission : +globalCommission;
+    const commissionRate = this.normalizeCommissionRate(
+      jobCommission || globalCommission,
+      0.2,
+    );
 
     const managerFeeStr = await this.getConfig('manager_service_fee', '5');
     const managerFeeUnit = +managerFeeStr;

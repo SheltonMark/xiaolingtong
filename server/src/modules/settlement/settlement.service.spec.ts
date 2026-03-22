@@ -318,6 +318,57 @@ describe('SettlementService', () => {
       expect(workLogRepository.find).not.toHaveBeenCalled();
     });
 
+    it('should normalize percentage commission config values when creating settlement', async () => {
+      const mockJob = {
+        id: 1,
+        userId: 1,
+        title: 'Test Job',
+        salary: 100,
+        salaryType: 'hourly',
+      };
+      const mockApplications = [
+        { id: 1, workerId: 2, status: 'confirmed', isSupervisor: 0 },
+      ];
+      const mockSettlement = {
+        id: 1,
+        jobId: 1,
+        enterpriseId: 1,
+        status: 'pending',
+      };
+
+      jobRepository.findOneBy.mockResolvedValue(mockJob);
+      settlementRepository.findOne.mockResolvedValue(null);
+      jobApplicationRepository.find.mockResolvedValue(mockApplications);
+      attendanceSheetRepository.find.mockResolvedValue([]);
+      workLogRepository.find.mockResolvedValue([
+        { id: 1, hours: 1, pieces: 0, jobId: 1, workerId: 2 },
+      ]);
+      sysConfigRepository.findOne
+        .mockResolvedValueOnce({ key: 'job_commission_1', value: '' })
+        .mockResolvedValueOnce({ key: 'default_commission_rate', value: '20' })
+        .mockResolvedValueOnce(null);
+      settlementRepository.create.mockImplementation((payload) => payload);
+      settlementRepository.save.mockResolvedValue(mockSettlement);
+      settlementItemRepository.create.mockImplementation((payload) => payload);
+      settlementItemRepository.save.mockResolvedValue({});
+      jobRepository.update.mockResolvedValue({});
+
+      await service.createSettlement(1, 1);
+
+      expect(settlementRepository.create).toHaveBeenCalledWith(expect.objectContaining({
+        commissionRate: 0.2,
+        factoryTotal: 100,
+        platformFee: 20,
+        workerTotal: 80,
+      }));
+      expect(settlementItemRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+        workerId: 2,
+        hours: 1,
+        factoryPay: 100,
+        workerPay: 80,
+      }));
+    });
+
     it('should throw error when job not found', async () => {
       jobRepository.findOneBy.mockResolvedValue(null);
 
