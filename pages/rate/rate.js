@@ -3,7 +3,7 @@ const { get, post } = require('../../utils/request')
 Page({
   data: {
     jobId: '',
-    enterpriseId: '',
+    ratedId: '',
     company: { name: '', jobType: '', dateRange: '' },
     rateItems: [
       { key: 'overall', label: '综合评分', score: 5 },
@@ -26,8 +26,8 @@ Page({
 
   onLoad(options) {
     const jobId = options.jobId || ''
-    const enterpriseId = options.enterpriseId || ''
-    this.setData({ jobId, enterpriseId })
+    const ratedId = options.ratedId || options.enterpriseId || ''
+    this.setData({ jobId, ratedId })
     if (jobId) {
       this.loadJobInfo(jobId)
     }
@@ -76,10 +76,10 @@ Page({
           const selectedTags = this.data.tags.filter(t => t.selected).map(t => t.label)
           post('/ratings', {
             jobId: Number(this.data.jobId),
-            enterpriseId: Number(this.data.enterpriseId),
+            ratedId: Number(this.data.ratedId),
             score: overallScore,
             tags: selectedTags,
-            content: this.data.content
+            comment: this.data.content
           }).then(() => {
             wx.showToast({ title: '评价成功', icon: 'success' })
             setTimeout(() => wx.navigateBack(), 1500)

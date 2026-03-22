@@ -1,4 +1,12 @@
-import { Controller, Post, Get, Param, Body, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { RatingService } from './rating.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -7,6 +15,19 @@ import { CreateRatingDto } from './rating.dto';
 @Controller('ratings')
 export class RatingController {
   constructor(private ratingService: RatingService) {}
+
+  private resolveRatedId(dto: CreateRatingDto): number {
+    const ratedId = Number(dto.ratedId || dto.enterpriseId || 0);
+    if (!ratedId) {
+      throw new BadRequestException('缺少被评价用户');
+    }
+    return ratedId;
+  }
+
+  private resolveComment(dto: CreateRatingDto): string | undefined {
+    const comment = String(dto.comment || dto.content || '').trim();
+    return comment || undefined;
+  }
 
   @Post()
   @Roles('worker', 'enterprise')
@@ -18,11 +39,12 @@ export class RatingController {
     return this.ratingService.createRating(
       dto.jobId,
       userId,
-      dto.ratedId,
+      this.resolveRatedId(dto),
       userRole as 'worker' | 'enterprise',
       dto.score,
-      dto.comment,
+      this.resolveComment(dto),
       dto.tags,
+      dto.isAnonymous,
     );
   }
 

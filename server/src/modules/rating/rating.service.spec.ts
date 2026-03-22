@@ -296,6 +296,12 @@ describe('RatingService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('should throw BadRequestException when rating self', async () => {
+      await expect(
+        service.createRating(1, 2, 2, 'worker', 5, 'Bad'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
     it('should throw NotFoundException when job does not exist', async () => {
       jobRepo.findOne.mockResolvedValue(null);
 
@@ -368,6 +374,49 @@ describe('RatingService', () => {
       const result = await service.createRating(1, 1, 2, 'worker', 4, 'Good');
 
       expect(result.tags).toEqual([]);
+    });
+
+    it('should persist anonymous flag when provided', async () => {
+      const mockJob = { id: 1, title: 'Test Job' };
+      const mockRater = { id: 1, nickname: 'Worker' };
+      const mockRated = { id: 2, nickname: 'Enterprise' };
+      const savedRating = {
+        id: 1,
+        jobId: 1,
+        raterId: 1,
+        ratedId: 2,
+        raterRole: 'worker',
+        score: 5,
+        comment: 'Great work',
+        tags: [],
+        isAnonymous: true,
+        status: 'pending',
+      };
+
+      jobRepo.findOne.mockResolvedValue(mockJob);
+      userRepo.findOne.mockResolvedValueOnce(mockRater);
+      userRepo.findOne.mockResolvedValueOnce(mockRated);
+      ratingRepo.findOne.mockResolvedValue(null);
+      ratingRepo.create.mockReturnValue(savedRating);
+      ratingRepo.save.mockResolvedValue(savedRating);
+
+      const result = await service.createRating(
+        1,
+        1,
+        2,
+        'worker',
+        5,
+        'Great work',
+        [],
+        true,
+      );
+
+      expect(result.isAnonymous).toBe(true);
+      expect(ratingRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isAnonymous: true,
+        }),
+      );
     });
   });
 

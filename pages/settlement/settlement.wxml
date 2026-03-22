@@ -182,8 +182,14 @@
       <view class="att-supervisor">
         <text>{{attendance.supervisor.name}}</text>
       </view>
+      <view class="att-meta" wx:if="{{attendance.statusText}}">
+        <text>汇总单状态：{{attendance.statusText}}</text>
+      </view>
       <view class="att-meta" wx:if="{{attendance.submittedAt}}">
         <text>提交时间：{{attendance.submittedAt}}</text>
+      </view>
+      <view class="att-meta" wx:if="{{attendance.statusHint}}">
+        <text>{{attendance.statusHint}}</text>
       </view>
       <view class="att-photo-link" wx:if="{{attendance.photos.length}}" bindtap="onPreviewAttendancePhotos">
         <text>现场照片：查看{{attendance.photos.length}}张</text>
@@ -193,10 +199,10 @@
     <!-- 考勤操作 -->
     <view class="st-bottom" wx:if="{{role === 'enterprise' && !viewOnly}}">
       <view class="att-btn-group">
-        <button class="btn btn-fresh" bindtap="onConfirmAttendance">确认汇总单</button>
+        <button class="btn btn-fresh" bindtap="onConfirmAttendance" disabled="{{attendance.status === 'confirmed'}}">{{attendance.status === 'confirmed' ? '已确认汇总单' : '确认汇总单'}}</button>
         <button class="btn btn-outline" bindtap="onDisputeAttendance">汇总单异议</button>
       </view>
-      <text class="st-hint">确认后将按当前考勤汇总单生成结算明细</text>
+      <text class="st-hint">{{attendance.status === 'confirmed' ? '汇总单已确认，已切换至结算流程。' : '确认后将按当前考勤汇总单生成结算明细'}}</text>
     </view>
   </block>
 </view>

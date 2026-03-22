@@ -37,10 +37,15 @@ export class RatingService {
     score: number,
     comment?: string,
     tags?: string[],
+    isAnonymous?: boolean,
   ): Promise<Rating> {
     // Validate score range
     if (score < 1 || score > 5) {
       throw new BadRequestException('评分必须在1-5之间');
+    }
+
+    if (Number(raterId) === Number(ratedId)) {
+      throw new BadRequestException('涓嶈兘璇勪环鑷繁');
     }
 
     // Verify job exists
@@ -77,6 +82,7 @@ export class RatingService {
       score,
       comment,
       tags: tags || [],
+      isAnonymous: !!isAnonymous,
       status: 'pending',
     });
 

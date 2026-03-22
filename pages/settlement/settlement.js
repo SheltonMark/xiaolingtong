@@ -1,5 +1,21 @@
 const { get, post } = require('../../utils/request')
 
+function getAttendanceMeta(status, confirmedAt) {
+  const normalized = status || 'submitted'
+  if (normalized === 'confirmed') {
+    return {
+      status: normalized,
+      statusText: '已确认汇总单',
+      statusHint: confirmedAt ? `企业已于 ${confirmedAt} 确认` : '企业已确认，等待进入结算'
+    }
+  }
+  return {
+    status: normalized,
+    statusText: '待确认汇总单',
+    statusHint: '确认后将按这份汇总单进入结算'
+  }
+}
+
 Page({
   data: {
     viewOnly: false,
@@ -90,12 +106,16 @@ Page({
         const s = statusMap[r.attendance] || statusMap.normal
         return { ...r, statusText: s.text, statusColor: s.color, statusIcon: s.icon }
       })
+      const attendanceMeta = getAttendanceMeta(data.status, data.confirmedAt)
       this.setData({
         attendance: {
           ...data,
           records,
           summary: data.summary || { totalExpected: 0, totalPresent: 0, totalAbsent: 0 },
-          photos: data.photos || []
+          photos: data.photos || [],
+          status: attendanceMeta.status,
+          statusText: attendanceMeta.statusText,
+          statusHint: attendanceMeta.statusHint
         }
       })
     }).catch(() => {})
@@ -106,6 +126,11 @@ Page({
   },
 
   onConfirmAttendance() {
+    if (this.data.attendance && this.data.attendance.status === 'confirmed') {
+      wx.showToast({ title: '汇总单已确认', icon: 'none' })
+      this.setData({ activeTab: 'settlement' })
+      return
+    }
     wx.showModal({
       title: '确认考勤汇总单',
       content: '确认后将按这份考勤汇总单生成结算明细，请先核对考勤数据无误',
@@ -115,6 +140,7 @@ Page({
             wx.showToast({ title: '考勤汇总单已确认', icon: 'success' })
             this.loadAttendance(this.data.jobId)
             this.loadSettlement(this.data.jobId)
+            this.setData({ activeTab: 'settlement' })
           }).catch(() => {})
         }
       }

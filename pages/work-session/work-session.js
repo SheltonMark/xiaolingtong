@@ -105,6 +105,7 @@ Page({
     jobStatus: '',
     canFinishWork: true,
     finishButtonText: '确认收工',
+    lockedActionText: '去结算',
     attendanceOptions: ATTENDANCE_OPTIONS,
     status: {},
     pieceStatus: {},
@@ -213,6 +214,15 @@ Page({
       closed: '已完成'
     }
     return map[jobStatus] || '确认收工'
+  },
+
+  getLockedActionText(jobStatus) {
+    const map = {
+      pending_settlement: '去结算',
+      settled: '查看结算',
+      closed: '查看结果'
+    }
+    return map[jobStatus] || '去结算'
   },
 
   buildPhotoRecords(job, photos) {
@@ -405,6 +415,7 @@ Page({
         jobStatus,
         canFinishWork,
         finishButtonText: this.getFinishButtonText(jobStatus),
+        lockedActionText: this.getLockedActionText(jobStatus),
         uploadedPhotos: uploadPhotos,
         photoRecords: this.buildPhotoRecords(job, uploadPhotos),
         workers: this.data.mode === 'hourly' ? hourlyWorkers : pieceWorkers,
@@ -841,6 +852,7 @@ Page({
       this.setData({
         canFinishWork: false,
         finishButtonText: '已提交收工',
+        lockedActionText: '去结算',
         jobStatus: 'pending_settlement'
       })
       setTimeout(() => wx.redirectTo({
@@ -901,5 +913,12 @@ Page({
     }
 
     continueFinish(false)
+  },
+
+  onGoSettlement() {
+    if (!this.data.orderId) return
+    wx.redirectTo({
+      url: '/pages/settlement/settlement?jobId=' + this.data.orderId + '&role=manager'
+    })
   }
 })

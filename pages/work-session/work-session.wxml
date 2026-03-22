@@ -152,7 +152,8 @@
   </block>
 
   <view class="ws-bottom">
-    <button class="btn btn-rose ws-finish-btn {{!canFinishWork ? 'ws-finish-btn-disabled' : ''}}" loading="{{submittingFinish}}" disabled="{{submittingFinish || !canFinishWork}}" bindtap="onFinishWork">{{finishButtonText}}</button>
-    <text class="ws-hint">{{canFinishWork ? '确认收工会提交考勤并进入结算，请先检查记录。' : '当前订单已提交收工，后续请在结算页面继续处理。'}}</text>
+    <button wx:if="{{canFinishWork}}" class="btn btn-rose ws-finish-btn" loading="{{submittingFinish}}" disabled="{{submittingFinish}}" bindtap="onFinishWork">{{finishButtonText}}</button>
+    <button wx:else class="btn btn-primary ws-finish-btn" bindtap="onGoSettlement">{{lockedActionText}}</button>
+    <text class="ws-hint">{{canFinishWork ? '确认收工会提交考勤并进入结算，请先检查记录。' : '收工记录已提交，当前页已锁定，请进入结算继续处理。'}}</text>
   </view>
 </view>

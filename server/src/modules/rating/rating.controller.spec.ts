@@ -67,7 +67,10 @@ describe('RatingController', () => {
         1,
         2,
         'worker',
-        dto,
+        5,
+        'Great work',
+        ['professional'],
+        false,
       );
       expect(result.id).toBe(1);
       expect(result.score).toBe(5);
@@ -91,9 +94,37 @@ describe('RatingController', () => {
         1,
         2,
         'enterprise',
-        dto,
+        4,
+        'Good',
+        undefined,
+        undefined,
       );
       expect(result.raterRole).toBe('enterprise');
+    });
+
+    it('should accept legacy payload fields', async () => {
+      const dto: CreateRatingDto = {
+        jobId: 1,
+        enterpriseId: 2,
+        score: 5,
+        content: 'Legacy comment',
+        tags: ['reliable'],
+      };
+
+      ratingService.createRating.mockResolvedValue(mockRating);
+
+      await controller.create(1, 'worker', dto);
+
+      expect(ratingService.createRating).toHaveBeenCalledWith(
+        1,
+        1,
+        2,
+        'worker',
+        5,
+        'Legacy comment',
+        ['reliable'],
+        undefined,
+      );
     });
 
     it('should throw error when score is out of range', async () => {
