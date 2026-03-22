@@ -31,7 +31,7 @@
         </view>
         <view class="job-info-row">
           <text class="job-info-label">人数：</text>
-          <text class="job-info-value">需{{item.needCount}}人 · 已报名{{item.appliedCount}}人</text>
+          <text class="job-info-value">需{{item.needCount}}人 · 有效报名{{item.activeApplicantCount || item.appliedCount || 0}}人 · 累计记录{{item.applicationRecordCount || 0}}条</text>
         </view>
         <view class="job-info-row" wx:if="{{item.dateRange}}">
           <text class="job-info-label">日期：</text>

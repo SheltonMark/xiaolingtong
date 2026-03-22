@@ -39,6 +39,38 @@
   box-shadow: 0 10rpx 24rpx rgba(245, 158, 11, 0.24);
 }
 
+.jm-summary {
+  margin: 18rpx 24rpx 0;
+  padding: 18rpx;
+  border-radius: 24rpx;
+  background-color: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 12rpx 28rpx rgba(15, 23, 42, 0.05);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12rpx;
+}
+
+.jm-summary-item {
+  padding: 16rpx 10rpx;
+  border-radius: 18rpx;
+  background-color: #FFFDF8;
+  text-align: center;
+}
+
+.jm-summary-value {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.jm-summary-label {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #64748B;
+}
+
 .jm-list {
   padding: 24rpx 24rpx 24rpx;
 }

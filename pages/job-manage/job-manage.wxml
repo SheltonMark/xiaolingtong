@@ -13,6 +13,25 @@
     </view>
   </view>
 
+  <view class="jm-summary">
+    <view class="jm-summary-item">
+      <text class="jm-summary-value">{{summary.publishedJobCount || 0}}</text>
+      <text class="jm-summary-label">全部招工单</text>
+    </view>
+    <view class="jm-summary-item">
+      <text class="jm-summary-value">{{summary.pendingJobCount || 0}}</text>
+      <text class="jm-summary-label">待处理</text>
+    </view>
+    <view class="jm-summary-item">
+      <text class="jm-summary-value">{{summary.ongoingJobCount || 0}}</text>
+      <text class="jm-summary-label">进行中</text>
+    </view>
+    <view class="jm-summary-item">
+      <text class="jm-summary-value">{{summary.closedJobCount || 0}}</text>
+      <text class="jm-summary-label">已完成</text>
+    </view>
+  </view>
+
   <view class="jm-list" wx:if="{{jobs.length > 0}}">
     <view class="jm-card" wx:for="{{jobs}}" wx:key="id">
       <view class="jm-card-top">
@@ -30,12 +49,12 @@
 
       <view class="jm-stats">
         <view class="jm-stat">
-          <text class="jm-stat-value">{{item.appliedCount}}</text>
-          <text class="jm-stat-label">已报名</text>
+          <text class="jm-stat-value">{{item.activeApplicantCount || item.appliedCount || 0}}</text>
+          <text class="jm-stat-label">有效报名</text>
         </view>
         <view class="jm-stat">
-          <text class="jm-stat-value">{{item.pendingCount}}</text>
-          <text class="jm-stat-label">待审核</text>
+          <text class="jm-stat-value">{{item.applicationRecordCount || 0}}</text>
+          <text class="jm-stat-label">累计记录</text>
         </view>
         <view class="jm-stat">
           <text class="jm-stat-value">{{item.confirmedCount}}</text>

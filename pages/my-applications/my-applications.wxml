@@ -1,11 +1,30 @@
 <view class="ma-page">
-  <nav-bar title="我的报名" />
+  <nav-bar title="我的报名记录" />
 
   <view class="tab-bar">
     <view class="tab-item {{currentTab === index ? 'tab-active' : ''}}"
           wx:for="{{tabs}}" wx:key="index"
           data-index="{{index}}" bindtap="onTabChange">
       <text>{{item}}</text>
+    </view>
+  </view>
+
+  <view class="app-stats">
+    <view class="stat-item">
+      <text class="stat-value">{{summary.totalRecords || 0}}</text>
+      <text class="stat-label">累计记录</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{summary.activeRecords || 0}}</text>
+      <text class="stat-label">有效报名</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{summary.ongoingRecords || 0}}</text>
+      <text class="stat-label">进行中</text>
+    </view>
+    <view class="stat-item">
+      <text class="stat-value">{{summary.completedRecords || 0}}</text>
+      <text class="stat-label">已完成</text>
     </view>
   </view>
 
