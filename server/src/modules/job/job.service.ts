@@ -49,6 +49,12 @@ export class JobService {
     return String(value).trim();
   }
 
+  private isSameUserId(actualUserId: number | string | null | undefined, expectedUserId: number | string | null | undefined): boolean {
+    const actual = Number(actualUserId);
+    const expected = Number(expectedUserId);
+    return Number.isFinite(actual) && Number.isFinite(expected) && actual === expected;
+  }
+
   private parseVisibility(value: any, defaultValue = false): boolean {
     if (value === undefined || value === null || value === '') return defaultValue;
     if (typeof value === 'boolean') return value;
@@ -683,6 +689,9 @@ export class JobService {
       where: { id: jobId },
       relations: ['user'],
     });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权查看');
 
@@ -776,6 +785,9 @@ export class JobService {
 
   async acceptApplication(jobId: number, workerId: number, userId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -802,6 +814,9 @@ export class JobService {
 
   async rejectApplication(jobId: number, workerId: number, userId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -829,6 +844,9 @@ export class JobService {
 
   async setSupervisor(jobId: number, userId: number, dto: { workerId: number }) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -871,6 +889,9 @@ export class JobService {
 
   async update(id: number, userId: number, dto: any) {
     const job = await this.jobRepo.findOne({ where: { id } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job || job.userId !== userId) throw new ForbiddenException('无权操作');
     await this.checkKeywords((dto.title || '') + (dto.description || ''));
     Object.assign(job, dto);
@@ -879,6 +900,9 @@ export class JobService {
 
   async remove(id: number, userId: number) {
     const job = await this.jobRepo.findOne({ where: { id } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -942,6 +966,9 @@ export class JobService {
 
   async setUrgent(jobId: number, userId: number, dto: { durationDays: number }) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 

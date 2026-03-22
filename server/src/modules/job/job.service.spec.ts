@@ -783,6 +783,37 @@ describe('JobService', () => {
       expect(result.applicants[0].name).toBe('张三');
     });
 
+    it('allows owner access when job userId is returned as a string', async () => {
+      jobRepository.findOne.mockResolvedValue({
+        id: 10,
+        userId: '3',
+        title: 'String Owner Job',
+        salary: 200,
+        salaryUnit: '元/时',
+        needCount: 1,
+        location: '深圳市宝安区',
+        dateStart: '2026-03-10',
+        dateEnd: '2026-03-12',
+        workHours: '09:00-18:00',
+        status: 'recruiting',
+        user: {
+          nickname: 'Enterprise User',
+        },
+      });
+      enterpriseCertRepository.findOne.mockResolvedValue({
+        companyName: '测试企业',
+      });
+      jobApplicationRepository.find.mockResolvedValue([]);
+
+      const result = await service.manageDetail(10, 3);
+
+      expect(result.job).toMatchObject({
+        id: 10,
+        companyName: '测试企业',
+      });
+      expect(result.applicants).toEqual([]);
+    });
+
     it('rejects access from non-owner users', async () => {
       jobRepository.findOne.mockResolvedValue({
         id: 8,

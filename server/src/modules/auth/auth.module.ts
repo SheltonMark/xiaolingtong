@@ -8,6 +8,7 @@ import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { AuthGuard } from '../../common/guards/auth.guard';
+import { RoleGuard } from '../../common/guards/role.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { InviteModule } from '../invite/invite.module';
 import { NotificationModule } from '../notification/notification.module';
@@ -26,7 +27,11 @@ import { NotificationModule } from '../notification/notification.module';
     NotificationModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, { provide: APP_GUARD, useClass: AuthGuard }],
+  providers: [
+    AuthService,
+    { provide: APP_GUARD, useClass: AuthGuard },
+    { provide: APP_GUARD, useClass: RoleGuard },
+  ],
   exports: [JwtModule, AuthService],
 })
 export class AuthModule {}
