@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
@@ -9,6 +9,10 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 
 @Injectable()
 export class ApplicationService {
+  private static readonly ACTIVE_APPLICATION_STATUSES = ['pending', 'accepted', 'confirmed', 'working', 'done'];
+  private static readonly ONGOING_APPLICATION_STATUSES = ['accepted', 'confirmed', 'working'];
+  private static readonly INACTIVE_APPLICATION_STATUSES = ['rejected', 'released', 'cancelled'];
+
   constructor(
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
@@ -22,6 +26,36 @@ export class ApplicationService {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private async buildWorkerApplicationSummary(workerId: number) {
+    const [
+      totalRecords,
+      activeRecords,
+      pendingRecords,
+      awaitingAttendanceRecords,
+      ongoingRecords,
+      completedRecords,
+      inactiveRecords,
+    ] = await Promise.all([
+      this.appRepo.count({ where: { workerId } }),
+      this.appRepo.count({ where: { workerId, status: In(ApplicationService.ACTIVE_APPLICATION_STATUSES) } }),
+      this.appRepo.count({ where: { workerId, status: 'pending' } }),
+      this.appRepo.count({ where: { workerId, status: 'accepted' } }),
+      this.appRepo.count({ where: { workerId, status: In(ApplicationService.ONGOING_APPLICATION_STATUSES) } }),
+      this.appRepo.count({ where: { workerId, status: 'done' } }),
+      this.appRepo.count({ where: { workerId, status: In(ApplicationService.INACTIVE_APPLICATION_STATUSES) } }),
+    ]);
+
+    return {
+      totalRecords,
+      activeRecords,
+      pendingRecords,
+      awaitingAttendanceRecords,
+      ongoingRecords,
+      completedRecords,
+      inactiveRecords,
+    };
   }
 
   async apply(jobId: number, workerId: number) {
@@ -101,7 +135,8 @@ export class ApplicationService {
       };
     });
 
-    return { list: formattedList, total, page: +page, pageSize: +pageSize };
+    const summary = await this.buildWorkerApplicationSummary(workerId);
+    return { list: formattedList, total, page: +page, pageSize: +pageSize, summary };
   }
 
   async cancel(id: number, workerId: number) {

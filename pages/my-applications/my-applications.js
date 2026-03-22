@@ -17,7 +17,13 @@ Page({
     currentTab: 0,
     tabs: ['全部', '待审核', '待出勤', '进行中', '已完成'],
     list: [],
-    filteredList: []
+    filteredList: [],
+    summary: {
+      totalRecords: 0,
+      activeRecords: 0,
+      ongoingRecords: 0,
+      completedRecords: 0
+    }
   },
 
   onShow() {
@@ -27,11 +33,12 @@ Page({
   loadApplications() {
     get('/applications').then(res => {
       const rawList = res.data.list || res.data || []
+      const summary = (res.data && res.data.summary) || this.data.summary
       const baseList = rawList.map(item => this.normalizeApplication(item))
       this.enrichApplicationsByJobDetail(baseList).then(list => {
-        this.setData({ list }, () => this.applyFilter())
+        this.setData({ list, summary }, () => this.applyFilter())
       }).catch(() => {
-        this.setData({ list: baseList }, () => this.applyFilter())
+        this.setData({ list: baseList, summary }, () => this.applyFilter())
       })
     }).catch(() => {})
   },

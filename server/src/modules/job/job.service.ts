@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, Repository } from 'typeorm';
+import { In, MoreThan, Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
@@ -14,6 +14,9 @@ import { SysConfig } from '../../entities/sys-config.entity';
 @Injectable()
 export class JobService {
   private static readonly CREATE_DEDUP_WINDOW_MS = 10 * 1000;
+  private static readonly WORKER_VISIBLE_JOB_STATUSES = ['recruiting'];
+  private static readonly ACTIVE_APPLICATION_STATUSES = ['pending', 'accepted', 'confirmed', 'working', 'done'];
+  private static readonly ARRIVED_APPLICATION_STATUSES = ['confirmed', 'working', 'done'];
 
   constructor(
     @InjectRepository(Job) private jobRepo: Repository<Job>,
@@ -279,6 +282,41 @@ export class JobService {
     return { text: '管理招工', tab: 'applications' };
   }
 
+  private isWorkerVisibleJob(job: Partial<Job>) {
+    return JobService.WORKER_VISIBLE_JOB_STATUSES.includes(this.normalizeText(job.status))
+      && !this.isDatePassed(this.normalizeText(job.dateEnd));
+  }
+
+  private isActiveApplicationStatus(status: string) {
+    return JobService.ACTIVE_APPLICATION_STATUSES.includes(this.normalizeText(status));
+  }
+
+  private isArrivedApplicationStatus(status: string) {
+    return JobService.ARRIVED_APPLICATION_STATUSES.includes(this.normalizeText(status));
+  }
+
+  private summarizeApplications(applications: Array<Partial<JobApplication>> = []) {
+    const applicationRecordCount = applications.length;
+    const activeApplicantCount = applications.filter((item) =>
+      this.isActiveApplicationStatus(String(item.status || ''))).length;
+    const pendingCount = applications.filter((item) => item.status === 'pending').length;
+    const acceptedCount = applications.filter((item) => item.status === 'accepted').length;
+    const confirmedCount = applications.filter((item) =>
+      this.isArrivedApplicationStatus(String(item.status || ''))).length;
+    const rejectedCount = applications.filter((item) => item.status === 'rejected').length;
+    const supervisorCount = applications.filter((item) => item.isSupervisor === 1).length;
+
+    return {
+      applicationRecordCount,
+      activeApplicantCount,
+      pendingCount,
+      acceptedCount,
+      confirmedCount,
+      rejectedCount,
+      supervisorCount,
+    };
+  }
+
   private normalizeCreateDto(dto: any) {
     const salary = Number(dto.salary || dto.price || 0);
     const needCount = Number(dto.needCount || dto.headcount || dto.need || 0);
@@ -354,9 +392,11 @@ export class JobService {
 
   async list(query: any) {
     const { keyword, salaryType, minSalary, maxSalary, page = 1, pageSize = 20 } = query;
+    const today = this.formatDate();
     const qb = this.jobRepo.createQueryBuilder('j')
       .leftJoinAndSelect('j.user', 'u')
-      .where('j.status IN (:...statuses)', { statuses: ['recruiting', 'full'] });
+      .where('j.status IN (:...statuses)', { statuses: JobService.WORKER_VISIBLE_JOB_STATUSES })
+      .andWhere('j.dateEnd >= :today', { today });
 
     if (keyword) {
       qb.andWhere(
@@ -398,7 +438,15 @@ export class JobService {
     }
 
     const formattedList = await Promise.all(list.map(async (job) => {
-      const appliedCount = await this.appRepo.count({ where: { jobId: job.id } });
+      const [applicationRecordCount, activeApplicantCount] = await Promise.all([
+        this.appRepo.count({ where: { jobId: job.id } }),
+        this.appRepo.count({
+          where: {
+            jobId: job.id,
+            status: In(JobService.ACTIVE_APPLICATION_STATUSES),
+          },
+        }),
+      ]);
       const cert = certMap.get(job.userId);
 
       const normalizedBenefits = this.normalizeBenefits(job.benefits) || [];
@@ -411,7 +459,9 @@ export class JobService {
         salary: job.salary,
         salaryUnit: job.salaryUnit,
         need: job.needCount,
-        applied: appliedCount,
+        applied: activeApplicantCount,
+        activeApplicantCount,
+        applicationRecordCount,
         total: job.needCount,
         location: job.location,
         lat: this.parseCoordinate(job.lat) ?? null,
@@ -435,7 +485,9 @@ export class JobService {
           isMember: job.user?.isMember || 0
         },
         isMember: !!job.user?.isMember,
-        time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : ''
+        time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : '',
+        canApply: this.isWorkerVisibleJob(job),
+        visibleStatusText: '可报名',
       };
     }));
 
@@ -446,7 +498,15 @@ export class JobService {
     const job = await this.jobRepo.findOne({ where: { id }, relations: ['user'] });
     if (!job) throw new BadRequestException('招工信息不存在');
 
-    const appliedCount = await this.appRepo.count({ where: { jobId: id } });
+    const [applicationRecordCount, activeApplicantCount] = await Promise.all([
+      this.appRepo.count({ where: { jobId: id } }),
+      this.appRepo.count({
+        where: {
+          jobId: id,
+          status: In(JobService.ACTIVE_APPLICATION_STATUSES),
+        },
+      }),
+    ]);
 
     let companyName = job.user?.nickname || '企业用户';
     let verified = false;
@@ -476,7 +536,9 @@ export class JobService {
       images: this.normalizeImages(job.images) || [],
       need: job.needCount,
       total: job.needCount,
-      applied: appliedCount,
+      applied: activeApplicantCount,
+      activeApplicantCount,
+      applicationRecordCount,
       salaryType: salaryTypeMap[job.salaryType] || job.salaryType,
       dateRange,
       hours: job.workHours || '待定',
@@ -484,6 +546,7 @@ export class JobService {
       benefits: normalizedBenefits,
       tags: this.buildBenefitTags(normalizedBenefits),
       allTags,
+      canApply: this.isWorkerVisibleJob(job),
       company: {
         name: companyName,
         verified,
@@ -508,10 +571,14 @@ export class JobService {
 
     const formattedJobs = await Promise.all(jobs.map(async (job) => {
       const applications = await this.appRepo.find({ where: { jobId: job.id } });
-      const appliedCount = applications.length;
-      const pendingCount = applications.filter((item) => item.status === 'pending').length;
-      const acceptedCount = applications.filter((item) => item.status === 'accepted').length;
-      const confirmedCount = applications.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length;
+      const applicationSummary = this.summarizeApplications(applications);
+      const {
+        applicationRecordCount,
+        activeApplicantCount,
+        pendingCount,
+        acceptedCount,
+        confirmedCount,
+      } = applicationSummary;
       const timeMeta = this.getJobTimeMeta(job, { pendingCount, acceptedCount, confirmedCount });
       const primaryAction = this.getJobPrimaryAction(job, { pendingCount }, timeMeta);
 
@@ -529,7 +596,9 @@ export class JobService {
         salary: job.salary,
         salaryUnit: job.salaryUnit,
         needCount: job.needCount,
-        appliedCount,
+        appliedCount: activeApplicantCount,
+        activeApplicantCount,
+        applicationRecordCount,
         pendingCount,
         acceptedCount,
         confirmedCount,
@@ -555,7 +624,15 @@ export class JobService {
       };
     }));
 
-    return { list: formattedJobs };
+    const summary = {
+      publishedJobCount: formattedJobs.length,
+      recruitingJobCount: formattedJobs.filter((item) => item.status === 'recruiting').length,
+      workingJobCount: formattedJobs.filter((item) => item.status === 'working').length,
+      pendingSettlementJobCount: formattedJobs.filter((item) => item.status === 'pending_settlement').length,
+      closedJobCount: formattedJobs.filter((item) => ['settled', 'closed'].includes(item.status)).length,
+    };
+
+    return { list: formattedJobs, summary };
   }
 
   async manageJobs(userId: number, query: any) {
@@ -568,11 +645,16 @@ export class JobService {
     const companyName = await this.getEnterpriseCompanyName(userId);
     const items = await Promise.all(jobs.map(async (job) => {
       const applications = await this.appRepo.find({ where: { jobId: job.id } });
-      const pendingCount = applications.filter((item) => item.status === 'pending').length;
-      const acceptedCount = applications.filter((item) => item.status === 'accepted').length;
-      const confirmedCount = applications.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length;
-      const rejectedCount = applications.filter((item) => item.status === 'rejected').length;
-      const supervisorCount = applications.filter((item) => item.isSupervisor === 1).length;
+      const applicationSummary = this.summarizeApplications(applications);
+      const {
+        applicationRecordCount,
+        activeApplicantCount,
+        pendingCount,
+        acceptedCount,
+        confirmedCount,
+        rejectedCount,
+        supervisorCount,
+      } = applicationSummary;
       const timeMeta = this.getJobTimeMeta(job, { pendingCount, acceptedCount, confirmedCount });
 
       let stageKey = 'recruiting';
@@ -667,7 +749,9 @@ export class JobService {
         confirmedCount,
         rejectedCount,
         supervisorCount,
-        appliedCount: applications.length,
+        appliedCount: activeApplicantCount,
+        activeApplicantCount,
+        applicationRecordCount,
         highlight,
         actionText,
         actionTab,
@@ -675,7 +759,14 @@ export class JobService {
     }));
 
     const list = stage === 'all' ? items : items.filter((item) => item.filterKey === stage);
-    return { list };
+    const summary = {
+      publishedJobCount: items.length,
+      pendingJobCount: items.filter((item) => item.filterKey === 'pending').length,
+      ongoingJobCount: items.filter((item) => item.filterKey === 'ongoing').length,
+      closedJobCount: items.filter((item) => item.filterKey === 'closed').length,
+      pendingSettlementJobCount: items.filter((item) => item.stageKey === 'settlement').length,
+    };
+    return { list, summary };
   }
 
   async manageDetail(jobId: number, userId: number) {

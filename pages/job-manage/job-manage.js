@@ -10,7 +10,13 @@ Page({
       { key: 'ongoing', label: '进行中' },
       { key: 'closed', label: '已完成' }
     ],
-    jobs: []
+    jobs: [],
+    summary: {
+      publishedJobCount: 0,
+      pendingJobCount: 0,
+      ongoingJobCount: 0,
+      closedJobCount: 0
+    }
   },
 
   onLoad(options) {
@@ -35,7 +41,8 @@ Page({
     this.setData({ loading: true })
     return get('/jobs/manage/mine', { stage: this.data.stage }).then(res => {
       const list = (res.data && res.data.list) || res.list || res.data || []
-      this.setData({ jobs: list, loading: false })
+      const summary = (res.data && res.data.summary) || this.data.summary
+      this.setData({ jobs: list, summary, loading: false })
     }).catch(() => {
       this.setData({ loading: false })
     })
