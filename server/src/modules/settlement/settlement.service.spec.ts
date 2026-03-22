@@ -438,6 +438,29 @@ describe('SettlementService', () => {
       expect(paymentService.createJsapiOrder).toHaveBeenCalled();
     });
 
+    it('should allow payment when enterpriseId is returned as a string', async () => {
+      const mockSettlement = {
+        id: 1,
+        jobId: 1,
+        enterpriseId: '1',
+        status: 'pending',
+        factoryTotal: 1000,
+        totalWorkers: 2,
+      };
+      const mockUser = { id: 1, openid: 'test_openid' };
+
+      settlementRepository.findOne.mockResolvedValue(mockSettlement);
+      userRepository.findOneBy.mockResolvedValue(mockUser);
+      paymentService.createJsapiOrder.mockResolvedValue({
+        prepayId: 'test_prepay_id',
+      });
+
+      const result = await service.pay(1, 1);
+
+      expect(result).toBeDefined();
+      expect(paymentService.createJsapiOrder).toHaveBeenCalled();
+    });
+
     it('should throw error when settlement not found', async () => {
       settlementRepository.findOne.mockResolvedValue(null);
 

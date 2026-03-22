@@ -149,6 +149,8 @@ Page({
         timeHint: jobDisplay ? jobDisplay.hint : '',
         primaryActionText: jobDisplay ? jobDisplay.primaryActionText : '',
         primaryActionTab: jobDisplay ? jobDisplay.primaryActionTab : 'applications',
+        detailActionText: item.type === 'job' ? '岗位详情' : '查看详情',
+        showViewDetailAction: item.type !== 'job' || !String((jobDisplay && jobDisplay.primaryActionText) || '').startsWith('查看'),
         isPromoted: !!item.isPromoted,
         canPromote: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting') && !(jobDisplay && jobDisplay.isOverdue),
         canSettle: item.type === 'job' && (item.status === 'pending_settlement' || item.timeState === 'settlement')

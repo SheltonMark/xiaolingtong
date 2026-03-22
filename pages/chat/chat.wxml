@@ -17,9 +17,6 @@
   </view>
   <scroll-view scroll-y class="chat-body" scroll-into-view="{{scrollToView}}" style="padding-bottom: calc(160rpx + env(safe-area-inset-bottom) + {{keyboardHeight}}px);">
     <block wx:for="{{messages}}" wx:key="id">
-      <!-- 时间标记居中显示 -->
-      <view class="time-mark" wx:if="{{item.showTime}}"><text>{{item.time}}</text></view>
-
       <view class="msg-row msg-left" wx:if="{{item.from === 'other'}}" id="msg-{{item.id}}">
         <view class="msg-avatar-wrap">
           <image wx:if="{{otherAvatarUrl}}" src="{{otherAvatarUrl}}" mode="aspectFill" class="avatar-img avatar-img-md" />
@@ -34,6 +31,7 @@
             <text class="iconfont icon-yuyin voice-icon"></text>
             <text class="voice-duration">{{item.voiceDuration}}"</text>
           </view>
+          <text class="msg-time-text" wx:if="{{item.showTime}}">{{item.time}}</text>
         </view>
       </view>
       <view class="msg-row msg-right" wx:if="{{item.from === 'me'}}" id="msg-{{item.id}}">
@@ -46,6 +44,7 @@
             <text class="voice-duration">{{item.voiceDuration}}"</text>
             <text class="iconfont icon-yuyin voice-icon"></text>
           </view>
+          <text class="msg-time-text msg-time-right" wx:if="{{item.showTime}}">{{item.time}}</text>
         </view>
         <view class="msg-avatar-wrap">
           <image wx:if="{{myAvatarUrl}}" src="{{myAvatarUrl}}" mode="aspectFill" class="avatar-img avatar-img-md" />

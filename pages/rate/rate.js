@@ -4,6 +4,7 @@ Page({
   data: {
     jobId: '',
     ratedId: '',
+    starOptions: [1, 2, 3, 4, 5],
     company: { name: '', jobType: '', dateRange: '' },
     rateItems: [
       { key: 'overall', label: '综合评分', score: 5 },
@@ -21,7 +22,8 @@ Page({
       { label: '加班较多', selected: false },
       { label: '管理严格', selected: false }
     ],
-    content: ''
+    content: '',
+    submitting: false
   },
 
   onLoad(options) {
@@ -68,12 +70,17 @@ Page({
   onSubmit() {
     const overallItem = this.data.rateItems.find(function(i) { return i.key === 'overall' })
     const overallScore = (overallItem && overallItem.score) || 5
+    if (!this.data.jobId || !this.data.ratedId) {
+      wx.showToast({ title: '缺少评价对象', icon: 'none' })
+      return
+    }
     wx.showModal({
       title: '确认提交',
       content: '评价提交后不可修改，确认提交？',
       success: (res) => {
         if (res.confirm) {
           const selectedTags = this.data.tags.filter(t => t.selected).map(t => t.label)
+          this.setData({ submitting: true })
           post('/ratings', {
             jobId: Number(this.data.jobId),
             ratedId: Number(this.data.ratedId),
@@ -83,7 +90,11 @@ Page({
           }).then(() => {
             wx.showToast({ title: '评价成功', icon: 'success' })
             setTimeout(() => wx.navigateBack(), 1500)
-          }).catch(() => {})
+          }).catch((err) => {
+            wx.showToast({ title: err && err.message ? err.message : '评价提交失败', icon: 'none' })
+          }).finally(() => {
+            this.setData({ submitting: false })
+          })
         }
       }
     })

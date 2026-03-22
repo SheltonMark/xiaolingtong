@@ -110,21 +110,7 @@ Page({
     get('/conversations/' + id + '/messages').then(res => {
       const rawList = (res.data && res.data.list) || []
       const list = rawList.map(item => this.normalizeMessage(item))
-
-      // 添加时间分组逻辑：每5分钟显示一次时间
-      let lastDisplayTime = null
-      const messagesWithTime = list.map(msg => {
-        const msgTime = new Date(msg.rawTime || '')
-        let showTime = false
-        // 第一条消息或距离上次显示时间超过5分钟，则显示时间
-        if (!lastDisplayTime || isNaN(msgTime.getTime()) || (msgTime - lastDisplayTime) >= 5 * 60 * 1000) {
-          showTime = true
-          if (!isNaN(msgTime.getTime())) {
-            lastDisplayTime = msgTime
-          }
-        }
-        return { ...msg, showTime }
-      })
+      const messagesWithTime = list.map(msg => ({ ...msg, showTime: true }))
 
       // 从后端返回的 otherUser 获取对方信息
       const otherUser = res.data && res.data.otherUser
@@ -240,26 +226,7 @@ Page({
 
   // 计算消息是否应该显示时间（距离上一条显示时间的消息超过5分钟）
   shouldShowTime(newMessage) {
-    const messages = this.data.messages || []
-    if (messages.length === 0) return true // 第一条消息显示时间
-
-    // 找到最后一条显示了时间的消息
-    let lastDisplayTime = null
-    for (let i = messages.length - 1; i >= 0; i--) {
-      if (messages[i].showTime && messages[i].rawTime) {
-        lastDisplayTime = new Date(messages[i].rawTime)
-        break
-      }
-    }
-
-    // 如果没有找到显示时间的消息，说明是第一条，应该显示
-    if (!lastDisplayTime || isNaN(lastDisplayTime.getTime())) return true
-
-    const newTime = new Date(newMessage.rawTime || newMessage.createdAt || '')
-    if (isNaN(newTime.getTime())) return false
-
-    const diff = newTime - lastDisplayTime
-    return diff >= 5 * 60 * 1000 // 5分钟
+    return !!newMessage
   },
 
   onWsEvent(event, data) {

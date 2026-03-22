@@ -45,7 +45,7 @@ export class RatingService {
     }
 
     if (Number(raterId) === Number(ratedId)) {
-      throw new BadRequestException('涓嶈兘璇勪环鑷繁');
+      throw new BadRequestException('不能评价自己');
     }
 
     // Verify job exists

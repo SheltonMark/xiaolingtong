@@ -66,3 +66,76 @@
 .att-btn-group { display: flex; gap: 20rpx; }
 .att-btn-group .btn { flex: 1; }
 .btn-outline { background-color: #ffffff; color: #64748B; border: 2rpx solid #E2E8F0; }
+
+.att-grid-head,
+.att-record {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.att-grid-head {
+  padding: 8rpx 0 16rpx;
+  border-bottom: 1rpx solid #E2E8F0;
+}
+
+.att-record {
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #F1F5F9;
+}
+
+.att-record:last-of-type {
+  border-bottom: none;
+}
+
+.att-col {
+  font-size: 22rpx;
+  color: #1E293B;
+}
+
+.att-col-head {
+  font-size: 20rpx;
+  color: #94A3B8;
+  font-weight: 500;
+}
+
+.att-col-name {
+  flex: 1.3;
+  min-width: 0;
+}
+
+.att-col-time {
+  flex: 1;
+  text-align: center;
+}
+
+.att-col-hours {
+  flex: 0.8;
+  text-align: center;
+}
+
+.att-col-status {
+  flex: 1;
+  text-align: center;
+}
+
+.att-name {
+  display: block;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #1E293B;
+}
+
+.att-note {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 20rpx;
+  color: #94A3B8;
+  line-height: 1.4;
+}
+
+.att-time,
+.att-hours {
+  font-family: "SFMono-Regular", "Consolas", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+}

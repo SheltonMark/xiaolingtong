@@ -52,6 +52,12 @@ export class JobService {
     return String(value).trim();
   }
 
+  private isSameUserId(actualUserId: number | string | null | undefined, expectedUserId: number | string | null | undefined): boolean {
+    const actual = Number(actualUserId);
+    const expected = Number(expectedUserId);
+    return Number.isFinite(actual) && Number.isFinite(expected) && actual === expected;
+  }
+
   private parseVisibility(value: any, defaultValue = false): boolean {
     if (value === undefined || value === null || value === '') return defaultValue;
     if (typeof value === 'boolean') return value;
@@ -774,6 +780,9 @@ export class JobService {
       where: { id: jobId },
       relations: ['user'],
     });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权查看');
 
@@ -804,7 +813,7 @@ export class JobService {
       const statusMap: Record<string, { text: string; tone: string }> = {
         pending: { text: '待审核', tone: 'rose' },
         accepted: { text: '已录用', tone: 'blue' },
-        confirmed: { text: '待出勤', tone: 'violet' },
+        confirmed: { text: '已确认出勤', tone: 'violet' },
         working: { text: '进行中', tone: 'green' },
         done: { text: '已完工', tone: 'slate' },
         rejected: { text: '已拒绝', tone: 'slate' },
@@ -839,6 +848,10 @@ export class JobService {
       pendingCount: enrichedApplicants.filter((item) => item.status === 'pending').length,
       acceptedCount: enrichedApplicants.filter((item) => item.status === 'accepted').length,
       confirmedCount: enrichedApplicants.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length,
+      attendanceConfirmedCount: enrichedApplicants.filter((item) => item.status === 'confirmed').length,
+      workingCount: enrichedApplicants.filter((item) => item.status === 'working').length,
+      doneCount: enrichedApplicants.filter((item) => item.status === 'done').length,
+      activeCount: enrichedApplicants.filter((item) => ['confirmed', 'working', 'done'].includes(item.status)).length,
       rejectedCount: enrichedApplicants.filter((item) => item.status === 'rejected').length,
       supervisor: enrichedApplicants.find((item) => item.isSupervisor) || null,
     };
@@ -863,6 +876,9 @@ export class JobService {
 
   async acceptApplication(jobId: number, workerId: number, userId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -871,12 +887,27 @@ export class JobService {
     if (app.status !== 'pending') throw new BadRequestException('当前状态不可录用');
 
     app.status = 'accepted';
+    app.acceptedAt = new Date();
     await this.appRepo.save(app);
+
+    const companyName = await this.getEnterpriseCompanyName(job.userId, '企业');
+    await this.notiRepo.save(this.notiRepo.create({
+      userId: workerId,
+      type: 'job_apply',
+      title: '报名已录用',
+      content: `${companyName}已录用你报名的“${job.title}”，请尽快确认出勤`,
+      link: '/pages/my-applications/my-applications',
+      data: { jobId, workerId, status: 'accepted' },
+    }));
+
     return { message: '已录用' };
   }
 
   async rejectApplication(jobId: number, workerId: number, userId: number) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -886,12 +917,27 @@ export class JobService {
 
     app.status = 'rejected';
     app.isSupervisor = 0;
+    app.rejectedAt = new Date();
     await this.appRepo.save(app);
+
+    const companyName = await this.getEnterpriseCompanyName(job.userId, '企业');
+    await this.notiRepo.save(this.notiRepo.create({
+      userId: workerId,
+      type: 'job_apply',
+      title: '报名未通过',
+      content: `${companyName}未通过你报名的“${job.title}”`,
+      link: '/pages/my-applications/my-applications',
+      data: { jobId, workerId, status: 'rejected' },
+    }));
+
     return { message: '已拒绝' };
   }
 
   async setSupervisor(jobId: number, userId: number, dto: { workerId: number }) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -934,6 +980,9 @@ export class JobService {
 
   async update(id: number, userId: number, dto: any) {
     const job = await this.jobRepo.findOne({ where: { id } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job || job.userId !== userId) throw new ForbiddenException('无权操作');
     await this.checkKeywords((dto.title || '') + (dto.description || ''));
     Object.assign(job, dto);
@@ -942,6 +991,9 @@ export class JobService {
 
   async remove(id: number, userId: number) {
     const job = await this.jobRepo.findOne({ where: { id } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 
@@ -1005,6 +1057,9 @@ export class JobService {
 
   async setUrgent(jobId: number, userId: number, dto: { durationDays: number }) {
     const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权操作');
 

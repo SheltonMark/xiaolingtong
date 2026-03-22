@@ -357,7 +357,7 @@ describe('WorkService', () => {
 
     expect(workLogRepo.save).toHaveBeenCalledWith(expect.objectContaining({
       anomalyType: 'normal',
-      checkOutTime: '18:10',
+      checkOutTime: '18:10:00',
     }));
     expect(result.checkoutMeta.status).toBe('normal');
   });
@@ -586,8 +586,8 @@ describe('WorkService', () => {
     expect(result.sessionWorkers[0]).toEqual(expect.objectContaining({
       workerId: 12,
       displayName: '张三',
-      checkInTime: '10:05',
-      checkOutTime: '18:00',
+      checkInTime: '10:05:00',
+      checkOutTime: '18:00:00',
       checkedOut: true,
     }));
     expect(result.summary.checkedOutCount).toBe(1);
