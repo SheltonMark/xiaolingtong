@@ -1,6 +1,23 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 
+function getErrorMessage(err, fallback) {
+  return (err && (err.message || err.errMsg)) || fallback
+}
+
+function showPaymentFailure(err, fallback) {
+  const errMsg = String((err && err.errMsg) || '')
+  if (errMsg.includes('cancel')) {
+    wx.showToast({ title: '支付已取消', icon: 'none' })
+    return
+  }
+  wx.showModal({
+    title: '支付失败',
+    content: getErrorMessage(err, fallback),
+    showCancel: false
+  })
+}
+
 function getRoleText(role) {
   const map = {
     enterprise: '企业工作台',
@@ -488,6 +505,41 @@ Page({
       content: '支付后工资将自动发放至临工钱包。',
       success: (res) => {
         if (!res.confirm) return
+        post('/settlements/' + this.data.jobId + '/pay').then((data) => {
+          const payData = data && data.data ? data.data : data
+          if (!payData || !payData.prepay_id) {
+            console.error('job process settlement payment missing prepay_id', payData)
+            wx.showModal({
+              title: '支付失败',
+              content: '支付参数缺失，请稍后重试',
+              showCancel: false
+            })
+            return
+          }
+          wx.requestPayment({
+            timeStamp: payData.timeStamp,
+            nonceStr: payData.nonceStr,
+            package: payData.package,
+            signType: payData.signType || 'RSA',
+            paySign: payData.paySign,
+            success() {
+              wx.showToast({ title: '支付成功', icon: 'success' })
+              setTimeout(() => wx.navigateBack(), 1500)
+            },
+            fail(err) {
+              console.error('job process settlement payment requestPayment fail', err)
+              showPaymentFailure(err, '微信支付拉起失败，请稍后重试')
+            }
+          })
+        }).catch((err) => {
+          console.error('job process settlement payment create order fail', err)
+          wx.showModal({
+            title: '下单失败',
+            content: getErrorMessage(err, '结算支付下单失败，请稍后重试'),
+            showCancel: false
+          })
+        })
+        return
         post('/settlements/' + this.data.jobId + '/pay').then((data) => {
           if (data.prepay_id) {
             wx.requestPayment({
