@@ -108,6 +108,9 @@ export class WalletService {
         remark: '临工提现',
       });
     } catch (e) {
+      this.logger.warn(
+        `提现申请失败: userId=${userId}, txId=${tx.id}, reason=${e?.message || 'unknown'}`,
+      );
       tx.status = 'failed';
       tx.remark = this.buildWithdrawFailureRemark(e?.message);
       await this.txRepo.save(tx);
@@ -153,6 +156,9 @@ export class WalletService {
         }
 
         if (detail?.detail_status === 'FAIL') {
+          this.logger.warn(
+            `提现状态同步失败: txId=${tx.id}, userId=${tx.userId}, reason=${detail.fail_reason || 'unknown'}`,
+          );
           tx.status = 'failed';
           tx.remark = this.buildWithdrawFailureRemark(detail.fail_reason);
           await this.txRepo.save(tx);
@@ -167,7 +173,10 @@ export class WalletService {
   }
 
   private buildWithdrawFailureRemark(reason?: string) {
-    return `提现失败${reason ? `: ${reason}` : ''}`.slice(0, 128);
+    const message = this.getWithdrawDisplayMessage(reason);
+    return message.startsWith('提现失败')
+      ? message.slice(0, 128)
+      : `提现失败：${message}`.slice(0, 128);
   }
 
   private async getWithdrawCapability(userId: number) {
@@ -204,22 +213,38 @@ export class WalletService {
   }
 
   private getWithdrawSubmitErrorMessage(reason?: string) {
+    return this.getWithdrawDisplayMessage(reason);
+  }
+
+  private getWithdrawDisplayMessage(reason?: string) {
     const message = String(reason || '').trim();
+    const normalizedMessage = message.toUpperCase();
     if (!message) {
       return '提现失败，请稍后重试';
     }
-    if (message.includes('未初始化')) {
+    if (
+      normalizedMessage.includes('ACCOUNT_FROZEN')
+      || normalizedMessage.includes('REAL_NAME_CHECK_FAIL')
+      || normalizedMessage.includes('USER_ACCOUNT_ABNORMAL')
+      || message.includes('账户')
+      || message.includes('实名')
+    ) {
+      return '微信零钱账户状态异常，请核对后重试';
+    }
+    if (message.includes('未初始化') || normalizedMessage.includes('NOT_INITIALIZED')) {
       return '提现通道未开通，请联系管理员';
     }
     if (
-      message.includes('NO_AUTH')
+      normalizedMessage.includes('NO_AUTH')
+      || normalizedMessage.includes('PERMISSION')
+      || normalizedMessage.includes('AUTH')
       || message.includes('产品')
       || message.includes('权限')
       || message.includes('商家转账')
     ) {
       return '提现通道暂不可用，请联系管理员';
     }
-    if (message.includes('openid') || message.includes('绑定微信')) {
+    if (normalizedMessage.includes('OPENID') || message.includes('绑定微信')) {
       return '请先绑定微信后再提现';
     }
     return '提现失败，请稍后重试';

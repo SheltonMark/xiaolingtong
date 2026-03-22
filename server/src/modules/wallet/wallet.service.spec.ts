@@ -549,6 +549,38 @@ describe('WalletService', () => {
       expect(mockWallet.totalWithdraw).toBe(0);
     });
 
+    it('should map transfer permission errors to user-friendly messages', async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
+      const mockUser = { id: 1, openid: 'test_openid' };
+      const mockTx = {
+        id: 1,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+      };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      txRepo.create.mockReturnValue(mockTx);
+      txRepo.save.mockResolvedValue(mockTx);
+      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.transferToWallet.mockRejectedValue(
+        new Error('no_auth: merchant transfer permission denied'),
+      );
+
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        '提现通道暂不可用，请联系管理员',
+      );
+
+      expect(mockTx.status).toBe('failed');
+      expect(mockTx.remark).toBe('提现失败：提现通道暂不可用，请联系管理员');
+      expect(mockWallet.balance).toBe(500);
+      expect(mockWallet.totalWithdraw).toBe(0);
+    });
+
     it('should handle wallet with zero balance', async () => {
       const userId = 1;
       const amount = 100;
@@ -643,7 +675,7 @@ describe('WalletService', () => {
       await service.syncPendingWithdrawals();
 
       expect(mockTx.status).toBe('failed');
-      expect(mockTx.remark).toBe('提现失败: ACCOUNT_FROZEN');
+      expect(mockTx.remark).toBe('提现失败：微信零钱账户状态异常，请核对后重试');
       expect(mockWallet.balance).toBe(120);
       expect(mockWallet.totalWithdraw).toBe(30);
       expect(walletRepo.save).toHaveBeenCalledWith(mockWallet);
