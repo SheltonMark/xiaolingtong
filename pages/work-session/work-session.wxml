@@ -28,37 +28,8 @@
 
     <view class="ws-card">
       <view class="card-header-row">
-        <text class="card-title"><text class="iconfont icon-xiangji"></text> 现场拍照记录（每 2 小时）</text>
-      </view>
-      <view class="photo-list">
-        <view class="photo-item photo-done" wx:for="{{photoRecords}}" wx:key="id" wx:if="{{item.status === 'done'}}">
-          <image wx:if="{{item.photoUrl}}" src="{{item.photoUrl}}" class="photo-thumb" mode="aspectFill" />
-          <view wx:else class="photo-thumb-placeholder photo-thumb-done">
-            <text class="iconfont icon-tupian"></text>
-          </view>
-          <view class="photo-info">
-            <text class="photo-time">{{item.timeRange}}</text>
-            <text class="photo-status text-fresh">已上传 · {{item.uploadTime}}</text>
-          </view>
-          <text class="photo-check iconfont icon-yigouxuan text-fresh"></text>
-        </view>
-        <view class="photo-item photo-pending" wx:for="{{photoRecords}}" wx:key="id" wx:if="{{item.status === 'pending'}}">
-          <view class="photo-thumb-placeholder">
-            <text class="iconfont icon-xiangji"></text>
-          </view>
-          <view class="photo-info">
-            <text class="photo-time">{{item.timeRange}}</text>
-            <text class="photo-status text-warm">待上传</text>
-          </view>
-          <button class="photo-btn" data-id="{{item.id}}" disabled="{{!canFinishWork}}" bindtap="onTakePhoto">拍照</button>
-        </view>
-      </view>
-    </view>
-
-    <view class="ws-card">
-      <view class="card-header-row">
         <text class="card-title"><text class="iconfont icon-jilu"></text> 工时记录</text>
-        <text class="card-tip">点击蓝色按钮自动签退并计算工时</text>
+        <text class="card-tip">签到、签退和工时集中展示，异常与备注可展开编辑</text>
       </view>
       <view class="hour-list">
         <view class="worker-card" wx:for="{{workers}}" wx:key="id">
@@ -67,8 +38,7 @@
               <view class="text-avatar text-avatar-sm" style="background-color: #3B82F6;">{{item.displayName[0]}}</view>
               <view class="piece-info">
                 <text class="piece-name">{{item.displayName}}</text>
-                <text class="piece-sub">签到 {{item.checkInTime || '--'}}</text>
-                <text class="piece-sub">签退 {{item.checkOutTime || '--'}} · 工时 {{item.hoursText}}</text>
+                <text class="piece-sub">{{item.attendanceStatusText}} · {{item.checkedOut ? '已签退' : '待签退'}}</text>
               </view>
             </view>
             <button
@@ -80,6 +50,21 @@
             >
               {{item.checkoutButtonText}}
             </button>
+          </view>
+
+          <view class="worker-summary">
+            <view class="worker-metric">
+              <text class="metric-label">签到</text>
+              <text class="metric-value">{{item.checkInTime || '--'}}</text>
+            </view>
+            <view class="worker-metric">
+              <text class="metric-label">签退</text>
+              <text class="metric-value">{{item.checkOutTime || '--'}}</text>
+            </view>
+            <view class="worker-metric worker-metric-strong">
+              <text class="metric-label">工时</text>
+              <text class="metric-value">{{item.hoursText}}</text>
+            </view>
           </view>
 
           <view class="worker-tags">

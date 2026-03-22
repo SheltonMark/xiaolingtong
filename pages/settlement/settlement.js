@@ -6,6 +6,7 @@ Page({
     role: 'enterprise',
     jobId: '',
     activeTab: 'settlement',
+    settlementReady: false,
     settlementStatus: '',
     job: {},
     steps: [],
@@ -49,7 +50,20 @@ Page({
   loadSettlement(jobId) {
     get('/settlements/' + jobId).then(res => {
       const d = res.data || res || {}
+      if (d.exists === false) {
+        this.setData({
+          settlementReady: false,
+          settlementStatus: '',
+          job: { ...d.job || {}, enterpriseId: (d.job || {}).enterpriseId || '' },
+          steps: [],
+          workers: [],
+          fees: d.fees || {},
+          currentWorkerSettlement: null
+        })
+        return
+      }
       this.setData({
+        settlementReady: true,
         settlementStatus: d.status || '',
         job: { ...d.job || {}, enterpriseId: (d.job || {}).enterpriseId || '' },
         steps: d.steps || [],
@@ -57,7 +71,9 @@ Page({
         fees: d.fees || {},
         currentWorkerSettlement: d.currentWorkerSettlement || null
       })
-    }).catch(() => {})
+    }).catch(() => {
+      this.setData({ settlementReady: false })
+    })
   },
 
   loadAttendance(jobId) {
@@ -91,12 +107,12 @@ Page({
 
   onConfirmAttendance() {
     wx.showModal({
-      title: '确认考勤',
-      content: '确认后将进入结算流程，请确保考勤数据无误',
+      title: '确认考勤汇总单',
+      content: '确认后将按这份考勤汇总单生成结算明细，请先核对考勤数据无误',
       success: (res) => {
         if (res.confirm) {
           post('/work/attendance/' + this.data.jobId + '/confirm').then(() => {
-            wx.showToast({ title: '考勤已确认', icon: 'success' })
+            wx.showToast({ title: '考勤汇总单已确认', icon: 'success' })
             this.loadAttendance(this.data.jobId)
             this.loadSettlement(this.data.jobId)
           }).catch(() => {})
@@ -119,8 +135,8 @@ Page({
 
   onDisputeAttendance() {
     wx.showModal({
-      title: '提出异议',
-      content: '请联系管理员核实考勤数据',
+      title: '提出考勤异议',
+      content: '如对考勤汇总单有异议，请联系管理员核实后再进入结算',
       showCancel: false
     })
   },
@@ -128,7 +144,7 @@ Page({
   onSubmitSettlement() {
     wx.showModal({
       title: '提交结算单',
-      content: '提交后将通知临工确认工时，超时将自动确认',
+      content: '提交后将通知临工按已确认的考勤汇总单核对工时与收益，超时将自动确认',
       success: (res) => {
         if (res.confirm) {
           post('/settlements/' + this.data.jobId + '/confirm').then(() => {

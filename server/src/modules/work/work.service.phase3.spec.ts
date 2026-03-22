@@ -10,6 +10,10 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
+import { WorkStart } from '../../entities/work-start.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
 
 describe('Phase 3: WorkService anomalies', () => {
   let service: WorkService;
@@ -45,6 +49,21 @@ describe('Phase 3: WorkService anomalies', () => {
         { provide: getRepositoryToken(Job), useValue: { findOne: jest.fn(), findOneBy: jest.fn(), update: jest.fn() } },
         { provide: getRepositoryToken(User), useValue: userRepo },
         { provide: getRepositoryToken(EnterpriseCert), useValue: { findOne: jest.fn().mockResolvedValue(null) } },
+        {
+          provide: getRepositoryToken(WorkerCert),
+          useValue: {
+            createQueryBuilder: jest.fn(() => ({
+              where: jest.fn().mockReturnThis(),
+              andWhere: jest.fn().mockReturnThis(),
+              orderBy: jest.fn().mockReturnThis(),
+              addOrderBy: jest.fn().mockReturnThis(),
+              getMany: jest.fn().mockResolvedValue([]),
+            })),
+          }
+        },
+        { provide: getRepositoryToken(WorkStart), useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn() } },
+        { provide: getRepositoryToken(AttendanceSheet), useValue: { findOne: jest.fn(), create: jest.fn(), save: jest.fn(), update: jest.fn() } },
+        { provide: getRepositoryToken(AttendanceSheetItem), useValue: { find: jest.fn(), create: jest.fn(), save: jest.fn(), delete: jest.fn() } },
       ],
     }).compile();
 

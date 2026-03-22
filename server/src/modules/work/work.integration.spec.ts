@@ -36,11 +36,11 @@ describe('WorkController integration', () => {
     service.getAttendance.mockResolvedValue({ summary: {} });
     service.confirmAttendance.mockResolvedValue({ message: 'ok' });
 
-    await controller.getSession('1' as unknown as number);
+    await controller.getSession(8, '1' as unknown as number);
     await controller.getAttendance('1' as unknown as number, '2026-03-17');
     await controller.confirmAttendance(8, '1' as unknown as number);
 
-    expect(service.getSession).toHaveBeenCalledWith(1);
+    expect(service.getSession).toHaveBeenCalledWith(1, 8);
     expect(service.getAttendance).toHaveBeenCalledWith(1, '2026-03-17');
     expect(service.confirmAttendance).toHaveBeenCalledWith(8, 1);
   });

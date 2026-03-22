@@ -134,9 +134,10 @@
 
     <view class="st-bottom" wx:if="{{role === 'enterprise' && !viewOnly}}">
       <view class="att-btn-group">
-        <button class="btn btn-fresh" bindtap="onConfirmAttendance">确认考勤</button>
-        <button class="btn btn-outline" bindtap="onDisputeAttendance">有异议</button>
+        <button class="btn btn-fresh" bindtap="onConfirmAttendance">确认汇总单</button>
+        <button class="btn btn-outline" bindtap="onDisputeAttendance">汇总单异议</button>
       </view>
+      <text class="st-hint">确认后将按当前考勤汇总单生成结算明细</text>
     </view>
   </block>
 
@@ -148,6 +149,10 @@
           <text class="st-money-value">¥{{job.factoryTotal}}</text>
         </view>
         <view class="st-money-pill">结算中</view>
+      </view>
+      <view class="st-note-row" wx:if="{{job.settlementGeneratedAt || job.attendanceSheetDateLabel}}">
+        <text class="st-note" wx:if="{{job.settlementGeneratedAt}}">生成时间：{{job.settlementGeneratedAt}}</text>
+        <text class="st-note" wx:if="{{job.attendanceSheetDateLabel}}">汇总单日期：{{job.attendanceSheetDateLabel}}</text>
       </view>
       <view class="st-money-grid">
         <view class="st-money-item">
@@ -167,7 +172,7 @@
 
     <view class="st-card st-empty-card" wx:if="{{!settlementReady}}">
       <text class="st-empty-title">结算单尚未生成</text>
-      <text class="st-empty-sub">确认考勤后，系统会自动进入结算流程。</text>
+      <text class="st-empty-sub">结算明细会根据已确认的考勤汇总单自动生成。</text>
     </view>
 
     <view class="st-card" wx:if="{{settlementReady}}">
@@ -188,6 +193,7 @@
 
     <view class="st-card" wx:if="{{settlementReady}}">
       <text class="card-title">人员结算明细</text>
+      <text class="st-hint">以下结算明细来源于已确认的考勤汇总单</text>
       <view class="st-worker-card" wx:for="{{workers}}" wx:key="name">
         <view class="st-worker-main">
           <view>

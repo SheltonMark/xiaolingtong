@@ -14,6 +14,12 @@
 
   <!-- ========== 结算视图 ========== -->
   <block wx:if="{{activeTab === 'settlement'}}">
+    <view class="st-card st-empty-card" wx:if="{{!settlementReady}}">
+      <text class="st-empty-title">结算单尚未生成</text>
+      <text class="st-empty-sub">结算明细会根据已确认的考勤汇总单自动生成。</text>
+    </view>
+
+    <block wx:if="{{settlementReady}}">
     <!-- 工作概要 -->
     <view class="st-card">
       <view class="st-job-header">
@@ -22,6 +28,10 @@
           <text class="st-company">{{job.company}} · {{job.jobType}}</text>
           <text class="st-date">{{job.dateRange}}</text>
         </view>
+      </view>
+      <view class="st-meta-row" wx:if="{{job.settlementGeneratedAt || job.attendanceSheetDateLabel}}">
+        <text class="st-meta" wx:if="{{job.settlementGeneratedAt}}">生成时间：{{job.settlementGeneratedAt}}</text>
+        <text class="st-meta" wx:if="{{job.attendanceSheetDateLabel}}">汇总单日期：{{job.attendanceSheetDateLabel}}</text>
       </view>
       <view class="st-summary">
         <view class="st-sum-item">
@@ -59,6 +69,7 @@
     <!-- 结算明细 -->
     <view class="st-card">
       <text class="card-title">结算明细</text>
+      <text class="st-hint">以下结算明细来源于已确认的考勤汇总单</text>
       <view class="table-header">
         <text class="th" style="flex:1.2;">姓名</text>
         <text class="th" style="flex:1;">工时</text>
@@ -116,6 +127,7 @@
       <text class="st-hint" wx:if="{{currentWorkerSettlement && currentWorkerSettlement.confirmed}}">本次结算你已确认</text>
       <text class="st-hint" wx:if="{{currentWorkerSettlement && !currentWorkerSettlement.confirmed && !currentWorkerSettlement.canConfirm}}">等待企业支付后再确认工时</text>
     </view>
+    </block>
   </block>
 <!-- SETTLEMENT_END -->
 
@@ -166,7 +178,7 @@
 
     <!-- 管理员信息 -->
     <view class="st-card" wx:if="{{attendance.supervisor}}">
-      <text class="card-title">管理员</text>
+      <text class="card-title">考勤汇总单</text>
       <view class="att-supervisor">
         <text>{{attendance.supervisor.name}}</text>
       </view>
@@ -181,9 +193,10 @@
     <!-- 考勤操作 -->
     <view class="st-bottom" wx:if="{{role === 'enterprise' && !viewOnly}}">
       <view class="att-btn-group">
-        <button class="btn btn-fresh" bindtap="onConfirmAttendance">确认考勤</button>
-        <button class="btn btn-outline" bindtap="onDisputeAttendance">有异议</button>
+        <button class="btn btn-fresh" bindtap="onConfirmAttendance">确认汇总单</button>
+        <button class="btn btn-outline" bindtap="onDisputeAttendance">汇总单异议</button>
       </view>
+      <text class="st-hint">确认后将按当前考勤汇总单生成结算明细</text>
     </view>
   </block>
 </view>

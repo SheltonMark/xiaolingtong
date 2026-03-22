@@ -16,6 +16,9 @@ import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { User } from '../../entities/user.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
 import { PaymentService } from '../payment/payment.service';
 
 describe('SettlementModule Integration Tests', () => {
@@ -31,6 +34,9 @@ describe('SettlementModule Integration Tests', () => {
   let userRepository: any;
   let sysConfigRepository: any;
   let enterpriseCertRepository: any;
+  let workerCertRepository: any;
+  let attendanceSheetRepository: any;
+  let attendanceSheetItemRepository: any;
   let paymentService: any;
   let configService: any;
 
@@ -88,6 +94,24 @@ describe('SettlementModule Integration Tests', () => {
 
     enterpriseCertRepository = {
       findOne: jest.fn(),
+    };
+
+    workerCertRepository = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      })),
+    };
+
+    attendanceSheetRepository = {
+      find: jest.fn(),
+    };
+
+    attendanceSheetItemRepository = {
+      find: jest.fn(),
     };
 
     paymentService = {
@@ -148,6 +172,18 @@ describe('SettlementModule Integration Tests', () => {
           useValue: enterpriseCertRepository,
         },
         {
+          provide: getRepositoryToken(WorkerCert),
+          useValue: workerCertRepository,
+        },
+        {
+          provide: getRepositoryToken(AttendanceSheet),
+          useValue: attendanceSheetRepository,
+        },
+        {
+          provide: getRepositoryToken(AttendanceSheetItem),
+          useValue: attendanceSheetItemRepository,
+        },
+        {
           provide: PaymentService,
           useValue: paymentService,
         },
@@ -193,6 +229,7 @@ describe('SettlementModule Integration Tests', () => {
       jobRepository.findOneBy.mockResolvedValue(mockJob);
       settlementRepository.findOne.mockResolvedValue(null);
       jobApplicationRepository.find.mockResolvedValue(mockApplications);
+      attendanceSheetRepository.find.mockResolvedValue([]);
       workLogRepository.find.mockResolvedValue(mockWorkLogs);
       sysConfigRepository.findOne.mockResolvedValue(null);
       settlementRepository.create.mockReturnValue(mockSettlement);
@@ -205,6 +242,62 @@ describe('SettlementModule Integration Tests', () => {
 
       expect(result).toBeDefined();
       expect(settlementRepository.save).toHaveBeenCalled();
+    });
+
+    it('should create settlement from attendance sheet items when available', async () => {
+      const mockJob = {
+        id: 1,
+        userId: 1,
+        title: 'Test Job',
+        salary: 100,
+        salaryType: 'hourly',
+      };
+      const mockApplications = [
+        { id: 1, workerId: 2, status: 'confirmed', isSupervisor: 0 },
+      ];
+      const mockSettlement = {
+        id: 1,
+        jobId: 1,
+        enterpriseId: 1,
+        status: 'pending',
+      };
+
+      jobRepository.findOneBy.mockResolvedValue(mockJob);
+      settlementRepository.findOne.mockResolvedValue(null);
+      jobApplicationRepository.find.mockResolvedValue(mockApplications);
+      attendanceSheetRepository.find.mockResolvedValue([
+        { id: 10, jobId: 1, date: '2026-03-18' },
+      ]);
+      attendanceSheetItemRepository.find.mockResolvedValue([
+        {
+          sheetId: 10,
+          workerId: 2,
+          attendance: 'normal',
+          hours: 7,
+          pieces: 0,
+          checkInTime: '08:00',
+          checkOutTime: '17:00',
+        },
+      ]);
+      workLogRepository.find.mockResolvedValue([
+        { id: 1, hours: 8, pieces: 0, jobId: 1, workerId: 2 },
+      ]);
+      sysConfigRepository.findOne.mockResolvedValue(null);
+      settlementRepository.create.mockReturnValue(mockSettlement);
+      settlementRepository.save.mockResolvedValue(mockSettlement);
+      settlementItemRepository.create.mockImplementation((payload) => payload);
+      settlementItemRepository.save.mockResolvedValue({});
+      jobRepository.update.mockResolvedValue({});
+
+      await controller.create(1, 1);
+
+      expect(settlementItemRepository.save).toHaveBeenCalledWith(expect.objectContaining({
+        workerId: 2,
+        hours: 7,
+        factoryPay: 700,
+        workerPay: 560,
+      }));
+      expect(workLogRepository.find).not.toHaveBeenCalled();
     });
 
     it('should throw error when job not found', async () => {
@@ -227,7 +320,7 @@ describe('SettlementModule Integration Tests', () => {
         workerTotal: 680,
         supervisorFee: 0,
         status: 'paid',
-        createdAt: new Date('2026-03-18T08:00:00Z'),
+        createdAt: new Date(2026, 2, 18, 8, 0, 0),
         job: {
           id: 1,
           userId: 1,
@@ -251,12 +344,17 @@ describe('SettlementModule Integration Tests', () => {
 
       settlementRepository.findOne.mockResolvedValue(mockSettlement);
       settlementItemRepository.find.mockResolvedValue(mockItems);
+      attendanceSheetRepository.find.mockResolvedValue([
+        { id: 11, jobId: 1, date: '2026-03-18' },
+      ]);
       enterpriseCertRepository.findOne.mockResolvedValue({ companyName: 'Test Company' });
 
       const result = await controller.detail(1, 2);
 
       expect(result).toBeDefined();
       expect(result.job.company).toBe('Test Company');
+      expect(result.job.settlementGeneratedAt).toBe('2026-03-18 08:00');
+      expect(result.job.attendanceSheetDateLabel).toBe('2026-03-18');
       expect(result.currentWorkerSettlement).toEqual(expect.objectContaining({
         workerId: 2,
         confirmed: false,
@@ -264,10 +362,22 @@ describe('SettlementModule Integration Tests', () => {
       }));
     });
 
-    it('should throw error when settlement not found', async () => {
+    it('should return empty settlement state when settlement not found', async () => {
       settlementRepository.findOne.mockResolvedValue(null);
+      jobRepository.findOne.mockResolvedValue({
+        id: 1,
+        userId: 9,
+        title: 'Test Job',
+        dateStart: '2026-03-18',
+        dateEnd: '2026-03-18',
+        user: { nickname: 'Enterprise A' },
+      });
+      attendanceSheetRepository.find.mockResolvedValue([]);
 
-      await expect(controller.detail(1, 999)).rejects.toThrow();
+      const result = await controller.detail(1, 999);
+
+      expect(result.exists).toBe(false);
+      expect(result.job.jobType).toBe('Test Job');
     });
   });
 

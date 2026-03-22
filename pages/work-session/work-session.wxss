@@ -46,45 +46,6 @@
 .card-title .iconfont { margin-right: 8rpx; }
 .card-tip { display: block; margin-top: 8rpx; font-size: 20rpx; color: #94A3B8; }
 
-.photo-list { display: flex; flex-direction: column; gap: 16rpx; }
-.photo-item {
-  display: flex;
-  align-items: center;
-  gap: 20rpx;
-  padding: 16rpx 20rpx;
-  border-radius: 16rpx;
-}
-.photo-done { background-color: #ECFDF5; }
-.photo-pending { background-color: #FFFBEB; }
-.photo-thumb-placeholder {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 12rpx;
-  background-color: #FEF3C7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 36rpx;
-  color: #F59E0B;
-}
-.photo-thumb { width: 80rpx; height: 80rpx; border-radius: 12rpx; flex-shrink: 0; }
-.photo-thumb-done { background-color: #D1FAE5; color: #10B981; }
-.photo-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-.photo-time { font-size: 24rpx; font-weight: 500; color: #1E293B; }
-.photo-status { font-size: 20rpx; }
-.photo-check { font-size: 28rpx; }
-.photo-btn {
-  font-size: 20rpx;
-  color: #fff;
-  background-color: #3B82F6;
-  padding: 8rpx 24rpx;
-  border-radius: 12rpx;
-  border: none;
-  line-height: 1.4;
-}
-.photo-btn::after { border: none; }
-
 .piece-list,
 .hour-list {
   display: flex;
@@ -128,6 +89,40 @@
 .checkout-btn-done {
   background: #CBD5E1;
   color: #FFFFFF;
+}
+
+.worker-summary {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 18rpx;
+  margin-left: 72rpx;
+}
+
+.worker-metric {
+  flex: 1;
+  padding: 14rpx 16rpx;
+  border-radius: 16rpx;
+  background: #FFFFFF;
+  border: 2rpx solid #E2E8F0;
+}
+
+.worker-metric-strong {
+  background: #EFF6FF;
+  border-color: #BFDBFE;
+}
+
+.metric-label {
+  display: block;
+  font-size: 18rpx;
+  color: #94A3B8;
+  margin-bottom: 6rpx;
+}
+
+.metric-value {
+  display: block;
+  font-size: 24rpx;
+  color: #1E293B;
+  font-weight: 600;
 }
 
 .worker-tags {

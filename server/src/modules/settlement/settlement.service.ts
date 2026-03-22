@@ -12,6 +12,9 @@ import { WorkLog } from '../../entities/work-log.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
 import { PaymentService } from '../payment/payment.service';
 
 @Injectable()
@@ -27,6 +30,9 @@ export class SettlementService {
     @InjectRepository(JobApplication) private appRepo: Repository<JobApplication>,
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
+    @InjectRepository(AttendanceSheet) private attendanceSheetRepo: Repository<AttendanceSheet>,
+    @InjectRepository(AttendanceSheetItem) private attendanceSheetItemRepo: Repository<AttendanceSheetItem>,
     private paymentService: PaymentService,
     private config: ConfigService,
   ) {}
@@ -42,6 +48,92 @@ export class SettlementService {
       order: { id: 'DESC' },
     });
     return cert?.companyName || fallbackNickname || '企业';
+  }
+
+  private async getWorkerCertMap(userIds: Array<number | string>): Promise<Map<number, WorkerCert>> {
+    const normalizedIds = Array.from(new Set(
+      userIds
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id) && id > 0),
+    ));
+    const certMap = new Map<number, WorkerCert>();
+    if (normalizedIds.length === 0) {
+      return certMap;
+    }
+
+    const certs = await this.workerCertRepo.createQueryBuilder('cert')
+      .where('cert.userId IN (:...userIds)', { userIds: normalizedIds })
+      .andWhere('cert.status = :status', { status: 'approved' })
+      .orderBy('cert.userId', 'ASC')
+      .addOrderBy('cert.id', 'DESC')
+      .getMany();
+
+    for (const cert of certs) {
+      if (!certMap.has(Number(cert.userId))) {
+        certMap.set(Number(cert.userId), cert);
+      }
+    }
+    return certMap;
+  }
+
+  private getWorkerDisplayName(user?: Partial<User> | null, workerCert?: Partial<WorkerCert> | null): string {
+    return String(workerCert?.realName || user?.name || user?.nickname || '').trim() || '临工';
+  }
+
+  private isEffectiveAttendanceItem(item: Partial<AttendanceSheetItem>): boolean {
+    return item.attendance !== 'absent'
+      || Number(item.hours || 0) > 0
+      || Number(item.pieces || 0) > 0
+      || !!item.checkInTime
+      || !!item.checkOutTime;
+  }
+
+  private async getAttendanceSheetItems(jobId: number): Promise<AttendanceSheetItem[]> {
+    const sheets = await this.attendanceSheetRepo.find({
+      where: { jobId },
+      order: { date: 'ASC', id: 'ASC' },
+    });
+    if (sheets.length === 0) {
+      return [];
+    }
+
+    const items: AttendanceSheetItem[] = [];
+    for (const sheet of sheets) {
+      const sheetItems = await this.attendanceSheetItemRepo.find({
+        where: { sheetId: sheet.id },
+        order: { id: 'ASC' },
+      });
+      items.push(...sheetItems);
+    }
+    return items;
+  }
+
+  private formatDateTime(date?: Date | null): string {
+    if (!date) {
+      return '';
+    }
+    const time = new Date(date);
+    const year = time.getFullYear();
+    const month = `${time.getMonth() + 1}`.padStart(2, '0');
+    const day = `${time.getDate()}`.padStart(2, '0');
+    const hours = `${time.getHours()}`.padStart(2, '0');
+    const minutes = `${time.getMinutes()}`.padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
+
+  private buildAttendanceSheetDateLabel(sheets: AttendanceSheet[]): string {
+    const dates = Array.from(new Set(
+      sheets
+        .map((sheet) => String(sheet.date || '').slice(0, 10))
+        .filter((date) => !!date),
+    ));
+    if (dates.length === 0) {
+      return '';
+    }
+    if (dates.length === 1) {
+      return dates[0];
+    }
+    return `${dates[0]} ~ ${dates[dates.length - 1]}（${dates.length}天）`;
   }
 
   async createSettlement(jobId: number, userId: number) {
@@ -85,40 +177,75 @@ export class SettlementService {
 
     const supervisorApp = apps.find((a) => a.isSupervisor === 1);
     const supervisorId = supervisorApp ? supervisorApp.workerId : undefined;
+    const activeWorkerIds = new Set(workerApps.map((app) => Number(app.workerId)));
 
     let totalHours = 0;
     let factoryTotal = 0;
     let workerTotal = 0;
     const items: { workerId: number; hours: number; factoryPay: number; workerPay: number }[] = [];
 
-    for (const app of workerApps) {
-      const logs = await this.workLogRepo.find({ where: { jobId, workerId: app.workerId } });
-      const effectiveLogs = logs.filter((log) => (
-        log.anomalyType !== 'absent'
-        || (Number(log.hours || 0)) > 0
-        || (Number(log.pieces || 0)) > 0
-        || !!log.checkInTime
-        || !!log.checkOutTime
-      ));
-      if (effectiveLogs.length === 0) {
-        continue;
+    const attendanceItems = await this.getAttendanceSheetItems(jobId);
+    if (attendanceItems.length > 0) {
+      const totalsByWorker = new Map<number, { hours: number; pieces: number }>();
+      for (const item of attendanceItems) {
+        const workerId = Number(item.workerId);
+        if (!activeWorkerIds.has(workerId) || !this.isEffectiveAttendanceItem(item)) {
+          continue;
+        }
+        const current = totalsByWorker.get(workerId) || { hours: 0, pieces: 0 };
+        current.hours += Number(item.hours || 0);
+        current.pieces += Number(item.pieces || 0);
+        totalsByWorker.set(workerId, current);
       }
 
-      const hours = effectiveLogs.reduce((sum, l) => sum + Number(l.hours || 0), 0);
-      const pieces = effectiveLogs.reduce((sum, l) => sum + Number(l.pieces || 0), 0);
+      for (const app of workerApps) {
+        const totals = totalsByWorker.get(Number(app.workerId));
+        if (!totals) {
+          continue;
+        }
 
-      let factoryPay: number;
-      if (job.salaryType === 'piece') {
-        factoryPay = pieces * +job.salary;
-      } else {
-        factoryPay = hours * +job.salary;
+        const hours = totals.hours;
+        const pieces = totals.pieces;
+        const factoryPay = job.salaryType === 'piece'
+          ? pieces * +job.salary
+          : hours * +job.salary;
+        const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
+
+        totalHours += hours;
+        factoryTotal += factoryPay;
+        workerTotal += workerPay;
+        items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
       }
-      const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
+    } else {
+      for (const app of workerApps) {
+        const logs = await this.workLogRepo.find({ where: { jobId, workerId: app.workerId } });
+        const effectiveLogs = logs.filter((log) => (
+          log.anomalyType !== 'absent'
+          || (Number(log.hours || 0)) > 0
+          || (Number(log.pieces || 0)) > 0
+          || !!log.checkInTime
+          || !!log.checkOutTime
+        ));
+        if (effectiveLogs.length === 0) {
+          continue;
+        }
 
-      totalHours += hours;
-      factoryTotal += factoryPay;
-      workerTotal += workerPay;
-      items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
+        const hours = effectiveLogs.reduce((sum, l) => sum + Number(l.hours || 0), 0);
+        const pieces = effectiveLogs.reduce((sum, l) => sum + Number(l.pieces || 0), 0);
+
+        let factoryPay: number;
+        if (job.salaryType === 'piece') {
+          factoryPay = pieces * +job.salary;
+        } else {
+          factoryPay = hours * +job.salary;
+        }
+        const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
+
+        totalHours += hours;
+        factoryTotal += factoryPay;
+        workerTotal += workerPay;
+        items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
+      }
     }
 
     if (items.length === 0) throw new BadRequestException('暂无有效考勤记录，无法生成结算单');
@@ -161,12 +288,53 @@ export class SettlementService {
       where: { jobId },
       relations: ['job', 'job.user'],
     });
-    if (!settlement) throw new BadRequestException('结算单不存在');
+    if (!settlement) {
+      const job = await this.jobRepo.findOne({
+        where: { id: jobId },
+        relations: ['user'],
+      });
+      if (!job) throw new BadRequestException('招工不存在');
+
+      const companyName = await this.getCompanyName(job.userId, job.user?.nickname);
+      const dateRange = job.dateStart && job.dateEnd
+        ? job.dateStart.slice(5) + ' ~ ' + job.dateEnd.slice(5)
+        : '';
+
+      return {
+        exists: false,
+        job: {
+          company: companyName,
+          avatarText: companyName[0] || '企',
+          jobType: job.title || '临时工',
+          dateRange,
+          totalWorkers: 0,
+          totalHours: 0,
+          factoryTotal: '0.00',
+          enterpriseId: job.userId,
+        },
+        workers: [],
+        fees: {
+          factoryTotal: '0.00',
+          platformFee: '0.00',
+          managerFee: '0.00',
+          workerTotal: '0.00',
+        },
+        steps: [],
+        status: '',
+        currentWorkerSettlement: null,
+      };
+    }
 
     const items = await this.itemRepo.find({
       where: { settlementId: settlement.id },
       relations: ['worker'],
     });
+    const workerCertMap = await this.getWorkerCertMap(items.map((item) => item.workerId));
+    const attendanceSheets = await this.attendanceSheetRepo.find({
+      where: { jobId },
+      order: { date: 'ASC', id: 'ASC' },
+    });
+    const attendanceSheetDateLabel = this.buildAttendanceSheetDateLabel(attendanceSheets);
 
     const job = settlement.job || {} as any;
     const enterprise = job.user || {} as any;
@@ -177,7 +345,10 @@ export class SettlementService {
       : '';
 
     const workers = items.map((it) => ({
-      name: it.worker?.nickname || '临工',
+      name: this.getWorkerDisplayName(
+        it.worker,
+        workerCertMap.get(Number(it.workerId)) || null,
+      ),
       hours: +it.hours,
       factoryPay: (+it.factoryPay).toFixed(2),
       workerPay: (+it.workerPay).toFixed(2),
@@ -211,6 +382,7 @@ export class SettlementService {
     ];
 
     return {
+      exists: true,
       job: {
         company: companyName,
         avatarText: companyName[0] || '企',
@@ -220,6 +392,8 @@ export class SettlementService {
         totalHours: +settlement.totalHours,
         factoryTotal: (+settlement.factoryTotal).toFixed(2),
         enterpriseId: settlement.enterpriseId,
+        settlementGeneratedAt: this.formatDateTime(settlement.createdAt),
+        attendanceSheetDateLabel,
       },
       workers,
       fees: {

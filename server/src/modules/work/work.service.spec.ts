@@ -10,7 +10,10 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import { WorkStart } from '../../entities/work-start.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
 
 describe('WorkService', () => {
   let service: WorkService;
@@ -20,7 +23,10 @@ describe('WorkService', () => {
   let jobRepo: any;
   let userRepo: any;
   let entCertRepo: any;
+  let workerCertRepo: any;
   let workStartRepo: any;
+  let attendanceSheetRepo: any;
+  let attendanceSheetItemRepo: any;
 
   beforeEach(async () => {
     checkinRepo = {
@@ -58,10 +64,34 @@ describe('WorkService', () => {
       findOne: jest.fn(),
     };
 
+    workerCertRepo = {
+      createQueryBuilder: jest.fn(() => ({
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      })),
+    };
+
     workStartRepo = {
       findOne: jest.fn(),
       create: jest.fn((payload) => payload),
       save: jest.fn(async (payload) => payload),
+    };
+
+    attendanceSheetRepo = {
+      findOne: jest.fn(),
+      create: jest.fn((payload) => payload),
+      save: jest.fn(async (payload) => payload),
+      update: jest.fn(),
+    };
+
+    attendanceSheetItemRepo = {
+      find: jest.fn(),
+      create: jest.fn((payload) => payload),
+      save: jest.fn(async (payload) => payload),
+      delete: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -73,7 +103,10 @@ describe('WorkService', () => {
         { provide: getRepositoryToken(Job), useValue: jobRepo },
         { provide: getRepositoryToken(User), useValue: userRepo },
         { provide: getRepositoryToken(EnterpriseCert), useValue: entCertRepo },
+        { provide: getRepositoryToken(WorkerCert), useValue: workerCertRepo },
         { provide: getRepositoryToken(WorkStart), useValue: workStartRepo },
+        { provide: getRepositoryToken(AttendanceSheet), useValue: attendanceSheetRepo },
+        { provide: getRepositoryToken(AttendanceSheetItem), useValue: attendanceSheetItemRepo },
       ],
     }).compile();
 
@@ -244,8 +277,9 @@ describe('WorkService', () => {
   it('upserts attendance report records for supervisor', async () => {
     appRepo.findOne.mockResolvedValue({ jobId: 1, workerId: 99, isSupervisor: 1, status: 'working' });
     appRepo.find.mockResolvedValue([
-      { jobId: 1, workerId: 2, status: 'working' },
-      { jobId: 1, workerId: 3, status: 'confirmed' },
+      { jobId: 1, workerId: 99, status: 'working', isSupervisor: 1, worker: { id: 99, nickname: '主管甲' } },
+      { jobId: 1, workerId: 2, status: 'working', worker: { id: 2, nickname: '张三' } },
+      { jobId: 1, workerId: 3, status: 'confirmed', worker: { id: 3, nickname: '李四' } },
     ]);
     workLogRepo.findOne.mockResolvedValue(null);
     jobRepo.findOne.mockResolvedValue({
@@ -269,6 +303,25 @@ describe('WorkService', () => {
 
     expect(result.count).toBe(2);
     expect(workLogRepo.create).toHaveBeenCalledTimes(2);
+    expect(attendanceSheetRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      jobId: 1,
+      supervisorId: 99,
+      totalExpected: 2,
+      totalPresent: 1,
+      totalAbsent: 1,
+    }));
+    expect(attendanceSheetItemRepo.save).toHaveBeenCalledWith(expect.arrayContaining([
+      expect.objectContaining({
+        workerId: 2,
+        workerName: '张三',
+        attendance: 'normal',
+      }),
+      expect.objectContaining({
+        workerId: 3,
+        workerName: '李四',
+        attendance: 'absent',
+      }),
+    ]));
   });
 
   it('clears derived early-leave state when checkout time is adjusted back into the normal window', async () => {
@@ -337,6 +390,61 @@ describe('WorkService', () => {
     expect(result.records[1].attendance).toBe('late');
     expect(result.photos).toEqual(['https://img.test/photo-1.jpg']);
     expect(result.supervisor.name).toBe('主管');
+  });
+
+  it('prefers the latest attendance sheet when loading attendance summary without a date', async () => {
+    jobRepo.findOne.mockResolvedValue({
+      id: 1,
+      title: '包装工',
+      workHours: '08:00-18:00',
+      userId: 8,
+      user: { nickname: '企业B' },
+    });
+    attendanceSheetRepo.findOne
+      .mockResolvedValueOnce({
+        id: 11,
+        jobId: 1,
+        date: '2026-03-18',
+      })
+      .mockResolvedValueOnce({
+        id: 11,
+        jobId: 1,
+        enterpriseId: 8,
+        date: '2026-03-18',
+        supervisorId: 99,
+        supervisorName: '主管甲',
+        photoUrls: ['https://img.test/photo-2.jpg'],
+        totalExpected: 2,
+        totalPresent: 1,
+        totalAbsent: 1,
+        status: 'submitted',
+        submittedAt: new Date('2026-03-18T10:30:00.000Z'),
+        confirmedAt: null,
+      });
+    attendanceSheetItemRepo.find.mockResolvedValue([
+      {
+        sheetId: 11,
+        workerId: 2,
+        workerName: '张三',
+        attendance: 'normal',
+        checkInTime: '08:05',
+        checkOutTime: '18:00',
+        hours: 8,
+        pieces: 0,
+        note: '',
+      },
+    ]);
+
+    const result = await service.getAttendance(1);
+
+    expect(result.job.date).toBe('2026-03-18');
+    expect(result.source).toBe('sheet');
+    expect(result.records[0]).toEqual(expect.objectContaining({
+      workerId: 2,
+      name: '张三',
+      attendance: 'normal',
+    }));
+    expect(result.photos).toEqual(['https://img.test/photo-2.jpg']);
   });
 
   it('blocks worker checkin before the allowed time window', async () => {
@@ -487,11 +595,24 @@ describe('WorkService', () => {
 
   it('confirms attendance and advances the workflow', async () => {
     jobRepo.findOne.mockResolvedValue({ id: 1, userId: 8, status: 'working', user: { nickname: '企业B' } });
-    workLogRepo.count.mockResolvedValue(2);
+    attendanceSheetRepo.findOne.mockResolvedValue({
+      id: 21,
+      jobId: 1,
+      date: '2026-03-18',
+      status: 'submitted',
+      confirmedBy: null,
+      confirmedAt: null,
+    });
 
     const result = await service.confirmAttendance(8, 1);
 
     expect(result.message).toContain('进入结算流程');
+    expect(result.date).toBe('2026-03-18');
+    expect(attendanceSheetRepo.save).toHaveBeenCalledWith(expect.objectContaining({
+      id: 21,
+      status: 'confirmed',
+      confirmedBy: 8,
+    }));
     expect(jobRepo.update).toHaveBeenCalledWith(1, { status: 'pending_settlement' });
     expect(appRepo.update).toHaveBeenCalledWith(
       { jobId: 1, status: 'working' },

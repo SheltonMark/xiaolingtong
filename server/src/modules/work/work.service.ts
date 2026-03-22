@@ -12,10 +12,14 @@ import { JobApplication } from '../../entities/job-application.entity';
 import { Job } from '../../entities/job.entity';
 import { User } from '../../entities/user.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
+import { WorkerCert } from '../../entities/worker-cert.entity';
 import { WorkStart } from '../../entities/work-start.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { AttendanceSheetItem } from '../../entities/attendance-sheet-item.entity';
 
 type AttendanceRecordDto = {
   workerId: number;
+  workerName?: string;
   attendance?: string;
   checkInTime?: string | null;
   checkOutTime?: string | null;
@@ -28,6 +32,7 @@ type AttendanceRecordDto = {
 export class WorkService {
   private readonly checkinAdvanceMinutes = 30;
   private readonly checkinDeadlineMinutes = 120;
+  private readonly maxCheckinDistanceMeters = 500;
   private readonly checkoutEarlyMinutes = 30;
   private readonly checkoutLateMinutes = 60;
 
@@ -38,7 +43,10 @@ export class WorkService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(User) private userRepo: Repository<User>,
     @InjectRepository(EnterpriseCert) private entCertRepo: Repository<EnterpriseCert>,
+    @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
     @InjectRepository(WorkStart) private workStartRepo: Repository<WorkStart>,
+    @InjectRepository(AttendanceSheet) private attendanceSheetRepo: Repository<AttendanceSheet>,
+    @InjectRepository(AttendanceSheetItem) private attendanceSheetItemRepo: Repository<AttendanceSheetItem>,
   ) {}
 
   private async getCompanyName(userId: number, fallbackNickname?: string): Promise<string> {
@@ -280,8 +288,34 @@ export class WorkService {
     return textMap[normalized] || '正常';
   }
 
-  private getDisplayName(user?: Partial<User> | null): string {
-    return String(user?.name || user?.nickname || '').trim() || '临工';
+  private async getWorkerCertMap(userIds: Array<number | string>): Promise<Map<number, WorkerCert>> {
+    const normalizedIds = Array.from(new Set(
+      userIds
+        .map((id) => Number(id))
+        .filter((id) => Number.isFinite(id) && id > 0),
+    ));
+    const certMap = new Map<number, WorkerCert>();
+    if (normalizedIds.length === 0) {
+      return certMap;
+    }
+
+    const certs = await this.workerCertRepo.createQueryBuilder('cert')
+      .where('cert.userId IN (:...userIds)', { userIds: normalizedIds })
+      .andWhere('cert.status = :status', { status: 'approved' })
+      .orderBy('cert.userId', 'ASC')
+      .addOrderBy('cert.id', 'DESC')
+      .getMany();
+
+    for (const cert of certs) {
+      if (!certMap.has(Number(cert.userId))) {
+        certMap.set(Number(cert.userId), cert);
+      }
+    }
+    return certMap;
+  }
+
+  private getDisplayName(user?: Partial<User> | null, workerCert?: Partial<WorkerCert> | null): string {
+    return String(workerCert?.realName || user?.name || user?.nickname || '').trim() || '临工';
   }
 
   private getStatusSource(anomalyType?: string | null, checkoutMeta?: { status?: string } | null): 'system' | 'manual' {
@@ -301,6 +335,7 @@ export class WorkService {
     log: WorkLog | null | undefined,
     job: Job,
     dateText: string,
+    workerCert?: WorkerCert | null,
   ) {
     const worker = app.worker || ({} as User);
     const checkInTime = log?.checkInTime || (checkin ? this.formatTime(new Date(checkin.checkInAt), true) : '');
@@ -315,7 +350,7 @@ export class WorkService {
 
     return {
       workerId: Number(worker.id),
-      displayName: this.getDisplayName(worker),
+      displayName: this.getDisplayName(worker, workerCert),
       attendanceStatus,
       attendanceStatusText: this.getAttendanceStatusText(attendanceStatus),
       statusSource: this.getStatusSource(attendanceStatus, checkoutMeta),
@@ -347,7 +382,13 @@ export class WorkService {
     return apps.find((app) => this.isActiveSupervisor(app)) || null;
   }
 
-  private getCheckinRule(job: Partial<Job>, apps: JobApplication[], workerApp?: JobApplication | null, now = new Date()) {
+  private getCheckinRule(
+    job: Partial<Job>,
+    apps: JobApplication[],
+    workerApp?: JobApplication | null,
+    now = new Date(),
+    hasCheckedInToday = false,
+  ) {
     const todayText = this.formatLocalDate(now);
     const startDateText = String(job.dateStart || '').slice(0, 10);
     const endDateText = String(job.dateEnd || '').slice(0, 10);
@@ -379,6 +420,9 @@ export class WorkService {
     } else if (!supervisorApp) {
       blockedCode = 'no_supervisor';
       blockedReason = '企业尚未设置临工管理员，暂不可打卡';
+    } else if (hasCheckedInToday) {
+      blockedCode = 'already_checked_in';
+      blockedReason = '今日已签到，无需重复签到';
     } else if (checkinWindowStart && now < checkinWindowStart) {
       blockedCode = 'too_early';
       blockedReason = `未到签到时间，请于${this.formatTime(checkinWindowStart)}后签到`;
@@ -418,6 +462,61 @@ export class WorkService {
     ) as Partial<T>;
   }
 
+  private parseCoordinate(value: unknown): number | null {
+    if (value === undefined || value === null || value === '') {
+      return null;
+    }
+    const normalized = Number(value);
+    return Number.isFinite(normalized) ? normalized : null;
+  }
+
+  private hasValidCoordinate(latitude: number | null, longitude: number | null): boolean {
+    return latitude !== null
+      && longitude !== null
+      && Math.abs(latitude) <= 90
+      && Math.abs(longitude) <= 180
+      && !(Math.abs(latitude) < 1e-7 && Math.abs(longitude) < 1e-7);
+  }
+
+  private calculateDistanceMeters(
+    fromLatitude: number,
+    fromLongitude: number,
+    toLatitude: number,
+    toLongitude: number,
+  ): number {
+    const rad = Math.PI / 180;
+    const dLat = (toLatitude - fromLatitude) * rad;
+    const dLng = (toLongitude - fromLongitude) * rad;
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+      + Math.cos(fromLatitude * rad) * Math.cos(toLatitude * rad)
+      * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(6371000 * c);
+  }
+
+  private validateLocationCheckin(job: Partial<Job>, dto: any) {
+    if ((dto?.type || 'location') !== 'location') {
+      return;
+    }
+
+    const jobLat = this.parseCoordinate(job.lat);
+    const jobLng = this.parseCoordinate(job.lng);
+    if (!this.hasValidCoordinate(jobLat, jobLng)) {
+      throw new BadRequestException('岗位未配置有效签到坐标');
+    }
+
+    const userLat = this.parseCoordinate(dto?.lat);
+    const userLng = this.parseCoordinate(dto?.lng);
+    if (!this.hasValidCoordinate(userLat, userLng)) {
+      throw new BadRequestException('定位信息获取失败，请刷新位置后重试');
+    }
+
+    const distance = this.calculateDistanceMeters(userLat!, userLng!, jobLat!, jobLng!);
+    if (distance > this.maxCheckinDistanceMeters) {
+      throw new BadRequestException(`超出签到范围，当前距离约 ${distance} 米`);
+    }
+  }
+
   private normalizePhotoUrls(photoUrls?: unknown): string[] {
     if (!Array.isArray(photoUrls)) {
       return [];
@@ -432,6 +531,169 @@ export class WorkService {
       where: { jobId, date },
       relations: ['confirmer'],
     });
+  }
+
+  private formatSheetDateTime(date?: Date | null): string {
+    if (!date) {
+      return '';
+    }
+    return new Date(date).toLocaleString('zh-CN', {
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  private async getAttendanceSheetByDate(jobId: number, date: string): Promise<AttendanceSheet | null> {
+    return this.attendanceSheetRepo.findOne({
+      where: { jobId, date },
+      order: { id: 'DESC' },
+    });
+  }
+
+  private async getLatestAttendanceSheet(jobId: number): Promise<AttendanceSheet | null> {
+    return this.attendanceSheetRepo.findOne({
+      where: { jobId },
+      order: { date: 'DESC', id: 'DESC' },
+    });
+  }
+
+  private async getLatestWorkLogDate(jobId: number): Promise<string | null> {
+    const logs = await this.workLogRepo.find({
+      where: { jobId },
+      order: { date: 'DESC', updatedAt: 'DESC', createdAt: 'DESC' },
+    });
+    const latestLog = logs[0];
+    return latestLog?.date ? String(latestLog.date).slice(0, 10) : null;
+  }
+
+  private async saveAttendanceSheet(params: {
+    job: Job;
+    date: string;
+    supervisorId: number;
+    supervisorName: string;
+    photos: string[];
+    records: AttendanceRecordDto[];
+  }): Promise<AttendanceSheet> {
+    const {
+      job,
+      date,
+      supervisorId,
+      supervisorName,
+      photos,
+      records,
+    } = params;
+
+    const totalExpected = records.length;
+    const totalPresent = records.filter((record) => record.attendance !== 'absent').length;
+    const totalAbsent = records.filter((record) => record.attendance === 'absent').length;
+    const totalHours = this.roundHours(records.reduce((sum, record) => sum + this.toNumber(record.hours), 0));
+    const totalPieces = records.reduce((sum, record) => sum + this.toNumber(record.pieces), 0);
+    const submittedAt = new Date();
+
+    const existingSheet = await this.getAttendanceSheetByDate(job.id, date);
+    const sheet = existingSheet
+      ? Object.assign(existingSheet, {
+          enterpriseId: job.userId,
+          supervisorId,
+          supervisorName,
+          photoUrls: photos,
+          totalExpected,
+          totalPresent,
+          totalAbsent,
+          totalHours,
+          totalPieces,
+          status: 'submitted' as const,
+          submittedAt,
+          confirmedBy: null,
+          confirmedAt: null,
+        })
+      : this.attendanceSheetRepo.create({
+          jobId: job.id,
+          enterpriseId: job.userId,
+          date,
+          supervisorId,
+          supervisorName,
+          photoUrls: photos,
+          totalExpected,
+          totalPresent,
+          totalAbsent,
+          totalHours,
+          totalPieces,
+          status: 'submitted' as const,
+          submittedAt,
+          confirmedBy: null,
+          confirmedAt: null,
+        });
+
+    const savedSheet = await this.attendanceSheetRepo.save(sheet);
+
+    if (existingSheet) {
+      await this.attendanceSheetItemRepo.delete({ sheetId: savedSheet.id });
+    }
+
+    const items = records.map((record) => this.attendanceSheetItemRepo.create({
+      sheetId: savedSheet.id,
+      workerId: this.toNumber(record.workerId),
+      workerName: String(record.workerName || '').trim() || '临工',
+      attendance: this.normalizeAttendanceStatus(record.attendance) || 'normal',
+      checkInTime: record.checkInTime ?? null,
+      checkOutTime: record.checkOutTime ?? null,
+      hours: this.toNumber(record.hours),
+      pieces: this.toNumber(record.pieces),
+      note: String(record.note || '').trim() || null,
+    }));
+
+    if (items.length > 0) {
+      await this.attendanceSheetItemRepo.save(items);
+    }
+
+    return savedSheet;
+  }
+
+  private async buildAttendanceFromSheet(job: Job, sheet: AttendanceSheet) {
+    const items = await this.attendanceSheetItemRepo.find({
+      where: { sheetId: sheet.id },
+      order: { id: 'ASC' },
+    });
+    const companyName = await this.getCompanyName(job.userId, job.user?.nickname);
+
+    return {
+      job: {
+        id: job.id,
+        title: job.title,
+        company: companyName,
+        date: sheet.date,
+      },
+      checkoutRule: this.getCheckoutRule(job, sheet.date),
+      summary: {
+        totalExpected: this.toNumber(sheet.totalExpected),
+        totalPresent: this.toNumber(sheet.totalPresent),
+        totalAbsent: this.toNumber(sheet.totalAbsent),
+      },
+      records: items.map((item) => ({
+        workerId: item.workerId,
+        name: item.workerName,
+        attendance: item.attendance,
+        checkInTime: item.checkInTime || null,
+        checkOutTime: item.checkOutTime || null,
+        hours: this.toNumber(item.hours),
+        pieces: this.toNumber(item.pieces),
+        note: item.note || '',
+        photos: [],
+        checkoutMeta: this.getCheckoutMeta(job, item.checkOutTime, sheet.date),
+      })),
+      supervisor: sheet.supervisorId ? {
+        id: sheet.supervisorId,
+        name: sheet.supervisorName || '管理员',
+      } : null,
+      photos: sheet.photoUrls || [],
+      submittedAt: this.formatSheetDateTime(sheet.submittedAt || sheet.updatedAt || sheet.createdAt),
+      status: sheet.status,
+      confirmedAt: this.formatSheetDateTime(sheet.confirmedAt),
+      source: 'sheet',
+    };
   }
 
   private async ensureJob(jobId: number): Promise<Job> {
@@ -624,6 +886,7 @@ export class WorkService {
       relations: ['worker'],
     });
     const confirmedWorkers = workers.filter((worker) => ['confirmed', 'working', 'done'].includes(worker.status));
+    const workerCertMap = await this.getWorkerCertMap(workers.map((worker) => worker.workerId));
     const checkinMap = new Map<number, Checkin>();
     checkins
       .filter((checkin) => this.isSameDate(checkin.checkInAt, today))
@@ -646,11 +909,13 @@ export class WorkService {
       logMap.get(Number(workerApp.workerId)),
       job,
       today,
+      workerCertMap.get(Number(workerApp.workerId)) || null,
     ));
     const currentApp = userId
       ? workers.find((worker) => Number(worker.workerId) === Number(userId)) || null
       : null;
-    const checkinRule = this.getCheckinRule(job, workers, currentApp);
+    const currentCheckin = currentApp ? checkinMap.get(Number(currentApp.workerId)) : null;
+    const checkinRule = this.getCheckinRule(job, workers, currentApp, new Date(), !!currentCheckin);
     const supervisorApp = checkinRule.supervisorApp;
     const todayStart = await this.getDailyStart(normalizedJobId, today);
     const isSupervisor = currentApp ? Number(currentApp.isSupervisor) === 1 : false;
@@ -668,7 +933,10 @@ export class WorkService {
       checkoutRule: this.getCheckoutRule(job, today),
       supervisor: supervisorApp ? {
         id: supervisorApp.workerId,
-        name: supervisorApp.worker?.nickname || '管理员',
+        name: this.getDisplayName(
+          supervisorApp.worker,
+          workerCertMap.get(Number(supervisorApp.workerId)) || null,
+        ) || '管理员',
       } : null,
       hasSupervisor: checkinRule.hasSupervisor,
       canCheckin: checkinRule.canCheckin,
@@ -760,10 +1028,6 @@ export class WorkService {
     const targetWorkerApp = apps.find((app) => Number(app.workerId) === Number(targetWorkerId)) || null;
     const checkinRule = this.getCheckinRule(job, apps, targetWorkerApp, now);
 
-    if (!checkinRule.canCheckin) {
-      throw new BadRequestException(checkinRule.blockedReason || '当前不可打卡');
-    }
-
     const latestCheckin = await this.checkinRepo.findOne({
       where: { jobId, workerId: targetWorkerId },
       order: { id: 'DESC' },
@@ -771,6 +1035,12 @@ export class WorkService {
     if (latestCheckin && this.isSameDate(latestCheckin.checkInAt, today)) {
       return latestCheckin;
     }
+
+    if (!checkinRule.canCheckin) {
+      throw new BadRequestException(checkinRule.blockedReason || '当前不可打卡');
+    }
+
+    this.validateLocationCheckin(job, dto);
 
     const checkin = this.checkinRepo.create({
       jobId,
@@ -1010,15 +1280,19 @@ export class WorkService {
 
     const apps = await this.appRepo.find({
       where: { jobId },
+      relations: ['worker'],
     });
     const validWorkerIds = new Set(
       apps
         .filter((app) => ['confirmed', 'working', 'done'].includes(app.status))
         .map((app) => Number(app.workerId)),
     );
+    const workerCertMap = await this.getWorkerCertMap(apps.map((app) => app.workerId));
+    const appMap = new Map(apps.map((app) => [Number(app.workerId), app]));
 
     const photos = this.uniqueStrings(dto.photos);
     const savedLogs: WorkLog[] = [];
+    const normalizedRecords: AttendanceRecordDto[] = [];
 
     for (const record of records) {
       const workerId = this.normalizeWorkerId(record.workerId);
@@ -1043,6 +1317,16 @@ export class WorkService {
         photoUrls: photos,
       });
       savedLogs.push(log);
+      const workerApp = appMap.get(workerId);
+      normalizedRecords.push({
+        ...record,
+        workerId,
+        workerName: String(record.workerName || '').trim() || this.getDisplayName(
+          workerApp?.worker,
+          workerCertMap.get(workerId) || null,
+        ),
+        attendance,
+      });
 
       if (attendance !== 'absent') {
         await this.appRepo.update(
@@ -1051,6 +1335,19 @@ export class WorkService {
         );
       }
     }
+
+    const supervisorApp = appMap.get(Number(supervisorId));
+    await this.saveAttendanceSheet({
+      job,
+      date,
+      supervisorId,
+      supervisorName: this.getDisplayName(
+        supervisorApp?.worker,
+        workerCertMap.get(Number(supervisorId)) || null,
+      ) || '管理员',
+      photos,
+      records: normalizedRecords,
+    });
 
     return {
       message: '考勤报告已提交',
@@ -1063,7 +1360,15 @@ export class WorkService {
   async getAttendance(jobId: number, date?: string) {
     const normalizedJobId = this.normalizeJobId(jobId);
     const job = await this.ensureJob(normalizedJobId);
-    const targetDate = this.normalizeDate(date);
+    const targetDate = date
+      ? this.normalizeDate(date)
+      : ((await this.getLatestAttendanceSheet(normalizedJobId))?.date
+        || await this.getLatestWorkLogDate(normalizedJobId)
+        || this.normalizeDate());
+    const existingSheet = await this.getAttendanceSheetByDate(normalizedJobId, targetDate);
+    if (existingSheet) {
+      return this.buildAttendanceFromSheet(job, existingSheet);
+    }
     const companyName = await this.getCompanyName(job.userId, job.user?.nickname);
 
     const apps = await this.appRepo.find({
@@ -1072,6 +1377,7 @@ export class WorkService {
     });
     const confirmedApps = apps.filter((app) => ['confirmed', 'working', 'done'].includes(app.status));
     const supervisor = apps.find((app) => app.isSupervisor === 1);
+    const workerCertMap = await this.getWorkerCertMap(apps.map((app) => app.workerId));
 
     const logs = await this.workLogRepo.find({
       where: { jobId: normalizedJobId, date: targetDate },
@@ -1105,7 +1411,7 @@ export class WorkService {
 
       return {
         workerId: worker.id,
-        name: this.getDisplayName(worker),
+        name: this.getDisplayName(worker, workerCertMap.get(Number(worker.id)) || null),
         attendance,
         checkInTime: log?.checkInTime || (checkin ? this.formatTime(new Date(checkin.checkInAt)) : null),
         checkOutTime,
@@ -1141,7 +1447,10 @@ export class WorkService {
       records,
       supervisor: supervisor ? {
         id: supervisor.workerId,
-        name: supervisor.worker?.nickname || '管理员',
+        name: this.getDisplayName(
+          supervisor.worker,
+          workerCertMap.get(Number(supervisor.workerId)) || null,
+        ) || '管理员',
       } : null,
       photos: allPhotos,
       submittedAt: submittedAt
@@ -1158,13 +1467,45 @@ export class WorkService {
   async confirmAttendance(enterpriseId: number, jobId: number) {
     const normalizedJobId = this.normalizeJobId(jobId);
     const job = await this.ensureEnterprise(normalizedJobId, enterpriseId);
-    const date = this.normalizeDate();
-    const attendanceCount = await this.workLogRepo.count({
-      where: { jobId: normalizedJobId, date },
-    });
-    if (attendanceCount === 0) {
-      throw new BadRequestException('暂无考勤数据可确认');
+    let sheet = await this.getLatestAttendanceSheet(normalizedJobId);
+
+    if (!sheet) {
+      const latestDate = await this.getLatestWorkLogDate(normalizedJobId);
+      if (!latestDate) {
+        throw new BadRequestException('暂无考勤数据可确认');
+      }
+
+      const attendance = await this.getAttendance(normalizedJobId, latestDate);
+      const records = Array.isArray(attendance.records) ? attendance.records : [];
+      if (records.length === 0) {
+        throw new BadRequestException('暂无考勤数据可确认');
+      }
+
+      sheet = await this.saveAttendanceSheet({
+        job,
+        date: latestDate,
+        supervisorId: Number(attendance.supervisor?.id || 0),
+        supervisorName: String(attendance.supervisor?.name || '').trim() || '管理员',
+        photos: this.uniqueStrings(attendance.photos),
+        records: records.map((record) => ({
+          workerId: this.toNumber(record.workerId),
+          workerName: String(record.name || '').trim() || '临工',
+          attendance: record.attendance,
+          checkInTime: record.checkInTime ?? null,
+          checkOutTime: record.checkOutTime ?? null,
+          hours: this.toNumber(record.hours),
+          pieces: this.toNumber(record.pieces),
+          note: String(record.note || '').trim(),
+        })),
+      });
     }
+
+    await this.attendanceSheetRepo.save({
+      ...sheet,
+      status: 'confirmed',
+      confirmedBy: enterpriseId,
+      confirmedAt: new Date(),
+    });
 
     if (!['pending_settlement', 'settled', 'closed'].includes(job.status)) {
       await this.jobRepo.update(normalizedJobId, { status: 'pending_settlement' });
@@ -1175,6 +1516,10 @@ export class WorkService {
       { status: 'done' },
     );
 
-    return { message: '考勤已确认，进入结算流程' };
+    return {
+      message: '考勤已确认，进入结算流程',
+      date: sheet.date,
+      sheetId: sheet.id,
+    };
   }
 }

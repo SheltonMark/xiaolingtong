@@ -807,8 +807,7 @@ Page({
     return {
       ok: true,
       currentTime,
-      missingCheckoutWorkers,
-      pendingPhotoCount: this.data.photoRecords.filter(item => item.status === 'pending').length
+      missingCheckoutWorkers
     }
   },
 
@@ -877,9 +876,6 @@ Page({
       const contentLines = ['收工后将提交考勤并生成结算单，请确认记录已核对完成。']
       if (autoFillCheckoutTime) {
         contentLines.push(`未签退人员将按 ${validation.currentTime} 自动补齐签退时间。`)
-      }
-      if (validation.pendingPhotoCount > 0) {
-        contentLines.push(`还有 ${validation.pendingPhotoCount} 个现场拍照时段未上传，请确认是否继续。`)
       }
 
       wx.showModal({

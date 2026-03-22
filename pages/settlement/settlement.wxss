@@ -7,6 +7,8 @@
 .st-job-info { display: flex; flex-direction: column; }
 .st-company { font-size: 28rpx; font-weight: 600; color: #1E293B; }
 .st-date { font-size: 22rpx; color: #94A3B8; margin-top: 4rpx; }
+.st-meta-row { display: flex; flex-wrap: wrap; gap: 12rpx 20rpx; margin-bottom: 20rpx; }
+.st-meta { font-size: 22rpx; color: #64748B; }
 .st-summary { display: flex; background-color: #F8FAFC; border-radius: 16rpx; padding: 20rpx; }
 .st-sum-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
 .st-sum-val { font-size: 28rpx; font-weight: 700; color: #1E293B; }

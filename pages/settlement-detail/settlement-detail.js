@@ -47,7 +47,7 @@ Page({
   onSubmitSettlement() {
     wx.showModal({
       title: '提交结算单',
-      content: '提交后将通知临工确认工时，超时将自动确认',
+      content: '提交后将通知临工按已确认的考勤汇总单核对工时与收益，超时将自动确认',
       success: (res) => {
         if (res.confirm) {
           post('/settlements/' + this.data.jobId + '/confirm').then(() => {

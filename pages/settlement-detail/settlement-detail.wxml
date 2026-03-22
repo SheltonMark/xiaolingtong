@@ -10,6 +10,10 @@
         <text class="st-date">{{job.dateRange}}</text>
       </view>
     </view>
+    <view class="st-meta-row" wx:if="{{job.settlementGeneratedAt || job.attendanceSheetDateLabel}}">
+      <text class="st-meta" wx:if="{{job.settlementGeneratedAt}}">生成时间：{{job.settlementGeneratedAt}}</text>
+      <text class="st-meta" wx:if="{{job.attendanceSheetDateLabel}}">汇总单日期：{{job.attendanceSheetDateLabel}}</text>
+    </view>
     <view class="st-summary">
       <view class="st-sum-item">
         <text class="st-sum-val text-primary">{{job.totalWorkers}}</text>
@@ -46,6 +50,7 @@
   <!-- 结算明细 -->
   <view class="st-card">
     <text class="card-title">结算明细</text>
+    <text class="st-hint">以下结算明细来源于已确认的考勤汇总单</text>
     <!-- 表头 -->
     <view class="table-header">
       <text class="th" style="flex:1.2;">姓名</text>
@@ -94,6 +99,6 @@
     <button class="btn btn-primary" wx:if="{{role === 'enterprise'}}" bindtap="onPay">确认支付 ¥{{job.factoryTotal}}</button>
     <button class="btn btn-cta" wx:if="{{role === 'manager'}}" bindtap="onSubmitSettlement">提交结算单</button>
     <text class="st-hint" wx:if="{{role === 'enterprise'}}">支付后工资将自动发放至临工钱包</text>
-    <text class="st-hint" wx:if="{{role === 'manager'}}">提交后将通知临工确认工时</text>
+    <text class="st-hint" wx:if="{{role === 'manager'}}">提交后将通知临工按已确认的考勤汇总单核对工时与收益</text>
   </view>
 </view>
