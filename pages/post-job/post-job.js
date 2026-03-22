@@ -34,6 +34,7 @@ Page({
       { label: '熟手优先', selected: false }
     ],
     images: [],
+    isUploading: false,
     phoneChecked: false,
     wechatChecked: false,
     wechatQrChecked: false
@@ -141,11 +142,21 @@ Page({
       success: (res) => {
         const newImages = res.tempFiles.map(f => f.tempFilePath)
         const uploads = newImages.map(path => upload(path))
-        Promise.all(uploads).then(results => {
-          const urls = results.map(r => (r.data && r.data.url) || r.data)
-          this.setData({ images: [...this.data.images, ...urls] })
-        }).catch(() => {
-          this.setData({ images: [...this.data.images, ...newImages] })
+        this.setData({ isUploading: true })
+        Promise.allSettled(uploads).then(results => {
+          const urls = results
+            .filter(r => r.status === 'fulfilled')
+            .map(r => (r.value.data && r.value.data.url) || r.value.data || '')
+            .filter(Boolean)
+          const failCount = results.length - urls.length
+          if (urls.length) {
+            this.setData({ images: [...this.data.images, ...urls] })
+          }
+          if (failCount > 0) {
+            wx.showToast({ title: `有${failCount}张图片上传失败，请重试`, icon: 'none' })
+          }
+        }).finally(() => {
+          this.setData({ isUploading: false })
         })
       }
     })
@@ -159,6 +170,10 @@ Page({
 
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    if (this.data.isUploading) {
+      wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
+      return
+    }
 
     const { form, settleType, benefits, images, phoneChecked, wechatChecked, wechatQrChecked } = this.data
     if (!form.title) { wx.showToast({ title: '请输入招工标题', icon: 'none' }); return }

@@ -16,6 +16,8 @@ import { SettlementItem } from '../../entities/settlement-item.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { Job } from '../../entities/job.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
+import { Notification } from '../../entities/notification.entity';
 
 describe('PaymentService', () => {
   let service: PaymentService;
@@ -30,6 +32,8 @@ describe('PaymentService', () => {
   let walletRepo: jest.Mocked<any>;
   let walletTxRepo: jest.Mocked<any>;
   let jobRepo: jest.Mocked<any>;
+  let sysConfigRepo: jest.Mocked<any>;
+  let notiRepo: jest.Mocked<any>;
 
   beforeEach(async () => {
     configService = {
@@ -104,6 +108,15 @@ describe('PaymentService', () => {
       update: jest.fn(),
     } as jest.Mocked<any>;
 
+    sysConfigRepo = {
+      findOne: jest.fn(),
+    } as jest.Mocked<any>;
+
+    notiRepo = {
+      create: jest.fn((payload: any) => payload),
+      save: jest.fn(),
+    } as jest.Mocked<any>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PaymentService,
@@ -151,6 +164,14 @@ describe('PaymentService', () => {
           provide: getRepositoryToken(Job),
           useValue: jobRepo,
         },
+        {
+          provide: getRepositoryToken(SysConfig),
+          useValue: sysConfigRepo,
+        },
+        {
+          provide: getRepositoryToken(Notification),
+          useValue: notiRepo,
+        },
       ],
     }).compile();
 
@@ -164,7 +185,7 @@ describe('PaymentService', () => {
 
       const result = service.generateOutTradeNo(prefix, orderId);
 
-      expect(result).toMatch(/^MBR_123_\d+_[a-f0-9]{8}$/);
+      expect(result).toMatch(/^MBR_123_[a-z0-9]+_[a-f0-9]{8}$/);
     });
 
     it('should generate out trade no with prefix only', () => {
@@ -172,7 +193,7 @@ describe('PaymentService', () => {
 
       const result = service.generateOutTradeNo(prefix);
 
-      expect(result).toMatch(/^BEAN_0_\d+_[a-f0-9]{8}$/);
+      expect(result).toMatch(/^BEAN_0_[a-z0-9]+_[a-f0-9]{8}$/);
     });
 
     it('should generate unique out trade nos', () => {
@@ -194,6 +215,117 @@ describe('PaymentService', () => {
         const result = service.generateOutTradeNo(prefix);
         expect(result.startsWith(prefix)).toBe(true);
       });
+    });
+  });
+
+  describe('transferToWallet', () => {
+    it('should return accepted transfer batch data', async () => {
+      const createTime = new Date();
+      const batchesTransfer = jest.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          out_batch_no: 'WD_1_abc123',
+          batch_id: '1030000071100999991182020050700019480001',
+          create_time: createTime,
+        },
+      });
+
+      (service as any).pay = { batches_transfer: batchesTransfer };
+
+      const result = await service.transferToWallet({
+        outBatchNo: 'WD_1_abc123',
+        outDetailNo: '1',
+        openid: 'openid_1',
+        amount: 2000,
+        remark: '临工提现',
+      });
+
+      expect(batchesTransfer).toHaveBeenCalledWith({
+        appid: '',
+        out_batch_no: 'WD_1_abc123',
+        batch_name: '临工提现',
+        batch_remark: '临工提现',
+        total_amount: 2000,
+        total_num: 1,
+        transfer_detail_list: [
+          {
+            out_detail_no: '1',
+            transfer_amount: 2000,
+            transfer_remark: '临工提现',
+            openid: 'openid_1',
+          },
+        ],
+      });
+      expect(result).toEqual({
+        out_batch_no: 'WD_1_abc123',
+        batch_id: '1030000071100999991182020050700019480001',
+        create_time: createTime,
+      });
+    });
+
+    it('should throw when transfer response is not accepted', async () => {
+      (service as any).pay = {
+        batches_transfer: jest.fn().mockResolvedValue({
+          status: 400,
+          error: 'PARAM_ERROR',
+        }),
+      };
+
+      await expect(
+        service.transferToWallet({
+          outBatchNo: 'WD_1_abc123',
+          outDetailNo: '1',
+          openid: 'openid_1',
+          amount: 2000,
+          remark: '临工提现',
+        }),
+      ).rejects.toThrow('PARAM_ERROR');
+    });
+  });
+
+  describe('queryTransferDetail', () => {
+    it('should return transfer detail data', async () => {
+      const queryDetail = jest.fn().mockResolvedValue({
+        status: 200,
+        data: {
+          out_batch_no: 'WD_1_abc123',
+          out_detail_no: '1',
+          detail_status: 'SUCCESS',
+        },
+      });
+
+      (service as any).pay = { query_batches_transfer_detail: queryDetail };
+
+      const result = await service.queryTransferDetail({
+        outBatchNo: 'WD_1_abc123',
+        outDetailNo: '1',
+      });
+
+      expect(queryDetail).toHaveBeenCalledWith({
+        out_batch_no: 'WD_1_abc123',
+        out_detail_no: '1',
+      });
+      expect(result).toEqual({
+        out_batch_no: 'WD_1_abc123',
+        out_detail_no: '1',
+        detail_status: 'SUCCESS',
+      });
+    });
+
+    it('should throw when transfer detail query fails', async () => {
+      (service as any).pay = {
+        query_batches_transfer_detail: jest.fn().mockResolvedValue({
+          status: 500,
+          error: 'SYSTEM_ERROR',
+        }),
+      };
+
+      await expect(
+        service.queryTransferDetail({
+          outBatchNo: 'WD_1_abc123',
+          outDetailNo: '1',
+        }),
+      ).rejects.toThrow('SYSTEM_ERROR');
     });
   });
 
@@ -343,6 +475,7 @@ describe('PaymentService', () => {
       const order = {
         id: 2,
         status: 'pending',
+        durationDays: 7,
         startAt: null,
         endAt: null,
       };

@@ -86,6 +86,20 @@ export class JobService {
     return 'hourly';
   }
 
+  private normalizeArrayInput(value: any): any[] | undefined {
+    if (Array.isArray(value)) return value;
+
+    if (value && typeof value === 'object') {
+      const keys = Object.keys(value)
+        .filter((key) => /^\d+$/.test(key))
+        .sort((a, b) => Number(a) - Number(b));
+      if (!keys.length) return undefined;
+      return keys.map((key) => value[key]);
+    }
+
+    return undefined;
+  }
+
   private normalizeBenefits(value: any) {
     if (typeof value === 'string') {
       const text = value.trim();
@@ -101,8 +115,9 @@ export class JobService {
         );
       }
     }
-    if (!Array.isArray(value)) return undefined;
-    const normalized = value
+    const arrayValue = this.normalizeArrayInput(value);
+    if (!arrayValue) return undefined;
+    const normalized = arrayValue
       .map((item: any) => {
         if (!item) return null;
         if (typeof item === 'string') return { label: item, color: 'green' };
@@ -132,8 +147,19 @@ export class JobService {
   }
 
   private normalizeImages(value: any) {
-    if (!Array.isArray(value)) return undefined;
-    const normalized = value.filter(Boolean);
+    if (typeof value === 'string') {
+      const text = value.trim();
+      if (!text) return undefined;
+      try {
+        return this.normalizeImages(JSON.parse(text));
+      } catch {
+        return [text];
+      }
+    }
+
+    const arrayValue = this.normalizeArrayInput(value);
+    if (!arrayValue) return undefined;
+    const normalized = arrayValue.filter(Boolean);
     return normalized.length ? normalized : undefined;
   }
 
@@ -418,6 +444,7 @@ export class JobService {
 
     return {
       ...job,
+      images: this.normalizeImages(job.images) || [],
       need: job.needCount,
       total: job.needCount,
       applied: appliedCount,

@@ -22,7 +22,8 @@ Page({
     jobTypeIndex: -1,
     benefits: ['包午餐', '有空调', '包住宿', '有班车', '长期合作', '熟手优先'],
     selectedBenefits: [],
-    images: []
+    images: [],
+    isUploading: false
   },
 
   onInput(e) {
@@ -68,11 +69,21 @@ Page({
       success: (res) => {
         const newImages = res.tempFiles.map(f => f.tempFilePath)
         const uploads = newImages.map(path => upload(path))
-        Promise.all(uploads).then(results => {
-          const urls = results.map(r => r.data.url || r.data)
-          this.setData({ images: [...this.data.images, ...urls] })
-        }).catch(() => {
-          this.setData({ images: [...this.data.images, ...newImages] })
+        this.setData({ isUploading: true })
+        Promise.allSettled(uploads).then(results => {
+          const urls = results
+            .filter(r => r.status === 'fulfilled')
+            .map(r => (r.value.data && r.value.data.url) || r.value.data || '')
+            .filter(Boolean)
+          const failCount = results.length - urls.length
+          if (urls.length) {
+            this.setData({ images: [...this.data.images, ...urls] })
+          }
+          if (failCount > 0) {
+            wx.showToast({ title: `有${failCount}张图片上传失败，请重试`, icon: 'none' })
+          }
+        }).finally(() => {
+          this.setData({ isUploading: false })
         })
       }
     })
@@ -85,6 +96,10 @@ Page({
   },
 
   onSubmit() {
+    if (this.data.isUploading) {
+      wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
+      return
+    }
     const { form, salaryMode, salaryModes, selectedBenefits, images } = this.data
     if (!form.title || !form.salary || !form.need) {
       wx.showToast({ title: '请填写必填项', icon: 'none' })

@@ -496,6 +496,32 @@ describe('PostService', () => {
       expect(result.id).toBe(1);
     });
 
+    it('should normalize object-shaped images before saving', async () => {
+      const dto = {
+        type: 'purchase',
+        title: 'test product',
+        category: 'electronics',
+        description: 'test description',
+        images: { 0: 'image1.jpg', 1: 'image2.jpg' },
+        showPhone: true,
+        contactName: 'John',
+        contactPhone: '13800138000',
+      };
+
+      keywordRepo.find.mockResolvedValue([]);
+      postRepo.create.mockImplementation((payload) => ({ id: 1, ...payload }));
+      postRepo.save.mockImplementation(async (payload) => payload);
+
+      const result = await service.create(1, dto);
+
+      expect(postRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          images: ['image1.jpg', 'image2.jpg'],
+        }),
+      );
+      expect(result.images).toEqual(['image1.jpg', 'image2.jpg']);
+    });
+
     it('should throw error when content contains forbidden keyword', async () => {
       const dto = {
         type: 'purchase',

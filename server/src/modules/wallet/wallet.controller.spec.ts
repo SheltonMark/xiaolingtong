@@ -265,9 +265,9 @@ describe('WalletController', () => {
       const userId = 1;
       const amount = 500;
       const mockResult = {
-        message: '提现成功',
+        message: '提现申请已提交',
         balance: 500,
-        transactionId: 'tx_123',
+        status: 'pending',
       };
 
       walletService.withdraw.mockResolvedValue(mockResult);
@@ -275,8 +275,9 @@ describe('WalletController', () => {
       const result = await controller.withdraw(userId, amount);
 
       expect(walletService.withdraw).toHaveBeenCalledWith(userId, amount);
-      expect(result.message).toBe('提现成功');
+      expect(result.message).toBe('提现申请已提交');
       expect(result.balance).toBe(500);
+      expect(result.status).toBe('pending');
     });
 
     it('should throw error when amount is negative', async () => {
