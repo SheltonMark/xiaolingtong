@@ -54,7 +54,6 @@
     <view class="st-applicant-actions">
       <button class="st-mini-btn st-mini-primary" wx:if="{{item.canAccept}}" data-id="{{item.workerId}}" bindtap="onAccept">录用</button>
       <button class="st-mini-btn st-mini-ghost" wx:if="{{item.canReject}}" data-id="{{item.workerId}}" bindtap="onReject">拒绝</button>
-      <button class="st-mini-btn st-mini-warm" wx:if="{{item.canSetSupervisor && !item.isSupervisor}}" data-id="{{item.workerId}}" bindtap="onSetSupervisor">设为主管</button>
     </view>
   </view>
 </view>

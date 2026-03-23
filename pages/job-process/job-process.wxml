@@ -32,7 +32,6 @@
     bind:filterchange="onApplicantFilterChange"
     bind:accept="onAcceptApplicant"
     bind:reject="onRejectApplicant"
-    bind:setsupervisor="onSetSupervisor"
   />
 
   <attendance-panel

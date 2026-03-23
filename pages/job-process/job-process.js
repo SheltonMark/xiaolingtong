@@ -64,7 +64,7 @@ function getTabHint(role, tab) {
       : '这里展示按考勤汇总生成的结算单，供主管复核支付进度。'
   }
   if (tab === 'applications') {
-    return '报名筛选、录用和主管设置统一在这里处理。'
+    return '报名筛选和录用处理统一在这里完成。'
   }
   if (tab === 'attendance') {
     return '主管提交后，企业在这里确认考勤汇总，再进入结算。'
@@ -404,22 +404,6 @@ Page({
         post('/jobs/' + this.data.jobId + '/applications/' + workerId + '/reject').then(() => {
           wx.showToast({ title: '已拒绝', icon: 'success' })
           this.loadManage(this.data.jobId)
-        }).catch(() => {})
-      }
-    })
-  },
-
-  onSetSupervisor(e) {
-    const workerId = (e.detail && e.detail.id) || e.currentTarget.dataset.id
-    wx.showModal({
-      title: '设置主管',
-      content: '设置后该临工将负责现场签到和考勤提交。',
-      success: (res) => {
-        if (!res.confirm) return
-        post('/jobs/' + this.data.jobId + '/supervisor', { workerId }).then(() => {
-          wx.showToast({ title: '已设置主管', icon: 'success' })
-          this.loadManage(this.data.jobId)
-          this.loadAttendance(this.data.jobId)
         }).catch(() => {})
       }
     })

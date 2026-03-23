@@ -18,10 +18,6 @@ Component({
 
     onReject(e) {
       this.triggerEvent('reject', { id: e.currentTarget.dataset.id })
-    },
-
-    onSetSupervisor(e) {
-      this.triggerEvent('setsupervisor', { id: e.currentTarget.dataset.id })
     }
   }
 })

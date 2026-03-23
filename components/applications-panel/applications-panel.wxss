@@ -156,22 +156,19 @@
 
 .st-applicant-actions {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+  align-items: stretch;
   gap: 14rpx;
   margin-top: 20rpx;
 }
 
 .st-mini-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  min-width: 140rpx;
-  height: 64rpx;
-  line-height: 1.2;
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 68rpx;
+  line-height: 68rpx;
   margin: 0;
-  padding: 0 26rpx;
+  padding: 0 24rpx;
   box-sizing: border-box;
   border-radius: 18rpx;
   font-size: 22rpx;
@@ -180,6 +177,7 @@
   font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
   white-space: nowrap;
   border: none;
+  overflow: hidden;
 }
 
 .st-mini-btn::after {
@@ -194,11 +192,6 @@
 .st-mini-ghost {
   background-color: #FFF1F2;
   color: #E11D48;
-}
-
-.st-mini-warm {
-  background-color: #FFFBEB;
-  color: #D97706;
 }
 
 .st-empty-card {
