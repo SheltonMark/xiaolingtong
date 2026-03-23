@@ -942,7 +942,7 @@ Page({
 
   onReport(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    wx.navigateTo({ url: '/pages/report/report?id=' + id })
+    wx.navigateTo({ url: '/pages/report/report?id=' + id + '&targetType=post' })
   },
 
   onShare(e) {

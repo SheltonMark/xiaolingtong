@@ -44,6 +44,7 @@ describe('ReportModule Integration Tests', () => {
       const mockReport = {
         id: 1,
         reporterId: 1,
+        targetType: 'post',
         targetId: 2,
         reason: 'Spam',
         description: 'Spamming content',
@@ -54,6 +55,7 @@ describe('ReportModule Integration Tests', () => {
       reportRepository.save.mockResolvedValue(mockReport);
 
       const result = await controller.create(1, {
+        targetType: 'post',
         targetId: 2,
         reason: 'Spam',
         description: 'Spamming content',
@@ -69,6 +71,7 @@ describe('ReportModule Integration Tests', () => {
       const mockReport = {
         id: 1,
         reporterId: 1,
+        targetType: 'post',
         targetId: 2,
         reason: 'Fraud',
         description: 'Fraudulent activity',
@@ -79,6 +82,7 @@ describe('ReportModule Integration Tests', () => {
       reportRepository.save.mockResolvedValue(mockReport);
 
       const result = await controller.create(1, {
+        targetType: 'post',
         targetId: 2,
         reason: 'Fraud',
         description: 'Fraudulent activity',
@@ -91,6 +95,7 @@ describe('ReportModule Integration Tests', () => {
       const mockReport = {
         id: 1,
         reporterId: 1,
+        targetType: 'post',
         targetId: 2,
         reason: 'Harassment',
         description: 'Harassing messages',
@@ -101,12 +106,49 @@ describe('ReportModule Integration Tests', () => {
       reportRepository.save.mockResolvedValue(mockReport);
 
       const result = await controller.create(1, {
+        targetType: 'post',
         targetId: 2,
         reason: 'Harassment',
         description: 'Harassing messages',
       });
 
       expect(result.reason).toBe('Harassment');
+    });
+
+    it('should map legacy type field to reason and default targetType', async () => {
+      const mockReport = {
+        id: 2,
+        reporterId: 1,
+        targetType: 'post',
+        targetId: 9,
+        reason: '璇堥獥',
+        description: 'legacy payload',
+        images: ['https://img.test/report-1.jpg'],
+        status: 'pending',
+      };
+
+      reportRepository.create.mockImplementation((payload) => payload);
+      reportRepository.save.mockResolvedValue(mockReport);
+
+      const result = await controller.create(1, {
+        targetId: 9,
+        type: '璇堥獥',
+        description: 'legacy payload',
+        images: { 0: 'https://img.test/report-1.jpg' },
+      });
+
+      expect(reportRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reporterId: 1,
+          targetType: 'post',
+          targetId: 9,
+          reason: '璇堥獥',
+          description: 'legacy payload',
+          images: ['https://img.test/report-1.jpg'],
+        }),
+      );
+      expect(result.targetType).toBe('post');
+      expect(result.reason).toBe('璇堥獥');
     });
   });
 });
