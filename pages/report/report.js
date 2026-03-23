@@ -3,13 +3,17 @@ const { post, upload } = require('../../utils/request')
 Page({
   data: {
     targetId: '',
+    targetType: 'post',
     types: ['虚假信息', '诈骗', '侵权', '色情低俗', '其他'],
     selectedType: '',
     form: { description: '' },
     images: []
   },
   onLoad(options) {
-    if (options.id) this.setData({ targetId: options.id })
+    this.setData({
+      targetId: options.id || '',
+      targetType: options.targetType || 'post'
+    })
   },
   onTypeTap(e) { this.setData({ selectedType: e.currentTarget.dataset.tag }) },
   onInput(e) { this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value }) },
@@ -34,7 +38,8 @@ Page({
     wx.showLoading({ title: '提交中...' })
     post('/reports', {
       targetId: this.data.targetId,
-      type: this.data.selectedType,
+      targetType: this.data.targetType || 'post',
+      reason: this.data.selectedType,
       description: this.data.form.description,
       images: this.data.images
     }).then(() => {

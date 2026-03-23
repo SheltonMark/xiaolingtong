@@ -486,7 +486,7 @@ Page({
   },
 
   onReport() {
-    wx.navigateTo({ url: '/pages/report/report?id=' + this.data.detail.id })
+    wx.navigateTo({ url: '/pages/report/report?id=' + this.data.detail.id + '&targetType=post' })
   },
 
   loadFavStatus(id) {
