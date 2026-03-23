@@ -100,7 +100,7 @@ Page({
       text: statusMeta.text,
       color: statusMeta.color,
       hint: item.timeHint || '',
-      primaryActionText: item.actionText || '管理招工',
+      primaryActionText: item.actionText === '管理招工' ? '查看报名' : (item.actionText || '查看报名'),
       primaryActionTab: item.actionTab || 'applications',
       isOverdue: false
     }
@@ -129,8 +129,9 @@ Page({
       return { text: '报名管理', tab: 'applications' }
     }
 
+    const fallbackText = (jobDisplay && jobDisplay.primaryActionText) || ''
     return {
-      text: (jobDisplay && jobDisplay.primaryActionText) || '管理招工',
+      text: fallbackText === '管理招工' ? '查看报名' : (fallbackText || '查看报名'),
       tab: (jobDisplay && jobDisplay.primaryActionTab) || 'applications'
     }
   },
@@ -181,6 +182,11 @@ Page({
         timeHint: jobDisplay ? jobDisplay.hint : '',
         primaryActionText: primaryAction.text,
         primaryActionTab: primaryAction.tab,
+        detailActionText: item.type === 'job' ? '岗位详情' : '查看详情',
+        promoteActionText: item.type === 'job' ? '设置急招' : '推广置顶',
+        showDetailAction: true,
+        showDeleteAction: true,
+        showPromoteAction: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting') && !(jobDisplay && jobDisplay.isOverdue),
         isPromoted: !!item.isPromoted,
         canPromote: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting') && !(jobDisplay && jobDisplay.isOverdue)
       }
@@ -225,64 +231,25 @@ Page({
     wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + jobId + '&tab=' + tab })
   },
 
-  getPostByIndex(index) {
-    const list = this.data.posts || []
-    if (Number.isNaN(index) || index < 0 || index >= list.length) return null
-    return list[index]
+  onDirectDelete(e) {
+    this.confirmDeletePost({
+      id: e.currentTarget.dataset.id,
+      typeKey: e.currentTarget.dataset.type
+    })
   },
 
-  getMoreActionItems(item) {
-    const actions = []
-
-    if (item.typeKey === 'job') {
-      actions.push({ key: 'detail', text: '岗位详情' })
-      if (item.canPromote) {
-        actions.push({ key: 'urgent', text: '设置急招' })
-      }
-    } else {
-      if (item.canPromote) {
-        actions.push({ key: 'promote', text: '推广置顶' })
-      }
+  onDirectPromote(e) {
+    const item = {
+      id: e.currentTarget.dataset.id,
+      typeKey: e.currentTarget.dataset.type
     }
 
-    actions.push({ key: 'delete', text: '删除发布' })
-    return actions
-  },
+    if (item.typeKey === 'job') {
+      this.openUrgentSetting(item)
+      return
+    }
 
-  onOpenMoreActions(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const item = this.getPostByIndex(index)
-    if (!item) return
-
-    const actions = this.getMoreActionItems(item)
-    if (!actions.length) return
-
-    wx.showActionSheet({
-      itemList: actions.map(action => action.text),
-      success: (res) => {
-        const action = actions[res.tapIndex]
-        if (!action) return
-
-        if (action.key === 'detail') {
-          this.openPostDetail(item)
-          return
-        }
-
-        if (action.key === 'urgent') {
-          this.openUrgentSetting(item)
-          return
-        }
-
-        if (action.key === 'promote') {
-          this.openPromotion(item)
-          return
-        }
-
-        if (action.key === 'delete') {
-          this.confirmDeletePost(item)
-        }
-      }
-    })
+    this.openPromotion(item)
   },
 
   getDeletePath(type, id) {

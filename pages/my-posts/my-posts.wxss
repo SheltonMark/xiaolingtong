@@ -47,11 +47,31 @@
   justify-content: space-between;
   margin-bottom: 16rpx;
 }
+.post-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.post-top-right {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+.post-top-delete {
+  font-size: 22rpx;
+  color: #94A3B8;
+  line-height: 1;
+  padding: 8rpx 0;
+}
 
 /* 类型标签 */
 .type-tag {
   font-size: 20rpx;
-  padding: 4rpx 0;
+  padding: 4rpx 12rpx;
   border-radius: 6rpx;
   font-weight: 500;
 }
@@ -155,29 +175,21 @@
 }
 .meta-views { margin-left: auto; }
 
-.deadline-tip {
-  margin-bottom: 18rpx;
-  padding: 16rpx 20rpx;
-  border-radius: 16rpx;
-  background: linear-gradient(135deg, #FFF7ED 0%, #FFFDF7 100%);
-  border: 1rpx solid #FED7AA;
-}
-
-.deadline-tip-text {
-  font-size: 22rpx;
-  line-height: 1.6;
-  color: #C2410C;
-}
-
 /* 操作按钮 */
 .post-actions {
   display: flex;
-  gap: 16rpx;
+  flex-direction: column;
+  gap: 12rpx;
   padding-top: 16rpx;
   border-top: 1rpx solid #F1F5F9;
 }
+.post-actions-secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
 .act-btn {
-  height: 72rpx;
+  height: 68rpx;
   display: block;
   font-size: 22rpx;
   font-weight: 500;
@@ -185,17 +197,17 @@
   border-radius: 12rpx;
   text-align: center;
   border: none;
-  line-height: 72rpx;
+  line-height: 68rpx;
   box-sizing: border-box;
   overflow: hidden;
 }
 .act-btn::after { border: none; }
-.act-btn-primary { flex: 1; }
+.act-btn-main {
+  width: 100%;
+}
+.post-actions-secondary .act-btn {
+  flex: 0 0 calc((100% - 12rpx) / 2);
+}
 .act-blue { background-color: #EFF6FF; color: #3B82F6; }
 .act-gold { background-color: #FFFBEB; color: #D97706; }
-.act-secondary {
-  flex: 0 0 156rpx;
-  border: 1rpx solid #E2E8F0;
-  background-color: #F8FAFC;
-  color: #475569;
-}
+.act-orange { background-color: #FFF7ED; color: #F97316; }

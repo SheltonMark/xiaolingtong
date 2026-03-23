@@ -14,11 +14,22 @@
           wx:for="{{posts}}" wx:key="uniqueKey"
           wx:if="{{currentTab === 0 || item.typeKey === tabs[currentTab].key}}">
       <view class="post-top">
-        <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
-        <text class="promote-tag" wx:if="{{item.isPromoted}}">置顶中</text>
-        <text class="urgent-tag" wx:if="{{item.urgent}}">急招中</text>
-        <view class="status-tag status-bg-{{item.statusColor}}">
-          <text>{{item.statusText}}</text>
+        <view class="post-top-left">
+          <text class="type-tag type-{{item.typeColor}}">{{item.type}}</text>
+          <text class="promote-tag" wx:if="{{item.isPromoted}}">置顶中</text>
+          <text class="urgent-tag" wx:if="{{item.urgent}}">急招中</text>
+        </view>
+        <view class="post-top-right">
+          <view class="status-tag status-bg-{{item.statusColor}}">
+            <text>{{item.statusText}}</text>
+          </view>
+          <text
+            wx:if="{{item.showDeleteAction}}"
+            class="post-top-delete"
+            data-id="{{item.id}}"
+            data-type="{{item.typeKey}}"
+            bindtap="onDirectDelete"
+          >删除</text>
         </view>
       </view>
 
@@ -60,30 +71,38 @@
         <text class="meta-item meta-views" wx:if="{{item.views > 0}}">{{item.views}}次浏览</text>
       </view>
 
-      <view class="deadline-tip" wx:if="{{item.typeKey === 'job' && item.timeHint}}">
-        <text class="deadline-tip-text">{{item.timeHint}}</text>
-      </view>
-
       <view class="post-actions">
         <button
           wx:if="{{item.typeKey === 'job'}}"
-          class="act-btn act-gold act-btn-primary"
+          class="act-btn act-gold act-btn-main"
           data-id="{{item.id}}"
           data-tab="{{item.primaryActionTab}}"
           bindtap="onManageJob"
-        >{{item.primaryActionText || '管理招工'}}</button>
+        >{{item.primaryActionText || '查看报名'}}</button>
         <button
           wx:else
-          class="act-btn act-blue act-btn-primary"
+          class="act-btn act-blue act-btn-main"
           data-id="{{item.id}}"
           data-type="{{item.typeKey}}"
           bindtap="onViewPost"
         >{{item.primaryActionText || '查看详情'}}</button>
-        <button
-          class="act-btn act-secondary"
-          data-index="{{index}}"
-          bindtap="onOpenMoreActions"
-        >更多</button>
+
+        <view class="post-actions-secondary">
+          <button
+            class="act-btn act-blue"
+            wx:if="{{item.showDetailAction}}"
+            data-id="{{item.id}}"
+            data-type="{{item.typeKey}}"
+            bindtap="onViewPost"
+          >{{item.detailActionText}}</button>
+          <button
+            class="act-btn act-orange"
+            wx:if="{{item.showPromoteAction}}"
+            data-id="{{item.id}}"
+            data-type="{{item.typeKey}}"
+            bindtap="onDirectPromote"
+          >{{item.promoteActionText}}</button>
+        </view>
       </view>
     </view>
   </view>
