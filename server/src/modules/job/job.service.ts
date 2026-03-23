@@ -934,26 +934,10 @@ export class JobService {
   }
 
   async setSupervisor(jobId: number, userId: number, dto: { workerId: number }) {
-    const job = await this.jobRepo.findOne({ where: { id: jobId } });
-    if (job && this.isSameUserId(job.userId, userId)) {
-      job.userId = userId as any;
-    }
-    if (!job) throw new BadRequestException('招工信息不存在');
-    if (job.userId !== userId) throw new ForbiddenException('无权操作');
-
-    const workerId = Number(dto.workerId || 0);
-    if (!workerId) throw new BadRequestException('请选择主管');
-
-    const target = await this.appRepo.findOne({ where: { jobId, workerId } });
-    if (!target) throw new BadRequestException('报名记录不存在');
-    if (!['accepted', 'confirmed', 'working', 'done'].includes(target.status)) {
-      throw new BadRequestException('当前状态不可设为主管');
-    }
-
-    await this.appRepo.update({ jobId }, { isSupervisor: 0 });
-    target.isSupervisor = 1;
-    await this.appRepo.save(target);
-    return { message: '已设置主管' };
+    void jobId;
+    void userId;
+    void dto;
+    throw new ForbiddenException('主管需由后台设置');
   }
 
   async create(userId: number, dto: any) {

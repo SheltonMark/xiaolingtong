@@ -54,6 +54,39 @@
   color: #64748B;
 }
 
+.st-supervisor-row {
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  background-color: #F8FAFC;
+  border: 1rpx solid #E2E8F0;
+}
+
+.st-supervisor-label {
+  display: block;
+  font-size: 20rpx;
+  color: #64748B;
+}
+
+.st-supervisor-value {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+
+.st-supervisor-pending {
+  color: #D97706;
+}
+
+.st-supervisor-hint {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+
 .st-filter-row {
   margin-top: 20rpx;
   white-space: nowrap;

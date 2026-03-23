@@ -241,7 +241,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-categories"><div class="panel"><div class="panel-header"><h4>品类标签管理</h4><div class="toolbar"><input type="text" id="newCatName" placeholder="分类名称"><select id="newCatParent"><option value="0">一级分类</option></select><button class="add-btn" onclick="addCategory()">添加</button></div></div><div id="categoryContent"></div></div></div>
     <div class="page-section" id="page-stats"><div class="panel"><div class="panel-header"><h4>数据统计</h4></div><div id="statsContent"></div></div></div>
     <div class="page-section" id="page-finance"><div class="stat-cards" id="financeCards"></div><div class="panel"><div class="panel-header"><h4>交易明细</h4><div class="toolbar"><select id="txTypeFilter" onchange="loadTransactions()"><option value="">全部类型</option><option value="income">收入</option><option value="withdraw">提现</option><option value="refund">退款</option></select><button class="search-btn" onclick="loadTransactions()">刷新</button></div></div><table><thead><tr><th>ID</th><th>用户</th><th>类型</th><th>金额</th><th>状态</th><th>备注</th><th>时间</th></tr></thead><tbody id="txTable"></tbody></table><div class="pagination" id="txPagination"></div></div></div>
-    <div class="page-section" id="page-joborders"><div class="panel"><div class="panel-header"><h4>用工订单</h4><div class="toolbar"><select id="joStatusFilter" onchange="loadJobOrders()"><option value="">全部状态</option><option value="recruiting">招工中</option><option value="full">已分配</option><option value="working">进行中</option><option value="pending_settlement">待结算</option><option value="settled">已结算</option><option value="closed">已关闭</option></select><button class="search-btn" onclick="loadJobOrders()">刷新</button></div></div><table><thead><tr><th>ID</th><th>标题</th><th>企业</th><th>需求/报名</th><th>薪资</th><th>日期</th><th>状态</th><th>操作</th></tr></thead><tbody id="joTable"></tbody></table><div class="pagination" id="joPagination"></div></div><div class="panel" id="joDetailPanel" style="display:none"><div class="panel-header"><h4>分配工人</h4><button class="search-btn" onclick="document.getElementById('joDetailPanel').style.display='none'">关闭</button></div><div id="joDetailContent"></div></div></div>
+      <div class="page-section" id="page-joborders"><div class="panel"><div class="panel-header"><h4>用工订单</h4><div class="toolbar"><select id="joStatusFilter" onchange="loadJobOrders()"><option value="">全部状态</option><option value="recruiting">招工中</option><option value="full">已分配</option><option value="working">进行中</option><option value="pending_settlement">待结算</option><option value="settled">已结算</option><option value="closed">已关闭</option></select><button class="search-btn" onclick="loadJobOrders()">刷新</button></div></div><table><thead><tr><th>ID</th><th>标题</th><th>企业</th><th>需求/报名</th><th>薪资</th><th>日期</th><th>状态</th><th>操作</th></tr></thead><tbody id="joTable"></tbody></table><div class="pagination" id="joPagination"></div></div><div class="panel" id="joDetailPanel" style="display:none"><div class="panel-header"><h4>用工详情</h4><button class="search-btn" onclick="document.getElementById('joDetailPanel').style.display='none'">关闭</button></div><div id="joDetailContent"></div></div></div>
     <div class="page-section" id="page-configs"><div class="panel"><div class="panel-header"><h4>系统配置</h4></div><div class="config-grid" id="configGrid"></div></div></div>
   </div>
 </div>
@@ -882,23 +882,38 @@ async function loadJobOrders(page){
   document.getElementById('joPagination').innerHTML='<span>共'+total+'条</span><button '+(joPage<=1?'disabled':'')+' onclick="loadJobOrders('+(joPage-1)+')">上一页</button><span>'+joPage+'/'+tp+'</span><button '+(joPage>=tp?'disabled':'')+' onclick="loadJobOrders('+(joPage+1)+')">下一页</button>';
 }
 var _joDetail=null;
+function joCanPickSupervisor(status){
+  return ['accepted','confirmed','working','done'].indexOf(status)>=0;
+}
+function joCanEditSupervisor(jobStatus){
+  return ['settled','closed'].indexOf(jobStatus)<0;
+}
 async function showJobOrderDetail(id){
   var d=await api('/job-orders/'+id);if(!d||!d.job)return;
   _joDetail=d;
   var job=d.job;var apps=d.applications||[];
+  var currentSupervisor=apps.find(function(item){return !!item.isSupervisor;})||null;
+  var currentSupervisorName=currentSupervisor&&currentSupervisor.worker?(currentSupervisor.worker.nickname||currentSupervisor.worker.phone||('ID:'+currentSupervisor.workerId)):'待后台指派';
   var h='<div style="margin-bottom:12px"><b>'+job.title+'</b> | 需求'+job.needCount+'人 | ¥'+Number(job.salary).toFixed(0)+'/'+job.salaryUnit+' | '+job.dateStart+'~'+job.dateEnd+'</div>';
-  h+='<table><thead><tr><th><input type="checkbox" id="joCheckAll" onchange="joToggleAll(this)"></th><th>昵称</th><th>手机</th><th>信用分</th><th>完工次数</th><th>状态</th><th>管理员</th></tr></thead><tbody>';
+  h+='<div style="margin-bottom:12px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg)"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">当前主管</div><div style="font-size:14px;font-weight:600;color:var(--text)">'+currentSupervisorName+'</div><div style="margin-top:6px;font-size:12px;color:var(--text-muted)">主管由后台指定，可从已录用、已确认、进行中、已完工工人中选择。</div></div>';
+  h+='<table><thead><tr><th><input type="checkbox" id="joCheckAll" onchange="joToggleAll(this)"></th><th>昵称</th><th>手机</th><th>信用分</th><th>完工次数</th><th>状态</th><th>主管</th></tr></thead><tbody>';
   for(var i=0;i<apps.length;i++){var a=apps[i];var w=a.worker||{};
     var checked=(a.status==='accepted'||a.status==='confirmed'||a.status==='working'||a.status==='done')?' checked':'';
     var supChecked=a.isSupervisor?' checked':'';
     var canCheck=a.status==='pending'||a.status==='accepted'||a.status==='rejected';
+    var canPickSupervisor=joCanPickSupervisor(a.status);
     var stMap2={pending:'待分配',accepted:'已入选',confirmed:'已确认',working:'进行中',done:'已完成',rejected:'落选',released:'已释放',cancelled:'已取消'};
-    h+='<tr><td><input type="checkbox" class="jo-check" value="'+w.id+'"'+checked+(canCheck?'':' disabled')+'></td><td>'+(w.nickname||'-')+'</td><td>'+(w.phone||'-')+'</td><td>'+w.creditScore+'</td><td>'+(w.doneCount||0)+'</td><td>'+(stMap2[a.status]||a.status)+'</td><td><input type="radio" name="joSupervisor" value="'+w.id+'"'+supChecked+'></td></tr>';
+    h+='<tr><td><input type="checkbox" class="jo-check" value="'+w.id+'"'+checked+(canCheck?'':' disabled')+'></td><td>'+(w.nickname||'-')+'</td><td>'+(w.phone||'-')+'</td><td>'+w.creditScore+'</td><td>'+(w.doneCount||0)+'</td><td>'+(stMap2[a.status]||a.status)+'</td><td><input type="radio" name="joSupervisor" value="'+w.id+'"'+supChecked+(canPickSupervisor?'':' disabled')+'></td></tr>';
   }
   h+='</tbody></table>';
+  h+='<div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">';
   if(job.status==='recruiting'){
-    h+='<div style="margin-top:12px;text-align:right"><button class="search-btn" onclick="doAssign('+job.id+')">确认分配</button></div>';
+    h+='<button class="search-btn" onclick="doAssign('+job.id+')">确认分配</button>';
   }
+  if(joCanEditSupervisor(job.status)){
+    h+='<button class="search-btn" onclick="saveSupervisor('+job.id+')">保存主管</button>';
+  }
+  h+='</div>';
   document.getElementById('joDetailContent').innerHTML=h;
   document.getElementById('joDetailPanel').style.display='block';
 }
@@ -909,11 +924,20 @@ async function doAssign(jobId){
   if(ids.length===0){toast('请至少选择一名工人','warning');return;}
   var supEl=document.querySelector('input[name="joSupervisor"]:checked');
   var supId=supEl?Number(supEl.value):0;
-  if(!supId){toast('请指定一名临时管理员','warning');return;}
-  if(ids.indexOf(supId)===-1){toast('管理员必须在入选工人中','warning');return;}
+  if(!supId){toast('请指定一名主管','warning');return;}
+  if(ids.indexOf(supId)===-1){toast('主管必须在入选工人中','warning');return;}
   await api('/job-orders/'+jobId+'/assign',{method:'POST',body:{workerIds:ids,supervisorId:supId}});
   toast('分配成功','success');
   document.getElementById('joDetailPanel').style.display='none';
+  loadJobOrders();
+}
+async function saveSupervisor(jobId){
+  var supEl=document.querySelector('input[name="joSupervisor"]:checked');
+  var supId=supEl?Number(supEl.value):0;
+  if(!supId){toast('请先选择主管','warning');return;}
+  await api('/job-orders/'+jobId+'/supervisor',{method:'POST',body:{workerId:supId}});
+  toast('主管已保存','success');
+  await showJobOrderDetail(jobId);
   loadJobOrders();
 }
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -85,8 +86,10 @@ describe('AdminModule Integration Tests', () => {
 
     jobRepository = {
       findOne: jest.fn(),
+      findOneBy: jest.fn(),
       find: jest.fn(),
       count: jest.fn(),
+      update: jest.fn(),
       createQueryBuilder: jest.fn(),
     };
 
@@ -212,6 +215,9 @@ describe('AdminModule Integration Tests', () => {
 
     appRepository = {
       find: jest.fn(),
+      findOne: jest.fn(),
+      update: jest.fn(),
+      save: jest.fn(),
     };
 
     notificationRepository = {
@@ -398,6 +404,64 @@ describe('AdminModule Integration Tests', () => {
       expect(result.postCount).toBe(50);
       expect(result.jobCount).toBe(30);
       expect(result.exposureCount).toBe(20);
+    });
+  });
+
+  describe('setJobSupervisor Integration', () => {
+    it('should clear previous supervisor and save the selected worker', async () => {
+      const target = {
+        jobId: 12,
+        workerId: 101,
+        status: 'working',
+        isSupervisor: 0,
+        worker: { id: 101, nickname: '主管候选人' },
+      };
+      jobRepository.findOneBy.mockResolvedValue({ id: 12, status: 'full' });
+      appRepository.findOne.mockResolvedValue(target);
+      appRepository.update.mockResolvedValue({ affected: 3 });
+      appRepository.save.mockImplementation(async (payload) => payload);
+
+      const result = await controller.setJobSupervisor(12, { workerId: 101 });
+
+      expect(jobRepository.findOneBy).toHaveBeenCalledWith({ id: 12 });
+      expect(appRepository.findOne).toHaveBeenCalledWith({
+        where: { jobId: 12, workerId: 101 },
+        relations: ['worker'],
+      });
+      expect(appRepository.update).toHaveBeenCalledWith(
+        { jobId: 12 },
+        { isSupervisor: 0 },
+      );
+      expect(target.isSupervisor).toBe(1);
+      expect(appRepository.save).toHaveBeenCalledWith(target);
+      expect(result).toEqual({
+        message: '主管设置成功',
+        workerId: 101,
+      });
+    });
+
+    it('should reject worker in ineligible status', async () => {
+      jobRepository.findOneBy.mockResolvedValue({ id: 12, status: 'full' });
+      appRepository.findOne.mockResolvedValue({
+        jobId: 12,
+        workerId: 101,
+        status: 'rejected',
+        isSupervisor: 0,
+      });
+
+      await expect(
+        controller.setJobSupervisor(12, { workerId: 101 }),
+      ).rejects.toThrow(BadRequestException);
+      expect(appRepository.update).not.toHaveBeenCalled();
+      expect(appRepository.save).not.toHaveBeenCalled();
+    });
+
+    it('should reject empty supervisor selection', async () => {
+      await expect(
+        controller.setJobSupervisor(12, { workerId: 0 }),
+      ).rejects.toThrow(BadRequestException);
+      expect(jobRepository.findOneBy).not.toHaveBeenCalled();
+      expect(appRepository.findOne).not.toHaveBeenCalled();
     });
   });
 

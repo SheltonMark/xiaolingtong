@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -35,6 +39,13 @@ function hashPwd(pwd: string): string {
 
 @Injectable()
 export class AdminService {
+  private static readonly SUPERVISOR_ELIGIBLE_STATUSES = [
+    'accepted',
+    'confirmed',
+    'working',
+    'done',
+  ];
+
   constructor(
     @InjectRepository(Admin) private adminRepo: Repository<Admin>,
     @InjectRepository(User) private userRepo: Repository<User>,
@@ -67,6 +78,40 @@ export class AdminService {
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
     private jwt: JwtService,
   ) {}
+
+  private isSupervisorEligibleStatus(status?: string | null) {
+    return AdminService.SUPERVISOR_ELIGIBLE_STATUSES.includes(
+      String(status || '').trim(),
+    );
+  }
+
+  private async assignSupervisorForJob(jobId: number, workerId: number) {
+    const normalizedWorkerId = Number(workerId || 0);
+    if (!normalizedWorkerId) {
+      throw new BadRequestException('请选择主管');
+    }
+
+    const job = await this.jobRepo.findOneBy({ id: jobId });
+    if (!job) {
+      throw new BadRequestException('招工不存在');
+    }
+
+    const target = await this.appRepo.findOne({
+      where: { jobId, workerId: normalizedWorkerId },
+      relations: ['worker'],
+    });
+    if (!target) {
+      throw new BadRequestException('主管候选人不存在');
+    }
+    if (!this.isSupervisorEligibleStatus(target.status)) {
+      throw new BadRequestException('当前状态不可设为主管');
+    }
+
+    await this.appRepo.update({ jobId }, { isSupervisor: 0 });
+    target.isSupervisor = 1;
+    await this.appRepo.save(target);
+    return target;
+  }
 
   async initSuperAdmin() {
     const exists = await this.adminRepo.findOne({
@@ -770,17 +815,22 @@ export class AdminService {
       })
       .execute();
 
-    // 指定管理员
+    // 指定主管
     if (supervisorId) {
-      await this.appRepo.update(
-        { jobId, workerId: supervisorId },
-        { isSupervisor: 1 },
-      );
+      await this.assignSupervisorForJob(jobId, supervisorId);
     }
 
     // Job 状态改为 assigned
     await this.jobRepo.update(jobId, { status: 'full' as any });
     return { message: '分配成功' };
+  }
+
+  async setJobSupervisor(jobId: number, body: { workerId: number }) {
+    const target = await this.assignSupervisorForJob(jobId, body.workerId);
+    return {
+      message: '主管设置成功',
+      workerId: target.workerId,
+    };
   }
 
   async adjustCommission(jobId: number, commissionRate: number) {

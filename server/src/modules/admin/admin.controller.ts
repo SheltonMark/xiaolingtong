@@ -292,6 +292,14 @@ export class AdminController {
     return this.adminService.assignWorkers(id, body);
   }
 
+  @Post('job-orders/:id/supervisor')
+  setJobSupervisor(
+    @Param('id') id: number,
+    @Body() body: { workerId: number },
+  ) {
+    return this.adminService.setJobSupervisor(id, body);
+  }
+
   @Put('job-orders/:id/commission')
   adjustCommission(
     @Param('id') id: number,

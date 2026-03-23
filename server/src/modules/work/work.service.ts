@@ -442,7 +442,7 @@ export class WorkService {
       blockedReason = '已超过用工日期，无法签到';
     } else if (!supervisorApp) {
       blockedCode = 'no_supervisor';
-      blockedReason = '企业尚未设置临工管理员，暂不可打卡';
+      blockedReason = '后台尚未设置主管，暂不可打卡';
     } else if (hasCheckedInToday) {
       blockedCode = 'already_checked_in';
       blockedReason = '今日已签到，无需重复签到';
@@ -451,7 +451,7 @@ export class WorkService {
       blockedReason = `未到签到时间，请于${this.formatTime(checkinWindowStart)}后签到`;
     } else if (checkinWindowEnd && now > checkinWindowEnd) {
       blockedCode = 'window_closed';
-      blockedReason = '已超过签到时间，请联系临工管理员处理';
+      blockedReason = '已超过签到时间，请联系主管或平台处理';
     }
 
     return {
@@ -709,7 +709,7 @@ export class WorkService {
       })),
       supervisor: sheet.supervisorId ? {
         id: sheet.supervisorId,
-        name: sheet.supervisorName || '管理员',
+        name: sheet.supervisorName || '主管',
       } : null,
       photos: sheet.photoUrls || [],
       submittedAt: this.formatSheetDateTime(sheet.submittedAt || sheet.updatedAt || sheet.createdAt),
@@ -735,7 +735,7 @@ export class WorkService {
       where: { jobId, workerId: userId, isSupervisor: 1 },
     });
     if (!supervisorApp) {
-      throw new ForbiddenException('无管理员权限');
+      throw new ForbiddenException('无主管权限');
     }
     return supervisorApp;
   }
@@ -959,7 +959,7 @@ export class WorkService {
         name: this.getDisplayName(
           supervisorApp.worker,
           workerCertMap.get(Number(supervisorApp.workerId)) || null,
-        ) || '管理员',
+        ) || '主管',
       } : null,
       hasSupervisor: checkinRule.hasSupervisor,
       canCheckin: checkinRule.canCheckin,
@@ -1383,7 +1383,7 @@ export class WorkService {
       supervisorName: this.getDisplayName(
         supervisorApp?.worker,
         workerCertMap.get(Number(supervisorId)) || null,
-      ) || '管理员',
+      ) || '主管',
       photos,
       records: normalizedRecords,
     });
@@ -1492,7 +1492,7 @@ export class WorkService {
         name: this.getDisplayName(
           supervisor.worker,
           workerCertMap.get(Number(supervisor.workerId)) || null,
-        ) || '管理员',
+        ) || '主管',
       } : null,
       photos: allPhotos,
       submittedAt: submittedAt
@@ -1527,7 +1527,7 @@ export class WorkService {
         job,
         date: latestDate,
         supervisorId: Number(attendance.supervisor?.id || 0),
-        supervisorName: String(attendance.supervisor?.name || '').trim() || '管理员',
+        supervisorName: String(attendance.supervisor?.name || '').trim() || '主管',
         photos: this.uniqueStrings(attendance.photos),
         records: records.map((record) => ({
           workerId: this.toNumber(record.workerId),

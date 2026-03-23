@@ -868,34 +868,14 @@ describe('JobService', () => {
   });
 
   describe('setSupervisor', () => {
-    it('sets a supervisor from accepted workers', async () => {
-      jobRepository.findOne.mockResolvedValue({ id: 1, userId: 3 });
-      const application = {
-        jobId: 1,
-        workerId: 101,
-        status: 'working',
-        isSupervisor: 0,
-      };
-      jobApplicationRepository.findOne.mockResolvedValue(application);
-      jobApplicationRepository.save.mockImplementation(async (payload) => payload);
-
-      const result = await service.setSupervisor(1, 3, { workerId: 101 });
-
-      expect(jobApplicationRepository.update).toHaveBeenCalledWith(
-        { jobId: 1 },
-        { isSupervisor: 0 },
+    it('rejects enterprise-side supervisor assignment', async () => {
+      await expect(service.setSupervisor(1, 3, { workerId: 101 })).rejects.toThrow(
+        ForbiddenException,
       );
-      expect(application.isSupervisor).toBe(1);
-      expect(jobApplicationRepository.save).toHaveBeenCalledWith(application);
-      expect(result).toEqual(expect.objectContaining({ message: expect.any(String) }));
-    });
-
-    it('rejects empty supervisor selection', async () => {
-      jobRepository.findOne.mockResolvedValue({ id: 1, userId: 3 });
-
-      await expect(service.setSupervisor(1, 3, { workerId: 0 })).rejects.toThrow(
-        BadRequestException,
-      );
+      expect(jobRepository.findOne).not.toHaveBeenCalled();
+      expect(jobApplicationRepository.findOne).not.toHaveBeenCalled();
+      expect(jobApplicationRepository.update).not.toHaveBeenCalled();
+      expect(jobApplicationRepository.save).not.toHaveBeenCalled();
     });
   });
 });

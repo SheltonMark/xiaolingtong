@@ -21,6 +21,12 @@
     <text class="st-note">已完工 {{manageSummary.doneCount || 0}} 人</text>
     <text class="st-note">需招：{{manageJob.needCount || 0}} 人</text>
   </view>
+  <view class="st-supervisor-row">
+    <text class="st-supervisor-label">当前主管</text>
+    <text class="st-supervisor-value" wx:if="{{manageSummary.supervisor}}">{{manageSummary.supervisor.name}}</text>
+    <text class="st-supervisor-value st-supervisor-pending" wx:else>待后台指派</text>
+    <text class="st-supervisor-hint">主管由后台设置，企业端仅查看结果。</text>
+  </view>
 </view>
 
 <scroll-view class="st-filter-row" scroll-x enable-flex show-scrollbar="{{false}}">
