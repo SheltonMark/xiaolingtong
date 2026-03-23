@@ -177,7 +177,6 @@
   border-top: 1rpx solid #F1F5F9;
 }
 .act-btn {
-  flex: 1;
   height: 72rpx;
   display: flex;
   align-items: center;
@@ -192,7 +191,12 @@
   box-sizing: border-box;
 }
 .act-btn::after { border: none; }
+.act-btn-primary { flex: 1; }
 .act-blue { background-color: #EFF6FF; color: #3B82F6; }
 .act-gold { background-color: #FFFBEB; color: #D97706; }
-.act-orange { background-color: #FFF7ED; color: #F97316; }
-.act-rose { background-color: #FFF1F2; color: #F43F5E; }
+.act-secondary {
+  flex: 0 0 156rpx;
+  border: 1rpx solid #E2E8F0;
+  background-color: #F8FAFC;
+  color: #475569;
+}

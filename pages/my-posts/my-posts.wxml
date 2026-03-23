@@ -66,17 +66,24 @@
 
       <view class="post-actions">
         <button
-          class="act-btn act-gold"
           wx:if="{{item.typeKey === 'job'}}"
+          class="act-btn act-gold act-btn-primary"
           data-id="{{item.id}}"
           data-tab="{{item.primaryActionTab}}"
           bindtap="onManageJob"
         >{{item.primaryActionText || '管理招工'}}</button>
-        <button class="act-btn act-blue" wx:if="{{item.showViewDetailAction}}" data-id="{{item.id}}" data-type="{{item.typeKey}}" bindtap="onViewPost">{{item.detailActionText}}</button>
-        <button class="act-btn act-orange" wx:if="{{item.canSettle && item.primaryActionTab !== 'settlement'}}" data-id="{{item.jobId || item.id}}" bindtap="onGoSettlement">去结算</button>
-        <button class="act-btn act-orange" wx:elif="{{item.canPromote && item.typeKey === 'job'}}" data-id="{{item.id}}" bindtap="onSetUrgent">设置急招</button>
-        <button class="act-btn act-orange" wx:elif="{{item.canPromote}}" data-id="{{item.id}}" bindtap="onPromotePost">推广置顶</button>
-        <button class="act-btn act-rose" data-id="{{item.id}}" data-type="{{item.typeKey}}" bindtap="onDeletePost">删除</button>
+        <button
+          wx:else
+          class="act-btn act-blue act-btn-primary"
+          data-id="{{item.id}}"
+          data-type="{{item.typeKey}}"
+          bindtap="onViewPost"
+        >{{item.primaryActionText || '查看详情'}}</button>
+        <button
+          class="act-btn act-secondary"
+          data-index="{{index}}"
+          bindtap="onOpenMoreActions"
+        >更多</button>
       </view>
     </view>
   </view>

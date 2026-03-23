@@ -106,6 +106,35 @@ Page({
     }
   },
 
+  getJobPrimaryAction(item, jobDisplay) {
+    const pendingCount = Number(item.pendingCount || 0)
+
+    if (item.timeState === 'settlement' || item.status === 'pending_settlement') {
+      return { text: '去结算', tab: 'settlement' }
+    }
+
+    if (item.timeState === 'end_overdue' || item.status === 'working') {
+      return { text: '去考勤', tab: 'attendance' }
+    }
+
+    if (['settled', 'closed'].includes(item.status)) {
+      return { text: '查看结算', tab: 'settlement' }
+    }
+
+    if (pendingCount > 0) {
+      return { text: '处理报名', tab: 'applications' }
+    }
+
+    if (['start_overdue', 'ended'].includes(item.timeState)) {
+      return { text: '报名管理', tab: 'applications' }
+    }
+
+    return {
+      text: (jobDisplay && jobDisplay.primaryActionText) || '管理招工',
+      tab: (jobDisplay && jobDisplay.primaryActionTab) || 'applications'
+    }
+  },
+
   mapPosts(list) {
     const typeMap = {
       purchase: { label: '采购需求', color: 'blue' },
@@ -130,6 +159,9 @@ Page({
       const typeMeta = typeMap[item.type] || { label: '信息', color: 'blue' }
       const statusMeta = statusMap[item.status] || { text: '审核中', color: 'rose' }
       const jobDisplay = item.type === 'job' ? this.getJobDisplayState(item, statusMeta) : null
+      const primaryAction = item.type === 'job'
+        ? this.getJobPrimaryAction(item, jobDisplay)
+        : { text: '查看详情', tab: '' }
       const createdAt = item.createdAt ? item.createdAt.substring(0, 10) : ''
       const expireAt = item.expireAt ? item.expireAt.substring(0, 10) : (item.dateEnd || '')
       return {
@@ -147,13 +179,10 @@ Page({
         title: item.title || (item.content || '').slice(0, 36) || '未命名发布',
         desc: item.content || '',
         timeHint: jobDisplay ? jobDisplay.hint : '',
-        primaryActionText: jobDisplay ? jobDisplay.primaryActionText : '',
-        primaryActionTab: jobDisplay ? jobDisplay.primaryActionTab : 'applications',
-        detailActionText: item.type === 'job' ? '岗位详情' : '查看详情',
-        showViewDetailAction: item.type !== 'job' || !String((jobDisplay && jobDisplay.primaryActionText) || '').startsWith('查看'),
+        primaryActionText: primaryAction.text,
+        primaryActionTab: primaryAction.tab,
         isPromoted: !!item.isPromoted,
-        canPromote: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting') && !(jobDisplay && jobDisplay.isOverdue),
-        canSettle: item.type === 'job' && (item.status === 'pending_settlement' || item.timeState === 'settlement')
+        canPromote: !item.isPromoted && (item.status === 'active' || item.status === 'recruiting') && !(jobDisplay && jobDisplay.isOverdue)
       }
     })
   },
@@ -165,27 +194,29 @@ Page({
   },
 
   onViewPost(e) {
-    const id = e.currentTarget.dataset.id
-    const type = e.currentTarget.dataset.type
+    this.openPostDetail({
+      id: e.currentTarget.dataset.id,
+      typeKey: e.currentTarget.dataset.type
+    })
+  },
+
+  openPostDetail(item) {
+    const id = item.id
+    const type = item.typeKey || item.type
     const targetUrl = type === 'job'
       ? '/pages/job-detail/job-detail?id=' + id
       : '/pages/post-detail/post-detail?id=' + id
     wx.navigateTo({ url: targetUrl })
   },
 
-  onPromotePost(e) {
-    const id = e.currentTarget.dataset.id
+  openPromotion(item) {
+    const id = item.id
     wx.navigateTo({ url: '/pages/promotion/promotion?id=' + id })
   },
 
-  onSetUrgent(e) {
-    const id = e.currentTarget.dataset.id
+  openUrgentSetting(item) {
+    const id = item.id
     wx.navigateTo({ url: '/pages/urgent-job/urgent-job?id=' + id })
-  },
-
-  onGoSettlement(e) {
-    const jobId = e.currentTarget.dataset.id
-    wx.navigateTo({ url: '/pages/settlement-detail/settlement-detail?jobId=' + jobId })
   },
 
   onManageJob(e) {
@@ -194,13 +225,73 @@ Page({
     wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + jobId + '&tab=' + tab })
   },
 
+  getPostByIndex(index) {
+    const list = this.data.posts || []
+    if (Number.isNaN(index) || index < 0 || index >= list.length) return null
+    return list[index]
+  },
+
+  getMoreActionItems(item) {
+    const actions = []
+
+    if (item.typeKey === 'job') {
+      actions.push({ key: 'detail', text: '岗位详情' })
+      if (item.canPromote) {
+        actions.push({ key: 'urgent', text: '设置急招' })
+      }
+    } else {
+      if (item.canPromote) {
+        actions.push({ key: 'promote', text: '推广置顶' })
+      }
+    }
+
+    actions.push({ key: 'delete', text: '删除发布' })
+    return actions
+  },
+
+  onOpenMoreActions(e) {
+    const index = Number(e.currentTarget.dataset.index)
+    const item = this.getPostByIndex(index)
+    if (!item) return
+
+    const actions = this.getMoreActionItems(item)
+    if (!actions.length) return
+
+    wx.showActionSheet({
+      itemList: actions.map(action => action.text),
+      success: (res) => {
+        const action = actions[res.tapIndex]
+        if (!action) return
+
+        if (action.key === 'detail') {
+          this.openPostDetail(item)
+          return
+        }
+
+        if (action.key === 'urgent') {
+          this.openUrgentSetting(item)
+          return
+        }
+
+        if (action.key === 'promote') {
+          this.openPromotion(item)
+          return
+        }
+
+        if (action.key === 'delete') {
+          this.confirmDeletePost(item)
+        }
+      }
+    })
+  },
+
   getDeletePath(type, id) {
     return (type === 'job' ? '/jobs/' : '/posts/') + id
   },
 
-  onDeletePost(e) {
-    const id = e.currentTarget.dataset.id
-    const type = e.currentTarget.dataset.type || 'post'
+  confirmDeletePost(item) {
+    const id = item.id
+    const type = item.typeKey || item.type || 'post'
     wx.showModal({
       title: '确认删除',
       content: '删除后不可恢复，确认删除？',
