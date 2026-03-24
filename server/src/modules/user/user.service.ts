@@ -9,6 +9,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { ContactProfile } from '../../entities/contact-profile.entity';
 import { VerificationSession } from '../../entities/verification-session.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 type CertScene = 'enterprise_cert' | 'worker_cert';
 
@@ -32,6 +33,7 @@ export class UserService {
     @InjectRepository(WorkerCert) private workerCertRepo: Repository<WorkerCert>,
     @InjectRepository(ContactProfile) private contactProfileRepo: Repository<ContactProfile>,
     @InjectRepository(VerificationSession) private verificationSessionRepo: Repository<VerificationSession>,
+    private wechatSecurityService: WechatSecurityService,
   ) {}
 
   private normalizeText(value: any) {
@@ -558,6 +560,9 @@ export class UserService {
   }
 
   async updateAvatar(userId: number, avatarUrl: string) {
+    await this.wechatSecurityService.assertSafeSubmission({
+      images: [avatarUrl],
+    });
     await this.userRepo.update(userId, { avatarUrl });
     return { avatarUrl };
   }
