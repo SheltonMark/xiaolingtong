@@ -694,7 +694,7 @@ async function saveNotice(){var t=document.getElementById('noticeTitle').value.t
 async function toggleNotice(id,cur){await api('/notices/'+id,{method:'PUT',body:{isActive:cur?0:1}});loadNotices();}
 async function deleteNotice(id){var ok=await xconfirm('\u786e\u8ba4\u5220\u9664\u8be5\u516c\u544a\uff1f');if(ok){await api('/notices/'+id,{method:'DELETE'});toast('\u5df2\u5220\u9664','success');loadNotices();}}
 
-async function loadConfigs(){async function loadConfigs(){
+async function loadConfigs(){
   var list=await api('/configs');if(!list||!list.length){document.getElementById('configGrid').innerHTML='<div class="empty">暂无配置</div>';return;}
   var groupTitleMap={
     member:'会员配置',
