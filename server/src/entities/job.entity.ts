@@ -13,6 +13,9 @@ export class Job {
   @Column({ length: 128 })
   title: string;
 
+  @Column({ length: 64, nullable: true })
+  jobType: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   salary: number;
 

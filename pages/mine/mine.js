@@ -105,8 +105,12 @@ Page({
     if (!notLoggedIn) {
       this.loadProfile()
     }
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: userRole === 'enterprise' ? 4 : 3, userRole })
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar) {
+      tabBar.setData({ selected: userRole === 'enterprise' ? 4 : 3, userRole })
+      if (typeof tabBar.loadUnread === 'function') {
+        tabBar.loadUnread()
+      }
     }
   },
 

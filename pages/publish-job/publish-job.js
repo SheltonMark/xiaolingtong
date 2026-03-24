@@ -1,6 +1,17 @@
-const { post, upload } = require('../../utils/request')
+const { get, post, upload } = require('../../utils/request')
 
 Page({
+  onLoad() {
+    this.loadJobTypes()
+  },
+
+  loadJobTypes() {
+    get('/config/job-types').then((res) => {
+      const list = (res.data.list || []).map((item) => item.name).filter(Boolean)
+      this.setData({ jobTypes: list })
+    }).catch(() => {})
+  },
+
   data: {
     form: {
       title: '',
@@ -18,7 +29,7 @@ Page({
     },
     salaryMode: 0,
     salaryModes: ['按小时', '按件'],
-    jobTypes: ['电子组装', '包装工', '缝纫工', '仓储物流', '质检', '其他'],
+    jobTypes: [],
     jobTypeIndex: -1,
     benefits: ['包午餐', '有空调', '包住宿', '有班车', '长期合作', '熟手优先'],
     selectedBenefits: [],
@@ -105,7 +116,7 @@ Page({
       return
     }
     const { form, salaryMode, salaryModes, selectedBenefits, images } = this.data
-    if (!form.title || !form.salary || !form.need) {
+    if (!form.title || !form.salary || !form.need || !form.jobType) {
       wx.showToast({ title: '请填写必填项', icon: 'none' })
       return
     }

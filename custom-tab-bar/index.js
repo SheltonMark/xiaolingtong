@@ -25,10 +25,17 @@ Component({
   attached() {
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
     this.setData({ userRole })
+    this.loadUnread()
   },
 
   pageLifetimes: {
-    show() { this.loadUnread() }
+    show() {
+      const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+      if (userRole !== this.data.userRole) {
+        this.setData({ userRole })
+      }
+      this.loadUnread()
+    }
   },
 
   methods: {
@@ -44,8 +51,14 @@ Component({
     },
 
     loadUnread() {
-      if (!auth.getToken()) return
-      const userRole = this.data.userRole || getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+      const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || this.data.userRole || 'enterprise'
+      if (userRole !== this.data.userRole) {
+        this.setData({ userRole })
+      }
+      if (!auth.getToken()) {
+        this.setData({ unreadCount: 0 })
+        return
+      }
       const conversationTask = get('/conversations').catch(() => ({ data: [] }))
 
       if (userRole === 'worker') {

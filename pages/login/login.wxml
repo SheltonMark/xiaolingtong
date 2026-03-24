@@ -8,9 +8,8 @@
 
   <view class="logo-area">
     <view class="logo-box">
-      <text class="logo-icon iconfont icon-tongzhi"></text>
+      <image class="logo-image" src="/logo/logo.jpg" mode="aspectFill" />
     </view>
-    <text class="app-name">小灵通</text>
     <text class="app-slogan">工厂贸易供需对接平台</text>
     <text class="app-desc">打破供需信息壁垒，精准匹配工厂与贸易商</text>
   </view>

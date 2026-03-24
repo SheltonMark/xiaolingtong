@@ -1,10 +1,17 @@
 import { Controller, Get, Post, Put, Delete, Param, Query } from '@nestjs/common';
 import { NotificationService } from './notification.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('notifications')
 export class NotificationController {
   constructor(private notiService: NotificationService) {}
+
+  @Public()
+  @Get('notices')
+  notices() {
+    return this.notiService.listActiveNotices();
+  }
 
   @Get()
   list(@CurrentUser('sub') userId: number, @Query() query: any) {

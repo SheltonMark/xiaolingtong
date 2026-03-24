@@ -93,7 +93,7 @@ export class WalletService {
     await this.txRepo.save(tx);
 
     try {
-      const outBatchNo = this.paymentService.generateOutTradeNo('WD', tx.id);
+      const outBatchNo = this.paymentService.generateTransferBatchNo('WD', tx.id);
       const outDetailNo = String(tx.id);
       tx.refType = outBatchNo;
       tx.refId = tx.id;

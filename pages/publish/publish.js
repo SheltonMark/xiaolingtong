@@ -262,9 +262,13 @@ Page({
       this._shouldRefreshContact = false
       this.initContactInfo()
     }
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar) {
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-      this.getTabBar().setData({ selected: 2, userRole })
+      tabBar.setData({ selected: 2, userRole })
+      if (typeof tabBar.loadUnread === 'function') {
+        tabBar.loadUnread()
+      }
     }
   }
 })

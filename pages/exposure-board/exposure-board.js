@@ -46,9 +46,13 @@ Page({
     wx.previewImage({ current: e.currentTarget.dataset.current, urls: e.currentTarget.dataset.urls })
   },
   onShow() {
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar) {
       const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-      this.getTabBar().setData({ selected: 1, userRole })
+      tabBar.setData({ selected: 1, userRole })
+      if (typeof tabBar.loadUnread === 'function') {
+        tabBar.loadUnread()
+      }
     }
   },
   onShareAppMessage(res) {

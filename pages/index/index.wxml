@@ -209,7 +209,7 @@
             </view>
           </view>
           <view class="job-title-row">
-            <text class="job-title-text">{{item.title}} · 需{{item.need}}人</text>
+            <text class="job-title-text">{{item.jobCardTitle}}</text>
             <text wx:if="{{item.urgent}}" class="urgent-tag">急招</text>
           </view>
           <view class="job-tags" wx:if="{{item.allTags && item.allTags.length > 0}}">
@@ -292,7 +292,7 @@
       </view>
       <!-- 标题 + 急招 -->
       <view class="job-title-row">
-        <text class="job-title-text">{{item.title}} · 需{{item.need}}人</text>
+        <text class="job-title-text">{{item.jobCardTitle}}</text>
         <text wx:if="{{item.urgent}}" class="urgent-tag">急招</text>
       </view>
       <!-- 福利标签 + 工作时间 -->

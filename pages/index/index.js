@@ -179,8 +179,12 @@ Page({
       this.loadData()
     }
     this.loadUnreadCount()
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 0, userRole })
+    const tabBar = typeof this.getTabBar === 'function' ? this.getTabBar() : null
+    if (tabBar) {
+      tabBar.setData({ selected: 0, userRole })
+      if (typeof tabBar.loadUnread === 'function') {
+        tabBar.loadUnread()
+      }
     }
     setTimeout(() => this.measureHeader(), 100)
   },
@@ -297,7 +301,7 @@ Page({
 
   loadWorkerJobs() {
     const params = {}
-    if (this.data.filterJobType) params.keyword = this.data.filterJobType
+    if (this.data.filterJobType) params.jobType = this.data.filterJobType
     if (this.data.filterSalaryType) params.salaryType = this.data.filterSalaryType === '按小时' ? 'hourly' : 'piece'
     if (this.data.filterSalaryRange) {
       const range = this.data.filterSalaryRange
@@ -411,6 +415,8 @@ Page({
       const companyName = item.companyName || user.nickname || '企业用户'
       const benefitSource = pickBenefitValue(item.benefits, item.tags)
       const benefitTags = normalizeBenefitTags(benefitSource)
+      const titleText = item.title || '\u62db\u5de5\u4fe1\u606f'
+      const jobTypeText = item.jobType || item.jobTypeName || item.typeName || ''
       const allTags = Array.isArray(item.allTags) && item.allTags.length
         ? item.allTags
         : benefitTags.concat(item.workHours ? [{
@@ -424,7 +430,11 @@ Page({
         avatarUrl: normalizeImageUrl(item.avatarUrl || user.avatarUrl || ''),
         tags: benefitTags,
         benefits: normalizeBenefitItems(benefitSource),
-        allTags
+        allTags,
+        jobTypeText,
+        jobCardTitle: jobTypeText
+          ? (titleText === jobTypeText ? `\u9700\u8981${jobTypeText}${String(item.need || 0)}\u4eba` : `${titleText} \u00b7 \u9700\u8981${jobTypeText}${String(item.need || 0)}\u4eba`)
+          : `${titleText} \u00b7 \u9700\u8981${String(item.need || 0)}\u4eba`
       }
     })
   },

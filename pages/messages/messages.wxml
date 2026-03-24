@@ -46,11 +46,23 @@
 
     <view class="msg-list" wx:if="{{currentTab === 1}}">
       <view class="system-panel-head">
-        <view class="system-panel-title-row">
-          <text class="system-panel-title">{{systemPanelTitle}}</text>
-          <text class="system-role-badge">{{systemRoleBadgeText}}</text>
-        </view>
+        <text class="system-panel-title">{{systemPanelTitle}}</text>
         <text class="system-panel-hint">{{systemPanelHint}}</text>
+      </view>
+
+      <view class="notice-board" wx:if="{{noticeItems.length > 0}}">
+        <view class="notice-board-head">
+          <text class="notice-board-title">&#24179;&#21488;&#20844;&#21578;</text>
+          <text class="notice-board-count">{{noticeCountLabel}}</text>
+        </view>
+
+        <view class="notice-card" wx:for="{{noticeItems}}" wx:key="id" wx:for-item="notice">
+          <view class="notice-card-top">
+            <text class="notice-card-title">{{notice.title}}</text>
+            <text class="notice-card-time">{{notice.time}}</text>
+          </view>
+          <text class="notice-card-content">{{notice.content}}</text>
+        </view>
       </view>
 
       <block wx:if="{{systemSections.length > 0}}">
@@ -58,9 +70,8 @@
           <view class="system-section-head">
             <view class="system-section-title-wrap">
               <text class="system-section-title">{{section.title}}</text>
-              <text class="system-section-count">{{section.count}} 条</text>
             </view>
-            <text class="system-section-unread" wx:if="{{section.unreadCount > 0}}">{{section.unreadCount}} 条未读</text>
+            <text class="system-section-unread" wx:if="{{section.unreadCount > 0}}">{{section.unreadLabel}}</text>
           </view>
           <text class="system-section-hint">{{section.hint}}</text>
 
@@ -80,7 +91,6 @@
               <view class="msg-top-row">
                 <view class="msg-system-title-row">
                   <text class="msg-title {{item.unread ? '' : 'msg-title-read'}}">{{item.title}}</text>
-                  <text class="msg-role-chip">{{item.roleBadgeText}}</text>
                 </view>
                 <view class="msg-time-wrap">
                   <view class="unread-dot" wx:if="{{item.unread}}"></view>
@@ -93,7 +103,7 @@
         </view>
       </block>
 
-      <empty-state wx:else text="{{systemEmptyText}}" subText="{{systemEmptySubText}}" />
+      <empty-state wx:if="{{noticeItems.length === 0 && systemSections.length === 0}}" text="{{systemEmptyText}}" subText="{{systemEmptySubText}}" />
     </view>
   </block>
 </view>

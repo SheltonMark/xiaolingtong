@@ -331,6 +331,7 @@ export class JobService {
     const salaryType = this.parseSalaryType(dto.salaryType || dto.salaryMode);
     const salaryUnit = this.normalizeText(dto.salaryUnit) || (salaryType === 'hourly' ? '元/时' : '元/件');
     const location = this.normalizeText(dto.location || dto.address);
+    const jobType = this.normalizeText(dto.jobType);
     const lat = this.parseCoordinate(dto.lat ?? dto.latitude);
     const lng = this.parseCoordinate(dto.lng ?? dto.longitude);
     const dateStart = this.normalizeText(dto.dateStart || dto.startDate);
@@ -347,6 +348,7 @@ export class JobService {
 
     return {
       title: this.normalizeText(dto.title || dto.jobType),
+      jobType,
       salary,
       salaryType,
       salaryUnit,
@@ -376,6 +378,7 @@ export class JobService {
       where: {
         userId,
         title: payload.title,
+        jobType: payload.jobType,
         salary: payload.salary,
         salaryType: payload.salaryType,
         salaryUnit: payload.salaryUnit,
@@ -399,7 +402,7 @@ export class JobService {
   }
 
   async list(query: any) {
-    const { keyword, salaryType, minSalary, maxSalary, page = 1, pageSize = 20 } = query;
+    const { keyword, jobType, salaryType, minSalary, maxSalary, page = 1, pageSize = 20 } = query;
     const today = this.formatDate();
     const qb = this.jobRepo.createQueryBuilder('j')
       .leftJoinAndSelect('j.user', 'u')
@@ -408,9 +411,12 @@ export class JobService {
 
     if (keyword) {
       qb.andWhere(
-        '(j.title LIKE :kw OR j.description LIKE :kw)',
+        '(j.title LIKE :kw OR j.description LIKE :kw OR j.jobType LIKE :kw)',
         { kw: `%${keyword}%` }
       );
+    }
+    if (jobType) {
+      qb.andWhere('(j.jobType = :jobType OR j.title LIKE :jobTypeLike)', { jobType, jobTypeLike: `%${jobType}%` });
     }
     if (salaryType) qb.andWhere('j.salaryType = :salaryType', { salaryType });
     if (minSalary) qb.andWhere('j.salary >= :minSalary', { minSalary });
@@ -464,6 +470,7 @@ export class JobService {
       return {
         id: job.id,
         title: job.title,
+        jobType: job.jobType || '',
         salary: job.salary,
         salaryUnit: job.salaryUnit,
         need: job.needCount,
@@ -544,6 +551,7 @@ export class JobService {
       images: this.normalizeImages(job.images) || [],
       need: job.needCount,
       total: job.needCount,
+      jobType: job.jobType || '',
       applied: activeApplicantCount,
       activeApplicantCount,
       applicationRecordCount,
@@ -601,6 +609,7 @@ export class JobService {
         id: job.id,
         type: 'job',
         title: job.title,
+        jobType: job.jobType || '',
         salary: job.salary,
         salaryUnit: job.salaryUnit,
         needCount: job.needCount,
@@ -734,6 +743,7 @@ export class JobService {
       return {
         id: job.id,
         title: job.title,
+        jobType: job.jobType || '',
         companyName,
         salary: job.salary,
         salaryUnit: job.salaryUnit,
@@ -862,6 +872,7 @@ export class JobService {
       job: {
         id: job.id,
         title: job.title,
+        jobType: job.jobType || '',
         companyName,
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart} ~ ${job.dateEnd}` : '',
         workHours: job.workHours || '',
@@ -945,6 +956,7 @@ export class JobService {
   async create(userId: number, dto: any) {
     const payload = this.normalizeCreateDto(dto);
     if (!payload.title) throw new BadRequestException('请输入招工标题');
+    if (!payload.jobType) throw new BadRequestException('\u8bf7\u9009\u62e9\u5de5\u79cd');
     if (!(payload.salary > 0)) throw new BadRequestException('请输入正确工价');
     if (!(payload.needCount > 0)) throw new BadRequestException('请输入招工人数');
     if (!payload.location) throw new BadRequestException('请选择工作地点');

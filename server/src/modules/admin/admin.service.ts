@@ -85,6 +85,52 @@ export class AdminService {
     );
   }
 
+  private async buildUserDisplayNameMap(userIds: Array<number | string>) {
+    const ids = Array.from(new Set((userIds || []).map((id) => Number(id || 0)).filter(Boolean)));
+    const nameMap = new Map<number, string>();
+    if (!ids.length) return nameMap;
+
+    const [users, entCerts, workerCerts] = await Promise.all([
+      this.userRepo
+        .createQueryBuilder('u')
+        .select(['u.id', 'u.nickname', 'u.phone'])
+        .where('u.id IN (:...ids)', { ids })
+        .getMany(),
+      this.entCertRepo
+        .createQueryBuilder('cert')
+        .select(['cert.userId', 'cert.companyName'])
+        .where('cert.userId IN (:...ids)', { ids })
+        .getMany(),
+      this.workerCertRepo
+        .createQueryBuilder('cert')
+        .select(['cert.userId', 'cert.realName'])
+        .where('cert.userId IN (:...ids)', { ids })
+        .getMany(),
+    ]);
+
+    entCerts.forEach((cert) => {
+      if (cert?.companyName) {
+        nameMap.set(Number(cert.userId), cert.companyName);
+      }
+    });
+
+    workerCerts.forEach((cert) => {
+      const userId = Number(cert.userId);
+      if (!nameMap.has(userId) && cert?.realName) {
+        nameMap.set(userId, cert.realName);
+      }
+    });
+
+    users.forEach((user) => {
+      const userId = Number(user.id);
+      if (!nameMap.has(userId)) {
+        nameMap.set(userId, user.nickname || user.phone || ('??' + userId));
+      }
+    });
+
+    return nameMap;
+  }
+
   private async assignSupervisorForJob(jobId: number, workerId: number) {
     const normalizedWorkerId = Number(workerId || 0);
     if (!normalizedWorkerId) {

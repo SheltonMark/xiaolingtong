@@ -26,25 +26,14 @@ const TAB_BAR_PAGE_PATHS = [
   '/pages/mine/mine'
 ]
 
-function getSystemNoticeCopy(userRole) {
-  if (userRole === 'worker') {
-    return {
-      systemTabLabel: '临工通知',
-      systemPanelTitle: '临工系统通知',
-      systemPanelHint: '录用、开工、工资到账和提现进度会统一汇总在这里。',
-      systemEmptyText: '暂无临工系统通知',
-      systemEmptySubText: '后续与你相关的录用、结算和钱包提醒会显示在这里。',
-      systemRoleBadgeText: '临工'
-    }
-  }
-
+function getSystemNoticeCopy() {
   return {
-    systemTabLabel: '企业通知',
-    systemPanelTitle: '企业系统通知',
-    systemPanelHint: '报名、考勤、结算和平台提醒会统一汇总在这里。',
-    systemEmptyText: '暂无企业系统通知',
-    systemEmptySubText: '后续与你发布工单和平台处理相关的提醒会显示在这里。',
-    systemRoleBadgeText: '企业'
+    systemTabLabel: '\u7cfb\u7edf\u901a\u77e5',
+    systemPanelTitle: '\u7cfb\u7edf\u901a\u77e5',
+    systemPanelHint: '\u5e73\u53f0\u516c\u544a\u3001\u8ba4\u8bc1\u7ed3\u679c\u3001\u7ed3\u7b97\u63d0\u9192\u7b49\u6d88\u606f\u4f1a\u663e\u793a\u5728\u8fd9\u91cc\u3002',
+    systemEmptyText: '\u6682\u65e0\u7cfb\u7edf\u901a\u77e5',
+    systemEmptySubText: '\u540e\u53f0\u53d1\u5e03\u7684\u516c\u544a\u548c\u4e0e\u4f60\u76f8\u5173\u7684\u7cfb\u7edf\u63d0\u9192\u4f1a\u663e\u793a\u5728\u8fd9\u91cc\u3002',
+    systemRoleBadgeText: ''
   }
 }
 
@@ -119,12 +108,14 @@ function buildSystemSections(messages, userRole) {
   return configs
     .map((config) => {
       const items = grouped[config.key] || []
+      const unreadCount = items.filter((item) => item.unread).length
       return {
         key: config.key,
         title: config.title,
         hint: config.hint,
         count: items.length,
-        unreadCount: items.filter((item) => item.unread).length,
+        unreadCount,
+        unreadLabel: unreadCount > 0 ? String(unreadCount) + '\u6761\u672a\u8bfb' : '',
         items
       }
     })
@@ -141,14 +132,16 @@ Page({
     chatMessages: [],
     systemMessages: [],
     systemSections: [],
+    noticeItems: [],
+    noticeCountLabel: '',
     notLoggedIn: false,
     userRole: 'enterprise',
-    systemTabLabel: '企业通知',
-    systemPanelTitle: '企业系统通知',
-    systemPanelHint: '报名、考勤、结算和平台提醒会统一汇总在这里。',
-    systemEmptyText: '暂无企业系统通知',
-    systemEmptySubText: '后续与你发布工单和平台处理相关的提醒会显示在这里。',
-    systemRoleBadgeText: '企业'
+    systemTabLabel: '\u7cfb\u7edf\u901a\u77e5',
+    systemPanelTitle: '\u7cfb\u7edf\u901a\u77e5',
+    systemPanelHint: '\u5e73\u53f0\u516c\u544a\u3001\u8ba4\u8bc1\u7ed3\u679c\u3001\u7ed3\u7b97\u63d0\u9192\u7b49\u6d88\u606f\u4f1a\u663e\u793a\u5728\u8fd9\u91cc\u3002',
+    systemEmptyText: '\u6682\u65e0\u7cfb\u7edf\u901a\u77e5',
+    systemEmptySubText: '\u540e\u53f0\u53d1\u5e03\u7684\u516c\u544a\u548c\u4e0e\u4f60\u76f8\u5173\u7684\u7cfb\u7edf\u63d0\u9192\u4f1a\u663e\u793a\u5728\u8fd9\u91cc\u3002',
+    systemRoleBadgeText: ''
   },
 
   onShow() {
@@ -163,7 +156,7 @@ Page({
         ...systemNoticeCopy
       })
       if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-        this.getTabBar().setData({ selected: userRole === 'enterprise' ? 3 : 2, userRole })
+        this.getTabBar().setData({ selected: userRole === 'enterprise' ? 3 : 2, userRole, unreadCount: 0 })
       }
       return
     }
@@ -322,6 +315,22 @@ Page({
     }
   },
 
+  mapNoticeItem(item) {
+    return {
+      id: item.id,
+      title: item.title || '\u7cfb\u7edf\u901a\u77e5',
+      content: item.content || '',
+      time: this.formatTime(item.createdAt),
+      createdAt: item.createdAt || ''
+    }
+  },
+
+  syncTabBarUnread(totalUnread) {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ unreadCount: Number(totalUnread) || 0 })
+    }
+  },
+
   setSystemMessages(systemMessages) {
     const systemUnreadCount = systemMessages.filter((m) => m.unread).length
     const systemSections = buildSystemSections(systemMessages, this.data.userRole || 'enterprise')
@@ -331,6 +340,7 @@ Page({
       systemUnreadCount,
       systemUnreadDisplay: systemUnreadCount > 99 ? '99+' : (systemUnreadCount ? String(systemUnreadCount) : '')
     })
+    this.syncTabBarUnread((this.data.chatUnreadCount || 0) + systemUnreadCount)
   },
 
   loadMessages() {
@@ -338,9 +348,9 @@ Page({
       const list = Array.isArray(res.data) ? res.data : (res.data.list || [])
       const mapped = list.map((item) => ({
         ...item,
-        avatarText: item.avatarText || (item.name ? item.name[0] : '聊'),
+        avatarText: item.avatarText || (item.name ? item.name[0] : '\u804a'),
         avatarBg: item.avatarBg || '#3B82F6',
-        lastMsg: item.lastMsg || '暂无消息',
+        lastMsg: item.lastMsg || '\u6682\u65e0\u6d88\u606f',
         time: item.time || '',
         activeText: item.activeText || '',
         isOnline: !!item.isOnline
@@ -351,19 +361,18 @@ Page({
         chatUnreadCount: unread,
         chatUnreadDisplay: unread > 99 ? '99+' : (unread ? String(unread) : '')
       })
+      this.syncTabBarUnread(unread + (this.data.systemUnreadCount || 0))
     }).catch(() => {})
 
     const userRole = this.data.userRole || 'enterprise'
     const userId = this.getCurrentUserId()
-    const requests = [
-      get('/notifications', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } }))
-    ]
+    const notificationTask = get('/notifications', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } }))
+    const noticeTask = get('/notifications/notices').catch(() => ({ data: [] }))
+    const walletTask = userRole === 'worker'
+      ? get('/wallet/transactions', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } }))
+      : Promise.resolve(null)
 
-    if (userRole === 'worker') {
-      requests.push(get('/wallet/transactions', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } })))
-    }
-
-    Promise.all(requests).then(([notificationRes, walletRes]) => {
+    Promise.all([notificationTask, noticeTask, walletTask]).then(([notificationRes, noticeRes, walletRes]) => {
       const notifications = notificationRes.data.list || notificationRes.data || []
       const systemMessages = buildRoleSystemMessages({
         userRole,
@@ -372,8 +381,15 @@ Page({
         userId
       })
       const mapped = systemMessages.map((item) => this.mapSystemMessage(item))
+      const noticeItems = (noticeRes.data.list || noticeRes.data || []).map((item) => this.mapNoticeItem(item))
+      this.setData({
+        noticeItems,
+        noticeCountLabel: noticeItems.length > 0 ? String(noticeItems.length) + '\u6761' : ''
+      })
       this.setSystemMessages(mapped)
-    }).catch(() => {})
+    }).catch(() => {
+      this.setData({ noticeItems: [], noticeCountLabel: '' })
+    })
   },
 
   getCurrentUserId() {

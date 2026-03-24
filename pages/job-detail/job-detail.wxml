@@ -49,7 +49,7 @@
         <text class="dl">工作地点</text><text class="dv">{{job.location}}</text>
       </view>
       <view class="detail-row">
-        <text class="dl">工种</text><text class="dv">{{job.title}}</text>
+        <text class="dl">工种</text><text class="dv">{{job.jobType || job.title}}</text>
       </view>
       <view class="detail-row">
         <text class="dl">结算方式</text><text class="dv">{{job.salaryType}}</text>

@@ -1,4 +1,4 @@
-const { post, upload } = require('../../utils/request')
+const { get, post, upload } = require('../../utils/request')
 const auth = require('../../utils/auth')
 const { getDefaultContactProfile } = require('../../utils/contact-profile')
 const { normalizeImageUrl } = require('../../utils/image')
@@ -24,7 +24,7 @@ Page({
       lat: null,
       lng: null
     },
-    jobTypes: ['电子组装', '包装工', '搬运工', '缝纫工', '焊接工', '质检员', '普工', '其他'],
+    jobTypes: [],
     benefits: [
       { label: '包午餐', selected: false },
       { label: '有空调', selected: false },
@@ -43,7 +43,15 @@ Page({
 
   onLoad() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    this.loadJobTypes()
     this.initContactInfo()
+  },
+
+  loadJobTypes() {
+    get('/config/job-types').then((res) => {
+      const list = (res.data.list || []).map((item) => item.name).filter(Boolean)
+      this.setData({ jobTypes: list })
+    }).catch(() => {})
   },
 
   initContactInfo() {
@@ -181,6 +189,7 @@ Page({
 
     const { form, settleType, benefits, images, phoneChecked, wechatChecked, wechatQrChecked } = this.data
     if (!form.title) { wx.showToast({ title: '请输入招工标题', icon: 'none' }); return }
+    if (!form.jobType) { wx.showToast({ title: '\u8bf7\u9009\u62e9\u5de5\u79cd', icon: 'none' }); return }
     if (!form.price) { wx.showToast({ title: '请输入工价', icon: 'none' }); return }
     if (!form.headcount) { wx.showToast({ title: '请输入招工人数', icon: 'none' }); return }
     if (!form.startDate || !form.endDate) { wx.showToast({ title: '请选择工作日期', icon: 'none' }); return }

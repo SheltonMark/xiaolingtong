@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification } from '../../entities/notification.entity';
+import { Notice } from '../../entities/notice.entity';
 
 @Injectable()
 export class NotificationService {
   constructor(
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
+    @InjectRepository(Notice) private noticeRepo: Repository<Notice>,
   ) {}
 
   async list(userId: number, query: any) {
@@ -39,6 +41,16 @@ export class NotificationService {
   async unreadCount(userId: number) {
     const count = await this.notiRepo.count({ where: { userId, isRead: 0 } });
     return { count };
+  }
+
+  async listActiveNotices() {
+    const now = new Date();
+    return this.noticeRepo
+      .createQueryBuilder('n')
+      .where('n.isActive = :isActive', { isActive: 1 })
+      .andWhere('(n.expireAt IS NULL OR n.expireAt > :now)', { now })
+      .orderBy('n.createdAt', 'DESC')
+      .getMany();
   }
 
   async sendNotification(userId: number, data: Partial<Notification>) {

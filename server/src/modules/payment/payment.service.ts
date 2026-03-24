@@ -89,6 +89,17 @@ export class PaymentService {
       : `${prefix}_0_${ts}_${rand}`;
   }
 
+  generateTransferBatchNo(prefix: string, orderId?: number) {
+    const cleanPrefix = String(prefix || 'WD')
+      .replace(/[^A-Za-z0-9]/g, '')
+      .toUpperCase()
+      .slice(0, 6) || 'WD';
+    const orderPart = String(orderId || 0).replace(/[^0-9]/g, '');
+    const ts = Date.now().toString();
+    const rand = crypto.randomBytes(4).toString('hex').toUpperCase();
+    return (cleanPrefix + orderPart + ts + rand).slice(0, 32);
+  }
+
   /** JSAPI 下单（小程序支付） */
   async createJsapiOrder(params: {
     outTradeNo: string;

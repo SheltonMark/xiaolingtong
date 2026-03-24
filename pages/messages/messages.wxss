@@ -74,6 +74,63 @@
   color: #64748B;
   line-height: 1.6;
 }
+.notice-board {
+  padding: 24rpx;
+  border-radius: 20rpx;
+  background-color: #FFFFFF;
+  box-shadow: 0 10rpx 24rpx rgba(15, 23, 42, 0.04);
+}
+.notice-board-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+.notice-board-title {
+  font-size: 26rpx;
+  font-weight: 700;
+  color: #0F172A;
+}
+.notice-board-count {
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+.notice-card {
+  padding: 20rpx 22rpx;
+  border-radius: 16rpx;
+  background: #F8FAFC;
+  border: 1rpx solid #E2E8F0;
+}
+.notice-card + .notice-card {
+  margin-top: 14rpx;
+}
+.notice-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+.notice-card-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #0F172A;
+}
+.notice-card-time {
+  flex-shrink: 0;
+  font-size: 20rpx;
+  color: #94A3B8;
+}
+.notice-card-content {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 22rpx;
+  line-height: 1.6;
+  color: #475569;
+  white-space: pre-wrap;
+}
 .system-section {
   padding: 24rpx;
   border-radius: 20rpx;
