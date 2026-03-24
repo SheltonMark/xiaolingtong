@@ -11,6 +11,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
+import { WechatSecurityModule } from '../wechat-security/wechat-security.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { Promotion } from '../../entities/promotion.entity';
       SysConfig,
       Promotion,
     ]),
+    WechatSecurityModule,
   ],
   controllers: [PostController],
   providers: [PostService],

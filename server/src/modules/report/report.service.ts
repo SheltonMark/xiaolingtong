@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Report } from '../../entities/report.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 @Injectable()
 export class ReportService {
   constructor(
     @InjectRepository(Report) private reportRepo: Repository<Report>,
+    private wechatSecurityService: WechatSecurityService,
   ) {}
 
   private normalizeImages(value: any): string[] | undefined {
@@ -43,13 +45,19 @@ export class ReportService {
   }
 
   async create(reporterId: number, dto: any) {
+    const normalizedImages = this.normalizeImages(dto.images);
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [dto.targetType, dto.reason, dto.type, dto.description],
+      images: [normalizedImages],
+    });
+
     const report = this.reportRepo.create({
       reporterId,
       targetType: dto.targetType || 'post',
       targetId: dto.targetId,
       reason: dto.reason || dto.type || '',
       description: dto.description || '',
-      images: this.normalizeImages(dto.images),
+      images: normalizedImages,
     });
     return this.reportRepo.save(report);
   }

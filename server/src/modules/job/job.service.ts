@@ -10,6 +10,7 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 @Injectable()
 export class JobService {
@@ -28,6 +29,7 @@ export class JobService {
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
+    private wechatSecurityService: WechatSecurityService,
   ) {}
 
   private async getEnterpriseCompanyName(userId: number, fallback = '企业用户') {
@@ -958,6 +960,12 @@ export class JobService {
     await this.checkKeywords(payload.title + (payload.description || ''));
     const existing = await this.findRecentDuplicateJob(userId, payload);
     if (existing) return existing;
+
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [payload],
+      images: [payload.images, payload.contactWechatQr],
+    });
+
     const job = this.jobRepo.create({ ...payload, userId });
     return this.jobRepo.save(job);
   }
@@ -969,6 +977,10 @@ export class JobService {
     }
     if (!job || job.userId !== userId) throw new ForbiddenException('无权操作');
     await this.checkKeywords((dto.title || '') + (dto.description || ''));
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [dto],
+      images: [dto.images, dto.contactWechatQr],
+    });
     Object.assign(job, dto);
     return this.jobRepo.save(job);
   }

@@ -10,6 +10,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 @Injectable()
 export class PostService {
@@ -23,6 +24,7 @@ export class PostService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
     @InjectRepository(Promotion) private promoRepo: Repository<Promotion>,
+    private wechatSecurityService: WechatSecurityService,
   ) {}
 
   private async getConfig(key: string, defaultValue: string): Promise<string> {
@@ -402,6 +404,12 @@ export class PostService {
       throw new BadRequestException('请上传微信二维码');
     }
 
+    const normalizedImages = this.normalizeStringArray(images);
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [type, title, description, structuredFields, normalizedContactName, normalizedContactPhone, normalizedContactWechat],
+      images: [normalizedImages, normalizedContactWechatQr],
+    });
+
     const postData: Partial<Post> = {
       userId,
       type,
@@ -414,7 +422,6 @@ export class PostService {
       showWechatQr: wechatQrVisible ? 1 : 0,
     };
     if (Object.keys(structuredFields).length) postData.fields = structuredFields;
-    const normalizedImages = this.normalizeStringArray(images);
     if (normalizedImages?.length) postData.images = normalizedImages;
     if (normalizedContactName) postData.contactName = normalizedContactName;
     if (normalizedContactPhone) postData.contactPhone = normalizedContactPhone;
@@ -429,6 +436,10 @@ export class PostService {
     const post = await this.postRepo.findOne({ where: { id } });
     if (!post || post.userId !== userId) throw new ForbiddenException('无权操作');
     await this.checkKeywords((dto.content || '') + (dto.title || ''));
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [dto],
+      images: [dto.images, dto.contactWechatQr],
+    });
     Object.assign(post, dto);
     return this.postRepo.save(post);
   }

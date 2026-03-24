@@ -6,6 +6,7 @@ import { ExposureComment } from '../../entities/exposure-comment.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { User } from '../../entities/user.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 @Injectable()
 export class ExposureService {
@@ -13,6 +14,7 @@ export class ExposureService {
     @InjectRepository(Exposure) private expRepo: Repository<Exposure>,
     @InjectRepository(ExposureComment)
     private commentRepo: Repository<ExposureComment>,
+    private wechatSecurityService: WechatSecurityService,
   ) {}
 
   private normalizeStringArray(value: any): string[] | undefined {
@@ -189,6 +191,11 @@ export class ExposureService {
       throw new BadRequestException('需要完成企业认证或实名认证后才能发布曝光');
     }
 
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [dto.category, dto.company, dto.contact, dto.amount, dto.description],
+      images: [dto.images],
+    });
+
     const exp = this.expRepo.create({
       publisherId,
       category: dto.category || 'wage_theft', // 默认欠薪欠款
@@ -203,6 +210,7 @@ export class ExposureService {
   }
 
   async comment(exposureId: number, userId: number, content: string) {
+    await this.wechatSecurityService.assertSafeSubmission({ texts: [content] });
     const comment = this.commentRepo.create({ exposureId, userId, content });
     return this.commentRepo.save(comment);
   }

@@ -4,9 +4,10 @@ import { ExposureController } from './exposure.controller';
 import { ExposureService } from './exposure.service';
 import { Exposure } from '../../entities/exposure.entity';
 import { ExposureComment } from '../../entities/exposure-comment.entity';
+import { WechatSecurityModule } from '../wechat-security/wechat-security.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Exposure, ExposureComment])],
+  imports: [TypeOrmModule.forFeature([Exposure, ExposureComment]), WechatSecurityModule],
   controllers: [ExposureController],
   providers: [ExposureService],
 })
