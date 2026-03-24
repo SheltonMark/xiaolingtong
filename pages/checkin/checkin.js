@@ -1,5 +1,6 @@
 const { get, post, upload } = require('../../utils/request')
 const { getUserLocation, reverseGeocode } = require('../../utils/distance')
+const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
   data: {

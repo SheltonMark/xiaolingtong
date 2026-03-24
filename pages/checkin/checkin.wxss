@@ -2,6 +2,7 @@
 .ci-card { background-color: #fff; margin: 24rpx 32rpx 0; border-radius: 24rpx; padding: 32rpx; }
 .ci-job-header { display: flex; align-items: center; gap: 16rpx; margin-bottom: 20rpx; }
 .ci-avatar-img { width: 80rpx; height: 80rpx; border-radius: 50%; flex-shrink: 0; }
+.ci-job-avatar { width: 60rpx; height: 60rpx; }
 .ci-job-info { display: flex; flex-direction: column; flex: 1; }
 .ci-company { font-size: 26rpx; font-weight: 500; color: #1E293B; }
 .ci-date { font-size: 22rpx; color: #94A3B8; margin-top: 4rpx; }

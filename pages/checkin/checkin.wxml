@@ -3,7 +3,8 @@
 
   <view class="ci-card">
     <view class="ci-job-header">
-      <view class="text-avatar" style="width:60rpx;height:60rpx;font-size:24rpx;background-color:#10B981;">{{jobInfo.avatarText}}</view>
+      <image wx:if="{{jobInfo.avatarUrl}}" src="{{jobInfo.avatarUrl}}" mode="aspectFill" class="ci-avatar-img ci-job-avatar" />
+      <view wx:else class="text-avatar" style="width:60rpx;height:60rpx;font-size:24rpx;background-color:#10B981;">{{jobInfo.avatarText}}</view>
       <view class="ci-job-info">
         <text class="ci-company">{{jobInfo.company}} · {{jobInfo.title}}</text>
         <text class="ci-date">{{jobInfo.date}} · {{jobInfo.time}}</text>
