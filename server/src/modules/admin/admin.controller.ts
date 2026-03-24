@@ -300,11 +300,11 @@ export class AdminController {
     return this.adminService.setJobSupervisor(id, body);
   }
 
-  @Put('job-orders/:id/commission')
-  adjustCommission(
+  @Put('job-orders/:id/manager-share')
+  adjustManagerShare(
     @Param('id') id: number,
-    @Body('commissionRate') rate: number,
+    @Body('managerShareRate') rate: number,
   ) {
-    return this.adminService.adjustCommission(id, rate);
+    return this.adminService.adjustManagerShare(id, rate);
   }
 }

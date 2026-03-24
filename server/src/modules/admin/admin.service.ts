@@ -748,7 +748,6 @@ export class AdminService {
     const qb = this.jobRepo
       .createQueryBuilder('j')
       .leftJoinAndSelect('j.user', 'u')
-      .loadRelationCountAndMap('j.applyCount', 'j.applications')
       .orderBy('j.createdAt', 'DESC');
     if (status) qb.andWhere('j.status = :status', { status });
     qb.skip((page - 1) * pageSize).take(pageSize);
@@ -833,28 +832,31 @@ export class AdminService {
     };
   }
 
-  async adjustCommission(jobId: number, commissionRate: number) {
-    // 存到 job 的 description 备注里，结算时读取
+  async adjustManagerShare(jobId: number, managerShareRate: number) {
+    const rate = Number(managerShareRate);
+    if (!Number.isFinite(rate) || rate < 0 || rate > 100) {
+      throw new BadRequestException('分成比例需在 0-100 之间');
+    }
+
     const job = await this.jobRepo.findOneBy({ id: jobId });
-    if (!job) return { message: '不存在' };
-    // 用 SysConfig 存单个 job 的佣金率覆盖
-    const key = `job_commission_${jobId}`;
-    let config = await this.configRepo.findOne({ where: { key } });
+    if (!job) throw new BadRequestException('招工不存在');
+
+    const key = `job_manager_share_${jobId}`;
+    const config = await this.configRepo.findOne({ where: { key } });
     if (config) {
-      await this.configRepo.update(config.id, {
-        value: String(commissionRate),
-      });
+      await this.configRepo.update(config.id, { value: String(rate) });
     } else {
       await this.configRepo.save(
         this.configRepo.create({
           key,
-          value: String(commissionRate),
-          label: `招工${jobId}佣金率`,
+          value: String(rate),
+          label: `招工${jobId}管理员分成比例`,
           group: 'job',
         }),
       );
     }
-    return { message: '佣金率已调整为 ' + commissionRate * 100 + '%' };
+
+    return { message: '管理员分成比例已调整为 ' + rate + '%' };
   }
 
   async initDefaultConfigs() {

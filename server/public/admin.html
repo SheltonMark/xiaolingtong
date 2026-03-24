@@ -912,6 +912,7 @@ async function showJobOrderDetail(id){
   }
   if(joCanEditSupervisor(job.status)){
     h+='<button class="search-btn" onclick="saveSupervisor('+job.id+')">保存主管</button>';
+    h+='<button class="search-btn" onclick="promptJobManagerShare('+job.id+')">设置分成比例</button>';
   }
   h+='</div>';
   document.getElementById('joDetailContent').innerHTML=h;
@@ -939,6 +940,15 @@ async function saveSupervisor(jobId){
   toast('主管已保存','success');
   await showJobOrderDetail(jobId);
   loadJobOrders();
+}
+
+async function promptJobManagerShare(jobId){
+  var v=await xprompt('请输入该招工临时管理员分成比例（0-100）');
+  if(v===null||v===''){return;}
+  var rate=Number(v);
+  if(!isFinite(rate)||rate<0||rate>100){toast('请输入 0-100 之间的比例','warning');return;}
+  await api('/job-orders/'+jobId+'/manager-share',{method:'PUT',body:{managerShareRate:rate}});
+  toast('分成比例已保存','success');
 }
 
 var adPage=1;

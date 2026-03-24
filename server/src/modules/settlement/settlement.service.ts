@@ -206,6 +206,11 @@ export class SettlementService {
     return this.normalizeCommissionRate(jobCommission || globalCommission, 0.2);
   }
 
+  private async getManagerShareRateForJob(jobId: number): Promise<number> {
+    const managerShare = await this.getConfig(`job_manager_share_${jobId}`, '');
+    return this.normalizeCommissionRate(managerShare, 0);
+  }
+
   async createSettlement(jobId: number, userId: number) {
     const job = await this.jobRepo.findOneBy({ id: jobId });
     if (!job) throw new BadRequestException('招工不存在');
@@ -233,9 +238,7 @@ export class SettlementService {
     }
 
     const commissionRate = await this.getCommissionRateForJob(jobId);
-
-    const managerFeeStr = await this.getConfig('manager_service_fee', '5');
-    const managerFeeUnit = +managerFeeStr;
+    const managerShareRate = await this.getManagerShareRateForJob(jobId);
 
     const apps = await this.appRepo.find({
       where: { jobId },
@@ -253,7 +256,6 @@ export class SettlementService {
     );
 
     let totalHours = 0;
-    let totalSettlementUnits = 0;
     let factoryTotal = 0;
     let workerTotal = 0;
     const items: {
@@ -296,10 +298,8 @@ export class SettlementService {
             ? pieces * +job.salary
             : hours * +job.salary;
         const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
-        const settlementUnits = job.salaryType === 'piece' ? pieces : hours;
 
         totalHours += hours;
-        totalSettlementUnits += settlementUnits;
         factoryTotal += factoryPay;
         workerTotal += workerPay;
         items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
@@ -337,10 +337,8 @@ export class SettlementService {
           factoryPay = hours * +job.salary;
         }
         const workerPay = +(factoryPay * (1 - commissionRate)).toFixed(2);
-        const settlementUnits = job.salaryType === 'piece' ? pieces : hours;
 
         totalHours += hours;
-        totalSettlementUnits += settlementUnits;
         factoryTotal += factoryPay;
         workerTotal += workerPay;
         items.push({ workerId: app.workerId, hours, factoryPay, workerPay });
@@ -350,15 +348,12 @@ export class SettlementService {
     if (items.length === 0)
       throw new BadRequestException('暂无有效考勤记录，无法生成结算单');
 
-    const remainingAmount = +(factoryTotal - workerTotal).toFixed(2);
+    const commissionPool = +(factoryTotal - workerTotal).toFixed(2);
     const rawSupervisorFee = supervisorId
-      ? +(totalSettlementUnits * managerFeeUnit).toFixed(2)
+      ? +(commissionPool * managerShareRate).toFixed(2)
       : 0;
-    const supervisorFee = Math.max(
-      0,
-      Math.min(rawSupervisorFee, remainingAmount),
-    );
-    const platformFee = +(remainingAmount - supervisorFee).toFixed(2);
+    const supervisorFee = Math.max(0, Math.min(rawSupervisorFee, commissionPool));
+    const platformFee = +(commissionPool - supervisorFee).toFixed(2);
 
     const settlementEntity = this.settleRepo.create({
       jobId,
