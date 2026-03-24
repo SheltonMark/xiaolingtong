@@ -1,4 +1,4 @@
-<view class="msg-page">
+﻿<view class="msg-page">
   <nav-bar title="消息中心" showBack="{{true}}" />
 
   <view wx:if="{{notLoggedIn}}" class="not-logged-in">
@@ -52,7 +52,7 @@
 
       <view class="notice-board" wx:if="{{noticeItems.length > 0}}">
         <view class="notice-board-head">
-          <text class="notice-board-title">&#24179;&#21488;&#20844;&#21578;</text>
+          <text class="notice-board-title">平台公告</text>
           <text class="notice-board-count">{{noticeCountLabel}}</text>
         </view>
 
@@ -107,3 +107,4 @@
     </view>
   </block>
 </view>
+
