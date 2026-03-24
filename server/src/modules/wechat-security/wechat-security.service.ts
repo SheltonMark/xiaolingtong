@@ -88,11 +88,11 @@ export class WechatSecurityService {
     }
 
     if (Number(data?.errcode) === 87014 || (suggest && suggest !== 'pass')) {
-      throw new BadRequestException('?????????');
+      throw new BadRequestException('\u63d0\u4ea4\u5185\u5bb9\u5305\u542b\u8fdd\u89c4\u4fe1\u606f\uff0c\u8bf7\u4fee\u6539\u540e\u91cd\u8bd5');
     }
 
     this.logger.warn(`msg_sec_check failed: ${JSON.stringify(data)}`);
-    throw new BadRequestException('????????????');
+    throw new BadRequestException('\u5185\u5bb9\u5b89\u5168\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5');
   }
 
   private async submitImageCheck(mediaUrl: string, scene: number) {
@@ -109,11 +109,11 @@ export class WechatSecurityService {
     }
 
     if (Number(data?.errcode) === 87014 || (suggest && suggest !== 'pass')) {
-      throw new BadRequestException('???????????');
+      throw new BadRequestException('\u63d0\u4ea4\u56fe\u7247\u5305\u542b\u8fdd\u89c4\u4fe1\u606f\uff0c\u8bf7\u66f4\u6362\u540e\u91cd\u8bd5');
     }
 
     this.logger.warn(`media_check_async failed: ${JSON.stringify(data)}`);
-    throw new BadRequestException('????????????');
+    throw new BadRequestException('\u5185\u5bb9\u5b89\u5168\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5');
   }
 
   private async postWechatCheck(
@@ -136,7 +136,7 @@ export class WechatSecurityService {
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error || 'unknown');
       this.logger.error(`wechat security request failed: ${message}`);
-      throw new BadRequestException('????????????');
+      throw new BadRequestException('\u5185\u5bb9\u5b89\u5168\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5');
     }
   }
 
@@ -149,7 +149,7 @@ export class WechatSecurityService {
     const appid = this.configService.get('WX_APPID');
     const secret = this.configService.get('WX_SECRET');
     if (!appid || !secret) {
-      throw new BadRequestException('????????');
+      throw new BadRequestException('\u672a\u914d\u7f6e\u5185\u5bb9\u5b89\u5168\u6821\u9a8c\u53c2\u6570');
     }
 
     const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`;
@@ -157,7 +157,7 @@ export class WechatSecurityService {
       const { data } = await axios.get(url, { timeout: 10000 });
       if (!data?.access_token) {
         this.logger.warn(`getAccessToken failed: ${JSON.stringify(data)}`);
-        throw new BadRequestException('????????????');
+        throw new BadRequestException('\u5185\u5bb9\u5b89\u5168\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5');
       }
       this.accessToken = data.access_token;
       const expiresIn = Number(data.expires_in || 7200);
@@ -167,7 +167,7 @@ export class WechatSecurityService {
       if (error instanceof BadRequestException) throw error;
       const message = error instanceof Error ? error.message : String(error || 'unknown');
       this.logger.error(`getAccessToken request failed: ${message}`);
-      throw new BadRequestException('????????????');
+      throw new BadRequestException('\u5185\u5bb9\u5b89\u5168\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5');
     }
   }
 }

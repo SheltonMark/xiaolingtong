@@ -37,6 +37,27 @@ function getSystemNoticeCopy() {
   }
 }
 
+function decodeHtmlEntities(value) {
+  let text = String(value || '')
+  if (!text || text.indexOf('&') === -1) return text
+  const namedMap = { amp: "&", lt: "<", gt: ">", quot: "\"", apos: "'", nbsp: " " }
+  const decodeOnce = (input) => input.replace(/&(#x?[0-9a-fA-F]+|amp|lt|gt|quot|apos|nbsp);/g, (_, entity) => {
+    if (entity[0] === '#') {
+      const isHex = entity[1] === 'x' || entity[1] === 'X'
+      const raw = isHex ? entity.slice(2) : entity.slice(1)
+      const code = parseInt(raw, isHex ? 16 : 10)
+      return Number.isFinite(code) ? String.fromCodePoint(code) : _
+    }
+    return namedMap[entity] || _
+  })
+  for (let i = 0; i < 3; i += 1) {
+    const next = decodeOnce(text)
+    if (next === text) break
+    text = next
+  }
+  return text
+}
+
 function includesAny(text, keywords) {
   const source = String(text || '')
   return keywords.some((keyword) => source.includes(keyword))
@@ -61,8 +82,8 @@ function getSystemCategoryConfigs(userRole) {
 }
 
 function resolveSystemCategory(item, userRole) {
-  const title = String(item.title || '')
-  const desc = String(item.content || item.desc || '')
+  const title = decodeHtmlEntities(item.title || '')
+  const desc = decodeHtmlEntities(item.content || item.desc || '')
   const text = `${title} ${desc}`
   const type = String(item.type || '')
 
@@ -301,10 +322,13 @@ Page({
 
   mapSystemMessage(item) {
     const style = SYSTEM_STYLE_MAP[item.type] || SYSTEM_STYLE_MAP.system
+    const title = decodeHtmlEntities(item.title || '')
+    const desc = decodeHtmlEntities(item.content || item.desc || '')
     return {
       ...item,
+      title,
       unread: item.unread !== undefined ? !!item.unread : Number(item.isRead || 0) === 0,
-      desc: item.content || item.desc || '',
+      desc,
       time: item.time || this.formatTime(item.createdAt),
       link: this.resolveSystemMessageLink(item),
       icon: style.icon,
@@ -318,8 +342,8 @@ Page({
   mapNoticeItem(item) {
     return {
       id: item.id,
-      title: item.title || '\u7cfb\u7edf\u901a\u77e5',
-      content: item.content || '',
+      title: decodeHtmlEntities(item.title || '\u7cfb\u7edf\u901a\u77e5'),
+      content: decodeHtmlEntities(item.content || ''),
       time: this.formatTime(item.createdAt),
       createdAt: item.createdAt || ''
     }

@@ -101,10 +101,10 @@ tr:hover td { background:rgba(35,39,54,.5); }
 .config-group { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px; }
 .config-group-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:10px; }
 .config-group-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.config-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); }
-.config-item label { flex:1; font-size:13px; color:var(--text-sec); }
-.config-item input { width:120px; height:32px; padding:0 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; text-align:right; outline:none; box-sizing:border-box; }
-.config-item .save-cfg { height:32px; padding:0 12px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:12px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; -webkit-appearance:none; appearance:none; }
+.config-item { display:grid; grid-template-columns:minmax(0,1fr) 120px auto; align-items:center; gap:12px; padding:12px 16px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); }
+.config-item label { min-width:0; font-size:13px; color:var(--text-sec); line-height:1.5; word-break:break-word; }
+.config-item input { width:100%; height:32px; padding:0 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; text-align:right; outline:none; box-sizing:border-box; }
+.config-item .save-cfg { min-width:52px; height:32px; padding:0 12px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:12px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; -webkit-appearance:none; appearance:none; }
 .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:100; justify-content:center; align-items:center; }
 .modal-overlay.show { display:flex; }
 .modal { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:28px; width:480px; max-height:80vh; overflow-y:auto; }
@@ -140,6 +140,8 @@ tr:hover td { background:rgba(35,39,54,.5); }
   .toolbar input,.toolbar select { flex:1; min-width:0; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
   .config-group-grid { grid-template-columns:1fr; }
+  .config-item { grid-template-columns:1fr; }
+  .config-item input,.config-item .save-cfg { width:100%; }
   .modal { width:calc(100vw - 32px); margin:16px; }
   .cert-detail-layout { grid-template-columns:1fr; }
   .cert-detail-grid { grid-template-columns:1fr; }
@@ -242,11 +244,11 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-stats"><div class="panel"><div class="panel-header"><h4>数据统计</h4></div><div id="statsContent"></div></div></div>
     <div class="page-section" id="page-finance"><div class="stat-cards" id="financeCards"></div><div class="panel"><div class="panel-header"><h4>交易明细</h4><div class="toolbar"><select id="txTypeFilter" onchange="loadTransactions()"><option value="">全部类型</option><option value="income">收入</option><option value="withdraw">提现</option><option value="refund">退款</option></select><button class="search-btn" onclick="loadTransactions()">刷新</button></div></div><table><thead><tr><th>ID</th><th>用户</th><th>类型</th><th>金额</th><th>状态</th><th>备注</th><th>时间</th></tr></thead><tbody id="txTable"></tbody></table><div class="pagination" id="txPagination"></div></div></div>
       <div class="page-section" id="page-joborders" style="display:none"></div>
-    <div class="modal-overlay" id="joDetailPanel"><div class="modal" style="width:980px;max-width:92vw;"><div class="panel-header"><h4>&#25307;&#24037;&#35814;&#24773;</h4><button class="search-btn" onclick="document.getElementById('joDetailPanel').classList.remove('show')">&#20851;&#38381;</button></div><div id="joDetailContent" style="max-height:72vh;overflow:auto;"></div></div></div></div>
     <div class="page-section" id="page-configs"><div class="panel"><div class="panel-header"><h4>系统配置</h4></div><div class="config-grid" id="configGrid"></div></div></div>
+<div class="modal-overlay" id="joDetailPanel"><div class="modal" style="width:980px;max-width:92vw;"><div class="panel-header"><h4>&#25307;&#24037;&#35814;&#24773;</h4><button class="search-btn" onclick="document.getElementById('joDetailPanel').classList.remove('show')">&#20851;&#38381;</button></div><div id="joDetailContent" style="max-height:72vh;overflow:auto;"></div></div></div>
   </div>
 </div>
-<div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">&#21457;&#24067;&#20844;&#21578;</h4><div class="form-group"><label>&#26631;&#39064;</label><input type="text" id="noticeTitle" placeholder="&#20844;&#21578;&#26631;&#39064;"></div><div class="form-group"><label>&#20869;&#23481;</label><textarea id="noticeContent" rows="4" placeholder="&#20844;&#21578;&#20869;&#23481;" style="resize:vertical"></textarea></div><div class="form-group"><label>&#23637;&#31034;&#35828;&#26126;</label><div style="padding:14px 16px;border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">&#21457;&#24067;&#21518;&#23558;&#32479;&#19968;&#23637;&#31034;&#22312;&#23567;&#31243;&#24207;&#28040;&#24687;&#20013;&#24515;&#30340;&#31995;&#32479;&#36890;&#30693;&#21306;&#22495;&#65292;&#19981;&#20877;&#21306;&#20998;&#39318;&#39029;&#24377;&#31383;&#12290;</div></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">&#21462;&#28040;</button><button class="confirm" onclick="saveNotice()">&#30830;&#35748;</button></div></div></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">??</button><button class="confirm" onclick="saveNotice()">??</button></div></div></div>
+<div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">&#21457;&#24067;&#20844;&#21578;</h4><div class="form-group"><label>&#26631;&#39064;</label><input type="text" id="noticeTitle" placeholder="&#20844;&#21578;&#26631;&#39064;"></div><div class="form-group"><label>&#20869;&#23481;</label><textarea id="noticeContent" rows="4" placeholder="&#20844;&#21578;&#20869;&#23481;" style="resize:vertical"></textarea></div><div class="form-group"><label>&#23637;&#31034;&#35828;&#26126;</label><div style="padding:14px 16px;border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">&#21457;&#24067;&#21518;&#23558;&#32479;&#19968;&#23637;&#31034;&#22312;&#23567;&#31243;&#24207;&#28040;&#24687;&#20013;&#24515;&#30340;&#31995;&#32479;&#36890;&#30693;&#21306;&#22495;&#65292;&#19981;&#20877;&#21306;&#20998;&#39318;&#39029;&#24377;&#31383;&#12290;</div></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">&#21462;&#28040;</button><button class="confirm" onclick="saveNotice()">&#30830;&#35748;</button></div></div></div>
 
 <div id="toastContainer" class="toast-container"></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
@@ -633,15 +635,15 @@ async function loadJobs(page){
   var h='';
   for(var i=0;i<list.length;i++){var j=list[i];
     var st=stMap[j.status]||['badge-gray',j.status];
-    var acts='<button class="btn btn-primary" onclick="showJobOrderDetail('+j.id+')">??</button>';
-    if(j.status==='recruiting')acts+=' <button class="btn btn-success" onclick="showJobOrderDetail('+j.id+')">??</button>';
+    var acts='<button class="btn btn-primary" onclick="showJobOrderDetail('+j.id+')">\u67e5\u770b\u8be6\u60c5</button>';
+    if(j.status==='recruiting')acts+=' <button class="btn btn-success" onclick="showJobOrderDetail('+j.id+')">\u5206\u914d\u4eba\u5458</button>';
     h+='<tr><td>'+j.id+'</td><td>'+j.title+'</td><td>'+(j.companyName||adminDisplayName(j))+'</td><td>'+j.needCount+'/'+(j.applyCount||0)+'</td><td>'+formatJobSalary(j.salary,j.salaryUnit)+'</td><td>'+j.dateStart+'~'+j.dateEnd+'</td><td><span class="badge '+st[0]+'">'+st[1]+'</span></td><td>'+acts+'</td></tr>';
   }
   document.getElementById('jobTable').innerHTML=h||'<tr><td colspan="8" class="empty">\u6682\u65e0\u62db\u5de5\u8bb0\u5f55</td></tr>';
   renderPagination('jobPagination',d.total,jobPage,d.pageSize,'loadJobs');
 }
 
-var exposurePage=1;var exposurePage=1;var exposurePage=1;
+var exposurePage=1;
 async function loadExposures(page){
   if(page)exposurePage=page;
   var d=await api('/exposures?page='+exposurePage);
@@ -871,7 +873,7 @@ async function loadTransactions(page){
   var d=await api('/transactions?page='+txPage+'&type='+type);
   if(!d)return;var list=d.list||[];
   var h='';
-  var typeMap={income:'??',withdraw:'??',refund:'??'};
+  var typeMap={income:'\u6536\u5165',withdraw:'\u63d0\u73b0',refund:'\u9000\u6b3e'};
   var stMap={pending:['badge-orange','\u5904\u7406\u4e2d'],success:['badge-green','\u6210\u529f'],failed:['badge-red','\u5931\u8d25']};
   for(var i=0;i<list.length;i++){var t=list[i];
     var st=stMap[t.status]||['badge-gray',t.status];
@@ -887,7 +889,7 @@ async function loadJobOrders(page){
   return loadJobs(page);
 }
 
-var _joDetail=null;var _joDetail=null;
+var _joDetail=null;
 function joCanPickSupervisor(status){
   return ['accepted','confirmed','working','done'].indexOf(status)>=0;
 }
@@ -900,7 +902,7 @@ async function showJobOrderDetail(id){
   var job=d.job;var apps=d.applications||[];
   var currentSupervisor=apps.find(function(item){return !!item.isSupervisor;})||null;
   var currentSupervisorName=currentSupervisor&&currentSupervisor.worker?(currentSupervisor.worker.nickname||currentSupervisor.worker.phone||('ID:'+currentSupervisor.workerId)):'待后台指派';
-  var h='<div style="margin-bottom:12px"><b>'+job.title+'</b> | ??'+job.needCount+'? | '+formatJobSalary(job.salary,job.salaryUnit)+' | '+job.dateStart+'~'+job.dateEnd+'</div>'; 
+  var h='<div style="margin-bottom:12px"><b>'+job.title+'</b> | \u9700\u8981'+job.needCount+'\u4eba | '+formatJobSalary(job.salary,job.salaryUnit)+' | '+job.dateStart+'~'+job.dateEnd+'</div>'; 
   h+='<div style="margin-bottom:12px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg)"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">当前主管</div><div style="font-size:14px;font-weight:600;color:var(--text)">'+currentSupervisorName+'</div><div style="margin-top:6px;font-size:12px;color:var(--text-muted)">主管由后台指定，可从已录用、已确认、进行中、已完工工人中选择。</div></div>';
   h+='<table><thead><tr><th><input type="checkbox" id="joCheckAll" onchange="joToggleAll(this)"></th><th>昵称</th><th>手机</th><th>信用分</th><th>完工次数</th><th>状态</th><th>主管</th></tr></thead><tbody>';
   for(var i=0;i<apps.length;i++){var a=apps[i];var w=a.worker||{};

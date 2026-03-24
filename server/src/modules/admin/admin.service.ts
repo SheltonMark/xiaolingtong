@@ -124,7 +124,7 @@ export class AdminService {
     users.forEach((user) => {
       const userId = Number(user.id);
       if (!nameMap.has(userId)) {
-        nameMap.set(userId, user.nickname || user.phone || ('??' + userId));
+        nameMap.set(userId, user.nickname || user.phone || ('\u7528\u6237' + userId));
       }
     });
 
