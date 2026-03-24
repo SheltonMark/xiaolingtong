@@ -23,13 +23,6 @@
           <view class="status-tag status-bg-{{item.statusColor}}">
             <text>{{item.statusText}}</text>
           </view>
-          <text
-            wx:if="{{item.showDeleteAction}}"
-            class="post-top-delete"
-            data-id="{{item.id}}"
-            data-type="{{item.typeKey}}"
-            bindtap="onDirectDelete"
-          >删除</text>
         </view>
       </view>
 
@@ -73,36 +66,26 @@
 
       <view class="post-actions">
         <button
-          wx:if="{{item.typeKey === 'job'}}"
-          class="act-btn act-gold act-btn-main"
-          data-id="{{item.id}}"
-          data-tab="{{item.primaryActionTab}}"
-          bindtap="onManageJob"
-        >{{item.primaryActionText || '查看报名'}}</button>
-        <button
-          wx:else
-          class="act-btn act-blue act-btn-main"
+          class="act-btn act-blue"
+          wx:if="{{item.showDetailAction}}"
           data-id="{{item.id}}"
           data-type="{{item.typeKey}}"
           bindtap="onViewPost"
-        >{{item.primaryActionText || '查看详情'}}</button>
-
-        <view class="post-actions-secondary">
-          <button
-            class="act-btn act-blue"
-            wx:if="{{item.showDetailAction}}"
-            data-id="{{item.id}}"
-            data-type="{{item.typeKey}}"
-            bindtap="onViewPost"
-          >{{item.detailActionText}}</button>
-          <button
-            class="act-btn act-orange"
-            wx:if="{{item.showPromoteAction}}"
-            data-id="{{item.id}}"
-            data-type="{{item.typeKey}}"
-            bindtap="onDirectPromote"
-          >{{item.promoteActionText}}</button>
-        </view>
+        >查看详情</button>
+        <button
+          class="act-btn act-orange"
+          wx:if="{{item.showPromoteAction}}"
+          data-id="{{item.id}}"
+          data-type="{{item.typeKey}}"
+          bindtap="onDirectPromote"
+        >{{item.promoteActionText}}</button>
+        <button
+          class="act-btn act-slate"
+          wx:if="{{item.showDeleteAction}}"
+          data-id="{{item.id}}"
+          data-type="{{item.typeKey}}"
+          bindtap="onDirectDelete"
+        >删除</button>
       </view>
     </view>
   </view>

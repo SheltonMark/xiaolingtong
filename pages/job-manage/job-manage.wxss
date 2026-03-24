@@ -197,12 +197,19 @@
 .jm-action {
   min-width: 196rpx;
   height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 28rpx;
+  box-sizing: border-box;
+  line-height: 1.2;
   border-radius: 999rpx;
   background: linear-gradient(135deg, #F59E0B 0%, #FB923C 100%);
   color: #ffffff;
   font-size: 24rpx;
   font-weight: 600;
   border: none;
+  white-space: nowrap;
 }
 
 .jm-action::after,

@@ -56,10 +56,10 @@ Page({
     const company = res.target && res.target.dataset && res.target.dataset.company
     if (id) {
       return {
-        title: (company || '曝光信息') + ' - 小灵通曝光榜',
+        title: (company || '诚信风险信息') + ' - 小灵通诚信榜',
         path: getApp().getSharePath('/pages/exposure-detail/exposure-detail?id=' + id)
       }
     }
-    return { title: '小灵通曝光榜', path: getApp().getSharePath('/pages/exposure-board/exposure-board') }
+    return { title: '小灵通诚信榜', path: getApp().getSharePath('/pages/exposure-board/exposure-board') }
   }
 })

@@ -1,6 +1,6 @@
 <!--pages/exposure-board/exposure-board.wxml-->
 <view class="eb-page">
-  <nav-bar title="曝光榜" showBack="{{false}}" />
+  <nav-bar title="诚信榜" showBack="{{false}}" />
 
   <!-- 说明横幅 -->
   <view class="eb-warning">
