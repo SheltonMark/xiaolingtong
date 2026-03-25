@@ -8,6 +8,7 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Notification } from '../../entities/notification.entity';
+import { Notice } from '../../entities/notice.entity';
 import { PaymentService } from '../payment/payment.service';
 
 type TopPricingItem = {
@@ -15,6 +16,18 @@ type TopPricingItem = {
   beanCost: number;
   originalBeanCost: number;
   isDiscounted: boolean;
+};
+
+type HomeBannerItem = {
+  id: string;
+  kind: 'ad' | 'notice' | 'default';
+  title?: string;
+  sub?: string;
+  bg?: string;
+  imageUrl?: string;
+  link?: string;
+  linkType?: string;
+  time?: string;
 };
 
 @Injectable()
@@ -27,9 +40,70 @@ export class PromotionService {
     private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
+    @InjectRepository(Notice) private noticeRepo: Repository<Notice>,
     private paymentService: PaymentService,
     private config: ConfigService,
   ) {}
+
+  private buildDefaultEnterpriseBanners(): HomeBannerItem[] {
+    return [
+      {
+        id: 'default-1',
+        kind: 'default',
+        title: '新用户专享',
+        sub: '注册送 50 灵豆',
+        bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
+      },
+      {
+        id: 'default-2',
+        kind: 'default',
+        title: '会员特权',
+        sub: '每日免费查看联系方式',
+        bg: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)',
+      },
+      {
+        id: 'default-3',
+        kind: 'default',
+        title: '发布招工',
+        sub: '快速找到靠谱临工',
+        bg: 'linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)',
+      },
+    ];
+  }
+
+  private formatBannerDate(value?: Date | string | null): string {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const now = new Date();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return date.getFullYear() === now.getFullYear()
+      ? `${mm}-${dd}`
+      : `${date.getFullYear()}-${mm}-${dd}`;
+  }
+
+  private mixEnterpriseHomeBanners(
+    ads: HomeBannerItem[],
+    notices: HomeBannerItem[],
+  ): HomeBannerItem[] {
+    const list: HomeBannerItem[] = [];
+    let adIndex = 0;
+    let noticeIndex = 0;
+
+    while (adIndex < ads.length || noticeIndex < notices.length) {
+      if (adIndex < ads.length) {
+        list.push(ads[adIndex]);
+        adIndex += 1;
+      }
+      if (noticeIndex < notices.length) {
+        list.push(notices[noticeIndex]);
+        noticeIndex += 1;
+      }
+    }
+
+    return list.concat(this.buildDefaultEnterpriseBanners());
+  }
 
   private async getConfig(key: string, defaultValue: string): Promise<string> {
     const row = await this.sysConfigRepo.findOne({ where: { key } });
@@ -203,6 +277,41 @@ export class PromotionService {
       take: 10,
     });
     return { list: ads };
+  }
+
+  async getEnterpriseHomeBanners() {
+    const now = new Date();
+    const adRes = await this.getActiveAds('banner');
+    const rawNotices = await this.noticeRepo.find({
+      order: { createdAt: 'DESC' },
+      take: 20,
+    });
+
+    const adBanners: HomeBannerItem[] = (adRes.list || []).map((ad) => ({
+      id: `ad-${ad.id}`,
+      kind: 'ad',
+      imageUrl: ad.imageUrl,
+      link: ad.link,
+      linkType: ad.linkType || 'internal',
+    }));
+
+    const noticeBanners: HomeBannerItem[] = rawNotices
+      .filter(
+        (notice) =>
+          Number(notice.isActive) === 1 &&
+          (!notice.expireAt || new Date(notice.expireAt) > now),
+      )
+      .map((notice) => ({
+        id: `notice-${notice.id}`,
+        kind: 'notice',
+        title: notice.title,
+        sub: notice.content,
+        time: this.formatBannerDate(notice.createdAt),
+      }));
+
+    return {
+      list: this.mixEnterpriseHomeBanners(adBanners, noticeBanners),
+    };
   }
 
   async getAdPricing() {

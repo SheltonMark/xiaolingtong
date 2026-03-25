@@ -44,6 +44,32 @@ function pickBenefitValue(primary, fallback) {
   return hasBenefitValue(primary) ? primary : fallback
 }
 
+function getDefaultEnterpriseBanners() {
+  return [
+    {
+      id: 'default-1',
+      kind: 'default',
+      title: '\u65b0\u7528\u6237\u4e13\u4eab',
+      sub: '\u6ce8\u518c\u9001 50 \u7075\u8c46',
+      bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)'
+    },
+    {
+      id: 'default-2',
+      kind: 'default',
+      title: '\u4f1a\u5458\u7279\u6743',
+      sub: '\u6bcf\u65e5\u514d\u8d39\u67e5\u770b\u8054\u7cfb\u65b9\u5f0f',
+      bg: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)'
+    },
+    {
+      id: 'default-3',
+      kind: 'default',
+      title: '\u53d1\u5e03\u62db\u5de5',
+      sub: '\u5feb\u901f\u627e\u5230\u9760\u8c31\u4e34\u5de5',
+      bg: 'linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)'
+    }
+  ]
+}
+
 Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
@@ -172,10 +198,10 @@ Page({
     this.setData({ userRole, currentCity })
     this.loadCities()
     this.loadJobTypes()
-    this.loadBannerAds()
     if (userRole === 'worker') {
       this.autoLocateAndLoadWorkerJobs()
     } else {
+      this.loadHomeBanners()
       this.loadData()
     }
     this.loadUnreadCount()
@@ -211,14 +237,13 @@ Page({
     }).catch(() => {})
   },
 
-  loadBannerAds() {
-    get('/ads/active', { slot: 'banner' }).then(res => {
-      const adList = (res.data && res.data.list) || []
-      if (adList.length > 0) {
-        const adBanners = adList.map(ad => ({
-          id: ad.id, imageUrl: ad.imageUrl, link: ad.link, linkType: ad.linkType || 'internal', isAd: true
-        }))
-        this.setData({ banners: adBanners })
+  loadHomeBanners() {
+    get('/ads/home-banners').then(res => {
+      const list = (res.data && res.data.list) || []
+      if (Array.isArray(list) && list.length > 0) {
+        this.setData({ banners: list })
+      } else {
+        this.setData({ banners: getDefaultEnterpriseBanners() })
       }
       // 无广告时保持默认 banners
     }).catch(() => {})

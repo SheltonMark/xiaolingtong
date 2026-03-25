@@ -33,4 +33,10 @@ export class PromotionController {
   getAdPricing() {
     return this.promoService.getAdPricing();
   }
+
+  @Public()
+  @Get('ads/home-banners')
+  getEnterpriseHomeBanners() {
+    return this.promoService.getEnterpriseHomeBanners();
+  }
 }

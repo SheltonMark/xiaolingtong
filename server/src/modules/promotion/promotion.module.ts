@@ -8,6 +8,7 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Notification } from '../../entities/notification.entity';
+import { Notice } from '../../entities/notice.entity';
 import { PaymentModule } from '../payment/payment.module';
 
 @Module({
@@ -19,6 +20,7 @@ import { PaymentModule } from '../payment/payment.module';
       BeanTransaction,
       SysConfig,
       Notification,
+      Notice,
     ]),
     PaymentModule,
   ],

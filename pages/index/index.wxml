@@ -77,11 +77,22 @@
               indicator-color="rgba(255,255,255,0.4)" indicator-active-color="#ffffff">
         <swiper-item wx:for="{{banners}}" wx:key="id">
           <!-- 广告图片模式 -->
-          <view class="banner-slide banner-slide-ad" wx:if="{{item.isAd}}" style="position:relative;" bindtap="onAdBannerTap" data-link="{{item.link}}" data-link-type="{{item.linkType}}">
+          <view class="banner-slide banner-slide-ad" wx:if="{{item.kind === 'ad'}}" style="position:relative;" bindtap="onAdBannerTap" data-link="{{item.link}}" data-link-type="{{item.linkType}}">
             <image src="{{item.imageUrl}}" class="banner-img banner-img-ad" mode="aspectFill" />
             <text class="ad-tag">广告</text>
           </view>
           <!-- 默认渐变模式 -->
+          <view class="banner-slide banner-slide-notice" wx:elif="{{item.kind === 'notice'}}">
+            <view class="banner-notice-card">
+              <view class="banner-notice-top">
+                <text class="banner-notice-badge">公告</text>
+                <text class="banner-notice-time">{{item.time}}</text>
+              </view>
+              <text class="banner-notice-title">{{item.title}}</text>
+              <text class="banner-notice-sub">{{item.sub}}</text>
+              <text class="banner-notice-foot">仅展示，不可点击</text>
+            </view>
+          </view>
           <view class="banner-slide banner-slide-default" wx:else style="background: {{item.bg}};">
             <view class="banner-content">
               <text class="banner-title">{{item.title}}</text>
