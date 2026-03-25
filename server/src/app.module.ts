@@ -29,6 +29,7 @@ import { ConfigModule } from './modules/config/config.module';
 import { InviteModule } from './modules/invite/invite.module';
 import { DisputeModule } from './modules/dispute/dispute.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { shouldEnableTypeOrmSynchronize } from './config/database.config';
 
 @Module({
   imports: [
@@ -43,7 +44,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
         password: config.get('DB_PASSWORD', ''),
         database: config.get('DB_DATABASE', 'xiaolingtong'),
         entities: [__dirname + '/entities/*.entity{.ts,.js}'],
-        synchronize: true,
+        synchronize: shouldEnableTypeOrmSynchronize(config),
         charset: 'utf8mb4',
       }),
     }),

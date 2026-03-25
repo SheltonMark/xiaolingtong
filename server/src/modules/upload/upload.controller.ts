@@ -2,7 +2,7 @@ import { Controller, Logger, Post, Req, UploadedFile, UseInterceptors } from '@n
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ConfigService } from '@nestjs/config';
 import { mkdir, writeFile } from 'fs/promises';
-import { extname, join } from 'path';
+import { dirname, extname, join } from 'path';
 import type { Request } from 'express';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const COS = require('cos-nodejs-sdk-v5');
@@ -33,7 +33,7 @@ export class UploadController {
   }
 
   private getLocalUploadDir() {
-    return join(__dirname, '..', '..', '..', 'public', 'uploads');
+    return join(__dirname, '..', '..', '..', 'storage', 'uploads');
   }
 
   private buildLocalFileUrl(req: Request, key: string) {
@@ -73,7 +73,7 @@ export class UploadController {
   private async saveLocally(key: string, file: Express.Multer.File, req: Request) {
     const uploadDir = this.getLocalUploadDir();
     const targetPath = join(uploadDir, key.replace(/^uploads\//, ''));
-    await mkdir(uploadDir, { recursive: true });
+    await mkdir(dirname(targetPath), { recursive: true });
     await writeFile(targetPath, file.buffer);
     return this.buildLocalFileUrl(req, key);
   }

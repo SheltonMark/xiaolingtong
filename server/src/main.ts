@@ -8,12 +8,15 @@ import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const publicDir = join(__dirname, '..', 'public');
+  const uploadsDir = join(__dirname, '..', 'storage', 'uploads');
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
   app.enableCors();
-  app.useStaticAssets(join(__dirname, '..', 'public'));
+  app.useStaticAssets(publicDir);
+  app.useStaticAssets(uploadsDir, { prefix: '/uploads/' });
   await app.listen(process.env.PORT ?? 3000);
   console.log(`Server running on http://localhost:${process.env.PORT ?? 3000}`);
 }

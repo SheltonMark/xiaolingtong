@@ -67,6 +67,7 @@ coverage/
 planning-with-files/
 xiaolingtong/
 server/uploads/
+server/storage/
 .worktrees/
 
 # 微信小程序
