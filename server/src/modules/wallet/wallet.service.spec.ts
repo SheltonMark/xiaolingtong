@@ -538,6 +538,33 @@ describe('WalletService', () => {
       expect(mockWallet.totalWithdraw).toBe(0);
     });
 
+    it('maps wechat transfer ip whitelist errors to a user-friendly message', async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
+      const mockUser = { id: 1, openid: 'test_openid', role: 'worker' };
+      const mockTx = {
+        id: 1,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+      };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      txRepo.create.mockReturnValue(mockTx);
+      txRepo.save.mockResolvedValue(mockTx);
+      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.createTransferBill.mockRejectedValue(
+        new Error('INVALID_REQUEST: 此IP地址不允许调用接口，请按开发指引设置'),
+      );
+
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        '微信提现未配置服务器IP白名单，请联系管理员处理',
+      );
+    });
+
     it('syncs pending withdrawal to success after transfer detail succeeds', async () => {
       const mockTx = {
         id: 9,
