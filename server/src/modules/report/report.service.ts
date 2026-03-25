@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Report } from '../../entities/report.entity';
+import { User } from '../../entities/user.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 @Injectable()
@@ -46,9 +47,13 @@ export class ReportService {
 
   async create(reporterId: number, dto: any) {
     const normalizedImages = this.normalizeImages(dto.images);
+    const reporter = await this.reportRepo.manager.findOne(User, {
+      where: { id: reporterId },
+    });
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [dto.targetType, dto.reason, dto.type, dto.description],
       images: [normalizedImages],
+      openid: reporter?.openid,
     });
 
     const report = this.reportRepo.create({

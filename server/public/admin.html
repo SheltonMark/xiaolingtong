@@ -245,7 +245,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-finance"><div class="stat-cards" id="financeCards"></div><div class="panel"><div class="panel-header"><h4>交易明细</h4><div class="toolbar"><select id="txTypeFilter" onchange="loadTransactions()"><option value="">全部类型</option><option value="income">收入</option><option value="withdraw">提现</option><option value="refund">退款</option></select><button class="search-btn" onclick="loadTransactions()">刷新</button></div></div><table><thead><tr><th>ID</th><th>用户</th><th>类型</th><th>金额</th><th>状态</th><th>备注</th><th>时间</th></tr></thead><tbody id="txTable"></tbody></table><div class="pagination" id="txPagination"></div></div></div>
       <div class="page-section" id="page-joborders" style="display:none"></div>
     <div class="page-section" id="page-configs"><div class="panel"><div class="panel-header"><h4>系统配置</h4></div><div class="config-grid" id="configGrid"></div></div></div>
-<div class="modal-overlay" id="joDetailPanel"><div class="modal" style="width:980px;max-width:92vw;"><div class="panel-header"><h4>&#25307;&#24037;&#35814;&#24773;</h4><button class="search-btn" onclick="document.getElementById('joDetailPanel').classList.remove('show')">&#20851;&#38381;</button></div><div id="joDetailContent" style="max-height:72vh;overflow:auto;"></div></div></div>
+<div class="modal-overlay" id="joDetailPanel"><div class="modal" style="width:1020px;max-width:94vw;border-radius:16px;"><div class="panel-header"><h4 id="joDetailTitle">&#25307;&#24037;&#35814;&#24773;</h4><button class="btn btn-primary" onclick="closeJobOrderDetail()">&#20851;&#38381;</button></div><div id="joDetailContent" style="max-height:72vh;overflow:auto;padding-top:8px;"></div></div></div>
   </div>
 </div>
 <div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">&#21457;&#24067;&#20844;&#21578;</h4><div class="form-group"><label>&#26631;&#39064;</label><input type="text" id="noticeTitle" placeholder="&#20844;&#21578;&#26631;&#39064;"></div><div class="form-group"><label>&#20869;&#23481;</label><textarea id="noticeContent" rows="4" placeholder="&#20844;&#21578;&#20869;&#23481;" style="resize:vertical"></textarea></div><div class="form-group"><label>&#23637;&#31034;&#35828;&#26126;</label><div style="padding:14px 16px;border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">&#21457;&#24067;&#21518;&#23558;&#32479;&#19968;&#23637;&#31034;&#22312;&#23567;&#31243;&#24207;&#28040;&#24687;&#20013;&#24515;&#30340;&#31995;&#32479;&#36890;&#30693;&#21306;&#22495;&#65292;&#19981;&#20877;&#21306;&#20998;&#39318;&#39029;&#24377;&#31383;&#12290;</div></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">&#21462;&#28040;</button><button class="confirm" onclick="saveNotice()">&#30830;&#35748;</button></div></div></div>
@@ -420,7 +420,7 @@ async function loadPosts(page){
     var ops='';
     if(p.status!=='active')ops+='<button class="btn btn-success" onclick="auditPost('+p.id+',\x27approve\x27)">通过</button>';
     if(p.status!=='deleted')ops+='<button class="btn btn-danger" onclick="auditPost('+p.id+',\x27reject\x27)">驳回</button>';
-    h+='<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(tm[p.type]||p.type)+'</span></td><td>'+((p.title||p.content||'').substring(0,30))+'</td><td>'+(p.user?p.user.nickname||'ID:'+p.userId:p.userId)+'</td><td>'+(p.viewCount||0)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(p.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    h+='<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(tm[p.type]||p.type)+'</span></td><td>'+((p.title||p.content||'').substring(0,30))+'</td><td>'+adminDisplayName(p)+'</td><td>'+(p.viewCount||0)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(p.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
   }
   document.getElementById('postTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
   renderPagination('postPagination',d.total,postPage,d.pageSize,'loadPosts');
@@ -635,8 +635,8 @@ async function loadJobs(page){
   var h='';
   for(var i=0;i<list.length;i++){var j=list[i];
     var st=stMap[j.status]||['badge-gray',j.status];
-    var acts='<button class="btn btn-primary" onclick="showJobOrderDetail('+j.id+')">\u67e5\u770b\u8be6\u60c5</button>';
-    if(j.status==='recruiting')acts+=' <button class="btn btn-success" onclick="showJobOrderDetail('+j.id+')">\u5206\u914d\u4eba\u5458</button>';
+    var acts='<button class="btn btn-primary" onclick="showJobOrderDetail('+j.id+',\x27detail\x27)">\u67e5\u770b\u8be6\u60c5</button>';
+    if(j.status==='recruiting')acts+=' <button class="btn btn-success" onclick="showJobOrderDetail('+j.id+',\x27assign\x27)">\u5206\u914d\u4eba\u5458</button>';
     h+='<tr><td>'+j.id+'</td><td>'+j.title+'</td><td>'+(j.companyName||adminDisplayName(j))+'</td><td>'+j.needCount+'/'+(j.applyCount||0)+'</td><td>'+formatJobSalary(j.salary,j.salaryUnit)+'</td><td>'+j.dateStart+'~'+j.dateEnd+'</td><td><span class="badge '+st[0]+'">'+st[1]+'</span></td><td>'+acts+'</td></tr>';
   }
   document.getElementById('jobTable').innerHTML=h||'<tr><td colspan="8" class="empty">\u6682\u65e0\u62db\u5de5\u8bb0\u5f55</td></tr>';
@@ -855,7 +855,10 @@ async function loadFinance(){
 }
 function adminDisplayName(item){
   if(!item)return '-';
-  return item.displayName||item.companyName||(item.user?(item.user.nickname||item.user.phone):'')||('用户'+(item.userId||''));
+  if(item.displayName||item.companyName||(item.user&&(item.user.displayName||item.user.companyName||item.user.realName||item.user.nickname||item.user.phone))){
+    return item.displayName||item.companyName||(item.user?(item.user.displayName||item.user.companyName||item.user.realName||item.user.nickname||item.user.phone):'')||'-';
+  }
+  return '-';
 }
 function formatJobSalary(amount,unit){
   var value=Number(amount||0);
@@ -926,6 +929,68 @@ async function showJobOrderDetail(id){
   document.getElementById('joDetailContent').innerHTML=h;
   document.getElementById('joDetailPanel').classList.add('show');
 }
+var _joMode='detail';
+function closeJobOrderDetail(){document.getElementById('joDetailPanel').classList.remove('show');}
+function joWorkerName(worker){
+  if(!worker)return '-';
+  return adminDisplayName({displayName:worker.displayName,user:worker})||'-';
+}
+function joStatusText(status){
+  var stMap={
+    pending:'\u5f85\u5206\u914d',
+    accepted:'\u5df2\u5f55\u7528',
+    confirmed:'\u5df2\u786e\u8ba4',
+    working:'\u8fdb\u884c\u4e2d',
+    done:'\u5df2\u5b8c\u5de5',
+    rejected:'\u672a\u5f55\u7528',
+    released:'\u5df2\u91ca\u653e',
+    cancelled:'\u5df2\u53d6\u6d88'
+  };
+  return stMap[status]||status||'-';
+}
+async function showJobOrderDetail(id,mode){
+  mode=mode||'detail';
+  var d=await api('/job-orders/'+id);if(!d||!d.job)return;
+  _joDetail=d;
+  _joMode=mode;
+  var job=d.job;var apps=d.applications||[];
+  var companyName=job.companyName||adminDisplayName(job);
+  var currentSupervisor=apps.find(function(item){return !!item.isSupervisor;})||null;
+  var currentSupervisorName=currentSupervisor&&currentSupervisor.worker?joWorkerName(currentSupervisor.worker):'\u5f85\u540e\u53f0\u6307\u6d3e';
+  var managerShareText=(job.managerShareRate===0||job.managerShareRate)?(Number(job.managerShareRate).toFixed(0)+'%'):'-';
+  document.getElementById('joDetailTitle').textContent=mode==='assign'?'\u4eba\u5458\u5206\u914d':'\u62db\u5de5\u8be6\u60c5';
+  var h='';
+  h+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px">';
+  h+='<div style="padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--panel)"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">\u62db\u5de5\u4fe1\u606f</div><div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">'+job.title+'</div><div style="font-size:13px;line-height:1.8;color:var(--text-muted)">'+(companyName||'-')+'<br>\u9700\u8981'+(job.needCount||0)+'\u4eba<br>'+formatJobSalary(job.salary,job.salaryUnit)+'</div></div>';
+  h+='<div style="padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--panel)"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">\u65f6\u95f4\u4e0e\u72b6\u6001</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:8px">'+(job.dateStart||'-')+' ~ '+(job.dateEnd||'-')+'</div><div style="font-size:13px;line-height:1.8;color:var(--text-muted)">\u62a5\u540d'+(apps.length||0)+'\u4eba<br>\u5206\u6210\u6bd4\u4f8b '+managerShareText+'</div></div>';
+  h+='<div style="padding:16px;border:1px solid var(--border);border-radius:14px;background:var(--panel)"><div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">\u5f53\u524d\u4e3b\u7ba1</div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">'+currentSupervisorName+'</div><div style="font-size:13px;line-height:1.8;color:var(--text-muted)">\u53ef\u4ece\u5df2\u5f55\u7528\u3001\u5df2\u786e\u8ba4\u3001\u8fdb\u884c\u4e2d\u3001\u5df2\u5b8c\u5de5\u7684\u5de5\u4eba\u4e2d\u6307\u5b9a</div></div>';
+  h+='</div>';
+  if(!apps.length){
+    h+='<div class="empty" style="padding:24px 0">\u6682\u65e0\u62a5\u540d\u8bb0\u5f55</div>';
+  }else if(mode==='assign'){
+    h+='<table><thead><tr><th>'+(job.status==='recruiting'?'<input type="checkbox" id="joCheckAll" onchange="joToggleAll(this)">':'-')+'</th><th>\u663e\u793a\u540d</th><th>\u624b\u673a</th><th>\u4fe1\u7528\u5206</th><th>\u5b8c\u5de5\u6b21\u6570</th><th>\u72b6\u6001</th><th>\u4e3b\u7ba1</th></tr></thead><tbody>';
+    for(var i=0;i<apps.length;i++){var a=apps[i];var w=a.worker||{};var workerId=w.id||a.workerId;var checked=(a.status==='accepted'||a.status==='confirmed'||a.status==='working'||a.status==='done')?' checked':'';var supChecked=a.isSupervisor?' checked':'';var canCheck=job.status==='recruiting'&&(a.status==='pending'||a.status==='accepted'||a.status==='rejected');var canPickSupervisor=joCanPickSupervisor(a.status);h+='<tr><td>'+(job.status==='recruiting'?('<input type="checkbox" class="jo-check" value="'+workerId+'"'+checked+(canCheck?'':' disabled')+'>'):'-')+'</td><td>'+joWorkerName(w)+'</td><td>'+(w.phone||'-')+'</td><td>'+(w.creditScore||0)+'</td><td>'+(w.doneCount||0)+'</td><td>'+joStatusText(a.status)+'</td><td><input type="radio" name="joSupervisor" value="'+workerId+'"'+supChecked+(canPickSupervisor?'':' disabled')+'></td></tr>';}
+    h+='</tbody></table>';
+  }else{
+    h+='<table><thead><tr><th>\u663e\u793a\u540d</th><th>\u624b\u673a</th><th>\u4fe1\u7528\u5206</th><th>\u5b8c\u5de5\u6b21\u6570</th><th>\u72b6\u6001</th><th>\u4e3b\u7ba1</th></tr></thead><tbody>';
+    for(var i=0;i<apps.length;i++){var a=apps[i];var w=a.worker||{};h+='<tr><td>'+joWorkerName(w)+'</td><td>'+(w.phone||'-')+'</td><td>'+(w.creditScore||0)+'</td><td>'+(w.doneCount||0)+'</td><td>'+joStatusText(a.status)+'</td><td>'+(a.isSupervisor?'<span class="badge badge-green">\u4e3b\u7ba1</span>':'-')+'</td></tr>';}
+    h+='</tbody></table>';
+  }
+  h+='<div style="margin-top:16px;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap">';
+  if(mode==='detail'){
+    if(job.status==='recruiting')h+='<button class="btn btn-success" onclick="showJobOrderDetail('+job.id+',\x27assign\x27)">\u5206\u914d\u4eba\u5458</button>';
+    else if(joCanEditSupervisor(job.status)&&apps.length)h+='<button class="btn btn-primary" onclick="showJobOrderDetail('+job.id+',\x27assign\x27)">\u8c03\u6574\u4e3b\u7ba1</button>';
+  }else{
+    if(job.status==='recruiting')h+='<button class="btn btn-success" onclick="doAssign('+job.id+')">\u786e\u8ba4\u5206\u914d</button>';
+    if(joCanEditSupervisor(job.status)&&apps.length)h+='<button class="btn btn-primary" onclick="saveSupervisor('+job.id+')">\u4fdd\u5b58\u4e3b\u7ba1</button>';
+    h+='<button class="btn btn-primary" onclick="showJobOrderDetail('+job.id+',\x27detail\x27)">\u8fd4\u56de\u8be6\u60c5</button>';
+  }
+  if(joCanEditSupervisor(job.status))h+='<button class="btn btn-warning" onclick="promptJobManagerShare('+job.id+')">\u8bbe\u7f6e\u5206\u6210</button>';
+  h+='<button class="btn btn-primary" onclick="closeJobOrderDetail()">\u5173\u95ed</button>';
+  h+='</div>';
+  document.getElementById('joDetailContent').innerHTML=h;
+  document.getElementById('joDetailPanel').classList.add('show');
+}
 function joToggleAll(el){var cbs=document.querySelectorAll('.jo-check:not(:disabled)');for(var i=0;i<cbs.length;i++)cbs[i].checked=el.checked;}
 async function doAssign(jobId){
   var cbs=document.querySelectorAll('.jo-check:checked');
@@ -946,16 +1011,21 @@ async function saveSupervisor(jobId){
   if(!supId){toast('请先选择主管','warning');return;}
   await api('/job-orders/'+jobId+'/supervisor',{method:'POST',body:{workerId:supId}});
   toast('主管已保存','success');
-  await showJobOrderDetail(jobId);
+  await showJobOrderDetail(jobId,'detail');
   loadJobs();
 }
 
 async function promptJobManagerShare(jobId){
-  var v=await xprompt('请输入该招工临时管理员分成比例（0-100）');
+  var currentRate='';
+  if(_joDetail&&_joDetail.job&&Number(_joDetail.job.id)===Number(jobId)&&(_joDetail.job.managerShareRate===0||_joDetail.job.managerShareRate)){
+    currentRate=String(_joDetail.job.managerShareRate);
+  }
+  var v=await xprompt('请输入该招工临时管理员分成比例（0-100）',currentRate);
   if(v===null||v===''){return;}
   var rate=Number(v);
   if(!isFinite(rate)||rate<0||rate>100){toast('请输入 0-100 之间的比例','warning');return;}
   await api('/job-orders/'+jobId+'/manager-share',{method:'PUT',body:{managerShareRate:rate}});
+  if(_joDetail&&_joDetail.job&&Number(_joDetail.job.id)===Number(jobId))_joDetail.job.managerShareRate=rate;
   toast('分成比例已保存','success');
 }
 
@@ -974,7 +1044,7 @@ async function loadAds(page){
       ops+='<button class="btn btn-danger" onclick="auditAd('+a.id+',\x27reject\x27)">驳回</button>';
     }
     var timeRange=a.startAt?(a.startAt||'').substring(0,10)+' ~ '+(a.endAt||'').substring(0,10):'-';
-    h+='<tr><td>'+a.id+'</td><td>'+(a.user?a.user.nickname||'ID:'+a.userId:a.userId)+'</td><td>'+(a.slot==='banner'?'横幅':'信息流')+'</td><td>'+a.title+'</td><td>'+a.durationDays+'</td><td>'+a.price+'元</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+timeRange+'</td><td>'+ops+'</td></tr>';
+    h+='<tr><td>'+a.id+'</td><td>'+adminDisplayName(a)+'</td><td>'+(a.slot==='banner'?'横幅':'信息流')+'</td><td>'+a.title+'</td><td>'+a.durationDays+'</td><td>'+a.price+'元</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+timeRange+'</td><td>'+ops+'</td></tr>';
   }
   document.getElementById('adTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无广告</td></tr>';
   renderPagination('adPagination',d.total,adPage,d.pageSize,'loadAds');

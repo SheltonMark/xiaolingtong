@@ -6,6 +6,7 @@ interface SubmissionCheckInput {
   texts?: any[];
   images?: any[];
   scene?: number;
+  openid?: string;
 }
 
 @Injectable()
@@ -22,7 +23,11 @@ export class WechatSecurityService {
     const scene = Number(input.scene) || 3;
     const textContent = this.collectText(input.texts || []).join('\n').trim();
     if (textContent) {
-      await this.assertSafeText(textContent.slice(0, 200000), scene);
+      await this.assertSafeText(
+        textContent.slice(0, 200000),
+        scene,
+        this.normalizeOpenid(input.openid),
+      );
     }
 
     const imageUrls = this.collectImages(input.images || []);
@@ -75,15 +80,45 @@ export class WechatSecurityService {
     return [...new Set(bucket)];
   }
 
-  private async assertSafeText(content: string, scene: number) {
-    const data = await this.postWechatCheck('/wxa/msg_sec_check', {
-      content,
-      scene,
-      version: 2,
-    });
+  private normalizeOpenid(value: any) {
+    const openid = String(value || '').trim();
+    return openid || '';
+  }
+
+  private isTextCheckPassed(data: any) {
+    const suggest = data?.result?.suggest;
+    return Number(data?.errcode || 0) === 0 && (!suggest || suggest === 'pass');
+  }
+
+  private shouldFallbackToLegacyTextCheck(data: any) {
+    const errcode = Number(data?.errcode || 0);
+    const errmsg = String(data?.errmsg || '');
+    return errcode === 40003 || /invalid openid/i.test(errmsg);
+  }
+
+  private async assertSafeText(content: string, scene: number, openid?: string) {
+    let data: any;
+
+    if (openid) {
+      data = await this.postWechatCheck('/wxa/msg_sec_check', {
+        content,
+        scene,
+        version: 2,
+        openid,
+      });
+
+      if (this.shouldFallbackToLegacyTextCheck(data)) {
+        this.logger.warn(
+          `msg_sec_check invalid openid, falling back to legacy content check: ${JSON.stringify(data)}`,
+        );
+        data = await this.postWechatCheck('/wxa/msg_sec_check', { content });
+      }
+    } else {
+      data = await this.postWechatCheck('/wxa/msg_sec_check', { content });
+    }
 
     const suggest = data?.result?.suggest;
-    if (Number(data?.errcode || 0) === 0 && (!suggest || suggest === 'pass')) {
+    if (this.isTextCheckPassed(data)) {
       return;
     }
 

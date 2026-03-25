@@ -194,6 +194,7 @@ export class ExposureService {
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [dto.category, dto.company, dto.contact, dto.amount, dto.description],
       images: [dto.images],
+      openid: user?.openid,
     });
 
     const exp = this.expRepo.create({
@@ -210,7 +211,13 @@ export class ExposureService {
   }
 
   async comment(exposureId: number, userId: number, content: string) {
-    await this.wechatSecurityService.assertSafeSubmission({ texts: [content] });
+    const user = await this.expRepo.manager.findOne(User, {
+      where: { id: userId },
+    });
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [content],
+      openid: user?.openid,
+    });
     const comment = this.commentRepo.create({ exposureId, userId, content });
     return this.commentRepo.save(comment);
   }

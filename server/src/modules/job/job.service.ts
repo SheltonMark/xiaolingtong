@@ -972,10 +972,12 @@ export class JobService {
     await this.checkKeywords(payload.title + (payload.description || ''));
     const existing = await this.findRecentDuplicateJob(userId, payload);
     if (existing) return existing;
+    const submitter = await this.userRepo.findOneBy({ id: userId });
 
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [payload],
       images: [payload.images, payload.contactWechatQr],
+      openid: submitter?.openid,
     });
 
     const job = this.jobRepo.create({ ...payload, userId });
@@ -988,10 +990,12 @@ export class JobService {
       job.userId = userId as any;
     }
     if (!job || job.userId !== userId) throw new ForbiddenException('无权操作');
+    const submitter = await this.userRepo.findOneBy({ id: userId });
     await this.checkKeywords((dto.title || '') + (dto.description || ''));
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [dto],
       images: [dto.images, dto.contactWechatQr],
+      openid: submitter?.openid,
     });
     Object.assign(job, dto);
     return this.jobRepo.save(job);

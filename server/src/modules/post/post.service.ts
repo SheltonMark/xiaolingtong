@@ -405,9 +405,11 @@ export class PostService {
     }
 
     const normalizedImages = this.normalizeStringArray(images);
+    const submitter = await this.userRepo.findOneBy({ id: userId });
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [type, title, description, structuredFields, normalizedContactName, normalizedContactPhone, normalizedContactWechat],
       images: [normalizedImages, normalizedContactWechatQr],
+      openid: submitter?.openid,
     });
 
     const postData: Partial<Post> = {
@@ -435,10 +437,12 @@ export class PostService {
   async update(id: number, userId: number, dto: any) {
     const post = await this.postRepo.findOne({ where: { id } });
     if (!post || post.userId !== userId) throw new ForbiddenException('无权操作');
+    const submitter = await this.userRepo.findOneBy({ id: userId });
     await this.checkKeywords((dto.content || '') + (dto.title || ''));
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [dto],
       images: [dto.images, dto.contactWechatQr],
+      openid: submitter?.openid,
     });
     Object.assign(post, dto);
     return this.postRepo.save(post);

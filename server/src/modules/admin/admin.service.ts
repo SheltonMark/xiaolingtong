@@ -131,6 +131,16 @@ export class AdminService {
     return nameMap;
   }
 
+  private resolveDisplayName(
+    nameMap: Map<number, string>,
+    userId: number | string | undefined,
+    fallback?: { nickname?: string | null; phone?: string | null },
+  ) {
+    const displayName =
+      nameMap.get(Number(userId || 0)) || fallback?.nickname || fallback?.phone;
+    return displayName ? String(displayName) : '';
+  }
+
   private async assignSupervisorForJob(jobId: number, workerId: number) {
     const normalizedWorkerId = Number(workerId || 0);
     if (!normalizedWorkerId) {
@@ -225,6 +235,7 @@ export class AdminService {
     const { role, keyword, page = 1, pageSize = 20 } = query;
     const qb = this.userRepo.createQueryBuilder('u');
     if (role) qb.andWhere('u.role = :role', { role });
+    else qb.andWhere('u.role IS NOT NULL');
     if (keyword)
       qb.andWhere('(u.nickname LIKE :kw OR u.phone LIKE :kw)', {
         kw: `%${keyword}%`,
@@ -258,7 +269,26 @@ export class AdminService {
       .skip((page - 1) * pageSize)
       .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+    const nameMap = await this.buildUserDisplayNameMap(
+      list.map((item) => item.userId),
+    );
+    return {
+      list: list.map((item) => {
+        const displayName = this.resolveDisplayName(
+          nameMap,
+          item.userId,
+          item.user,
+        );
+        return {
+          ...item,
+          displayName,
+          companyName: displayName || undefined,
+        };
+      }),
+      total,
+      page: +page,
+      pageSize: +pageSize,
+    };
   }
 
   async auditPost(id: number, action: string) {
@@ -644,7 +674,26 @@ export class AdminService {
       .skip((page - 1) * pageSize)
       .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+    const nameMap = await this.buildUserDisplayNameMap(
+      list.map((item) => item.userId),
+    );
+    return {
+      list: list.map((item) => {
+        const displayName = this.resolveDisplayName(
+          nameMap,
+          item.userId,
+          item.user,
+        );
+        return {
+          ...item,
+          displayName,
+          companyName: displayName || undefined,
+        };
+      }),
+      total,
+      page: +page,
+      pageSize: +pageSize,
+    };
   }
 
   async auditAd(id: number, action: string) {
@@ -785,7 +834,22 @@ export class AdminService {
     if (type) qb.andWhere('t.type = :type', { type });
     qb.skip((page - 1) * pageSize).take(pageSize);
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+    const nameMap = await this.buildUserDisplayNameMap(
+      list.map((item) => item.userId),
+    );
+    return {
+      list: list.map((item) => ({
+        ...item,
+        displayName:
+          nameMap.get(Number(item.userId)) ||
+          item.user?.nickname ||
+          item.user?.phone ||
+          '已删除用户',
+      })),
+      total,
+      page: +page,
+      pageSize: +pageSize,
+    };
   }
 
   // 用工订单管理
@@ -798,10 +862,20 @@ export class AdminService {
     if (status) qb.andWhere('j.status = :status', { status });
     qb.skip((page - 1) * pageSize).take(pageSize);
     const [list, total] = await qb.getManyAndCount();
+    const nameMap = await this.buildUserDisplayNameMap(
+      list.map((item) => item.userId),
+    );
     // 手动查报名数
     for (const job of list) {
       const cnt = await this.appRepo.count({ where: { jobId: job.id } });
+      const companyName = this.resolveDisplayName(
+        nameMap,
+        job.userId,
+        job.user,
+      );
       (job as any).applyCount = cnt;
+      (job as any).displayName = companyName || undefined;
+      (job as any).companyName = companyName || undefined;
     }
     return { list, total, page: +page, pageSize: +pageSize };
   }
@@ -817,13 +891,32 @@ export class AdminService {
       relations: ['worker'],
       order: { createdAt: 'ASC' },
     });
+    const nameMap = await this.buildUserDisplayNameMap([
+      job.userId,
+      ...applications.map((item) => item.workerId),
+    ]);
+    const companyName = this.resolveDisplayName(nameMap, job.userId, job.user);
+    (job as any).displayName = companyName || undefined;
+    (job as any).companyName = companyName || undefined;
     // 附加每个工人的完工次数
     const enriched: any[] = [];
     for (const app of applications) {
       const doneCount = await this.appRepo.count({
         where: { workerId: app.workerId, status: 'done' },
       });
-      enriched.push({ ...app, worker: { ...app.worker, doneCount } });
+      const workerDisplayName = this.resolveDisplayName(
+        nameMap,
+        app.workerId,
+        app.worker,
+      );
+      enriched.push({
+        ...app,
+        worker: {
+          ...app.worker,
+          displayName: workerDisplayName || undefined,
+          doneCount,
+        },
+      });
     }
     return { job, applications: enriched };
   }

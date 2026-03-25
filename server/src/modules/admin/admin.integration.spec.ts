@@ -57,6 +57,25 @@ describe('AdminModule Integration Tests', () => {
   let notificationRepository: any;
   let jwtService: any;
 
+  function createPagedQueryBuilder(list: any[], total = list.length) {
+    return {
+      leftJoinAndSelect: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      orderBy: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      take: jest.fn().mockReturnThis(),
+      getManyAndCount: jest.fn().mockResolvedValue([list, total]),
+    };
+  }
+
+  function createSelectQueryBuilder(rows: any[]) {
+    return {
+      select: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue(rows),
+    };
+  }
+
   beforeEach(async () => {
     adminRepository = {
       findOne: jest.fn(),
@@ -206,6 +225,7 @@ describe('AdminModule Integration Tests', () => {
     walletTxRepository = {
       find: jest.fn(),
       count: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
 
     beanTxRepository = {
@@ -216,8 +236,10 @@ describe('AdminModule Integration Tests', () => {
     appRepository = {
       find: jest.fn(),
       findOne: jest.fn(),
+      count: jest.fn(),
       update: jest.fn(),
       save: jest.fn(),
+      createQueryBuilder: jest.fn(),
     };
 
     notificationRepository = {
@@ -468,19 +490,24 @@ describe('AdminModule Integration Tests', () => {
   describe('userList Integration', () => {
     it('should return paginated user list', async () => {
       const mockUsers = [{ id: 1, nickname: 'User 1', role: 'worker' }];
-      userRepository.createQueryBuilder.mockReturnValue({
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([mockUsers, 1]),
-      });
+      userRepository.createQueryBuilder.mockReturnValue(
+        createPagedQueryBuilder(mockUsers, 1),
+      );
 
       const result = await controller.userList({ page: 1, pageSize: 20 });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
       expect(result.total).toBe(1);
+    });
+
+    it('should exclude users without a selected role by default', async () => {
+      const qb = createPagedQueryBuilder([], 0);
+      userRepository.createQueryBuilder.mockReturnValue(qb);
+
+      await controller.userList({ page: 1, pageSize: 20 });
+
+      expect(qb.andWhere).toHaveBeenCalledWith('u.role IS NOT NULL');
     });
   });
 
@@ -526,6 +553,37 @@ describe('AdminModule Integration Tests', () => {
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
+    });
+
+    it('should enrich publisher display names for post list', async () => {
+      const mockPosts = [
+        {
+          id: 1,
+          userId: 11,
+          title: '采购需求',
+          status: 'active',
+          user: { id: 11, nickname: '企业用户' },
+        },
+      ];
+      postRepository.createQueryBuilder.mockReturnValue(
+        createPagedQueryBuilder(mockPosts, 1),
+      );
+      userRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([
+          { id: 11, nickname: '企业用户', phone: '13800000000' },
+        ]),
+      );
+      entCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([{ userId: 11, companyName: '铭品日用品' }]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([]),
+      );
+
+      const result = await controller.postList({ page: 1, pageSize: 20 });
+
+      expect(result.list[0].displayName).toBe('铭品日用品');
+      expect(result.list[0].companyName).toBe('铭品日用品');
     });
   });
 
@@ -858,6 +916,122 @@ describe('AdminModule Integration Tests', () => {
     });
   });
 
+  describe('transactionList Integration', () => {
+    it('should enrich transactions with display names', async () => {
+      const mockTransactions = [
+        {
+          id: 1,
+          userId: 11,
+          type: 'withdraw',
+          amount: 88,
+          user: { id: 11, nickname: '企业用户' },
+        },
+        {
+          id: 2,
+          userId: 22,
+          type: 'income',
+          amount: 66,
+          user: { id: 22, nickname: '临工用户' },
+        },
+      ];
+      walletTxRepository.createQueryBuilder.mockReturnValue(
+        createPagedQueryBuilder(mockTransactions, 2),
+      );
+      userRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([
+          { id: 11, nickname: '企业用户', phone: '13800000000' },
+          { id: 22, nickname: '临工用户', phone: '13900000000' },
+        ]),
+      );
+      entCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([{ userId: 11, companyName: '铭品日用品' }]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([{ userId: 22, realName: '张三' }]),
+      );
+
+      const result = await controller.transactionList({ page: 1, pageSize: 20 });
+
+      expect(result.list[0].displayName).toBe('铭品日用品');
+      expect(result.list[1].displayName).toBe('张三');
+    });
+  });
+
+  describe('jobOrderList Integration', () => {
+    it('should attach company names and apply counts', async () => {
+      const mockJobs = [
+        {
+          id: 9,
+          userId: 11,
+          title: '包装工',
+          needCount: 8,
+          status: 'recruiting',
+          user: { id: 11, nickname: '企业用户' },
+        },
+      ];
+      jobRepository.createQueryBuilder.mockReturnValue(
+        createPagedQueryBuilder(mockJobs, 1),
+      );
+      appRepository.count.mockResolvedValue(3);
+      userRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([
+          { id: 11, nickname: '企业用户', phone: '13800000000' },
+        ]),
+      );
+      entCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([{ userId: 11, companyName: '铭品日用品' }]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([]),
+      );
+
+      const result = await controller.jobOrderList({ page: 1, pageSize: 20 });
+
+      expect(result.list[0].companyName).toBe('铭品日用品');
+      expect(result.list[0].applyCount).toBe(3);
+    });
+  });
+
+  describe('jobOrderDetail Integration', () => {
+    it('should enrich company and worker display names', async () => {
+      jobRepository.findOne.mockResolvedValue({
+        id: 9,
+        userId: 11,
+        title: '包装工',
+        user: { id: 11, nickname: '企业用户' },
+      });
+      appRepository.find.mockResolvedValue([
+        {
+          id: 1,
+          jobId: 9,
+          workerId: 22,
+          status: 'working',
+          isSupervisor: 1,
+          worker: { id: 22, nickname: '临工用户', phone: '13900000000' },
+        },
+      ]);
+      appRepository.count.mockResolvedValue(5);
+      userRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([
+          { id: 11, nickname: '企业用户', phone: '13800000000' },
+          { id: 22, nickname: '临工用户', phone: '13900000000' },
+        ]),
+      );
+      entCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([{ userId: 11, companyName: '铭品日用品' }]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([{ userId: 22, realName: '张三' }]),
+      );
+
+      const result = await controller.jobOrderDetail(9);
+
+      expect(result.job.companyName).toBe('铭品日用品');
+      expect(result.applications[0].worker.displayName).toBe('张三');
+      expect(result.applications[0].worker.doneCount).toBe(5);
+    });
+  });
+
   describe('userDetail Integration', () => {
     it('should return user detail with stats', async () => {
       const mockUser = { id: 1, nickname: 'User 1' };
@@ -893,6 +1067,40 @@ describe('AdminModule Integration Tests', () => {
 
       expect(result).toBeDefined();
       expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('adList Integration', () => {
+    it('should enrich advertiser display names', async () => {
+      const mockAds = [
+        {
+          id: 1,
+          userId: 11,
+          title: '首页广告',
+          status: 'pending',
+          slot: 'banner',
+          user: { id: 11, nickname: '企业用户' },
+        },
+      ];
+      adRepository.createQueryBuilder.mockReturnValue(
+        createPagedQueryBuilder(mockAds, 1),
+      );
+      userRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([
+          { id: 11, nickname: '企业用户', phone: '13800000000' },
+        ]),
+      );
+      entCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([{ userId: 11, companyName: '铭品日用品' }]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([]),
+      );
+
+      const result = await controller.adList({ page: 1, pageSize: 20 });
+
+      expect(result.list[0].displayName).toBe('铭品日用品');
+      expect(result.list[0].companyName).toBe('铭品日用品');
     });
   });
 
