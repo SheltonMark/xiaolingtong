@@ -26,6 +26,9 @@ export class Post {
   @Column({ length: 64, nullable: true })
   industry: string;
 
+  @Column({ length: 16, nullable: true })
+  processMode: string;
+
   @Column({ type: 'text' })
   content: string;
 

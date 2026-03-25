@@ -634,6 +634,54 @@ describe('PostService', () => {
       keywordRepo.find.mockResolvedValue([]);
       await expect(service.create(1, dto)).rejects.toThrow('请至少选择一种联系方式');
     });
+    it('should persist explicit process mode for process posts', async () => {
+      const dto = {
+        type: 'process',
+        category: '注塑',
+        processMode: 'seeking',
+        processDesc: '长期稳定单量',
+        capacity: 1000,
+        minOrder: 100,
+        price: 2,
+        deliveryDays: '15天内',
+        showPhone: true,
+        contactPhone: '13800138000',
+      };
+
+      keywordRepo.find.mockResolvedValue([]);
+      userRepo.findOneBy.mockResolvedValue({ id: 1, openid: 'openid-1' });
+      postRepo.create.mockImplementation((payload) => ({ id: 1, ...payload }));
+      postRepo.save.mockImplementation(async (payload) => payload);
+
+      const result = await service.create(1, dto);
+
+      expect(postRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'process',
+          industry: '注塑',
+          processMode: 'seeking',
+          title: '找代加工 · 注塑',
+          content: expect.stringContaining('找代加工'),
+        }),
+      );
+      expect(result.processMode).toBe('seeking');
+      expect(result.title).toBe('找代加工 · 注塑');
+    });
+
+    it('should reject invalid process mode values', async () => {
+      const dto = {
+        type: 'process',
+        category: '注塑',
+        processMode: 'custom',
+        processDesc: '长期稳定单量',
+        showPhone: true,
+        contactPhone: '13800138000',
+      };
+
+      keywordRepo.find.mockResolvedValue([]);
+
+      await expect(service.create(1, dto)).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('update', () => {

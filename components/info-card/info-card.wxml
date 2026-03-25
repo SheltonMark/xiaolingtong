@@ -30,6 +30,9 @@
     </view>
   </view>
   <!-- 文字内容 -->
+  <view class="card-mode-row" wx:if="{{item.processModeLabel}}">
+    <text class="card-mode-badge">{{item.processModeLabel}}</text>
+  </view>
   <text class="card-content">{{item.content}}</text>
   <!-- 图片网格 -->
   <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">

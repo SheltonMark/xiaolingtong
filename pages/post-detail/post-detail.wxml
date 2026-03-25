@@ -17,6 +17,7 @@
   <view class="title-section">
     <view class="tag-row">
       <text class="tag tag-blue">{{detail.typeText}}</text>
+      <text class="tag tag-cyan" wx:if="{{detail.processModeLabel}}">{{detail.processModeLabel}}</text>
       <text class="tag tag-amber">{{detail.industry}}</text>
     </view>
     <text class="detail-title">{{detail.title}}</text>

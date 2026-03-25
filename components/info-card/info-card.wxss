@@ -61,6 +61,22 @@
 }
 
 /* 文字内容 */
+.card-mode-row {
+  padding: 16rpx 24rpx 0;
+}
+
+.card-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 40rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: #EFF6FF;
+  color: #2563EB;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
 .card-content {
   font-size: 26rpx; color: #1E293B; line-height: 1.7;
   display: block; padding: 20rpx 24rpx;

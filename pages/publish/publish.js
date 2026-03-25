@@ -15,10 +15,15 @@ const DEFAULT_FORM = {
   deliveryDays: '',
   description: '',
   minOrder: '',
-  processType: '',
+  processMode: '',
   processDesc: '',
   capacity: ''
 }
+
+const PROCESS_MODE_OPTIONS = [
+  { label: '找代加工', value: 'seeking' },
+  { label: '承接加工', value: 'offering' }
+]
 
 function buildFallbackContactInfo() {
   const app = getApp()
@@ -39,6 +44,8 @@ Page({
     isUploading: false,
     submitting: false,
     categoryOptions: [],
+    processModeOptions: PROCESS_MODE_OPTIONS,
+    processModeIndex: -1,
     deliveryOptions: ['7天内', '15天内', '30天内', '45天内', '60天内'],
     validityOptions: ['7天', '15天', '30天', '60天', '90天'],
     validityIndex: 2,
@@ -75,6 +82,7 @@ Page({
       typeIndex: 0,
       form: { ...DEFAULT_FORM },
       images: [],
+      processModeIndex: -1,
       validityIndex: 2
     })
     this.initContactInfo()
@@ -122,6 +130,15 @@ Page({
   onCategoryChange(e) {
     const nextCategory = this.data.categoryOptions[e.detail.value] || ''
     this.setData({ 'form.category': nextCategory })
+  },
+
+  onProcessModeChange(e) {
+    const index = Number(e.detail.value)
+    const option = this.data.processModeOptions[index] || null
+    this.setData({
+      processModeIndex: index,
+      'form.processMode': option ? option.value : ''
+    })
   },
 
   onDeliveryChange(e) {
@@ -217,8 +234,8 @@ Page({
       wx.showToast({ title: '请输入物品名称', icon: 'none' })
       return
     }
-    if (typeIndex === 2 && !form.processType) {
-      wx.showToast({ title: '请输入加工类型', icon: 'none' })
+    if (typeIndex === 2 && !form.processMode) {
+      wx.showToast({ title: '请选择加工类型', icon: 'none' })
       return
     }
     if (!form.category) {
@@ -248,8 +265,9 @@ Page({
 
     const data = {
       type: types[typeIndex],
-      title: typeIndex === 2 ? form.processType : form.productName,
+      title: typeIndex === 2 ? undefined : form.productName,
       category: form.category,
+      processMode: form.processMode || undefined,
       spec: form.spec,
       quantity: form.quantity ? Number(form.quantity) : undefined,
       price: form.price ? Number(form.price) : undefined,

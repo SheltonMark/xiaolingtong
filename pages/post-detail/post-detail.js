@@ -8,6 +8,11 @@ const TYPE_TEXT_MAP = {
   process: '代加工'
 }
 
+const PROCESS_MODE_LABEL_MAP = {
+  seeking: '找代加工',
+  offering: '承接加工'
+}
+
 Page({
   data: {
     swiperCurrent: 0,
@@ -95,6 +100,26 @@ Page({
     return false
   },
 
+  getProcessModeLabel(raw) {
+    const direct = this.normalizeText(raw && raw.processModeLabel)
+    if (direct) return direct
+    const processMode = this.normalizeText(
+      (raw && raw.processMode)
+      || (raw && raw.fields && raw.fields.processMode)
+    ).toLowerCase()
+    return PROCESS_MODE_LABEL_MAP[processMode] || ''
+  },
+
+  normalizeProcessContent(raw) {
+    const content = this.normalizeText(raw && raw.content)
+    const modeLabel = this.getProcessModeLabel(raw)
+    if (!content || !modeLabel) return content
+    const duplicatedPrefix = `承接${modeLabel}`
+    return content.startsWith(duplicatedPrefix)
+      ? `${modeLabel}${content.slice(duplicatedPrefix.length)}`
+      : content
+  },
+
   getCurrentUserId() {
     const app = getApp()
     const storageUser = wx.getStorageSync('userInfo') || {}
@@ -145,7 +170,7 @@ Page({
       this.pushDetailField(list, '单价', source.price ? `${source.price}元` : '', { highlight: true })
       this.pushDetailField(list, '最小起订量', source.minOrder ? `${source.minOrder}个` : '')
     } else if (type === 'process') {
-      this.pushDetailField(list, '加工类型', source.processType || detail.title, { bold: true })
+      this.pushDetailField(list, '加工类型', this.getProcessModeLabel(detail) || source.processType || detail.title, { bold: true })
       this.pushDetailField(list, '工艺说明', source.processDesc)
       this.pushDetailField(list, '产能', source.capacity ? `${source.capacity}件/天` : '')
       this.pushDetailField(list, '加工单价', source.price ? `${source.price}元/件` : '', { highlight: true })
@@ -171,14 +196,16 @@ Page({
     const avatarText = hasCompanyName ? this.normalizeText(companyNameRaw).slice(0, 1) : '企'
     const fields = this.formatDetailFields(raw.type, raw.fields, raw)
     const enterpriseVerified = this.resolveEnterpriseVerified(raw)
+    const processModeLabel = this.getProcessModeLabel(raw)
     return {
       ...raw,
       images: normalizeImageList(raw.images),
       typeText: TYPE_TEXT_MAP[raw.type] || '供需信息',
+      processModeLabel,
       publishTime: this.formatDate(raw.createdAt),
       expireTime: raw.expireAt ? this.formatDate(raw.expireAt) : '长期有效',
       fields,
-      desc: this.normalizeText(raw.content),
+      desc: raw.type === 'process' ? this.normalizeProcessContent(raw) : this.normalizeText(raw.content),
       avatarUrl: normalizeImageUrl((raw.user && raw.user.avatarUrl) || ''),
       avatarText,
       companyName: companyName || '企业用户',

@@ -13,6 +13,11 @@ import { Promotion } from '../../entities/promotion.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 import { findRecentDuplicate } from '../../common/recent-create-dedupe';
 
+const PROCESS_MODE_LABELS: Record<string, string> = {
+  seeking: '找代加工',
+  offering: '承接加工',
+};
+
 @Injectable()
 export class PostService {
   constructor(
@@ -80,6 +85,7 @@ export class PostService {
       type: payload.type,
       title: payload.title,
       industry: payload.industry,
+      processMode: payload.processMode,
       content: payload.content,
       contactName: payload.contactName,
       contactPhone: payload.contactPhone,
@@ -99,6 +105,35 @@ export class PostService {
     if (['1', 'true', 'yes', 'on'].includes(normalized)) return true;
     if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
     return defaultValue;
+  }
+
+  private normalizeProcessMode(value: any): string {
+    const normalized = this.normalizeText(value).toLowerCase();
+    return Object.prototype.hasOwnProperty.call(PROCESS_MODE_LABELS, normalized)
+      ? normalized
+      : '';
+  }
+
+  private getProcessModeLabel(value: any): string {
+    const normalized = this.normalizeProcessMode(value);
+    return normalized ? PROCESS_MODE_LABELS[normalized] : '';
+  }
+
+  private buildProcessTitle(processMode: string, industry: any, rawTitle: any): string {
+    const label = this.getProcessModeLabel(processMode);
+    const subject = this.normalizeText(industry || rawTitle) || '代加工';
+    if (!label) return this.normalizeText(rawTitle) || subject;
+    return `${label} · ${subject}`;
+  }
+
+  private resolveProcessMode(post: any): string {
+    const direct = this.normalizeProcessMode(post?.processMode);
+    if (direct) return direct;
+    const fields =
+      post?.fields && typeof post.fields === 'object' && !Array.isArray(post.fields)
+        ? post.fields
+        : {};
+    return this.normalizeProcessMode(fields.processMode);
   }
 
   private buildVisibleContactInfo(post: Partial<Post>, includeHidden = false) {
@@ -201,9 +236,13 @@ export class PostService {
     const cert = userId ? certMap.get(userId) : undefined;
     const certStatus = cert?.status || 'none';
     const enterpriseVerified = certStatus === 'approved';
+    const processMode = this.resolveProcessMode(post);
+    const processModeLabel = this.getProcessModeLabel(processMode);
     return {
       ...post,
       companyName: (cert && cert.companyName) || '',
+      processMode: processMode || undefined,
+      processModeLabel: processModeLabel || undefined,
       enterpriseVerified,
       verified: enterpriseVerified,
       certStatus,
@@ -377,6 +416,7 @@ export class PostService {
       type,
       title,
       category,
+      processMode: rawProcessMode,
       description,
       images,
       showPhone,
@@ -390,7 +430,25 @@ export class PostService {
       ...structuredFields
     } = dto;
 
-    const content = this.composePostContent(type, title, description, structuredFields);
+    const processMode =
+      type === 'process' ? this.normalizeProcessMode(rawProcessMode) : '';
+    if (type === 'process' && !processMode) {
+      throw new BadRequestException('璇烽€夋嫨鍔犲伐绫诲瀷');
+    }
+    const normalizedTitle =
+      type === 'process'
+        ? this.buildProcessTitle(processMode, category, title)
+        : this.normalizeText(title);
+    const contentFields =
+      type === 'process' && processMode
+        ? { ...structuredFields, processMode }
+        : structuredFields;
+    const content = this.composePostContent(
+      type,
+      normalizedTitle,
+      description,
+      contentFields,
+    );
     const normalizedContactName = this.normalizeText(contactName) || null;
     const normalizedContactPhone = this.normalizeText(contactPhone) || null;
     const normalizedContactWechat = this.normalizeText(contactWechat) || null;
@@ -408,7 +466,7 @@ export class PostService {
       ? this.parseVisibility(showWechatQr, !!normalizedContactWechatQr)
       : !!normalizedContactWechatQr;
 
-    await this.checkKeywords(content + (title || ''));
+    await this.checkKeywords(content + (normalizedTitle || ''));
     if (!phoneVisible && !wechatVisible && !wechatQrVisible) {
       throw new BadRequestException('请至少选择一种联系方式');
     }
@@ -425,8 +483,9 @@ export class PostService {
     const normalizedImages = this.normalizeStringArray(images);
     const existing = await this.findRecentDuplicatePost(userId, {
       type,
-      title,
+      title: normalizedTitle,
       industry: category,
+      processMode: processMode || undefined,
       content,
       contactName: normalizedContactName,
       contactPhone: normalizedContactPhone,
@@ -440,7 +499,7 @@ export class PostService {
 
     const submitter = await this.userRepo.findOneBy({ id: userId });
     await this.wechatSecurityService.assertSafeSubmission({
-      texts: [type, title, description, structuredFields, normalizedContactName, normalizedContactPhone, normalizedContactWechat],
+      texts: [type, normalizedTitle, description, contentFields, normalizedContactName, normalizedContactPhone, normalizedContactWechat],
       images: [normalizedImages, normalizedContactWechatQr],
       openid: submitter?.openid,
     });
@@ -448,8 +507,9 @@ export class PostService {
     const postData: Partial<Post> = {
       userId,
       type,
-      title,
+      title: normalizedTitle || undefined,
       industry: category,
+      processMode: processMode || undefined,
       content,
       expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : undefined,
       showPhone: phoneVisible ? 1 : 0,

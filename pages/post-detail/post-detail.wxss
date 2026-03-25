@@ -17,6 +17,7 @@
 .tag-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 16rpx; }
 .tag { font-size: 20rpx; padding: 4rpx 16rpx; border-radius: 8rpx; font-weight: 500; }
 .tag-blue { background-color: #EFF6FF; color: #3B82F6; }
+.tag-cyan { background-color: #ECFEFF; color: #0891B2; }
 .tag-amber { background-color: #FFFBEB; color: #F59E0B; }
 
 /* 标题区 */

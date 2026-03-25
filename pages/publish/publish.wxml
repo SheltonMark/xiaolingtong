@@ -134,7 +134,12 @@
   <block wx:if="{{typeIndex === 2}}">
     <view class="form-card">
       <text class="form-label required">加工类型</text>
-      <input class="form-input" placeholder="如：注塑加工、CNC加工、丝印" data-field="processType" bindinput="onInput" />
+      <picker mode="selector" range="{{processModeOptions}}" range-key="label" value="{{processModeIndex}}" bindchange="onProcessModeChange">
+        <view class="form-picker">
+          <text class="{{form.processMode ? '' : 'placeholder'}}">{{processModeIndex > -1 ? processModeOptions[processModeIndex].label : '请选择加工类型'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
     </view>
     <view class="form-card">
       <text class="form-label required">品类</text>

@@ -44,6 +44,29 @@ function pickBenefitValue(primary, fallback) {
   return hasBenefitValue(primary) ? primary : fallback
 }
 
+function getProcessModeLabel(item) {
+  const direct = String((item && item.processModeLabel) || '').trim()
+  if (direct) return direct
+  const processMode = String(
+    (item && item.processMode)
+    || (item && item.fields && item.fields.processMode)
+    || ''
+  ).trim().toLowerCase()
+  if (processMode === 'seeking') return '找代加工'
+  if (processMode === 'offering') return '承接加工'
+  return ''
+}
+
+function normalizeProcessContent(item) {
+  const content = String((item && item.content) || '').trim()
+  const modeLabel = getProcessModeLabel(item)
+  if (!content || !modeLabel) return content
+  const duplicatedPrefix = `承接${modeLabel}`
+  return content.startsWith(duplicatedPrefix)
+    ? `${modeLabel}${content.slice(duplicatedPrefix.length)}`
+    : content
+}
+
 function getDefaultEnterpriseBanners() {
   return [
     {
@@ -469,6 +492,8 @@ Page({
         ...item,
         companyName,
         companyMeta: item.industry || '',
+        processModeLabel: getProcessModeLabel(item),
+        content: item.type === 'process' ? normalizeProcessContent(item) : item.content,
         avatarUrl: normalizeImageUrl((user.avatarUrl) || ''),
         images: normalizeImageList(item.images),
         avatarText: verifiedName ? companyName[0] : '企',
