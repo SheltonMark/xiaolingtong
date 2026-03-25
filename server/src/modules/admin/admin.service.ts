@@ -93,7 +93,7 @@ export class AdminService {
     const [users, entCerts, workerCerts] = await Promise.all([
       this.userRepo
         .createQueryBuilder('u')
-        .select(['u.id', 'u.nickname', 'u.phone'])
+        .select(['u.id', 'u.nickname', 'u.name', 'u.phone'])
         .where('u.id IN (:...ids)', { ids })
         .getMany(),
       this.entCertRepo
@@ -124,7 +124,10 @@ export class AdminService {
     users.forEach((user) => {
       const userId = Number(user.id);
       if (!nameMap.has(userId)) {
-        nameMap.set(userId, user.nickname || user.phone || ('\u7528\u6237' + userId));
+        nameMap.set(
+          userId,
+          user.nickname || user.name || user.phone || ('\u7528\u6237' + userId),
+        );
       }
     });
 
@@ -134,10 +137,13 @@ export class AdminService {
   private resolveDisplayName(
     nameMap: Map<number, string>,
     userId: number | string | undefined,
-    fallback?: { nickname?: string | null; phone?: string | null },
+    fallback?: { nickname?: string | null; name?: string | null; phone?: string | null },
   ) {
     const displayName =
-      nameMap.get(Number(userId || 0)) || fallback?.nickname || fallback?.phone;
+      nameMap.get(Number(userId || 0)) ||
+      fallback?.nickname ||
+      fallback?.name ||
+      fallback?.phone;
     return displayName ? String(displayName) : '';
   }
 
@@ -263,15 +269,37 @@ export class AdminService {
     const qb = this.userRepo.createQueryBuilder('u');
     if (role) qb.andWhere('u.role = :role', { role });
     else qb.andWhere('u.role IS NOT NULL');
-    if (keyword)
-      qb.andWhere('(u.nickname LIKE :kw OR u.phone LIKE :kw)', {
-        kw: `%${keyword}%`,
-      });
+    if (keyword) {
+      qb
+        .leftJoin(EnterpriseCert, 'ent', 'ent.userId = u.id')
+        .leftJoin(WorkerCert, 'worker', 'worker.userId = u.id')
+        .andWhere(
+          '(u.nickname LIKE :kw OR u.phone LIKE :kw OR u.name LIKE :kw OR ent.companyName LIKE :kw OR worker.realName LIKE :kw)',
+          {
+            kw: `%${keyword}%`,
+          },
+        );
+    }
     qb.orderBy('u.createdAt', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+    const nameMap = await this.buildUserDisplayNameMap(
+      list.map((item) => item.id),
+    );
+    return {
+      list: list.map((item) => {
+        const displayName = this.resolveDisplayName(nameMap, item.id, item);
+        return {
+          ...item,
+          displayName,
+          nickname: displayName || item.nickname || item.name || item.phone || '',
+        };
+      }),
+      total,
+      page: +page,
+      pageSize: +pageSize,
+    };
   }
 
   async banUser(id: number) {

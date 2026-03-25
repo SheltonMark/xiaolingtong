@@ -59,6 +59,7 @@ describe('AdminModule Integration Tests', () => {
 
   function createPagedQueryBuilder(list: any[], total = list.length) {
     return {
+      leftJoin: jest.fn().mockReturnThis(),
       leftJoinAndSelect: jest.fn().mockReturnThis(),
       andWhere: jest.fn().mockReturnThis(),
       orderBy: jest.fn().mockReturnThis(),
@@ -490,8 +491,18 @@ describe('AdminModule Integration Tests', () => {
   describe('userList Integration', () => {
     it('should return paginated user list', async () => {
       const mockUsers = [{ id: 1, nickname: 'User 1', role: 'worker' }];
-      userRepository.createQueryBuilder.mockReturnValue(
-        createPagedQueryBuilder(mockUsers, 1),
+      userRepository.createQueryBuilder
+        .mockReturnValueOnce(createPagedQueryBuilder(mockUsers, 1))
+        .mockReturnValueOnce(
+          createSelectQueryBuilder([
+            { id: 1, nickname: 'User 1', name: '', phone: '' },
+          ]),
+        );
+      entCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([]),
       );
 
       const result = await controller.userList({ page: 1, pageSize: 20 });
@@ -508,6 +519,50 @@ describe('AdminModule Integration Tests', () => {
       await controller.userList({ page: 1, pageSize: 20 });
 
       expect(qb.andWhere).toHaveBeenCalledWith('u.role IS NOT NULL');
+    });
+
+    it('should expose enterprise or worker names when nickname is empty', async () => {
+      const qb = createPagedQueryBuilder(
+        [{ id: 11, nickname: '', role: 'enterprise', phone: '13800000000' }],
+        1,
+      );
+      userRepository.createQueryBuilder
+        .mockReturnValueOnce(qb)
+        .mockReturnValueOnce(
+          createSelectQueryBuilder([
+            { id: 11, nickname: '', name: '', phone: '13800000000' },
+          ]),
+        );
+      entCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([
+          { userId: 11, companyName: '铭品日用品' },
+        ]),
+      );
+      workerCertRepository.createQueryBuilder.mockReturnValueOnce(
+        createSelectQueryBuilder([]),
+      );
+
+      const result = await controller.userList({ page: 1, pageSize: 20 });
+
+      expect(result.list[0].displayName).toBe('铭品日用品');
+      expect(result.list[0].nickname).toBe('铭品日用品');
+    });
+
+    it('should search users by enterprise or worker visible names', async () => {
+      const qb = createPagedQueryBuilder([], 0);
+      userRepository.createQueryBuilder.mockReturnValue(qb);
+
+      await controller.userList({
+        keyword: '灵豆',
+        page: 1,
+        pageSize: 20,
+      });
+
+      expect(qb.leftJoin).toHaveBeenCalledTimes(2);
+      expect(qb.andWhere).toHaveBeenCalledWith(
+        '(u.nickname LIKE :kw OR u.phone LIKE :kw OR u.name LIKE :kw OR ent.companyName LIKE :kw OR worker.realName LIKE :kw)',
+        { kw: '%灵豆%' },
+      );
     });
   });
 

@@ -228,7 +228,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
   <div class="main">
     <div class="page-header"><h3 id="pageTitle">数据概览</h3><p id="pageDesc">平台运营数据总览</p></div>
     <div class="page-section active" id="page-dashboard"><div class="stat-cards" id="statCards"></div></div>
-    <div class="page-section" id="page-users"><div class="panel"><div class="panel-header"><h4>用户管理</h4><div class="toolbar"><select id="userRoleFilter" onchange="loadUsers()"><option value="">全部角色</option><option value="enterprise">企业</option><option value="worker">临工</option></select><input type="text" id="userKeyword" placeholder="搜索昵称/手机号"><button class="search-btn" onclick="loadUsers()">搜索</button></div></div><table><thead><tr><th>ID</th><th>昵称</th><th>角色</th><th>手机</th><th>灵豆</th><th>信用分</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTable"></tbody></table><div class="pagination" id="userPagination"></div></div></div>
+    <div class="page-section" id="page-users"><div class="panel"><div class="panel-header"><h4>用户管理</h4><div class="toolbar"><select id="userRoleFilter" onchange="loadUsers()"><option value="">全部角色</option><option value="enterprise">企业</option><option value="worker">临工</option></select><input type="text" id="userKeyword" placeholder="搜索名称/手机号"><button class="search-btn" onclick="loadUsers()">搜索</button></div></div><table><thead><tr><th>ID</th><th>名称</th><th>角色</th><th>手机</th><th>灵豆</th><th>信用分</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTable"></tbody></table><div class="pagination" id="userPagination"></div></div></div>
     <div class="page-section" id="page-posts"><div class="panel"><div class="panel-header"><h4>信息审核</h4><div class="toolbar"><select id="postTypeFilter" onchange="loadPosts()"><option value="">全部类型</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><select id="postStatusFilter" onchange="loadPosts()"><option value="">全部状态</option><option value="active">已发布</option><option value="pending">待审核</option><option value="deleted">已删除</option></select><button class="search-btn" onclick="loadPosts()">刷新</button></div></div><table><thead><tr><th>ID</th><th>类型</th><th>标题/内容</th><th>图片</th><th>发布者</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="postTable"></tbody></table><div class="pagination" id="postPagination"></div></div></div>
     <div class="page-section" id="page-certs"><div class="panel"><div class="panel-header"><h4>认证审核</h4><div class="toolbar"><select id="certTypeFilter" onchange="loadCerts()"><option value="enterprise">企业认证</option><option value="worker">临工认证</option></select><select id="certStatusFilter" onchange="loadCerts()"><option value="">全部状态</option><option value="pending">待审核</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select><button class="search-btn" onclick="loadCerts()">刷新</button></div></div><table><thead><tr id="certHeader"></tr></thead><tbody id="certTable"></tbody></table><div class="pagination" id="certPagination"></div></div></div>
     <div class="page-section" id="page-reports"><div class="panel"><div class="panel-header"><h4>举报处理</h4></div><table><thead><tr><th>ID</th><th>类型</th><th>目标ID</th><th>原因</th><th>描述</th><th>图片</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="reportTable"></tbody></table><div class="pagination" id="reportPagination"></div></div></div>
@@ -395,10 +395,11 @@ async function loadUsers(page){
     var roleT=u.role==='enterprise'?'企业':u.role==='worker'?'临工':'未选择';
     var stB=u.status==='active'?'badge-green':'badge-red';
     var stT=u.status==='active'?'正常':'封禁';
+    var displayName=adminDisplayName(u)||u.name||u.phone||'-';
     var ops=u.status==='active'?'<button class="btn btn-danger" onclick="banUser('+u.id+')">封禁</button>':'<button class="btn btn-success" onclick="unbanUser('+u.id+')">解封</button>';
     ops+='<button class="btn btn-primary" onclick="promptCredit('+u.id+','+(u.creditScore||0)+')">信用分</button>';
     ops+='<button class="btn btn-primary" onclick="showUserDetail('+u.id+')">详情</button>';
-    h+='<tr><td>'+u.id+'</td><td>'+(u.nickname||'-')+'</td><td><span class="badge '+roleB+'">'+roleT+'</span></td><td>'+(u.phone||'-')+'</td><td>'+(u.beanBalance||0)+'</td><td>'+(u.creditScore||0)+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(u.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    h+='<tr><td>'+u.id+'</td><td>'+displayName+'</td><td><span class="badge '+roleB+'">'+roleT+'</span></td><td>'+(u.phone||'-')+'</td><td>'+(u.beanBalance||0)+'</td><td>'+(u.creditScore||0)+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(u.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
   }
   document.getElementById('userTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
   renderPagination('userPagination',d.total,userPage,d.pageSize,'loadUsers');
@@ -1140,8 +1141,9 @@ async function loadStats(){
 async function showUserDetail(id){
   var d=await api('/users/'+id+'/detail');if(!d)return;
   var u=d.user;
+  var displayName=u.displayName||(d.entCert&&d.entCert.companyName)||(d.workerCert&&d.workerCert.realName)||u.nickname||u.name||u.phone||'-';
   var h='<table style="width:100%"><tr><td style="width:120px;color:var(--text-muted)">ID</td><td>'+u.id+'</td></tr>';
-  h+='<tr><td style="color:var(--text-muted)">昵称</td><td>'+(u.nickname||'-')+'</td></tr>';
+  h+='<tr><td style="color:var(--text-muted)">名称</td><td>'+displayName+'</td></tr>';
   h+='<tr><td style="color:var(--text-muted)">角色</td><td>'+(u.role==='enterprise'?'企业':u.role==='worker'?'临工':'未选择')+'</td></tr>';
   h+='<tr><td style="color:var(--text-muted)">手机</td><td>'+(u.phone||'-')+'</td></tr>';
   h+='<tr><td style="color:var(--text-muted)">灵豆</td><td>'+(u.beanBalance||0)+'</td></tr>';

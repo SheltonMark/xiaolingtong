@@ -287,7 +287,11 @@ Page({
   },
 
   onShow() {
-    if (this._shouldRefreshContact && auth.isLoggedIn()) {
+    const loggedIn = auth.isLoggedIn()
+    if (loggedIn) {
+      this.loadCategories()
+    }
+    if (this._shouldRefreshContact && loggedIn) {
       this._shouldRefreshContact = false
       this.initContactInfo()
     }
