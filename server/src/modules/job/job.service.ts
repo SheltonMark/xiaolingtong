@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, MoreThan, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
@@ -11,10 +11,10 @@ import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
+import { findRecentDuplicate } from '../../common/recent-create-dedupe';
 
 @Injectable()
 export class JobService {
-  private static readonly CREATE_DEDUP_WINDOW_MS = 10 * 1000;
   private static readonly WORKER_VISIBLE_JOB_STATUSES = ['recruiting'];
   private static readonly ACTIVE_APPLICATION_STATUSES = ['pending', 'accepted', 'confirmed', 'working', 'done'];
   private static readonly ARRIVED_APPLICATION_STATUSES = ['confirmed', 'working', 'done'];
@@ -374,30 +374,26 @@ export class JobService {
   }
 
   private async findRecentDuplicateJob(userId: number, payload: any) {
-    return this.jobRepo.findOne({
-      where: {
-        userId,
-        title: payload.title,
-        jobType: payload.jobType,
-        salary: payload.salary,
-        salaryType: payload.salaryType,
-        salaryUnit: payload.salaryUnit,
-        needCount: payload.needCount,
-        location: payload.location,
-        contactName: payload.contactName,
-        contactPhone: payload.contactPhone,
-        contactWechat: payload.contactWechat,
-        contactWechatQr: payload.contactWechatQr,
-        showPhone: payload.showPhone,
-        showWechat: payload.showWechat,
-        showWechatQr: payload.showWechatQr,
-        dateStart: payload.dateStart,
-        dateEnd: payload.dateEnd,
-        workHours: payload.workHours,
-        description: payload.description,
-        createdAt: MoreThan(new Date(Date.now() - JobService.CREATE_DEDUP_WINDOW_MS)),
-      },
-      order: { createdAt: 'DESC' },
+    return findRecentDuplicate(this.jobRepo, {
+      userId,
+      title: payload.title,
+      jobType: payload.jobType,
+      salary: payload.salary,
+      salaryType: payload.salaryType,
+      salaryUnit: payload.salaryUnit,
+      needCount: payload.needCount,
+      location: payload.location,
+      contactName: payload.contactName,
+      contactPhone: payload.contactPhone,
+      contactWechat: payload.contactWechat,
+      contactWechatQr: payload.contactWechatQr,
+      showPhone: payload.showPhone,
+      showWechat: payload.showWechat,
+      showWechatQr: payload.showWechatQr,
+      dateStart: payload.dateStart,
+      dateEnd: payload.dateEnd,
+      workHours: payload.workHours,
+      description: payload.description,
     });
   }
 

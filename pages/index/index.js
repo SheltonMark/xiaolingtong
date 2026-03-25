@@ -70,6 +70,36 @@ function getDefaultEnterpriseBanners() {
   ]
 }
 
+const CATEGORY_FILTER_ICON_PRESETS = [
+  { icon: '\ue625', bg: '#FFF7ED', iconColor: '#F97316' },
+  { icon: '\ue605', bg: '#E0F2FE', iconColor: '#3B82F6' },
+  { icon: '\ue8c7', bg: '#FCE7F3', iconColor: '#EC4899' },
+  { icon: '\ue659', bg: '#EFF6FF', iconColor: '#6366F1' },
+  { icon: '\ue832', bg: '#ECFDF5', iconColor: '#10B981' },
+  { icon: '\ue626', bg: '#FFF1F2', iconColor: '#F43F5E' }
+]
+
+const JOB_FILTER_ICON_PRESETS = [
+  { icon: '\ue687', bg: '#E0F2FE', iconColor: '#3B82F6' },
+  { icon: '\ue670', bg: '#FFFBEB', iconColor: '#F59E0B' },
+  { icon: '\ue617', bg: '#FCE7F3', iconColor: '#EC4899' },
+  { icon: '\ue610', bg: '#ECFDF5', iconColor: '#10B981' },
+  { icon: '\ue786', bg: '#F3E8FF', iconColor: '#8B5CF6' }
+]
+
+function buildIconFilters(labels, presets) {
+  return (labels || []).filter(Boolean).map((label, index) => {
+    const preset = presets[index % presets.length]
+    return {
+      icon: preset.icon,
+      label,
+      bg: preset.bg,
+      iconColor: preset.iconColor,
+      active: false
+    }
+  })
+}
+
 Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
@@ -197,6 +227,7 @@ Page({
     const currentCity = wx.getStorageSync('currentCity') || '东莞'
     this.setData({ userRole, currentCity })
     this.loadCities()
+    this.loadCategoryFilters()
     this.loadJobTypes()
     if (userRole === 'worker') {
       this.autoLocateAndLoadWorkerJobs()
@@ -229,11 +260,29 @@ Page({
     }).catch(() => {})
   },
 
+  loadCategoryFilters() {
+    get('/config/categories').then((res) => {
+      const payload = res.data || res || {}
+      const labels = (payload.list || []).map((item) => item && item.name).filter(Boolean)
+      if (!labels.length) return
+      const categoryFilters = buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS)
+      this.setData({
+        catePurchase: categoryFilters,
+        cateStock: buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS),
+        cateProcess: buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS)
+      })
+    }).catch(() => {})
+  },
+
   loadJobTypes() {
     get('/config/job-types').then(res => {
       const jobTypes = res.data.list || []
       const jobTypeOptions = ['全部', ...jobTypes.map(jt => jt.name)]
-      this.setData({ jobTypes, jobTypeOptions })
+      this.setData({
+        jobTypes,
+        jobTypeOptions,
+        cateJob: buildIconFilters(jobTypes.map((jt) => jt.name), JOB_FILTER_ICON_PRESETS)
+      })
     }).catch(() => {})
   },
 
@@ -564,7 +613,11 @@ Page({
     // 构建查询参数
     const params = {}
     if (selectedCategory) {
-      params.industry = selectedCategory
+      if (currentTab === 3) {
+        params.jobType = selectedCategory
+      } else {
+        params.industry = selectedCategory
+      }
     }
 
     // 根据当前tab加载对应数据

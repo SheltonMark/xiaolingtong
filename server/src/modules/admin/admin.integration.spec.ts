@@ -681,6 +681,20 @@ describe('AdminModule Integration Tests', () => {
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
     });
+
+    it('should normalize legacy report images for admin list', async () => {
+      const mockReports = [{ id: 1, reason: 'Spam', images: { 0: 'report-1.jpg' } }];
+      reportRepository.createQueryBuilder.mockReturnValue({
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([mockReports, 1]),
+      });
+
+      const result = await controller.reportList({ page: 1, pageSize: 20 });
+
+      expect(result.list[0].images).toEqual(['report-1.jpg']);
+    });
   });
 
   describe('handleReport Integration', () => {

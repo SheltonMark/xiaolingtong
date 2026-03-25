@@ -6,11 +6,12 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { ReportController } from './report.controller';
 import { ReportService } from './report.service';
 import { Report } from '../../entities/report.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 describe('ReportModule Integration Tests', () => {
   let controller: ReportController;
-  let service: ReportService;
   let reportRepository: any;
+  let wechatSecurityService: any;
 
   beforeEach(async () => {
     reportRepository = {
@@ -18,6 +19,13 @@ describe('ReportModule Integration Tests', () => {
       find: jest.fn(),
       create: jest.fn(),
       save: jest.fn(),
+      manager: {
+        findOne: jest.fn(),
+      },
+    };
+
+    wechatSecurityService = {
+      assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -28,11 +36,14 @@ describe('ReportModule Integration Tests', () => {
           provide: getRepositoryToken(Report),
           useValue: reportRepository,
         },
+        {
+          provide: WechatSecurityService,
+          useValue: wechatSecurityService,
+        },
       ],
     }).compile();
 
     controller = module.get<ReportController>(ReportController);
-    service = module.get<ReportService>(ReportService);
   });
 
   afterEach(() => {
@@ -53,6 +64,7 @@ describe('ReportModule Integration Tests', () => {
 
       reportRepository.create.mockReturnValue(mockReport);
       reportRepository.save.mockResolvedValue(mockReport);
+      reportRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
 
       const result = await controller.create(1, {
         targetType: 'post',
@@ -80,6 +92,7 @@ describe('ReportModule Integration Tests', () => {
 
       reportRepository.create.mockReturnValue(mockReport);
       reportRepository.save.mockResolvedValue(mockReport);
+      reportRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
 
       const result = await controller.create(1, {
         targetType: 'post',
@@ -104,6 +117,7 @@ describe('ReportModule Integration Tests', () => {
 
       reportRepository.create.mockReturnValue(mockReport);
       reportRepository.save.mockResolvedValue(mockReport);
+      reportRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
 
       const result = await controller.create(1, {
         targetType: 'post',
@@ -121,7 +135,7 @@ describe('ReportModule Integration Tests', () => {
         reporterId: 1,
         targetType: 'post',
         targetId: 9,
-        reason: '璇堥獥',
+        reason: 'LegacyReason',
         description: 'legacy payload',
         images: ['https://img.test/report-1.jpg'],
         status: 'pending',
@@ -129,10 +143,11 @@ describe('ReportModule Integration Tests', () => {
 
       reportRepository.create.mockImplementation((payload) => payload);
       reportRepository.save.mockResolvedValue(mockReport);
+      reportRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
 
       const result = await controller.create(1, {
         targetId: 9,
-        type: '璇堥獥',
+        type: 'LegacyReason',
         description: 'legacy payload',
         images: { 0: 'https://img.test/report-1.jpg' },
       });
@@ -142,13 +157,52 @@ describe('ReportModule Integration Tests', () => {
           reporterId: 1,
           targetType: 'post',
           targetId: 9,
-          reason: '璇堥獥',
+          reason: 'LegacyReason',
           description: 'legacy payload',
           images: ['https://img.test/report-1.jpg'],
         }),
       );
       expect(result.targetType).toBe('post');
-      expect(result.reason).toBe('璇堥獥');
+      expect(result.reason).toBe('LegacyReason');
+    });
+
+    it('should return the recent existing report for duplicate submits', async () => {
+      const existingReport = {
+        id: 3,
+        reporterId: 1,
+        targetType: 'post',
+        targetId: 2,
+        reason: 'Spam',
+        description: 'Spamming content',
+        createdAt: new Date(),
+      };
+
+      reportRepository.findOne.mockResolvedValue(existingReport);
+      reportRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
+
+      const result = await controller.create(1, {
+        targetType: 'post',
+        targetId: 2,
+        reason: 'Spam',
+        description: 'Spamming content',
+      });
+
+      expect(result).toBe(existingReport);
+      expect(reportRepository.create).not.toHaveBeenCalled();
+      expect(reportRepository.save).not.toHaveBeenCalled();
+      expect(reportRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            reporterId: 1,
+            targetType: 'post',
+            targetId: 2,
+            reason: 'Spam',
+            description: 'Spamming content',
+            createdAt: expect.any(Object),
+          }),
+          order: { createdAt: 'DESC' },
+        }),
+      );
     });
   });
 });

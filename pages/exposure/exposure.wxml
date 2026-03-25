@@ -53,6 +53,6 @@
 
   <!-- 提交 -->
   <view class="submit-area">
-    <button class="submit-btn" bindtap="onSubmit">提交曝光</button>
+    <button class="submit-btn" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading}}">提交曝光</button>
   </view>
 </view>

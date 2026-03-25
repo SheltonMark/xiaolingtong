@@ -187,7 +187,7 @@
 
   <!-- 提交 -->
   <view class="submit-area">
-    <button class="btn btn-primary" bindtap="onSubmit">提交发布</button>
+    <button class="btn btn-primary" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading}}">提交发布</button>
     <text class="submit-hint">招工信息免费发布，审核通过后展示</text>
   </view>
 </view>

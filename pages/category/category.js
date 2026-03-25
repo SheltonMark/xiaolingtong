@@ -1,11 +1,13 @@
 const { get } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 
+const DEFAULT_CATEGORIES = ['全部', '日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具']
+
 Page({
   data: {
     keyword: '',
     categoryIndex: -1,
-    categories: ['全部', '日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具'],
+    categories: DEFAULT_CATEGORIES,
     cityIndex: -1,
     cities: ['全部', '东莞', '深圳', '广州', '佛山', '中山'],
     sortIndex: 0,
@@ -20,6 +22,16 @@ Page({
     if (options.type) {
       this.setData({ postType: options.type })
     }
+    this.loadCategories()
+  },
+
+  loadCategories() {
+    get('/config/categories').then((res) => {
+      const payload = res.data || res || {}
+      const list = (payload.list || []).map((item) => item && item.name).filter(Boolean)
+      if (!list.length) return
+      this.setData({ categories: ['全部', ...list] })
+    }).catch(() => {})
   },
 
   onInput(e) {

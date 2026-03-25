@@ -137,6 +137,15 @@
       <input class="form-input" placeholder="如：注塑加工、CNC加工、丝印" data-field="processType" bindinput="onInput" />
     </view>
     <view class="form-card">
+      <text class="form-label required">品类</text>
+      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange">
+        <view class="form-picker">
+          <text class="{{form.category ? '' : 'placeholder'}}">{{form.category || '请选择品类'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+    <view class="form-card">
       <text class="form-label required">工艺说明</text>
       <textarea class="form-textarea" placeholder="详细描述加工工艺、设备能力等" data-field="processDesc" bindinput="onInput" />
     </view>
@@ -274,7 +283,7 @@
 
   <!-- 提交按钮 -->
   <view class="submit-area">
-    <button class="btn btn-primary" bindtap="onSubmit">提交发布</button>
+    <button class="btn btn-primary" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading}}">提交发布</button>
     <text class="submit-hint">发布后将进行内容审核</text>
   </view>
 </view>

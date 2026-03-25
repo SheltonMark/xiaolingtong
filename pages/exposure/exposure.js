@@ -5,6 +5,7 @@ Page({
     form: { company: '', contact: '', amount: '', description: '' },
     images: [],
     isUploading: false,
+    submitting: false,
     agreed: true
   },
   onInput(e) { this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value }) },
@@ -34,6 +35,9 @@ Page({
   },
   onDeleteImage(e) { this.setData({ images: this.data.images.filter((_, i) => i !== e.currentTarget.dataset.index) }) },
   onSubmit() {
+    if (this.data.submitting) {
+      return
+    }
     if (this.data.isUploading) {
       wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
       return
@@ -43,6 +47,7 @@ Page({
     if (!form.description) { wx.showToast({ title: '请输入线索说明', icon: 'none' }); return }
     if (!agreed) { wx.showToast({ title: '请同意线索提交说明', icon: 'none' }); return }
     wx.showLoading({ title: '提交中...' })
+    this.setData({ submitting: true })
     post('/exposures', {
       company: form.company,
       contact: form.contact,
@@ -53,6 +58,8 @@ Page({
       wx.hideLoading()
       wx.showToast({ title: '提交成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 1500)
-    }).catch(() => { wx.hideLoading() })
+    }).catch(() => { wx.hideLoading() }).finally(() => {
+      this.setData({ submitting: false })
+    })
   }
 })

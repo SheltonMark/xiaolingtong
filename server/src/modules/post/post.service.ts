@@ -11,6 +11,7 @@ import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
+import { findRecentDuplicate } from '../../common/recent-create-dedupe';
 
 @Injectable()
 export class PostService {
@@ -71,6 +72,23 @@ export class PostService {
     }
 
     return undefined;
+  }
+
+  private async findRecentDuplicatePost(userId: number, payload: any) {
+    return findRecentDuplicate(this.postRepo, {
+      userId,
+      type: payload.type,
+      title: payload.title,
+      industry: payload.industry,
+      content: payload.content,
+      contactName: payload.contactName,
+      contactPhone: payload.contactPhone,
+      contactWechat: payload.contactWechat,
+      contactWechatQr: payload.contactWechatQr,
+      showPhone: payload.showPhone,
+      showWechat: payload.showWechat,
+      showWechatQr: payload.showWechatQr,
+    });
   }
 
   private parseVisibility(value: any, defaultValue = false): boolean {
@@ -405,6 +423,21 @@ export class PostService {
     }
 
     const normalizedImages = this.normalizeStringArray(images);
+    const existing = await this.findRecentDuplicatePost(userId, {
+      type,
+      title,
+      industry: category,
+      content,
+      contactName: normalizedContactName,
+      contactPhone: normalizedContactPhone,
+      contactWechat: normalizedContactWechat,
+      contactWechatQr: normalizedContactWechatQr,
+      showPhone: phoneVisible ? 1 : 0,
+      showWechat: wechatVisible ? 1 : 0,
+      showWechatQr: wechatQrVisible ? 1 : 0,
+    });
+    if (existing) return existing;
+
     const submitter = await this.userRepo.findOneBy({ id: userId });
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [type, title, description, structuredFields, normalizedContactName, normalizedContactPhone, normalizedContactWechat],

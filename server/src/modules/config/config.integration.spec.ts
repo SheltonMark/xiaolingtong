@@ -7,12 +7,14 @@ import { ConfigController } from './config.controller';
 import { ConfigService } from './config.service';
 import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
+import { Category } from '../../entities/category.entity';
 
 describe('ConfigModule Integration Tests', () => {
   let controller: ConfigController;
   let service: ConfigService;
   let cityRepository: any;
   let jobTypeRepository: any;
+  let categoryRepository: any;
 
   beforeEach(async () => {
     cityRepository = {
@@ -21,6 +23,11 @@ describe('ConfigModule Integration Tests', () => {
     };
 
     jobTypeRepository = {
+      find: jest.fn(),
+      findOne: jest.fn(),
+    };
+
+    categoryRepository = {
       find: jest.fn(),
       findOne: jest.fn(),
     };
@@ -36,6 +43,10 @@ describe('ConfigModule Integration Tests', () => {
         {
           provide: getRepositoryToken(JobType),
           useValue: jobTypeRepository,
+        },
+        {
+          provide: getRepositoryToken(Category),
+          useValue: categoryRepository,
         },
       ],
     }).compile();
@@ -123,6 +134,33 @@ describe('ConfigModule Integration Tests', () => {
 
       expect(result.list).toHaveLength(1);
       expect(result.list[0].name).toBe('Construction');
+    });
+  });
+
+  describe('getActiveCategories Integration', () => {
+    it('should return selectable leaf categories plus tree data', async () => {
+      categoryRepository.find.mockResolvedValue([
+        { id: 1, name: '电子数码', parentId: 0, level: 1, isActive: 1, sort: 1 },
+        { id: 2, name: '耳机', parentId: 1, level: 2, isActive: 1, sort: 1 },
+        { id: 3, name: '充电器', parentId: 1, level: 2, isActive: 1, sort: 2 },
+      ]);
+
+      const result = await controller.getCategories();
+
+      expect(result.list.map((item: any) => item.name)).toEqual(['耳机', '充电器']);
+      expect(result.tree).toHaveLength(1);
+      expect(result.tree[0].children).toHaveLength(2);
+    });
+
+    it('should fall back to top-level categories when there are no children', async () => {
+      categoryRepository.find.mockResolvedValue([
+        { id: 1, name: '日用百货', parentId: 0, level: 1, isActive: 1, sort: 1 },
+      ]);
+
+      const result = await controller.getCategories();
+
+      expect(result.list.map((item: any) => item.name)).toEqual(['日用百货']);
+      expect(result.tree[0].name).toBe('日用百货');
     });
   });
 });

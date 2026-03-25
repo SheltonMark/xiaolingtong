@@ -32,8 +32,41 @@ export class ConfigService {
   async getActiveCategories() {
     const categories = await this.categoryRepo.find({
       where: { isActive: 1 },
-      order: { sort: 'ASC' },
+      order: { level: 'ASC', sort: 'ASC', id: 'ASC' },
     });
-    return { list: categories.map((c) => ({ id: c.id, name: c.name })) };
+    const topLevel = categories.filter((item) => Number(item.parentId || 0) === 0);
+    const childrenMap = new Map<number, Category[]>();
+
+    categories.forEach((item) => {
+      const parentId = Number(item.parentId || 0);
+      if (!parentId) return;
+      if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
+      childrenMap.get(parentId)?.push(item);
+    });
+
+    const tree = topLevel.map((item) => ({
+      id: item.id,
+      name: item.name,
+      parentId: item.parentId,
+      level: item.level,
+      sort: item.sort,
+      children: (childrenMap.get(item.id) || []).map((child) => ({
+        id: child.id,
+        name: child.name,
+        parentId: child.parentId,
+        level: child.level,
+        sort: child.sort,
+      })),
+    }));
+
+    const listSource = tree.flatMap((item) => (item.children.length ? item.children : [item]));
+    const list = listSource.map((item) => ({
+      id: item.id,
+      name: item.name,
+      parentId: item.parentId,
+      level: item.level,
+    }));
+
+    return { list, tree };
   }
 }

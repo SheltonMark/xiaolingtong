@@ -29,6 +29,6 @@
     </view>
   </view>
   <view class="submit-wrap">
-    <button class="btn btn-primary" bindtap="onSubmit">提交举报</button>
+    <button class="btn btn-primary" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading}}">提交举报</button>
   </view>
 </view>

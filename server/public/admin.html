@@ -231,7 +231,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-users"><div class="panel"><div class="panel-header"><h4>用户管理</h4><div class="toolbar"><select id="userRoleFilter" onchange="loadUsers()"><option value="">全部角色</option><option value="enterprise">企业</option><option value="worker">临工</option></select><input type="text" id="userKeyword" placeholder="搜索昵称/手机号"><button class="search-btn" onclick="loadUsers()">搜索</button></div></div><table><thead><tr><th>ID</th><th>昵称</th><th>角色</th><th>手机</th><th>灵豆</th><th>信用分</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTable"></tbody></table><div class="pagination" id="userPagination"></div></div></div>
     <div class="page-section" id="page-posts"><div class="panel"><div class="panel-header"><h4>信息审核</h4><div class="toolbar"><select id="postTypeFilter" onchange="loadPosts()"><option value="">全部类型</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><select id="postStatusFilter" onchange="loadPosts()"><option value="">全部状态</option><option value="active">已发布</option><option value="pending">待审核</option><option value="deleted">已删除</option></select><button class="search-btn" onclick="loadPosts()">刷新</button></div></div><table><thead><tr><th>ID</th><th>类型</th><th>标题/内容</th><th>图片</th><th>发布者</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="postTable"></tbody></table><div class="pagination" id="postPagination"></div></div></div>
     <div class="page-section" id="page-certs"><div class="panel"><div class="panel-header"><h4>认证审核</h4><div class="toolbar"><select id="certTypeFilter" onchange="loadCerts()"><option value="enterprise">企业认证</option><option value="worker">临工认证</option></select><select id="certStatusFilter" onchange="loadCerts()"><option value="">全部状态</option><option value="pending">待审核</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select><button class="search-btn" onclick="loadCerts()">刷新</button></div></div><table><thead><tr id="certHeader"></tr></thead><tbody id="certTable"></tbody></table><div class="pagination" id="certPagination"></div></div></div>
-    <div class="page-section" id="page-reports"><div class="panel"><div class="panel-header"><h4>举报处理</h4></div><table><thead><tr><th>ID</th><th>类型</th><th>目标ID</th><th>原因</th><th>描述</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="reportTable"></tbody></table><div class="pagination" id="reportPagination"></div></div></div>
+    <div class="page-section" id="page-reports"><div class="panel"><div class="panel-header"><h4>举报处理</h4></div><table><thead><tr><th>ID</th><th>类型</th><th>目标ID</th><th>原因</th><th>描述</th><th>图片</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="reportTable"></tbody></table><div class="pagination" id="reportPagination"></div></div></div>
     <div class="page-section" id="page-jobs"><div class="panel"><div class="panel-header"><h4>&#25307;&#24037;&#31649;&#29702;</h4><div class="toolbar"><select id="jobManageStatusFilter" onchange="loadJobs()"><option value="">&#20840;&#37096;&#29366;&#24577;</option><option value="recruiting">&#25307;&#24037;&#20013;</option><option value="full">&#24050;&#20998;&#37197;</option><option value="working">&#36827;&#34892;&#20013;</option><option value="pending_settlement">&#24453;&#32467;&#31639;</option><option value="settled">&#24050;&#32467;&#31639;</option><option value="closed">&#24050;&#20851;&#38381;</option></select><button class="search-btn" onclick="loadJobs()">&#21047;&#26032;</button></div></div><table><thead><tr><th>ID</th><th>&#26631;&#39064;</th><th>&#20225;&#19994;</th><th>&#38656;&#27714;/&#25253;&#21517;</th><th>&#34218;&#36164;</th><th>&#26085;&#26399;</th><th>&#29366;&#24577;</th><th>&#25805;&#20316;</th></tr></thead><tbody id="jobTable"></tbody></table><div class="pagination" id="jobPagination"></div></div></div>
     <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>图片</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
     <div class="page-section" id="page-keywords"><div class="panel"><div class="panel-header"><h4>关键词黑名单</h4><div class="toolbar"><input type="text" id="newKeyword" placeholder="输入关键词"><button class="add-btn" onclick="addKeyword()">添加</button></div></div><table><thead><tr><th>ID</th><th>关键词</th><th>添加时间</th><th>操作</th></tr></thead><tbody id="keywordTable"></tbody></table></div></div>
@@ -618,9 +618,10 @@ async function loadReports(page){
   var h='';
   for(var i=0;i<list.length;i++){var r=list[i];var st=sm[r.status]||['未知','badge-gray'];
     var ops=r.status==='pending'?'<button class="btn btn-success" onclick="handleReport('+r.id+',\x27resolve\x27)">处理</button><button class="btn btn-danger" onclick="handleReport('+r.id+',\x27dismiss\x27)">驳回</button>':'-';
-    h+='<tr><td>'+r.id+'</td><td>'+r.targetType+'</td><td>'+r.targetId+'</td><td>'+r.reason+'</td><td>'+((r.description||'').substring(0,30))+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(r.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    var imgs='-';if(r.images&&r.images.length){imgs='';for(var j=0;j<r.images.length;j++){imgs+='<img src="'+r.images[j]+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;margin:2px;cursor:pointer;border:1px solid var(--border)" onclick="window.open(this.src)">';}}
+    h+='<tr><td>'+r.id+'</td><td>'+r.targetType+'</td><td>'+r.targetId+'</td><td>'+r.reason+'</td><td style="max-width:260px;white-space:pre-wrap;word-break:break-all;">'+(((r.description||'').substring(0,60))||'-')+'</td><td style="max-width:220px;">'+imgs+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(r.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
   }
-  document.getElementById('reportTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+  document.getElementById('reportTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
   renderPagination('reportPagination',d.total,reportPage,d.pageSize,'loadReports');
 }
 async function handleReport(id,action){await api('/reports/'+id+'/handle',{method:'PUT',body:{action:action}});loadReports();}
@@ -817,19 +818,39 @@ async function loadCategories(){
   var sel=document.getElementById('newCatParent');
   sel.innerHTML='<option value="0">一级分类</option>';
   for(var i=0;i<list.length;i++){sel.innerHTML+='<option value="'+list[i].id+'">└ '+list[i].name+'的子分类</option>';}
-  var h='';
-  for(var i=0;i<list.length;i++){var c=list[i];
-    var stB=c.isActive?'badge-green':'badge-red';var stT=c.isActive?'启用':'禁用';var togT=c.isActive?'禁用':'启用';
-    h+='<table style="width:100%;margin-bottom:16px"><thead><tr><th colspan="5" style="font-size:14px;color:var(--text);text-transform:none;letter-spacing:0">'+c.name+' <span class="badge '+stB+'" style="margin-left:8px">'+stT+'</span><button class="btn '+(c.isActive?'btn-danger':'btn-success')+'" style="margin-left:8px" onclick="toggleCategory('+c.id+')">'+togT+'</button></th></tr><tr><th>ID</th><th>名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
-    var ch=c.children||[];
-    if(ch.length===0){h+='<tr><td colspan="5" class="empty">暂无子分类</td></tr>';}
-    for(var j=0;j<ch.length;j++){var s=ch[j];
-      var sB=s.isActive?'badge-green':'badge-red';var sT=s.isActive?'启用':'禁用';var tT=s.isActive?'禁用':'启用';
-      h+='<tr><td>'+s.id+'</td><td>'+s.name+'</td><td><span class="badge '+sB+'">'+sT+'</span></td><td>'+(s.createdAt||'').substring(0,10)+'</td><td><button class="btn '+(s.isActive?'btn-danger':'btn-success')+'" onclick="toggleCategory('+s.id+')">'+tT+'</button></td></tr>';
-    }
-    h+='</tbody></table>';
+  function safeText(v){
+    return String(v===undefined||v===null?'':v)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
   }
-  document.getElementById('categoryContent').innerHTML=h||'<div class="empty">暂无品类分类</div>';
+  function statusText(active){return active?'启用':'禁用';}
+  function statusBadge(active){return active?'badge-green':'badge-red';}
+  function toggleBtn(item){
+    return '<button class="btn '+(item.isActive?'btn-danger':'btn-success')+'" onclick="toggleCategory('+item.id+')">'+(item.isActive?'禁用':'启用')+'</button>';
+  }
+  var h='<div style="display:flex;flex-direction:column;gap:16px">';
+  for(var i=0;i<list.length;i++){var c=list[i];var ch=c.children||[];
+    h+='<div style="border:1px solid var(--border);border-radius:12px;background:var(--bg);overflow:hidden">';
+    h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">';
+    h+='<div><div style="font-size:16px;font-weight:600;color:var(--text)">'+safeText(c.name)+'</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">一级分类 ID '+c.id+' · 子分类 '+ch.length+' 个</div></div>';
+    h+='<div style="display:flex;align-items:center;gap:8px"><span class="badge '+statusBadge(c.isActive)+'">'+statusText(c.isActive)+'</span>'+toggleBtn(c)+'</div>';
+    h+='</div>';
+    if(ch.length===0){
+      h+='<div class="empty" style="padding:24px">暂无子分类</div>';
+    }else{
+      h+='<table><thead><tr><th>ID</th><th>名称</th><th>层级</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+      for(var j=0;j<ch.length;j++){var s=ch[j];
+        h+='<tr><td>'+s.id+'</td><td>'+safeText(s.name)+'</td><td>二级分类</td><td><span class="badge '+statusBadge(s.isActive)+'">'+statusText(s.isActive)+'</span></td><td>'+(s.createdAt||'').substring(0,10)+'</td><td>'+toggleBtn(s)+'</td></tr>';
+      }
+      h+='</tbody></table>';
+    }
+    h+='</div>';
+  }
+  h+='</div>';
+  document.getElementById('categoryContent').innerHTML=list.length?h:'<div class="empty">暂无品类分类</div>';
 }
 async function addCategory(){
   var n=document.getElementById('newCatName').value.trim();

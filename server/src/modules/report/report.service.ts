@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Report } from '../../entities/report.entity';
 import { User } from '../../entities/user.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
+import { findRecentDuplicate } from '../../common/recent-create-dedupe';
 
 @Injectable()
 export class ReportService {
@@ -46,22 +47,35 @@ export class ReportService {
   }
 
   async create(reporterId: number, dto: any) {
+    const targetType = dto.targetType || 'post';
+    const targetId = dto.targetId;
+    const reason = dto.reason || dto.type || '';
+    const description = dto.description || '';
     const normalizedImages = this.normalizeImages(dto.images);
+    const existing = await findRecentDuplicate(this.reportRepo, {
+      reporterId,
+      targetType,
+      targetId,
+      reason,
+      description,
+    });
+    if (existing) return existing;
+
     const reporter = await this.reportRepo.manager.findOne(User, {
       where: { id: reporterId },
     });
     await this.wechatSecurityService.assertSafeSubmission({
-      texts: [dto.targetType, dto.reason, dto.type, dto.description],
+      texts: [targetType, reason, dto.type, description],
       images: [normalizedImages],
       openid: reporter?.openid,
     });
 
     const report = this.reportRepo.create({
       reporterId,
-      targetType: dto.targetType || 'post',
-      targetId: dto.targetId,
-      reason: dto.reason || dto.type || '',
-      description: dto.description || '',
+      targetType,
+      targetId,
+      reason,
+      description,
       images: normalizedImages,
     });
     return this.reportRepo.save(report);

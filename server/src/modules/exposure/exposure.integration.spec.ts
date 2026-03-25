@@ -7,12 +7,14 @@ import { ExposureController } from './exposure.controller';
 import { ExposureService } from './exposure.service';
 import { Exposure } from '../../entities/exposure.entity';
 import { ExposureComment } from '../../entities/exposure-comment.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 describe('ExposureModule Integration Tests', () => {
   let controller: ExposureController;
   let service: ExposureService;
   let exposureRepository: any;
   let commentRepository: any;
+  let wechatSecurityService: any;
 
   beforeEach(async () => {
     exposureRepository = {
@@ -35,6 +37,10 @@ describe('ExposureModule Integration Tests', () => {
       save: jest.fn(),
     };
 
+    wechatSecurityService = {
+      assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ExposureController],
       providers: [
@@ -46,6 +52,10 @@ describe('ExposureModule Integration Tests', () => {
         {
           provide: getRepositoryToken(ExposureComment),
           useValue: commentRepository,
+        },
+        {
+          provide: WechatSecurityService,
+          useValue: wechatSecurityService,
         },
       ],
     }).compile();
@@ -331,6 +341,59 @@ describe('ExposureModule Integration Tests', () => {
       expect(result.images).toEqual(['image1.jpg', 'image2.jpg']);
     });
 
+    it('should return the recent existing exposure for duplicate submits', async () => {
+      const mockUser = { id: 1, role: 'worker', openid: 'openid-1' };
+      const mockCert = {
+        id: 1,
+        userId: 1,
+        status: 'approved',
+        realName: 'John',
+      };
+      const existingExposure = {
+        id: 7,
+        publisherId: 1,
+        category: 'wage_theft',
+        companyName: 'Company A',
+        personName: 'John',
+        amount: 5000,
+        description: 'Unpaid wages',
+        status: 'pending',
+        createdAt: new Date(),
+      };
+
+      exposureRepository.manager.findOne.mockImplementation((entity) => {
+        if (entity.name === 'User') return Promise.resolve(mockUser);
+        if (entity.name === 'WorkerCert') return Promise.resolve(mockCert);
+        return Promise.resolve(null);
+      });
+      exposureRepository.findOne.mockResolvedValue(existingExposure);
+
+      const result = await controller.create(1, {
+        company: 'Company A',
+        contact: 'John',
+        amount: 5000,
+        description: 'Unpaid wages',
+      });
+
+      expect(result).toBe(existingExposure);
+      expect(exposureRepository.create).not.toHaveBeenCalled();
+      expect(exposureRepository.save).not.toHaveBeenCalled();
+      expect(exposureRepository.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            publisherId: 1,
+            category: 'wage_theft',
+            companyName: 'Company A',
+            personName: 'John',
+            amount: 5000,
+            description: 'Unpaid wages',
+            createdAt: expect.any(Object),
+          }),
+          order: { createdAt: 'DESC' },
+        }),
+      );
+    });
+
     it('should throw error when user not verified', async () => {
       const mockUser = { id: 1, role: 'enterprise' };
 
@@ -374,6 +437,7 @@ describe('ExposureModule Integration Tests', () => {
         content: 'Great exposure!',
       };
 
+      exposureRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
       commentRepository.create.mockReturnValue(mockComment);
       commentRepository.save.mockResolvedValue(mockComment);
 
@@ -386,6 +450,7 @@ describe('ExposureModule Integration Tests', () => {
     it('should handle empty comment content', async () => {
       const mockComment = { id: 1, exposureId: 1, userId: 1, content: '' };
 
+      exposureRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
       commentRepository.create.mockReturnValue(mockComment);
       commentRepository.save.mockResolvedValue(mockComment);
 

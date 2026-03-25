@@ -1,7 +1,17 @@
-const { post, upload } = require('../../utils/request')
+const { get, post, upload } = require('../../utils/request')
 const auth = require('../../utils/auth')
 const { getDefaultContactProfile } = require('../../utils/contact-profile')
 const { normalizeImageUrl } = require('../../utils/image')
+
+const DEFAULT_CATEGORY_OPTIONS = [
+  '\u65e5\u7528\u767e\u8d27',
+  '\u7535\u5b50\u6570\u7801',
+  '\u670d\u88c5\u978b\u5e3d',
+  '\u4e94\u91d1\u5de5\u5177',
+  '\u53a8\u623f\u536b\u6d74',
+  '\u6bcd\u5a74\u73a9\u5177',
+  '\u5176\u4ed6'
+]
 
 const DEFAULT_FORM = {
   productName: '',
@@ -37,7 +47,8 @@ Page({
     form: { ...DEFAULT_FORM },
     images: [],
     isUploading: false,
-    categoryOptions: ['日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具', '其他'],
+    submitting: false,
+    categoryOptions: DEFAULT_CATEGORY_OPTIONS,
     deliveryOptions: ['7天内', '15天内', '30天内', '45天内', '60天内'],
     validityOptions: ['7天', '15天', '30天', '60天', '90天'],
     validityIndex: 2,
@@ -49,7 +60,20 @@ Page({
 
   onLoad() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    this.loadCategories()
     this.initContactInfo()
+  },
+
+  loadCategories() {
+    get('/config/categories').then((res) => {
+      const payload = res.data || res || {}
+      const list = (payload.list || []).map((item) => item && item.name).filter(Boolean)
+      if (!list.length) return
+      this.setData({
+        categoryOptions: list,
+        'form.category': list.includes(this.data.form.category) ? this.data.form.category : ''
+      })
+    }).catch(() => {})
   },
 
   resetDraft() {
@@ -179,6 +203,9 @@ Page({
 
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    if (this.data.submitting) {
+      return
+    }
     if (this.data.isUploading) {
       wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
       return
@@ -197,6 +224,10 @@ Page({
     }
     if (typeIndex === 2 && !form.processType) {
       wx.showToast({ title: '请输入加工类型', icon: 'none' })
+      return
+    }
+    if (!form.category) {
+      wx.showToast({ title: '请选择品类', icon: 'none' })
       return
     }
     if (!phoneChecked && !wechatChecked && !wechatQrChecked) {
@@ -247,6 +278,7 @@ Page({
     }
 
     wx.showLoading({ title: '发布中...' })
+    this.setData({ submitting: true })
     post('/posts', data).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '发布成功', icon: 'success' })
@@ -254,6 +286,8 @@ Page({
       setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 1500)
     }).catch(() => {
       wx.hideLoading()
+    }).finally(() => {
+      this.setData({ submitting: false })
     })
   },
 

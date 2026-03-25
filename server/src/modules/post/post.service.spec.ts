@@ -14,6 +14,7 @@ import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 describe('PostService', () => {
   let service: PostService;
@@ -26,6 +27,7 @@ describe('PostService', () => {
   let jobRepo: any;
   let sysConfigRepo: any;
   let promoRepo: any;
+  let wechatSecurityService: any;
 
   beforeEach(async () => {
     postRepo = {
@@ -79,6 +81,10 @@ describe('PostService', () => {
       }),
     };
 
+    wechatSecurityService = {
+      assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostService,
@@ -117,6 +123,10 @@ describe('PostService', () => {
         {
           provide: getRepositoryToken(Promotion),
           useValue: promoRepo,
+        },
+        {
+          provide: WechatSecurityService,
+          useValue: wechatSecurityService,
         },
       ],
     }).compile();
@@ -520,6 +530,61 @@ describe('PostService', () => {
         }),
       );
       expect(result.images).toEqual(['image1.jpg', 'image2.jpg']);
+    });
+
+    it('should return the recent existing post for duplicate submits', async () => {
+      const dto = {
+        type: 'purchase',
+        title: 'test product',
+        category: 'electronics',
+        description: 'test description',
+        showPhone: true,
+        contactName: 'John',
+        contactPhone: '13800138000',
+      };
+      const existingPost = {
+        id: 7,
+        userId: 1,
+        type: 'purchase',
+        title: 'test product',
+        industry: 'electronics',
+        content: '采购test product，test description',
+        contactName: 'John',
+        contactPhone: '13800138000',
+        showPhone: 1,
+        showWechat: 0,
+        showWechatQr: 0,
+        createdAt: new Date(),
+      };
+
+      keywordRepo.find.mockResolvedValue([]);
+      postRepo.findOne.mockResolvedValue(existingPost);
+
+      const result = await service.create(1, dto);
+
+      expect(result).toBe(existingPost);
+      expect(postRepo.create).not.toHaveBeenCalled();
+      expect(postRepo.save).not.toHaveBeenCalled();
+      expect(postRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            userId: 1,
+            type: 'purchase',
+            title: 'test product',
+            industry: 'electronics',
+            content: '采购test product，test description',
+            contactName: 'John',
+            contactPhone: '13800138000',
+            contactWechat: null,
+            contactWechatQr: null,
+            showPhone: 1,
+            showWechat: 0,
+            showWechatQr: 0,
+            createdAt: expect.any(Object),
+          }),
+          order: { createdAt: 'DESC' },
+        }),
+      );
     });
 
     it('should throw error when content contains forbidden keyword', async () => {

@@ -141,6 +141,33 @@ export class AdminService {
     return displayName ? String(displayName) : '';
   }
 
+  private normalizeStringArray(value: any): string[] {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
+    }
+
+    if (typeof value === 'string') {
+      const text = value.trim();
+      if (!text) return [];
+      try {
+        return this.normalizeStringArray(JSON.parse(text));
+      } catch {
+        return [text];
+      }
+    }
+
+    if (value && typeof value === 'object') {
+      const keys = Object.keys(value)
+        .filter((key) => /^\d+$/.test(key))
+        .sort((a, b) => Number(a) - Number(b));
+      return this.normalizeStringArray(keys.map((key) => value[key]));
+    }
+
+    return [];
+  }
+
   private async assignSupervisorForJob(jobId: number, workerId: number) {
     const normalizedWorkerId = Number(workerId || 0);
     if (!normalizedWorkerId) {
@@ -349,7 +376,15 @@ export class AdminService {
       .skip((page - 1) * pageSize)
       .take(pageSize);
     const [list, total] = await qb.getManyAndCount();
-    return { list, total, page: +page, pageSize: +pageSize };
+    return {
+      list: list.map((item) => ({
+        ...item,
+        images: this.normalizeStringArray(item.images),
+      })),
+      total,
+      page: +page,
+      pageSize: +pageSize,
+    };
   }
 
   async handleReport(id: number, action: string) {

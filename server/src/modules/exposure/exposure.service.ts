@@ -7,6 +7,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { User } from '../../entities/user.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
+import { findRecentDuplicate } from '../../common/recent-create-dedupe';
 
 @Injectable()
 export class ExposureService {
@@ -44,6 +45,17 @@ export class ExposureService {
     }
 
     return undefined;
+  }
+
+  private async findRecentDuplicateExposure(publisherId: number, dto: any) {
+    return findRecentDuplicate(this.expRepo, {
+      publisherId,
+      category: dto.category || 'wage_theft',
+      companyName: dto.company,
+      personName: dto.contact,
+      amount: dto.amount,
+      description: dto.description,
+    });
   }
 
   async list(query: any) {
@@ -190,6 +202,9 @@ export class ExposureService {
     if (!isVerified) {
       throw new BadRequestException('需要完成企业认证或实名认证后才能发布曝光');
     }
+
+    const existing = await this.findRecentDuplicateExposure(publisherId, dto);
+    if (existing) return existing;
 
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [dto.category, dto.company, dto.contact, dto.amount, dto.description],
