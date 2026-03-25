@@ -162,11 +162,71 @@ export class PaymentService {
 
   /** 商家转账到零钱（提现用） */
   isWalletTransferReady() {
-    return !!this.pay?.batches_transfer
-      && !!this.pay?.query_batches_transfer_detail
+    return !!this.pay
+      && !!(this.pay as any).buildAuthorization
+      && !!(this.pay as any).getHeaders
+      && !!(this.pay as any).httpService
       && !!this.appid
       && !!this.mchid
       && !!this.apiv3Key;
+  }
+
+  buildTransferConfirmation(packageInfo?: string) {
+    if (!packageInfo || !this.appid || !this.mchid) {
+      return null;
+    }
+
+    return {
+      appId: this.appid,
+      mchId: this.mchid,
+      package: packageInfo,
+    };
+  }
+
+  async createTransferBill(params: {
+    outBillNo: string;
+    openid: string;
+    amount: number;
+    remark: string;
+    userRole?: string | null;
+  }) {
+    const reportInfos = this.buildTransferSceneReportInfos(params.userRole);
+    const result = await this.requestWalletTransferApi(
+      'POST',
+      '/v3/fund-app/mch-transfer/transfer-bills',
+      {
+        appid: this.appid,
+        out_bill_no: params.outBillNo,
+        transfer_scene_id: '1005',
+        openid: params.openid,
+        transfer_amount: params.amount,
+        transfer_remark: params.remark,
+        user_recv_perception: reportInfos.userRecvPerception,
+        transfer_scene_report_infos: reportInfos.reportInfos,
+      },
+    );
+
+    if (result?.status === 200 && result.data?.out_bill_no) {
+      return this.normalizeTransferBillResult(result.data);
+    }
+
+    this.logger.error(`创建商家转账单失败: ${JSON.stringify(result)}`);
+    throw this.buildWalletTransferError(result, '微信提现请求失败');
+  }
+
+  async queryTransferBill(params: { outBillNo: string }) {
+    const encodedOutBillNo = encodeURIComponent(params.outBillNo);
+    const result = await this.requestWalletTransferApi(
+      'GET',
+      `/v3/fund-app/mch-transfer/transfer-bills/out-bill-no/${encodedOutBillNo}`,
+    );
+
+    if (result?.status === 200 && result.data) {
+      return this.normalizeTransferBillResult(result.data);
+    }
+
+    this.logger.error(`查询商家转账单失败: ${JSON.stringify(result)}`);
+    throw this.buildWalletTransferError(result, '查询微信提现状态失败');
   }
 
   async transferToWallet(params: {
@@ -176,6 +236,15 @@ export class PaymentService {
     amount: number; // 单位：分
     remark: string;
   }) {
+    if (this.supportsWalletTransferBillApi()) {
+      return this.createTransferBill({
+        outBillNo: params.outBatchNo,
+        openid: params.openid,
+        amount: params.amount,
+        remark: params.remark,
+      });
+    }
+
     if (!this.pay?.batches_transfer) {
       throw new Error('微信商家转账未初始化');
     }
@@ -213,6 +282,19 @@ export class PaymentService {
     outBatchNo: string;
     outDetailNo: string;
   }) {
+    if (this.supportsWalletTransferBillApi()) {
+      const bill = await this.queryTransferBill({ outBillNo: params.outBatchNo });
+      return {
+        out_batch_no: bill.outBillNo,
+        out_detail_no: params.outDetailNo,
+        detail_status: this.mapTransferBillStateToLegacyStatus(bill.state),
+        fail_reason: bill.failReason || '',
+        package_info: bill.packageInfo || '',
+        state: bill.state,
+        transfer_bill_no: bill.transferBillNo || '',
+      };
+    }
+
     if (!this.pay?.query_batches_transfer_detail) {
       throw new Error('微信商家转账未初始化');
     }
@@ -231,6 +313,101 @@ export class PaymentService {
   }
 
   /** 查询订单状态 */
+  private supportsWalletTransferBillApi() {
+    return !!this.pay
+      && !!(this.pay as any).buildAuthorization
+      && !!(this.pay as any).getHeaders
+      && !!(this.pay as any).httpService;
+  }
+
+  private async requestWalletTransferApi(
+    method: 'GET' | 'POST',
+    path: string,
+    body?: Record<string, any>,
+  ) {
+    if (!this.supportsWalletTransferBillApi()) {
+      throw new Error('微信商家转账未初始化');
+    }
+
+    const url = `https://api.mch.weixin.qq.com${path}`;
+    const pay = this.pay as any;
+    const authorization = pay.buildAuthorization(method, url, body);
+    const headers = pay.getHeaders(authorization, {
+      'Content-Type': 'application/json',
+    });
+
+    if (method === 'GET') {
+      return pay.httpService.get(url, headers);
+    }
+
+    return pay.httpService.post(url, body || {}, headers);
+  }
+
+  private buildTransferSceneReportInfos(userRole?: string | null) {
+    if (userRole === 'enterprise') {
+      return {
+        userRecvPerception: '劳务报酬',
+        reportInfos: [
+          { info_type: '岗位类型', info_content: '推广服务' },
+          { info_type: '报酬说明', info_content: '返佣钱包提现' },
+        ],
+      };
+    }
+
+    return {
+      userRecvPerception: '劳务报酬',
+      reportInfos: [
+        { info_type: '岗位类型', info_content: '临工服务' },
+        { info_type: '报酬说明', info_content: '临工钱包提现' },
+      ],
+    };
+  }
+
+  private normalizeTransferBillResult(data: Record<string, any>) {
+    return {
+      outBillNo: data?.out_bill_no || '',
+      transferBillNo: data?.transfer_bill_no || '',
+      createTime: data?.create_time || '',
+      state: data?.state || '',
+      packageInfo: data?.package_info || '',
+      failReason: data?.fail_reason || '',
+    };
+  }
+
+  private mapTransferBillStateToLegacyStatus(state?: string) {
+    const normalized = String(state || '').toUpperCase();
+    if (normalized === 'SUCCESS') {
+      return 'SUCCESS';
+    }
+    if (normalized === 'FAILED' || normalized === 'CANCELLED') {
+      return 'FAIL';
+    }
+    return 'PROCESSING';
+  }
+
+  private buildWalletTransferError(result: any, fallbackMessage: string) {
+    const error = this.parseWalletTransferError(result?.error);
+    const code = error?.code || result?.code || '';
+    const message = error?.message || result?.message || fallbackMessage;
+    return new Error(code ? `${code}: ${message}` : message);
+  }
+
+  private parseWalletTransferError(rawError: any) {
+    if (!rawError) {
+      return null;
+    }
+
+    if (typeof rawError === 'string') {
+      try {
+        return JSON.parse(rawError);
+      } catch (error) {
+        return { message: rawError };
+      }
+    }
+
+    return rawError;
+  }
+
   async queryOrder(outTradeNo: string) {
     return this.pay.query({ out_trade_no: outTradeNo });
   }

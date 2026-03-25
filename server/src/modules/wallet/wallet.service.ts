@@ -26,11 +26,13 @@ export class WalletService {
       wallet = await this.walletRepo.save(this.walletRepo.create({ userId }));
     }
     const capability = await this.getWithdrawCapability(userId);
+    const pendingWithdrawAction = await this.getPendingWithdrawAction(userId);
     return {
       ...wallet,
       canWithdraw: capability.canWithdraw,
       withdrawStatus: capability.status,
       withdrawDisabledReason: capability.reason,
+      pendingWithdrawAction,
     };
   }
 
@@ -68,16 +70,25 @@ export class WalletService {
   async withdraw(userId: number, amount: number) {
     if (!amount || amount <= 0)
       throw new BadRequestException('提现金额必须大于0');
+
+    await this.syncPendingWithdrawals(userId);
+
     const capability = await this.getWithdrawCapability(userId);
     if (!capability.canWithdraw) {
       throw new BadRequestException(capability.reason || '提现通道暂不可用');
     }
-    const wallet = await this.walletRepo.findOne({ where: { userId } });
-    if (!wallet || +wallet.balance <= 0 || +wallet.balance < amount)
-      throw new BadRequestException('余额不足');
 
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
+
+    const pendingTx = await this.findLatestPendingWithdraw(userId);
+    if (pendingTx) {
+      return this.buildPendingWithdrawResponse(user, pendingTx, true);
+    }
+
+    const wallet = await this.walletRepo.findOne({ where: { userId } });
+    if (!wallet || +wallet.balance <= 0 || +wallet.balance < amount)
+      throw new BadRequestException('余额不足');
 
     wallet.balance = +wallet.balance - amount;
     wallet.totalWithdraw = +wallet.totalWithdraw + amount;
@@ -93,20 +104,38 @@ export class WalletService {
     await this.txRepo.save(tx);
 
     try {
-      const outBatchNo = this.paymentService.generateTransferBatchNo('WD', tx.id);
-      const outDetailNo = this.formatTransferDetailNo(tx.id);
-      tx.refType = outBatchNo;
+      const outBillNo = this.paymentService.generateTransferBatchNo('WD', tx.id);
+      tx.refType = outBillNo;
       tx.refId = tx.id;
       tx.remark = '提现处理中';
       await this.txRepo.save(tx);
 
-      await this.paymentService.transferToWallet({
-        outBatchNo,
-        outDetailNo,
+      const bill = await this.paymentService.createTransferBill({
+        outBillNo,
         openid: user.openid,
         amount: Math.round(amount * 100),
-        remark: '临工提现',
+        remark: this.getWithdrawTransferRemark(user),
+        userRole: user.role,
       });
+
+      if (this.isTransferBillFailedState(bill?.state)) {
+        throw new Error(bill.failReason || bill.state || 'TRANSFER_FAILED');
+      }
+
+      if (this.isTransferBillSuccessState(bill?.state)) {
+        tx.status = 'success';
+        tx.remark = '提现成功';
+        await this.txRepo.save(tx);
+
+        return {
+          message: '提现成功',
+          balance: wallet.balance,
+          status: 'success',
+          transferState: bill.state,
+        };
+      }
+
+      return this.buildPendingWithdrawResponse(user, tx, false, bill, wallet.balance);
     } catch (e) {
       this.logger.warn(
         `提现申请失败: userId=${userId}, txId=${tx.id}, reason=${e?.message || 'unknown'}`,
@@ -117,12 +146,6 @@ export class WalletService {
       await this.rollbackWalletWithdraw(tx, wallet);
       throw new BadRequestException(this.getWithdrawSubmitErrorMessage(e?.message));
     }
-
-    return {
-      message: '提现申请已提交',
-      balance: wallet.balance,
-      status: 'pending',
-    };
   }
 
   async syncPendingWithdrawals(userId?: number) {
@@ -255,6 +278,104 @@ export class WalletService {
       return '请先绑定微信后再提现';
     }
     return '提现失败，请稍后重试';
+  }
+
+  private async getPendingWithdrawAction(userId: number) {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) {
+      return null;
+    }
+
+    const pendingTx = await this.findLatestPendingWithdraw(userId);
+    if (!pendingTx) {
+      return null;
+    }
+
+    const pendingResponse = await this.buildPendingWithdrawResponse(
+      user,
+      pendingTx,
+      true,
+    );
+
+    return pendingResponse.confirmation ? pendingResponse : null;
+  }
+
+  private async findLatestPendingWithdraw(userId: number) {
+    const pendingTxs = await this.txRepo.find({
+      where: {
+        userId,
+        type: 'withdraw',
+        status: 'pending',
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+
+    return pendingTxs.find((item: WalletTransaction) => item?.status === 'pending' && item?.refType) || null;
+  }
+
+  private async buildPendingWithdrawResponse(
+    user: User,
+    tx: WalletTransaction,
+    existingPending = false,
+    bill?: any,
+    balance?: number,
+  ) {
+    let currentBill = bill || null;
+
+    if (!currentBill && tx.refType) {
+      try {
+        currentBill = await this.paymentService.queryTransferBill({
+          outBillNo: tx.refType,
+        });
+      } catch (error) {
+        this.logger.warn(
+          `查询待确认提现单失败: txId=${tx.id}, error=${error?.message || 'unknown'}`,
+        );
+      }
+    }
+
+    const confirmation = this.paymentService.buildTransferConfirmation(
+      currentBill?.packageInfo,
+    );
+
+    return {
+      message: confirmation
+        ? existingPending
+          ? '存在待确认提现，请先完成微信收款确认'
+          : '提现申请已提交，请在微信中确认收款'
+        : existingPending
+          ? '上一笔提现正在处理中，请稍后查看结果'
+          : '提现申请已提交',
+      balance:
+        typeof balance === 'number'
+          ? balance
+          : await this.getWalletAvailableBalance(tx.userId),
+      status: 'pending',
+      transferState: currentBill?.state || 'PROCESSING',
+      existingPending,
+      txId: tx.id,
+      confirmation,
+    };
+  }
+
+  private isTransferBillSuccessState(state?: string) {
+    return String(state || '').toUpperCase() === 'SUCCESS';
+  }
+
+  private isTransferBillFailedState(state?: string) {
+    const normalized = String(state || '').toUpperCase();
+    return normalized === 'FAILED' || normalized === 'CANCELLED';
+  }
+
+  private getWithdrawTransferRemark(user: User) {
+    return user.role === 'enterprise' ? '返佣提现' : '临工提现';
+  }
+
+  private async getWalletAvailableBalance(userId: number) {
+    const wallet = await this.walletRepo.findOne({ where: { userId } });
+    return wallet ? +wallet.balance : 0;
   }
 
   private async rollbackWalletWithdraw(tx: WalletTransaction, wallet?: Wallet) {

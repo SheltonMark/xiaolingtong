@@ -16,7 +16,8 @@ Page({
     withdrawSubmitting: false,
     canWithdraw: true,
     withdrawDisabledReason: '',
-    withdrawSubmitHint: ''
+    withdrawSubmitHint: '',
+    pendingWithdrawAction: null
   },
 
   onShow() {
@@ -50,7 +51,8 @@ Page({
         records: records.slice(0, 5),
         withdrawLimit: Math.min(Number(summary.balance), this.data.maxWithdrawPerTime).toFixed(2),
         canWithdraw: wallet.canWithdraw !== false,
-        withdrawDisabledReason: wallet.withdrawDisabledReason || ''
+        withdrawDisabledReason: wallet.withdrawDisabledReason || '',
+        pendingWithdrawAction: wallet.pendingWithdrawAction || null
       })
     })
   },
@@ -58,6 +60,10 @@ Page({
   onWithdraw() {
     if (!this.data.canWithdraw) {
       wx.showToast({ title: this.data.withdrawDisabledReason || '提现通道暂不可用', icon: 'none' })
+      return
+    }
+    if (this.data.pendingWithdrawAction && this.data.pendingWithdrawAction.confirmation) {
+      this.startMerchantTransferConfirmation(this.data.pendingWithdrawAction)
       return
     }
     if (Number(this.data.balance) <= 0) {
@@ -116,6 +122,15 @@ Page({
   onConfirmWithdraw() {
     if (this.data.withdrawSubmitting) return
 
+    if (this.data.pendingWithdrawAction && this.data.pendingWithdrawAction.confirmation) {
+      this.setData({
+        withdrawSubmitting: true,
+        withdrawSubmitHint: this.data.pendingWithdrawAction.message || '请在微信中确认收款'
+      })
+      this.startMerchantTransferConfirmation(this.data.pendingWithdrawAction)
+      return
+    }
+
     const error = this.validateWithdrawAmount()
     if (error) {
       wx.showToast({ title: error, icon: 'none' })
@@ -129,8 +144,14 @@ Page({
     })
     wx.showLoading({ title: '提交中...' })
 
-    post('/wallet/withdraw', { amount }).then(() => {
+    post('/wallet/withdraw', { amount }).then((res) => {
+      const payload = this.normalizeWithdrawResponse(res)
+      this.applyPendingWithdrawState(payload)
       wx.hideLoading()
+      if (payload && payload.confirmation) {
+        this.startMerchantTransferConfirmation(payload)
+        return
+      }
       wx.showToast({ title: '提现申请已提交', icon: 'success' })
       this.setData({
         showWithdrawModal: false,
@@ -147,6 +168,86 @@ Page({
       })
       if (error && error.message) {
         wx.showToast({ title: error.message, icon: 'none' })
+      }
+    })
+  },
+
+  normalizeWithdrawResponse(res) {
+    if (res && typeof res === 'object' && res.data && typeof res.data === 'object') {
+      return res.data
+    }
+    return res || {}
+  },
+
+  applyPendingWithdrawState(payload) {
+    if (!payload || typeof payload !== 'object') return
+
+    const nextData = {}
+    if (payload.balance !== undefined && payload.balance !== null) {
+      const balance = Number(payload.balance || 0)
+      if (Number.isFinite(balance)) {
+        nextData.balance = balance.toFixed(2)
+        nextData.withdrawLimit = Math.min(balance, this.data.maxWithdrawPerTime).toFixed(2)
+      }
+    }
+    if (Object.prototype.hasOwnProperty.call(payload, 'confirmation')) {
+      nextData.pendingWithdrawAction = payload.confirmation ? payload : null
+    }
+    if (payload.message) {
+      nextData.withdrawSubmitHint = payload.message
+    }
+
+    if (Object.keys(nextData).length > 0) {
+      this.setData(nextData)
+    }
+  },
+
+  startMerchantTransferConfirmation(payload) {
+    const confirmation = payload && payload.confirmation
+    if (!confirmation) {
+      this.setData({ withdrawSubmitting: false })
+      wx.showToast({ title: (payload && payload.message) || '暂无可确认的提现', icon: 'none' })
+      return
+    }
+
+    if (typeof wx.requestMerchantTransfer !== 'function') {
+      const message = '当前微信版本不支持确认收款，请升级后重试'
+      this.setData({
+        withdrawSubmitting: false,
+        withdrawSubmitHint: message
+      })
+      wx.showToast({ title: message, icon: 'none' })
+      return
+    }
+
+    wx.hideLoading()
+    wx.requestMerchantTransfer({
+      mchId: confirmation.mchId,
+      appId: confirmation.appId,
+      package: confirmation.package,
+      success: () => {
+        wx.showToast({ title: '微信确认已提交', icon: 'success' })
+        this.setData({
+          pendingWithdrawAction: null,
+          showWithdrawModal: false,
+          withdrawAmount: '',
+          withdrawSubmitting: false,
+          withdrawSubmitHint: ''
+        })
+        this.loadWallet()
+      },
+      fail: (error) => {
+        const errMsg = String((error && error.errMsg) || '')
+        const message = /cancel/i.test(errMsg)
+          ? '已取消微信确认，可稍后继续确认'
+          : '微信确认失败，请重试'
+        this.applyPendingWithdrawState(payload)
+        this.setData({
+          showWithdrawModal: true,
+          withdrawSubmitting: false,
+          withdrawSubmitHint: message
+        })
+        wx.showToast({ title: message, icon: 'none' })
       }
     })
   },

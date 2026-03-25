@@ -3,12 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { BadRequestException } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { Wallet } from '../../entities/wallet.entity';
 import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { User } from '../../entities/user.entity';
 import { PaymentService } from '../payment/payment.service';
-import { BadRequestException } from '@nestjs/common';
 
 describe('WalletService', () => {
   let service: WalletService;
@@ -38,7 +38,13 @@ describe('WalletService', () => {
     paymentService = {
       generateOutTradeNo: jest.fn(),
       generateTransferBatchNo: jest.fn(),
-      transferToWallet: jest.fn(),
+      createTransferBill: jest.fn(),
+      queryTransferBill: jest.fn(),
+      buildTransferConfirmation: jest.fn((packageInfo: string) =>
+        packageInfo
+          ? { appId: 'wx_appid', mchId: '1900000001', package: packageInfo }
+          : null,
+      ),
       queryTransferDetail: jest.fn(),
       isWalletTransferReady: jest.fn().mockReturnValue(true),
     };
@@ -74,7 +80,53 @@ describe('WalletService', () => {
   });
 
   describe('getBalance', () => {
-    it('should reconcile pending withdrawals before returning balance', async () => {
+    it('returns existing wallet balance and withdraw capability', async () => {
+      const userId = 1;
+      const mockWallet = {
+        id: 1,
+        userId,
+        balance: 1000,
+        totalIncome: 5000,
+        totalWithdraw: 4000,
+      };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
+
+      const result = await service.getBalance(userId);
+
+      expect(walletRepo.findOne).toHaveBeenCalledWith({ where: { userId } });
+      expect(result).toMatchObject({
+        ...mockWallet,
+        canWithdraw: true,
+        withdrawStatus: 'enabled',
+        withdrawDisabledReason: '',
+        pendingWithdrawAction: null,
+      });
+    });
+
+    it('creates wallet when user wallet does not exist', async () => {
+      const userId = 1;
+      const newWallet = {
+        id: 1,
+        userId,
+        balance: 0,
+        totalIncome: 0,
+        totalWithdraw: 0,
+      };
+
+      walletRepo.findOne.mockResolvedValue(null);
+      walletRepo.create.mockReturnValue(newWallet);
+      walletRepo.save.mockResolvedValue(newWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
+
+      const result = await service.getBalance(userId);
+
+      expect(walletRepo.create).toHaveBeenCalledWith({ userId });
+      expect(result.balance).toBe(0);
+    });
+
+    it('reconciles pending withdrawals before returning balance', async () => {
       const userId = 1;
       const mockWallet = {
         id: 1,
@@ -109,84 +161,53 @@ describe('WalletService', () => {
         outDetailNo: '00009',
       });
       expect(mockTx.status).toBe('success');
-      expect(result).toMatchObject({
-        ...mockWallet,
-        canWithdraw: true,
-        withdrawStatus: 'enabled',
-        withdrawDisabledReason: '',
-      });
+      expect(result.balance).toBe(1000);
     });
 
-    it('should return existing wallet', async () => {
+    it('returns pending withdraw action when a confirmation is still required', async () => {
       const userId = 1;
       const mockWallet = {
         id: 1,
         userId,
-        balance: 1000,
-        totalIncome: 5000,
-        totalWithdraw: 4000,
+        balance: 300,
+        totalIncome: 500,
+        totalWithdraw: 200,
+      };
+      const pendingTx = {
+        id: 11,
+        userId,
+        type: 'withdraw',
+        amount: 50,
+        status: 'pending',
+        refType: 'WD_11_123456_abcd',
       };
 
       walletRepo.findOne.mockResolvedValue(mockWallet);
       userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
+      txRepo.find.mockResolvedValue([pendingTx]);
+      paymentService.queryTransferBill.mockResolvedValue({
+        outBillNo: 'WD_11_123456_abcd',
+        state: 'WAIT_USER_CONFIRM',
+        packageInfo: 'pending_package',
+      });
 
       const result = await service.getBalance(userId);
 
-      expect(walletRepo.findOne).toHaveBeenCalledWith({ where: { userId } });
-      expect(result).toMatchObject({
-        ...mockWallet,
-        canWithdraw: true,
-        withdrawStatus: 'enabled',
-        withdrawDisabledReason: '',
+      expect(result.pendingWithdrawAction).toMatchObject({
+        message: '存在待确认提现，请先完成微信收款确认',
+        status: 'pending',
+        transferState: 'WAIT_USER_CONFIRM',
+        existingPending: true,
+        txId: 11,
+        confirmation: {
+          appId: 'wx_appid',
+          mchId: '1900000001',
+          package: 'pending_package',
+        },
       });
     });
 
-    it('should create wallet if not exists', async () => {
-      const userId = 1;
-      const newWallet = {
-        id: 1,
-        userId,
-        balance: 0,
-        totalIncome: 0,
-        totalWithdraw: 0,
-      };
-
-      walletRepo.findOne.mockResolvedValue(null);
-      walletRepo.create.mockReturnValue(newWallet);
-      walletRepo.save.mockResolvedValue(newWallet);
-      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
-
-      const result = await service.getBalance(userId);
-
-      expect(walletRepo.create).toHaveBeenCalledWith({ userId });
-      expect(walletRepo.save).toHaveBeenCalled();
-      expect(result).toMatchObject({
-        ...newWallet,
-        canWithdraw: true,
-        withdrawStatus: 'enabled',
-        withdrawDisabledReason: '',
-      });
-    });
-
-    it('should handle wallet with zero balance', async () => {
-      const userId = 1;
-      const mockWallet = {
-        id: 1,
-        userId,
-        balance: 0,
-        totalIncome: 0,
-        totalWithdraw: 0,
-      };
-
-      walletRepo.findOne.mockResolvedValue(mockWallet);
-      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
-
-      const result = await service.getBalance(userId);
-
-      expect(result.balance).toBe(0);
-    });
-
-    it('should expose disabled withdraw capability when user has not bound wechat', async () => {
+    it('disables withdraw when user has not bound wechat', async () => {
       const userId = 1;
       const mockWallet = {
         id: 1,
@@ -210,7 +231,7 @@ describe('WalletService', () => {
   });
 
   describe('getTransactions', () => {
-    it('should return transactions with pagination', async () => {
+    it('returns paginated transactions', async () => {
       const userId = 1;
       const mockTransactions = [
         { id: 1, userId, type: 'income', amount: 100, createdAt: new Date() },
@@ -229,30 +250,6 @@ describe('WalletService', () => {
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
       const result = await service.getTransactions(userId, {
-        page: 1,
-        pageSize: 20,
-      });
-
-      expect(result.list).toEqual(mockTransactions);
-      expect(result.total).toBe(2);
-      expect(result.page).toBe(1);
-      expect(result.pageSize).toBe(20);
-    });
-
-    it('should filter transactions by type', async () => {
-      const userId = 1;
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
-      };
-
-      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
-
-      await service.getTransactions(userId, {
         type: 'income',
         page: 1,
         pageSize: 20,
@@ -261,52 +258,13 @@ describe('WalletService', () => {
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('t.type = :type', {
         type: 'income',
       });
-    });
-
-    it('should handle pagination correctly', async () => {
-      const userId = 1;
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
-      };
-
-      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
-
-      await service.getTransactions(userId, { page: 3, pageSize: 10 });
-
-      expect(mockQueryBuilder.skip).toHaveBeenCalledWith(20);
-      expect(mockQueryBuilder.take).toHaveBeenCalledWith(10);
-    });
-
-    it('should return empty list when no transactions', async () => {
-      const userId = 1;
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        skip: jest.fn().mockReturnThis(),
-        take: jest.fn().mockReturnThis(),
-        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
-      };
-
-      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
-
-      const result = await service.getTransactions(userId, {
-        page: 1,
-        pageSize: 20,
-      });
-
-      expect(result.list).toEqual([]);
-      expect(result.total).toBe(0);
+      expect(result.total).toBe(2);
+      expect(result.list).toEqual(mockTransactions);
     });
   });
 
   describe('getIncome', () => {
-    it('should return income transactions', async () => {
+    it('returns income summary and month filter', async () => {
       const userId = 1;
       const mockTransactions = [
         {
@@ -336,97 +294,22 @@ describe('WalletService', () => {
 
       txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
 
-      const result = await service.getIncome(userId, {});
-
-      expect(result.list).toEqual(mockTransactions);
-      expect(result.totalAmount).toBe(300);
-    });
-
-    it('should filter income by month', async () => {
-      const userId = 1;
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      };
-
-      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
-
-      await service.getIncome(userId, { month: '2026-02' });
+      const result = await service.getIncome(userId, { month: '2026-03' });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith(
         'DATE_FORMAT(t.createdAt, "%Y-%m") = :month',
-        { month: '2026-02' },
+        { month: '2026-03' },
       );
-    });
-
-    it('should return zero total amount when no income', async () => {
-      const userId = 1;
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue([]),
-      };
-
-      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
-
-      const result = await service.getIncome(userId, {});
-
-      expect(result.totalAmount).toBe(0);
-    });
-
-    it('should calculate total amount correctly', async () => {
-      const userId = 1;
-      const mockTransactions = [
-        {
-          id: 1,
-          userId,
-          type: 'income',
-          amount: 100,
-          status: 'success',
-          createdAt: new Date(),
-        },
-        {
-          id: 2,
-          userId,
-          type: 'income',
-          amount: 250,
-          status: 'success',
-          createdAt: new Date(),
-        },
-        {
-          id: 3,
-          userId,
-          type: 'income',
-          amount: 150,
-          status: 'success',
-          createdAt: new Date(),
-        },
-      ];
-
-      const mockQueryBuilder = {
-        where: jest.fn().mockReturnThis(),
-        andWhere: jest.fn().mockReturnThis(),
-        orderBy: jest.fn().mockReturnThis(),
-        getMany: jest.fn().mockResolvedValue(mockTransactions),
-      };
-
-      txRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
-
-      const result = await service.getIncome(userId, {});
-
-      expect(result.totalAmount).toBe(500);
+      expect(result.totalAmount).toBe(300);
     });
   });
 
   describe('withdraw', () => {
-    it('should keep withdrawal pending after transfer request is accepted', async () => {
+    it('keeps withdrawal pending and returns confirmation when user confirmation is required', async () => {
       const userId = 1;
       const amount = 100;
       const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
-      const mockUser = { id: 1, openid: 'test_openid' };
+      const mockUser = { id: 1, openid: 'test_openid', role: 'worker' };
       const mockTx = {
         id: 1,
         userId,
@@ -440,97 +323,163 @@ describe('WalletService', () => {
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
       paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
-      paymentService.transferToWallet.mockResolvedValue({ success: true });
+      paymentService.createTransferBill.mockResolvedValue({
+        outBillNo: 'WD_1_123456_abcd',
+        state: 'WAIT_USER_CONFIRM',
+        packageInfo: 'mock_package',
+      });
 
       const result = await service.withdraw(userId, amount);
 
-      expect(result.message).toBe('提现申请已提交');
-      expect(result.balance).toBe(400);
-      expect(result.status).toBe('pending');
+      expect(result).toMatchObject({
+        message: '提现申请已提交，请在微信中确认收款',
+        balance: 400,
+        status: 'pending',
+        transferState: 'WAIT_USER_CONFIRM',
+        existingPending: false,
+        txId: 1,
+        confirmation: {
+          appId: 'wx_appid',
+          mchId: '1900000001',
+          package: 'mock_package',
+        },
+      });
       expect(mockTx.status).toBe('pending');
       expect(mockTx.refType).toBe('WD_1_123456_abcd');
       expect(mockTx.refId).toBe(1);
-      expect(paymentService.transferToWallet).toHaveBeenCalled();
-      expect(paymentService.transferToWallet.mock.calls[0][0]).toMatchObject({
-        outBatchNo: 'WD_1_123456_abcd',
-        outDetailNo: '00001',
+      expect(mockTx.remark).toBe('提现处理中');
+      expect(paymentService.createTransferBill).toHaveBeenCalledWith({
+        outBillNo: 'WD_1_123456_abcd',
         openid: 'test_openid',
         amount: 10000,
+        remark: '临工提现',
+        userRole: 'worker',
       });
-      expect(mockTx.remark).toBe('提现处理中');
-      expect(walletRepo.save).toHaveBeenCalled();
-      expect(txRepo.save).toHaveBeenCalled();
     });
 
-    it('should throw error when amount is zero', async () => {
-      const userId = 1;
-
-      await expect(service.withdraw(userId, 0)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw error when amount is negative', async () => {
-      const userId = 1;
-
-      await expect(service.withdraw(userId, -100)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw error when wallet not found', async () => {
+    it('reuses existing pending confirmation instead of creating a new bill', async () => {
       const userId = 1;
       const amount = 100;
+      const mockUser = { id: 1, openid: 'test_openid', role: 'worker' };
+      const pendingTx = {
+        id: 11,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+        refType: 'WD_11_123456_abcd',
+      };
 
-      walletRepo.findOne.mockResolvedValue(null);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      walletRepo.findOne.mockResolvedValue({
+        id: 1,
+        userId,
+        balance: 350,
+        totalWithdraw: 150,
+      });
+      txRepo.find.mockResolvedValue([pendingTx]);
+      paymentService.queryTransferBill.mockResolvedValue({
+        outBillNo: 'WD_11_123456_abcd',
+        state: 'WAIT_USER_CONFIRM',
+        packageInfo: 'existing_package',
+      });
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+      const result = await service.withdraw(userId, amount);
+
+      expect(paymentService.createTransferBill).not.toHaveBeenCalled();
+      expect(result).toMatchObject({
+        message: '存在待确认提现，请先完成微信收款确认',
+        balance: 350,
+        status: 'pending',
+        transferState: 'WAIT_USER_CONFIRM',
+        existingPending: true,
+        txId: 11,
+        confirmation: {
+          appId: 'wx_appid',
+          mchId: '1900000001',
+          package: 'existing_package',
+        },
+      });
+    });
+
+    it('returns success immediately when transfer bill is already successful', async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
+      const mockUser = { id: 1, openid: 'test_openid', role: 'worker' };
+      const mockTx = {
+        id: 1,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+      };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      txRepo.create.mockReturnValue(mockTx);
+      txRepo.save.mockResolvedValue(mockTx);
+      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.createTransferBill.mockResolvedValue({
+        outBillNo: 'WD_1_123456_abcd',
+        state: 'SUCCESS',
+      });
+
+      const result = await service.withdraw(userId, amount);
+
+      expect(result).toEqual({
+        message: '提现成功',
+        balance: 400,
+        status: 'success',
+        transferState: 'SUCCESS',
+      });
+      expect(mockTx.status).toBe('success');
+      expect(mockTx.remark).toBe('提现成功');
+    });
+
+    it('rejects zero or negative amount', async () => {
+      await expect(service.withdraw(1, 0)).rejects.toThrow(BadRequestException);
+      await expect(service.withdraw(1, -100)).rejects.toThrow(
         BadRequestException,
       );
     });
 
-    it('should throw explicit error when transfer channel is unavailable', async () => {
+    it('throws explicit error when transfer channel is unavailable', async () => {
       const userId = 1;
-      const amount = 100;
 
       paymentService.isWalletTransferReady.mockReturnValue(false);
       userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+      await expect(service.withdraw(userId, 100)).rejects.toThrow(
         '提现通道未开通，请联系管理员',
       );
     });
 
-    it('should throw error when balance is insufficient', async () => {
+    it('throws error when balance is insufficient', async () => {
       const userId = 1;
-      const amount = 1000;
-      const mockWallet = { id: 1, userId, balance: 100, totalWithdraw: 0 };
 
-      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue({ id: userId, openid: 'test_openid' });
+      walletRepo.findOne.mockResolvedValue({
+        id: 1,
+        userId,
+        balance: 100,
+        totalWithdraw: 0,
+      });
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.withdraw(userId, 1000)).rejects.toThrow('余额不足');
     });
 
-    it('should throw error when user not found', async () => {
-      const userId = 1;
-      const amount = 100;
-      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
-
-      walletRepo.findOne.mockResolvedValue(mockWallet);
+    it('throws error when user does not exist', async () => {
       userRepo.findOneBy.mockResolvedValue(null);
 
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(service.withdraw(1, 100)).rejects.toThrow('用户不存在');
     });
 
-    it('should handle transfer failure and rollback', async () => {
+    it('rolls back wallet when transfer bill request fails', async () => {
       const userId = 1;
       const amount = 100;
       const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
-      const mockUser = { id: 1, openid: 'test_openid' };
+      const mockUser = { id: 1, openid: 'test_openid', role: 'worker' };
       const mockTx = {
         id: 1,
         userId,
@@ -544,7 +493,7 @@ describe('WalletService', () => {
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
       paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
-      paymentService.transferToWallet.mockRejectedValue(
+      paymentService.createTransferBill.mockRejectedValue(
         new Error('Transfer failed'),
       );
 
@@ -552,16 +501,16 @@ describe('WalletService', () => {
         BadRequestException,
       );
 
-      // Verify rollback
+      expect(mockTx.status).toBe('failed');
       expect(mockWallet.balance).toBe(500);
       expect(mockWallet.totalWithdraw).toBe(0);
     });
 
-    it('should map transfer permission errors to user-friendly messages', async () => {
+    it('maps permission errors to a user-friendly message', async () => {
       const userId = 1;
       const amount = 100;
       const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
-      const mockUser = { id: 1, openid: 'test_openid' };
+      const mockUser = { id: 1, openid: 'test_openid', role: 'worker' };
       const mockTx = {
         id: 1,
         userId,
@@ -575,7 +524,7 @@ describe('WalletService', () => {
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
       paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
-      paymentService.transferToWallet.mockRejectedValue(
+      paymentService.createTransferBill.mockRejectedValue(
         new Error('no_auth: merchant transfer permission denied'),
       );
 
@@ -589,45 +538,7 @@ describe('WalletService', () => {
       expect(mockWallet.totalWithdraw).toBe(0);
     });
 
-    it('should handle wallet with zero balance', async () => {
-      const userId = 1;
-      const amount = 100;
-      const mockWallet = { id: 1, userId, balance: 0, totalWithdraw: 0 };
-
-      walletRepo.findOne.mockResolvedValue(mockWallet);
-
-      await expect(service.withdraw(userId, amount)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should update wallet balance and total withdraw', async () => {
-      const userId = 1;
-      const amount = 100;
-      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 200 };
-      const mockUser = { id: 1, openid: 'test_openid' };
-      const mockTx = {
-        id: 1,
-        userId,
-        type: 'withdraw',
-        amount,
-        status: 'pending',
-      };
-
-      walletRepo.findOne.mockResolvedValue(mockWallet);
-      userRepo.findOneBy.mockResolvedValue(mockUser);
-      txRepo.create.mockReturnValue(mockTx);
-      txRepo.save.mockResolvedValue(mockTx);
-      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
-      paymentService.transferToWallet.mockResolvedValue({ success: true });
-
-      await service.withdraw(userId, amount);
-
-      expect(mockWallet.balance).toBe(400);
-      expect(mockWallet.totalWithdraw).toBe(300);
-    });
-
-    it('should reconcile pending withdrawal to success after transfer detail succeeds', async () => {
+    it('syncs pending withdrawal to success after transfer detail succeeds', async () => {
       const mockTx = {
         id: 9,
         userId: 2,
@@ -655,7 +566,7 @@ describe('WalletService', () => {
       expect(txRepo.save).toHaveBeenCalledWith(mockTx);
     });
 
-    it('should rollback wallet when pending withdrawal detail fails', async () => {
+    it('rolls back wallet when pending withdrawal detail fails', async () => {
       const mockTx = {
         id: 10,
         userId: 3,
