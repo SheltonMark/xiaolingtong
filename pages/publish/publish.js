@@ -3,16 +3,6 @@ const auth = require('../../utils/auth')
 const { getDefaultContactProfile } = require('../../utils/contact-profile')
 const { normalizeImageUrl } = require('../../utils/image')
 
-const DEFAULT_CATEGORY_OPTIONS = [
-  '\u65e5\u7528\u767e\u8d27',
-  '\u7535\u5b50\u6570\u7801',
-  '\u670d\u88c5\u978b\u5e3d',
-  '\u4e94\u91d1\u5de5\u5177',
-  '\u53a8\u623f\u536b\u6d74',
-  '\u6bcd\u5a74\u73a9\u5177',
-  '\u5176\u4ed6'
-]
-
 const DEFAULT_FORM = {
   productName: '',
   category: '',
@@ -48,7 +38,7 @@ Page({
     images: [],
     isUploading: false,
     submitting: false,
-    categoryOptions: DEFAULT_CATEGORY_OPTIONS,
+    categoryOptions: [],
     deliveryOptions: ['7天内', '15天内', '30天内', '45天内', '60天内'],
     validityOptions: ['7天', '15天', '30天', '60天', '90天'],
     validityIndex: 2,
@@ -68,12 +58,16 @@ Page({
     get('/config/categories').then((res) => {
       const payload = res.data || res || {}
       const list = (payload.list || []).map((item) => item && item.name).filter(Boolean)
-      if (!list.length) return
       this.setData({
         categoryOptions: list,
         'form.category': list.includes(this.data.form.category) ? this.data.form.category : ''
       })
-    }).catch(() => {})
+    }).catch(() => {
+      this.setData({
+        categoryOptions: [],
+        'form.category': ''
+      })
+    })
   },
 
   resetDraft() {
@@ -126,7 +120,8 @@ Page({
   },
 
   onCategoryChange(e) {
-    this.setData({ 'form.category': this.data.categoryOptions[e.detail.value] })
+    const nextCategory = this.data.categoryOptions[e.detail.value] || ''
+    this.setData({ 'form.category': nextCategory })
   },
 
   onDeliveryChange(e) {

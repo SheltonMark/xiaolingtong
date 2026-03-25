@@ -1,7 +1,7 @@
 const { get } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 
-const DEFAULT_CATEGORIES = ['全部', '日用百货', '电子数码', '服装鞋帽', '五金工具', '厨房卫浴', '母婴玩具']
+const DEFAULT_CATEGORIES = ['全部']
 
 Page({
   data: {
@@ -14,11 +14,10 @@ Page({
     sorts: ['最新发布', '距离最近', '价格最低'],
     searchResults: [],
     isSearching: false,
-    postType: 'purchase' // 默认搜索采购需求
+    postType: 'purchase'
   },
 
   onLoad(options) {
-    // 从首页传入的参数
     if (options.type) {
       this.setData({ postType: options.type })
     }
@@ -29,9 +28,10 @@ Page({
     get('/config/categories').then((res) => {
       const payload = res.data || res || {}
       const list = (payload.list || []).map((item) => item && item.name).filter(Boolean)
-      if (!list.length) return
       this.setData({ categories: ['全部', ...list] })
-    }).catch(() => {})
+    }).catch(() => {
+      this.setData({ categories: DEFAULT_CATEGORIES })
+    })
   },
 
   onInput(e) {
@@ -40,8 +40,8 @@ Page({
 
   onSearch() {
     const { keyword, categoryIndex, postType } = this.data
-
-    if (!keyword.trim()) {
+    const trimmedKeyword = keyword.trim()
+    if (!trimmedKeyword) {
       wx.showToast({ title: '请输入搜索关键词', icon: 'none' })
       return
     }
@@ -50,20 +50,21 @@ Page({
 
     const params = {
       type: postType,
-      keyword: keyword.trim()
+      keyword: trimmedKeyword
     }
 
-    // 如果选择了分类（非全部），添加 industry 参数
     if (categoryIndex > 0) {
       params.industry = this.data.categories[categoryIndex]
     }
 
-    get('/posts', params).then(res => {
+    get('/posts', params).then((res) => {
+      const payload = res.data || res || {}
+      const list = payload.list || payload || []
       this.setData({
-        searchResults: this._mapPosts(res.data.list || res.data || []),
+        searchResults: this._mapPosts(list),
         isSearching: false
       })
-      if ((res.data.list || res.data || []).length === 0) {
+      if (!list.length) {
         wx.showToast({ title: '未找到相关信息', icon: 'none' })
       }
     }).catch(() => {
@@ -73,7 +74,7 @@ Page({
   },
 
   _mapPosts(list) {
-    return (Array.isArray(list) ? list : []).map(item => ({
+    return (Array.isArray(list) ? list : []).map((item) => ({
       ...item,
       companyName: (item.user && item.user.nickname) || item.title || '',
       avatarUrl: normalizeImageUrl((item.user && item.user.avatarUrl) || ''),
@@ -96,7 +97,13 @@ Page({
   },
 
   onReset() {
-    this.setData({ keyword: '', categoryIndex: -1, cityIndex: -1, sortIndex: 0, searchResults: [] })
+    this.setData({
+      keyword: '',
+      categoryIndex: -1,
+      cityIndex: -1,
+      sortIndex: 0,
+      searchResults: []
+    })
   },
 
   onConfirm() {

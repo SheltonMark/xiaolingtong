@@ -240,7 +240,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-cities"><div class="panel"><div class="panel-header"><h4>开放城市</h4><div class="toolbar"><input type="text" id="newCity" placeholder="城市名称"><button class="add-btn" onclick="addCity()">添加</button></div></div><table><thead><tr><th>ID</th><th>城市名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="cityTable"></tbody></table></div></div>
     <div class="page-section" id="page-ads"><div class="panel"><div class="panel-header"><h4>广告管理</h4><div class="toolbar"><select id="adStatusFilter" onchange="loadAds()"><option value="">全部状态</option><option value="pending">待审核</option><option value="active">投放中</option><option value="expired">已过期</option></select><button class="search-btn" onclick="loadAds()">刷新</button></div></div><table><thead><tr><th>ID</th><th>广告主</th><th>位置</th><th>标题</th><th>天数</th><th>价格</th><th>状态</th><th>投放时间</th><th>操作</th></tr></thead><tbody id="adTable"></tbody></table><div class="pagination" id="adPagination"></div></div></div>
     <div class="page-section" id="page-admins"><div class="panel"><div class="panel-header"><h4>管理员账号</h4><div class="toolbar"><button class="add-btn" onclick="showAdminModal()">添加管理员</button></div></div><table><thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="adminTable"></tbody></table></div></div>
-    <div class="page-section" id="page-categories"><div class="panel"><div class="panel-header"><h4>品类标签管理</h4><div class="toolbar"><input type="text" id="newCatName" placeholder="分类名称"><select id="newCatParent"><option value="0">一级分类</option></select><button class="add-btn" onclick="addCategory()">添加</button></div></div><div id="categoryContent"></div></div></div>
+    <div class="page-section" id="page-categories"><div class="panel"><div class="panel-header"><h4>品类标签管理</h4><div class="toolbar"><input type="text" id="newCatName" placeholder="分类名称"><select id="newCatParent"><option value="0">一级分类</option></select><button class="add-btn" onclick="addCategory()">添加</button></div></div><div style="margin:0 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">状态说明：启用后会在首页 icon 和发布页分类中展示；禁用后前端会隐藏该分类，但不会删除历史帖子数据。卡片上的状态徽标表示当前生效状态，右侧按钮用于切换启用/禁用。</div><div id="categoryContent"></div></div></div>
     <div class="page-section" id="page-stats"><div class="panel"><div class="panel-header"><h4>数据统计</h4></div><div id="statsContent"></div></div></div>
     <div class="page-section" id="page-finance"><div class="stat-cards" id="financeCards"></div><div class="panel"><div class="panel-header"><h4>交易明细</h4><div class="toolbar"><select id="txTypeFilter" onchange="loadTransactions()"><option value="">全部类型</option><option value="income">收入</option><option value="withdraw">提现</option><option value="refund">退款</option></select><button class="search-btn" onclick="loadTransactions()">刷新</button></div></div><table><thead><tr><th>ID</th><th>用户</th><th>类型</th><th>金额</th><th>状态</th><th>备注</th><th>时间</th></tr></thead><tbody id="txTable"></tbody></table><div class="pagination" id="txPagination"></div></div></div>
       <div class="page-section" id="page-joborders" style="display:none"></div>
@@ -267,6 +267,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <h4>认证图片</h4>
     <div id="certImageContent"></div>
     <div class="modal-actions">
+      <a class="btn btn-primary" id="certImageDownload" href="#" target="_blank" rel="noopener noreferrer" download>下载原图</a>
       <button class="cancel" onclick="hideCertImageModal()">关闭</button>
     </div>
 </div>
@@ -545,8 +546,8 @@ function renderCertImageList(images){
     if(!url)continue;
     var safeUrl=escAttr(url);
     h+='<div class="cert-image-card">';
-    h+='<div class="cert-image-head"><span>'+label+'</span><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer">查看原图</a></div>';
-    h+='<img class="cert-image-preview" src="'+safeUrl+'" onclick="window.open(this.src,\'_blank\')">';
+    h+='<div class="cert-image-head"><span>'+label+'</span><a href="'+safeUrl+'" target="_blank" rel="noopener noreferrer" download>下载原图</a></div>';
+    h+='<img class="cert-image-preview" src="'+safeUrl+'" data-preview-url="'+safeUrl+'" data-preview-title="'+escAttr(item.label||('图片'+(i+1)))+'" onclick="showImagePreview(this.dataset.previewUrl,this.dataset.previewTitle)">';
     h+='</div>';
   }
   h+='</div>';
@@ -604,9 +605,18 @@ function hideCertDetailModal(){
   document.getElementById('certDetailModal').classList.remove('show');
   document.getElementById('certDetailContent').innerHTML='';
 }
+function showImagePreview(url,title){
+  var imageUrl=String(url||'').trim();
+  if(!imageUrl){toast('图片不存在','error');return;}
+  var html='<div style="display:flex;justify-content:center;align-items:center;min-height:240px;padding:8px 0;"><img src="'+escAttr(imageUrl)+'" alt="'+escAttr(title||'图片预览')+'" style="max-width:100%;max-height:70vh;object-fit:contain;border-radius:12px;"></div>';
+  document.getElementById('certImageContent').innerHTML=html;
+  document.getElementById('certImageDownload').href=imageUrl;
+  document.getElementById('certImageModal').classList.add('show');
+}
 function hideCertImageModal(){
   document.getElementById('certImageModal').classList.remove('show');
   document.getElementById('certImageContent').innerHTML='';
+  document.getElementById('certImageDownload').href='#';
 }
 
 var reportPage=1;
@@ -618,7 +628,7 @@ async function loadReports(page){
   var h='';
   for(var i=0;i<list.length;i++){var r=list[i];var st=sm[r.status]||['未知','badge-gray'];
     var ops=r.status==='pending'?'<button class="btn btn-success" onclick="handleReport('+r.id+',\x27resolve\x27)">处理</button><button class="btn btn-danger" onclick="handleReport('+r.id+',\x27dismiss\x27)">驳回</button>':'-';
-    var imgs='-';if(r.images&&r.images.length){imgs='';for(var j=0;j<r.images.length;j++){imgs+='<img src="'+r.images[j]+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;margin:2px;cursor:pointer;border:1px solid var(--border)" onclick="window.open(this.src)">';}}
+    var imgs='-';if(r.images&&r.images.length){imgs='';for(var j=0;j<r.images.length;j++){var reportImage=escAttr(r.images[j]);imgs+='<img src="'+reportImage+'" data-preview-url="'+reportImage+'" data-preview-title="举报图片'+(j+1)+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;margin:2px;cursor:pointer;border:1px solid var(--border)" onclick="showImagePreview(this.dataset.previewUrl,this.dataset.previewTitle)">';}}
     h+='<tr><td>'+r.id+'</td><td>'+r.targetType+'</td><td>'+r.targetId+'</td><td>'+r.reason+'</td><td style="max-width:260px;white-space:pre-wrap;word-break:break-all;">'+(((r.description||'').substring(0,60))||'-')+'</td><td style="max-width:220px;">'+imgs+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(r.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
   }
   document.getElementById('reportTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
@@ -659,7 +669,7 @@ async function loadExposures(page){
       ops+='<button class="btn btn-warning" onclick="rejectExposure('+e.id+')">拒绝</button>';
     }
     ops+='<button class="btn btn-danger" onclick="deleteExposure('+e.id+')">删除</button>';
-    var imgs='';if(e.images&&e.images.length){for(var j=0;j<e.images.length;j++){imgs+='<img src="'+e.images[j]+'" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;cursor:pointer;" onclick="window.open(this.src)">';}}else{imgs='-';}
+    var imgs='';if(e.images&&e.images.length){for(var j=0;j<e.images.length;j++){var exposureImage=escAttr(e.images[j]);imgs+='<img src="'+exposureImage+'" data-preview-url="'+exposureImage+'" data-preview-title="曝光图片'+(j+1)+'" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;cursor:pointer;" onclick="showImagePreview(this.dataset.previewUrl,this.dataset.previewTitle)">';}}else{imgs='-';}
     h+='<tr><td>'+e.id+'</td><td>'+companyName+'</td><td>'+(e.amount||'-')+'</td><td style="max-width:300px;white-space:pre-wrap;word-break:break-all;">'+(e.description||'-')+'</td><td style="max-width:200px;">'+imgs+'</td><td>'+statusBadge+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
   }
   document.getElementById('exposureTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
@@ -828,22 +838,25 @@ async function loadCategories(){
   }
   function statusText(active){return active?'启用':'禁用';}
   function statusBadge(active){return active?'badge-green':'badge-red';}
+  function statusHint(active){
+    return active ? '前端展示中' : '前端已隐藏';
+  }
   function toggleBtn(item){
-    return '<button class="btn '+(item.isActive?'btn-danger':'btn-success')+'" onclick="toggleCategory('+item.id+')">'+(item.isActive?'禁用':'启用')+'</button>';
+    return '<button class="btn '+(item.isActive?'btn-danger':'btn-success')+'" onclick="toggleCategory('+item.id+')">'+(item.isActive?'设为禁用':'恢复启用')+'</button>';
   }
   var h='<div style="display:flex;flex-direction:column;gap:16px">';
   for(var i=0;i<list.length;i++){var c=list[i];var ch=c.children||[];
     h+='<div style="border:1px solid var(--border);border-radius:12px;background:var(--bg);overflow:hidden">';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">';
-    h+='<div><div style="font-size:16px;font-weight:600;color:var(--text)">'+safeText(c.name)+'</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">一级分类 ID '+c.id+' · 子分类 '+ch.length+' 个</div></div>';
+    h+='<div><div style="font-size:16px;font-weight:600;color:var(--text)">'+safeText(c.name)+'</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">一级分类 ID '+c.id+' · 子分类 '+ch.length+' 个</div><div style="font-size:12px;color:var(--text-muted);margin-top:6px">'+statusHint(c.isActive)+'</div></div>';
     h+='<div style="display:flex;align-items:center;gap:8px"><span class="badge '+statusBadge(c.isActive)+'">'+statusText(c.isActive)+'</span>'+toggleBtn(c)+'</div>';
     h+='</div>';
     if(ch.length===0){
-      h+='<div class="empty" style="padding:24px">暂无子分类</div>';
+      h+='<div class="empty" style="padding:24px">暂无子分类，可先新增二级分类后再启用到前端。</div>';
     }else{
       h+='<table><thead><tr><th>ID</th><th>名称</th><th>层级</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
       for(var j=0;j<ch.length;j++){var s=ch[j];
-        h+='<tr><td>'+s.id+'</td><td>'+safeText(s.name)+'</td><td>二级分类</td><td><span class="badge '+statusBadge(s.isActive)+'">'+statusText(s.isActive)+'</span></td><td>'+(s.createdAt||'').substring(0,10)+'</td><td>'+toggleBtn(s)+'</td></tr>';
+        h+='<tr><td>'+s.id+'</td><td>'+safeText(s.name)+'</td><td>二级分类</td><td><div style="display:flex;flex-direction:column;gap:6px"><span class="badge '+statusBadge(s.isActive)+'">'+statusText(s.isActive)+'</span><span style="font-size:12px;color:var(--text-muted)">'+statusHint(s.isActive)+'</span></div></td><td>'+(s.createdAt||'').substring(0,10)+'</td><td>'+toggleBtn(s)+'</td></tr>';
       }
       h+='</tbody></table>';
     }

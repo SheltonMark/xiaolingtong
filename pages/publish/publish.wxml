@@ -28,7 +28,7 @@
     </view>
     <view class="form-card">
       <text class="form-label required">品类</text>
-      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange">
+      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange" disabled="{{!categoryOptions.length}}">
         <view class="form-picker">
           <text class="{{form.category ? '' : 'placeholder'}}">{{form.category || '请选择品类'}}</text>
           <text class="picker-arrow">▼</text>
@@ -88,7 +88,7 @@
     </view>
     <view class="form-card">
       <text class="form-label required">品类</text>
-      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange">
+      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange" disabled="{{!categoryOptions.length}}">
         <view class="form-picker">
           <text class="{{form.category ? '' : 'placeholder'}}">{{form.category || '请选择品类'}}</text>
           <text class="picker-arrow">▼</text>
@@ -138,7 +138,7 @@
     </view>
     <view class="form-card">
       <text class="form-label required">品类</text>
-      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange">
+      <picker mode="selector" range="{{categoryOptions}}" bindchange="onCategoryChange" disabled="{{!categoryOptions.length}}">
         <view class="form-picker">
           <text class="{{form.category ? '' : 'placeholder'}}">{{form.category || '请选择品类'}}</text>
           <text class="picker-arrow">▼</text>
