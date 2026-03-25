@@ -282,12 +282,6 @@
   overflow: hidden;
 }
 
-.banner-notice-foot {
-  margin-top: auto;
-  font-size: 20rpx;
-  color: #8A6E3B;
-}
-
 .cate-grid-wrap {
   padding: 40rpx 32rpx 20rpx;
 }

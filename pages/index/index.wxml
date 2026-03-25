@@ -90,7 +90,6 @@
               </view>
               <text class="banner-notice-title">{{item.title}}</text>
               <text class="banner-notice-sub">{{item.sub}}</text>
-              <text class="banner-notice-foot">仅展示，不可点击</text>
             </view>
           </view>
           <view class="banner-slide banner-slide-default" wx:else style="background: {{item.bg}};">
