@@ -565,6 +565,33 @@ describe('WalletService', () => {
       );
     });
 
+    it('maps wechat transfer insufficient merchant balance errors to a user-friendly message', async () => {
+      const userId = 1;
+      const amount = 100;
+      const mockWallet = { id: 1, userId, balance: 500, totalWithdraw: 0 };
+      const mockUser = { id: 1, openid: 'test_openid', role: 'worker' };
+      const mockTx = {
+        id: 1,
+        userId,
+        type: 'withdraw',
+        amount,
+        status: 'pending',
+      };
+
+      walletRepo.findOne.mockResolvedValue(mockWallet);
+      userRepo.findOneBy.mockResolvedValue(mockUser);
+      txRepo.create.mockReturnValue(mockTx);
+      txRepo.save.mockResolvedValue(mockTx);
+      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.createTransferBill.mockRejectedValue(
+        new Error('NOT_ENOUGH: 商户运营账户资金不足，充值后可以原单号发起重试，请勿更换商户单号'),
+      );
+
+      await expect(service.withdraw(userId, amount)).rejects.toThrow(
+        '商户运营账户资金不足，请联系管理员充值后重试',
+      );
+    });
+
     it('syncs pending withdrawal to success after transfer detail succeeds', async () => {
       const mockTx = {
         id: 9,

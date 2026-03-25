@@ -272,6 +272,14 @@ export class WalletService {
     }
 
     if (
+      normalizedMessage.includes('NOT_ENOUGH')
+      || message.includes('资金不足')
+      || message.includes('运营账户')
+    ) {
+      return '商户运营账户资金不足，请联系管理员充值后重试';
+    }
+
+    if (
       normalizedMessage.includes('ACCOUNT_FROZEN')
       || normalizedMessage.includes('REAL_NAME_CHECK_FAIL')
       || normalizedMessage.includes('USER_ACCOUNT_ABNORMAL')
