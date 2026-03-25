@@ -21,18 +21,19 @@ export class WechatSecurityService {
     if (!this.isEnabled()) return;
 
     const scene = Number(input.scene) || 3;
+    const openid = this.normalizeOpenid(input.openid);
     const textContent = this.collectText(input.texts || []).join('\n').trim();
     if (textContent) {
       await this.assertSafeText(
         textContent.slice(0, 200000),
         scene,
-        this.normalizeOpenid(input.openid),
+        openid,
       );
     }
 
     const imageUrls = this.collectImages(input.images || []);
     for (const mediaUrl of imageUrls) {
-      await this.submitImageCheck(mediaUrl, scene);
+      await this.submitImageCheck(mediaUrl, scene, openid);
     }
   }
 
@@ -90,7 +91,7 @@ export class WechatSecurityService {
     return Number(data?.errcode || 0) === 0 && (!suggest || suggest === 'pass');
   }
 
-  private shouldFallbackToLegacyTextCheck(data: any) {
+  private shouldFallbackToLegacyOpenidCheck(data: any) {
     const errcode = Number(data?.errcode || 0);
     const errmsg = String(data?.errmsg || '');
     return errcode === 40003 || /invalid openid/i.test(errmsg);
@@ -107,7 +108,7 @@ export class WechatSecurityService {
         openid,
       });
 
-      if (this.shouldFallbackToLegacyTextCheck(data)) {
+      if (this.shouldFallbackToLegacyOpenidCheck(data)) {
         this.logger.warn(
           `msg_sec_check invalid openid, falling back to legacy content check: ${JSON.stringify(data)}`,
         );
@@ -130,13 +131,33 @@ export class WechatSecurityService {
     throw new BadRequestException('\u5185\u5bb9\u5b89\u5168\u6821\u9a8c\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u91cd\u8bd5');
   }
 
-  private async submitImageCheck(mediaUrl: string, scene: number) {
-    const data = await this.postWechatCheck('/wxa/media_check_async', {
-      media_url: mediaUrl,
-      media_type: 2,
-      scene,
-      version: 2,
-    });
+  private async submitImageCheck(mediaUrl: string, scene: number, openid?: string) {
+    let data: any;
+
+    if (openid) {
+      data = await this.postWechatCheck('/wxa/media_check_async', {
+        media_url: mediaUrl,
+        media_type: 2,
+        scene,
+        version: 2,
+        openid,
+      });
+
+      if (this.shouldFallbackToLegacyOpenidCheck(data)) {
+        this.logger.warn(
+          `media_check_async invalid openid, falling back to legacy media check: ${JSON.stringify(data)}`,
+        );
+        data = await this.postWechatCheck('/wxa/media_check_async', {
+          media_url: mediaUrl,
+          media_type: 2,
+        });
+      }
+    } else {
+      data = await this.postWechatCheck('/wxa/media_check_async', {
+        media_url: mediaUrl,
+        media_type: 2,
+      });
+    }
 
     const suggest = data?.result?.suggest;
     if (Number(data?.errcode || 0) === 0 && (!suggest || suggest === 'pass')) {

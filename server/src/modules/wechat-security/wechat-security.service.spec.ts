@@ -109,6 +109,87 @@ describe('WechatSecurityService', () => {
     );
   });
 
+  it('uses version 2 media check with openid when provided', async () => {
+    mockedAxios.post.mockResolvedValueOnce({
+      data: { errcode: 0, result: { suggest: 'pass' } },
+    } as any);
+
+    await service.assertSafeSubmission({
+      images: ['https://cdn.example.com/job-1.jpg'],
+      openid: 'real-openid',
+    } as any);
+
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect.stringContaining('/wxa/media_check_async?access_token=token-1'),
+      {
+        media_url: 'https://cdn.example.com/job-1.jpg',
+        media_type: 2,
+        scene: 3,
+        version: 2,
+        openid: 'real-openid',
+      },
+      { timeout: 10000 },
+    );
+  });
+
+  it('falls back to legacy media check when openid is missing', async () => {
+    mockedAxios.post.mockResolvedValueOnce({
+      data: { errcode: 0, result: { suggest: 'pass' } },
+    } as any);
+
+    await service.assertSafeSubmission({
+      images: ['https://cdn.example.com/job-2.jpg'],
+    } as any);
+
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    expect(mockedAxios.post).toHaveBeenCalledWith(
+      expect.stringContaining('/wxa/media_check_async?access_token=token-1'),
+      {
+        media_url: 'https://cdn.example.com/job-2.jpg',
+        media_type: 2,
+      },
+      { timeout: 10000 },
+    );
+  });
+
+  it('falls back to legacy media check when wechat returns invalid openid', async () => {
+    mockedAxios.post
+      .mockResolvedValueOnce({
+        data: { errcode: 40003, errmsg: 'invalid openid hint: [abc]' },
+      } as any)
+      .mockResolvedValueOnce({
+        data: { errcode: 0, result: { suggest: 'pass' } },
+      } as any);
+
+    await service.assertSafeSubmission({
+      images: ['https://cdn.example.com/job-3.jpg'],
+      openid: 'dev_invalid_openid',
+    } as any);
+
+    expect(mockedAxios.post).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining('/wxa/media_check_async?access_token=token-1'),
+      {
+        media_url: 'https://cdn.example.com/job-3.jpg',
+        media_type: 2,
+        scene: 3,
+        version: 2,
+        openid: 'dev_invalid_openid',
+      },
+      { timeout: 10000 },
+    );
+    expect(mockedAxios.post).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining('/wxa/media_check_async?access_token=token-1'),
+      {
+        media_url: 'https://cdn.example.com/job-3.jpg',
+        media_type: 2,
+      },
+      { timeout: 10000 },
+    );
+  });
+
   it('still rejects non-compliant content after legacy fallback', async () => {
     mockedAxios.post
       .mockResolvedValueOnce({

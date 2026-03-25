@@ -94,7 +94,7 @@ export class WalletService {
 
     try {
       const outBatchNo = this.paymentService.generateTransferBatchNo('WD', tx.id);
-      const outDetailNo = String(tx.id);
+      const outDetailNo = this.formatTransferDetailNo(tx.id);
       tx.refType = outBatchNo;
       tx.refId = tx.id;
       tx.remark = '提现处理中';
@@ -145,7 +145,7 @@ export class WalletService {
       try {
         const detail = await this.paymentService.queryTransferDetail({
           outBatchNo: tx.refType,
-          outDetailNo: String(tx.refId),
+          outDetailNo: this.formatTransferDetailNo(tx.refId ?? tx.id),
         });
 
         if (detail?.detail_status === 'SUCCESS') {
@@ -170,6 +170,13 @@ export class WalletService {
         );
       }
     }
+  }
+
+  private formatTransferDetailNo(value: number | string | null | undefined) {
+    const digits = String(value ?? '')
+      .replace(/\D/g, '')
+      .slice(-32);
+    return (digits || '0').padStart(5, '0');
   }
 
   private buildWithdrawFailureRemark(reason?: string) {

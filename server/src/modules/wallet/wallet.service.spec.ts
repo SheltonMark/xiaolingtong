@@ -37,6 +37,7 @@ describe('WalletService', () => {
 
     paymentService = {
       generateOutTradeNo: jest.fn(),
+      generateTransferBatchNo: jest.fn(),
       transferToWallet: jest.fn(),
       queryTransferDetail: jest.fn(),
       isWalletTransferReady: jest.fn().mockReturnValue(true),
@@ -105,7 +106,7 @@ describe('WalletService', () => {
 
       expect(paymentService.queryTransferDetail).toHaveBeenCalledWith({
         outBatchNo: 'WD_9_123456_abcd',
-        outDetailNo: '9',
+        outDetailNo: '00009',
       });
       expect(mockTx.status).toBe('success');
       expect(result).toMatchObject({
@@ -438,7 +439,7 @@ describe('WalletService', () => {
       userRepo.findOneBy.mockResolvedValue(mockUser);
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
-      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
       paymentService.transferToWallet.mockResolvedValue({ success: true });
 
       const result = await service.withdraw(userId, amount);
@@ -449,6 +450,13 @@ describe('WalletService', () => {
       expect(mockTx.status).toBe('pending');
       expect(mockTx.refType).toBe('WD_1_123456_abcd');
       expect(mockTx.refId).toBe(1);
+      expect(paymentService.transferToWallet).toHaveBeenCalled();
+      expect(paymentService.transferToWallet.mock.calls[0][0]).toMatchObject({
+        outBatchNo: 'WD_1_123456_abcd',
+        outDetailNo: '00001',
+        openid: 'test_openid',
+        amount: 10000,
+      });
       expect(mockTx.remark).toBe('提现处理中');
       expect(walletRepo.save).toHaveBeenCalled();
       expect(txRepo.save).toHaveBeenCalled();
@@ -535,7 +543,7 @@ describe('WalletService', () => {
       userRepo.findOneBy.mockResolvedValue(mockUser);
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
-      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
       paymentService.transferToWallet.mockRejectedValue(
         new Error('Transfer failed'),
       );
@@ -566,7 +574,7 @@ describe('WalletService', () => {
       userRepo.findOneBy.mockResolvedValue(mockUser);
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
-      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
       paymentService.transferToWallet.mockRejectedValue(
         new Error('no_auth: merchant transfer permission denied'),
       );
@@ -610,7 +618,7 @@ describe('WalletService', () => {
       userRepo.findOneBy.mockResolvedValue(mockUser);
       txRepo.create.mockReturnValue(mockTx);
       txRepo.save.mockResolvedValue(mockTx);
-      paymentService.generateOutTradeNo.mockReturnValue('WD_1_123456_abcd');
+      paymentService.generateTransferBatchNo.mockReturnValue('WD_1_123456_abcd');
       paymentService.transferToWallet.mockResolvedValue({ success: true });
 
       await service.withdraw(userId, amount);
@@ -640,7 +648,7 @@ describe('WalletService', () => {
 
       expect(paymentService.queryTransferDetail).toHaveBeenCalledWith({
         outBatchNo: 'WD_9_123456_abcd',
-        outDetailNo: '9',
+        outDetailNo: '00009',
       });
       expect(mockTx.status).toBe('success');
       expect(mockTx.remark).toBe('提现成功');
