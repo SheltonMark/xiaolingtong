@@ -9,7 +9,6 @@
         <text class="ed-author-name">{{detail.publisherName}}</text>
         <view class="ed-author-meta">
           <text class="ed-author-time">{{detail.publishTime}} 发布</text>
-          <text class="ed-type-tag">{{detail.categoryText}}</text>
         </view>
       </view>
     </view>

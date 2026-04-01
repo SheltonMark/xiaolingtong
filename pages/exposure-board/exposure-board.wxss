@@ -154,14 +154,14 @@
   position: fixed;
   right: 32rpx;
   bottom: calc(160rpx + env(safe-area-inset-bottom));
+  width: 88rpx;
   height: 88rpx;
-  padding: 0 28rpx;
-  border-radius: 9999rpx;
+  border-radius: 50%;
   background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
   box-shadow: 0 12rpx 32rpx rgba(37, 99, 235, 0.28);
   display: flex;
   align-items: center;
-  gap: 10rpx;
+  justify-content: center;
   z-index: 50;
 }
 

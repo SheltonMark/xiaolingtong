@@ -33,7 +33,7 @@
         <view class="eb-card-header">
           <view class="text-avatar text-avatar-sm" style="background-color: {{item.avatarColor}};">{{item.avatarText}}</view>
           <view class="eb-header-info">
-            <text class="eb-target">{{item.publisherName || '用户分享'}}</text>
+            <text class="eb-target">{{item.publisherName}}</text>
           </view>
         </view>
 
@@ -73,6 +73,5 @@
 
   <view class="eb-fab" bindtap="onPublishExposure">
     <text class="eb-fab-icon">+</text>
-    <text class="eb-fab-text">分享经历</text>
   </view>
 </view>

@@ -55,7 +55,7 @@ Page({
     get('/exposures/' + id).then((res) => {
       const data = res.data || res || {}
       const publisher = data.publisher || {}
-      const publisherName = publisher.name || '用户分享'
+      const publisherName = publisher.name || ''
       const categoryText = data.categoryText || '维权经验'
 
       this.setData({
