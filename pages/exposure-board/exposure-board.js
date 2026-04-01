@@ -10,6 +10,29 @@ function buildTabs(categories) {
   return [{ key: '', label: '全部', avatarText: '全' }].concat(categories || [])
 }
 
+function buildCategoryLabelMap(tabs) {
+  const map = new Map()
+  ;(tabs || []).forEach((tab) => {
+    if (!tab || !tab.key) return
+    const label = String(tab.label || '').trim()
+    if (label) map.set(tab.key, label)
+  })
+  return map
+}
+
+function resolveAvatarText(item, categoryLabelMap) {
+  const categoryKey = String((item && item.category) || '').trim()
+  const labelFromTabs = categoryKey ? categoryLabelMap.get(categoryKey) : ''
+  const labelFromApi = String((item && item.type) || '').trim()
+  const label = labelFromTabs || labelFromApi
+  return (label && label[0]) || (item && item.avatarText) || '风'
+}
+
+function resolvePublisherName(item) {
+  const name = String((item && item.publisherName) || '').trim()
+  return name || '已认证用户'
+}
+
 Page({
   data: {
     statusBarHeight: 0,
@@ -69,6 +92,8 @@ Page({
       this.setData({
         list: list.map((item) => ({
           ...item,
+          publisherName: resolvePublisherName(item),
+          avatarText: resolveAvatarText(item, buildCategoryLabelMap(this.data.tabs)),
           images: normalizeImageList(item.images)
         })),
         refreshing: false,
