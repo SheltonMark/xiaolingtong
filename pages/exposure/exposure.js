@@ -1,40 +1,107 @@
 const { post, upload } = require('../../utils/request')
+const auth = require('../../utils/auth')
+const {
+  DEFAULT_EXPOSURE_CATEGORIES,
+  getExposureSettings
+} = require('../../utils/exposure-settings')
+
+function getInitialCategory() {
+  return DEFAULT_EXPOSURE_CATEGORIES[0].key
+}
 
 Page({
   data: {
-    form: { company: '', contact: '', amount: '', description: '' },
+    categories: DEFAULT_EXPOSURE_CATEGORIES,
+    form: {
+      category: getInitialCategory(),
+      amount: '',
+      description: ''
+    },
     images: [],
     isUploading: false,
     submitting: false,
     agreed: true
   },
-  onInput(e) { this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value }) },
-  onToggleAgree() { this.setData({ agreed: !this.data.agreed }) },
-  onChooseImage() {
-    if (this.data.images.length >= 9) return
-    wx.chooseMedia({ count: 9 - this.data.images.length, mediaType: ['image'], success: (res) => {
-      const newImages = res.tempFiles.map(f => f.tempFilePath)
-      const uploads = newImages.map(path => upload(path))
-      this.setData({ isUploading: true })
-      Promise.allSettled(uploads).then(results => {
-        const urls = results
-          .filter(r => r.status === 'fulfilled')
-          .map(r => (r.value.data && r.value.data.url) || r.value.data || '')
-          .filter(Boolean)
-        const failCount = results.length - urls.length
-        if (urls.length) {
-          this.setData({ images: [...this.data.images, ...urls] })
-        }
-        if (failCount > 0) {
-          wx.showToast({ title: `有${failCount}张图片上传失败，请重试`, icon: 'none' })
-        }
-      }).finally(() => {
-        this.setData({ isUploading: false })
-      })
-    }})
+
+  onLoad() {
+    if (!auth.isLoggedIn()) {
+      auth.goLogin()
+      return
+    }
+    this.loadCategories()
   },
-  onDeleteImage(e) { this.setData({ images: this.data.images.filter((_, i) => i !== e.currentTarget.dataset.index) }) },
+
+  loadCategories() {
+    getExposureSettings().then(({ categories }) => {
+      const currentCategory = this.data.form.category
+      const nextCategory = categories.some((item) => item.key === currentCategory)
+        ? currentCategory
+        : ((categories[0] && categories[0].key) || getInitialCategory())
+
+      this.setData({
+        categories,
+        'form.category': nextCategory
+      })
+    })
+  },
+
+  onInput(e) {
+    this.setData({ ['form.' + e.currentTarget.dataset.field]: e.detail.value })
+  },
+
+  onSelectCategory(e) {
+    this.setData({ 'form.category': e.currentTarget.dataset.key })
+  },
+
+  onToggleAgree() {
+    this.setData({ agreed: !this.data.agreed })
+  },
+
+  onChooseImage() {
+    if (this.data.images.length >= 9) {
+      wx.showToast({ title: '最多上传9张图片', icon: 'none' })
+      return
+    }
+
+    wx.chooseMedia({
+      count: 9 - this.data.images.length,
+      mediaType: ['image'],
+      success: (res) => {
+        const newImages = res.tempFiles.map((file) => file.tempFilePath)
+        const uploads = newImages.map((path) => upload(path))
+        this.setData({ isUploading: true })
+
+        Promise.allSettled(uploads).then((results) => {
+          const urls = results
+            .filter((item) => item.status === 'fulfilled')
+            .map((item) => (item.value.data && item.value.data.url) || item.value.data || '')
+            .filter(Boolean)
+
+          const failCount = results.length - urls.length
+          if (urls.length) {
+            this.setData({ images: this.data.images.concat(urls) })
+          }
+          if (failCount > 0) {
+            wx.showToast({ title: `有${failCount}张图片上传失败，请重试`, icon: 'none' })
+          }
+        }).finally(() => {
+          this.setData({ isUploading: false })
+        })
+      }
+    })
+  },
+
+  onDeleteImage(e) {
+    this.setData({
+      images: this.data.images.filter((_, index) => index !== e.currentTarget.dataset.index)
+    })
+  },
+
   onSubmit() {
+    if (!auth.isLoggedIn()) {
+      auth.goLogin()
+      return
+    }
     if (this.data.submitting) {
       return
     }
@@ -42,23 +109,42 @@ Page({
       wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
       return
     }
+
     const { form, agreed, images } = this.data
-    if (!form.company && !form.contact) { wx.showToast({ title: '请至少填写公司或姓名', icon: 'none' }); return }
-    if (!form.description) { wx.showToast({ title: '请输入线索说明', icon: 'none' }); return }
-    if (!agreed) { wx.showToast({ title: '请同意线索提交说明', icon: 'none' }); return }
+    const description = (form.description || '').trim()
+
+    if (!form.category) {
+      wx.showToast({ title: '请选择经历类型', icon: 'none' })
+      return
+    }
+    if (!description) {
+      wx.showToast({ title: '请填写维权经历', icon: 'none' })
+      return
+    }
+    if (description.length < 10) {
+      wx.showToast({ title: '请补充更完整的经历描述', icon: 'none' })
+      return
+    }
+    if (!agreed) {
+      wx.showToast({ title: '请先确认分享说明', icon: 'none' })
+      return
+    }
+
     wx.showLoading({ title: '提交中...' })
     this.setData({ submitting: true })
+
     post('/exposures', {
-      company: form.company,
-      contact: form.contact,
+      category: form.category,
       amount: form.amount,
-      description: form.description,
+      description,
       images
     }).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '提交成功', icon: 'success' })
-      setTimeout(() => wx.navigateBack(), 1500)
-    }).catch(() => { wx.hideLoading() }).finally(() => {
+      setTimeout(() => wx.navigateBack(), 1200)
+    }).catch(() => {
+      wx.hideLoading()
+    }).finally(() => {
       this.setData({ submitting: false })
     })
   }

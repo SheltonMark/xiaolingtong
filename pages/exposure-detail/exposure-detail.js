@@ -1,6 +1,30 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  return new Date(dateStr)
+    .toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    })
+    .replace(/\//g, '-')
+}
+
+function formatAmount(value) {
+  if (value === undefined || value === null || value === '') {
+    return ''
+  }
+
+  const amount = Number(value)
+  if (Number.isNaN(amount)) {
+    return '¥' + String(value)
+  }
+
+  return '¥' + amount.toLocaleString()
+}
+
 Page({
   data: {
     isFav: false,
@@ -10,6 +34,7 @@ Page({
     commentText: '',
     keyboardHeight: 0
   },
+
   onLoad(options) {
     if (options.id) {
       this.loadDetail(options.id)
@@ -18,7 +43,6 @@ Page({
   },
 
   onShow() {
-    // 重新加载收藏状态
     const pages = getCurrentPages()
     const currentPage = pages[pages.length - 1]
     const options = currentPage.options
@@ -28,103 +52,108 @@ Page({
   },
 
   loadDetail(id) {
-    get('/exposures/' + id).then(res => {
-      const d = res.data || {}
-      // 格式化发布时间
-      const publishTime = d.createdAt ? new Date(d.createdAt).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-') : ''
-
-      // 发布者信息
-      const publisher = d.publisher || {}
-      const publisherName = publisher.name || ''
-      const publisherAvatar = normalizeImageUrl(publisher.avatarUrl || '')
+    get('/exposures/' + id).then((res) => {
+      const data = res.data || res || {}
+      const publisher = data.publisher || {}
+      const publisherName = publisher.name || '用户分享'
+      const categoryText = data.categoryText || '维权经验'
 
       this.setData({
         detail: {
-          ...d,
-          publishTime,
+          ...data,
+          publishTime: formatDate(data.createdAt),
           publisherName,
-          publisherAvatar,
-          avatarText: publisherName ? publisherName[0] : '曝',
-          viewCount: d.viewCount || 0
+          publisherAvatar: normalizeImageUrl(publisher.avatarUrl || ''),
+          avatarText: (publisherName || categoryText || '维')[0],
+          categoryText,
+          amountText: formatAmount(data.amount),
+          viewCount: data.viewCount || 0
         },
-        images: normalizeImageList(d.images),
-        comments: (d.comments || []).map(c => ({
-          id: c.id,
-          name: c.user?.nickname || '',
-          avatarUrl: normalizeImageUrl(c.user?.avatarUrl || ''),
-          avatarText: (c.user?.nickname || '评')[0],
-          content: c.content,
-          time: this.formatTime(c.createdAt)
-        }))
+        images: normalizeImageList(data.images),
+        comments: (data.comments || []).map((item) => {
+          const nickname = (item.user && item.user.nickname) || '用户'
+          return {
+            ...item,
+            name: nickname,
+            avatarUrl: normalizeImageUrl((item.user && item.user.avatarUrl) || ''),
+            avatarText: nickname[0] || '用',
+            time: formatDate(item.createdAt)
+          }
+        })
       })
     }).catch(() => {})
   },
-  getCategoryText(category) {
-    const map = { 'false_info': '虚假信息', 'fraud': '欺诈行为', 'wage_theft': '欠薪欠款' }
-    return map[category] || '曝光'
-  },
-  formatTime(dateStr) {
-    if (!dateStr) return ''
-    const d = new Date(dateStr)
-    const now = new Date()
-    const diff = now - d
-    const minutes = Math.floor(diff / 60000)
-    const hours = Math.floor(diff / 3600000)
-    const days = Math.floor(diff / 86400000)
-    if (minutes < 1) return '刚刚'
-    if (minutes < 60) return `${minutes}分钟前`
-    if (hours < 24) return `${hours}小时前`
-    if (days < 7) return `${days}天前`
-    return d.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '-')
-  },
+
   onPreviewImage(e) {
-    wx.previewImage({ current: this.data.images[e.currentTarget.dataset.index], urls: this.data.images })
-  },
-  onCommentInput(e) { this.setData({ commentText: e.detail.value }) },
-  onSendComment() {
-    if (!this.data.commentText.trim()) return
-    wx.hideKeyboard()
-    post('/exposures/' + this.data.detail.id + '/comment', { content: this.data.commentText }).then(res => {
-      wx.showToast({ title: '评论已发送', icon: 'success' })
-      this.setData({ commentText: '', keyboardHeight: 0 })
-      this.loadDetail(this.data.detail.id)
-    }).catch(() => {})
+    wx.previewImage({
+      current: this.data.images[e.currentTarget.dataset.index],
+      urls: this.data.images
+    })
   },
 
   loadFavStatus(id) {
-    console.log('[exposure-detail] loadFavStatus called with id:', id)
-    get('/favorites').then(res => {
-      const list = res.data.list || res.data || []
-      console.log('[exposure-detail] favorites list:', list)
-      const isFav = list.some(item => {
-        // 后端返回的是完整对象，id字段就是targetId
-        const match = item.targetType === 'exposure' && String(item.id) === String(id)
-        console.log('[exposure-detail] checking item:', item, 'match:', match)
-        return match
+    get('/favorites').then((res) => {
+      const payload = res.data || res || {}
+      const list = Array.isArray(payload) ? payload : (payload.list || [])
+      const isFav = list.some((item) => {
+        const targetId = item.targetId || item.id
+        return item.targetType === 'exposure' && String(targetId) === String(id)
       })
-      console.log('[exposure-detail] isFav result:', isFav)
       this.setData({ isFav })
-    }).catch(err => {
-      console.error('[exposure-detail] loadFavStatus error:', err)
-    })
+    }).catch(() => {})
   },
 
   onToggleFav() {
-    console.log('[exposure-detail] onToggleFav called with id:', this.data.detail.id, 'current isFav:', this.data.isFav)
-    post('/favorites/toggle', { targetType: 'exposure', targetId: this.data.detail.id }).then((res) => {
-      console.log('[exposure-detail] toggle response:', res)
-      this.setData({ isFav: !this.data.isFav })
-      wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
-      // 重新加载收藏状态以确保同步
-      setTimeout(() => this.loadFavStatus(this.data.detail.id), 500)
-    }).catch(err => {
-      console.error('[exposure-detail] toggle error:', err)
+    post('/favorites/toggle', {
+      targetType: 'exposure',
+      targetId: this.data.detail.id
+    }).then(() => {
+      const nextIsFav = !this.data.isFav
+      this.setData({ isFav: nextIsFav })
+      wx.showToast({ title: nextIsFav ? '已收藏' : '已取消', icon: 'success' })
+      setTimeout(() => this.loadFavStatus(this.data.detail.id), 300)
+    }).catch(() => {})
+  },
+
+  onCommentInput(e) {
+    this.setData({
+      commentText: e.detail.value || ''
     })
   },
+
   onInputFocus(e) {
-    this.setData({ keyboardHeight: e.detail.height || 0 })
+    this.setData({
+      keyboardHeight: (e.detail && e.detail.height) || 0
+    })
   },
+
   onInputBlur() {
     this.setData({ keyboardHeight: 0 })
+  },
+
+  onSendComment() {
+    const content = (this.data.commentText || '').trim()
+    if (!content) {
+      wx.showToast({ title: '请输入评论内容', icon: 'none' })
+      return
+    }
+    if (!this.data.detail.id) {
+      return
+    }
+
+    post('/exposures/' + this.data.detail.id + '/comment', { content })
+      .then(() => {
+        wx.showToast({ title: '评论成功', icon: 'success' })
+        this.setData({ commentText: '', keyboardHeight: 0 })
+        this.loadDetail(this.data.detail.id)
+      })
+      .catch(() => {})
+  },
+
+  onShareAppMessage() {
+    return {
+      title: (this.data.detail.categoryText || '维权经验') + ' - 小灵通维权吧',
+      path: getApp().getSharePath('/pages/exposure-detail/exposure-detail?id=' + this.data.detail.id)
+    }
   }
 })

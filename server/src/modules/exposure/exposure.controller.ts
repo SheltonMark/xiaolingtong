@@ -14,6 +14,12 @@ export class ExposureController {
   }
 
   @Public()
+  @Get('settings')
+  settings() {
+    return this.exposureService.settings();
+  }
+
+  @Public()
   @Get(':id')
   detail(@Param('id') id: number) {
     return this.exposureService.detail(id);

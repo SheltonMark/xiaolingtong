@@ -1,28 +1,38 @@
-<!--pages/exposure-detail/exposure-detail.wxml-->
 <view class="ed-page">
-  <nav-bar title="曝光详情" />
-  <!-- 发布者信息 -->
+  <nav-bar title="维权详情" />
+
   <view class="ed-card">
     <view class="ed-author">
       <image wx:if="{{detail.publisherAvatar}}" src="{{detail.publisherAvatar}}" class="ed-avatar-img" mode="aspectFill" />
       <view wx:else class="text-avatar" style="width:72rpx;height:72rpx;font-size:28rpx;background-color:#64748B;">{{detail.avatarText}}</view>
       <view class="ed-author-info">
         <text class="ed-author-name">{{detail.publisherName}}</text>
-        <text class="ed-author-time">{{detail.publishTime}} 发布</text>
+        <view class="ed-author-meta">
+          <text class="ed-author-time">{{detail.publishTime}} 发布</text>
+          <text class="ed-type-tag">{{detail.categoryText}}</text>
+        </view>
       </view>
     </view>
 
-    <!-- 曝光模版信息 -->
+    <view class="ed-note">
+      <text class="ed-note-title">平台提示</text>
+      <text class="ed-note-text">本页仅用于维权经验交流，不作为对任何第三方的事实认定。内容展示前已进入人工审核与内容安全校验流程。</text>
+    </view>
+
     <view class="ed-fields">
-      <view class="ed-field" wx:if="{{detail.companyName}}"><text class="ed-field-label">对方公司</text><text class="ed-field-value">{{detail.companyName}}</text></view>
-      <view class="ed-field" wx:if="{{detail.personName}}"><text class="ed-field-label">对方姓名</text><text class="ed-field-value">{{detail.personName}}</text></view>
-      <view class="ed-field" wx:if="{{detail.amount}}"><text class="ed-field-label">欠款金额</text><text class="ed-field-value text-cta">¥{{detail.amount}}</text></view>
+      <view class="ed-field">
+        <text class="ed-field-label">分享类型</text>
+        <text class="ed-field-value">{{detail.categoryText}}</text>
+      </view>
+      <view class="ed-field" wx:if="{{detail.amountText}}">
+        <text class="ed-field-label">涉及金额</text>
+        <text class="ed-field-value">{{detail.amountText}}</text>
+      </view>
     </view>
 
     <text class="ed-content">{{detail.description}}</text>
 
-    <!-- 证据图片 -->
-    <view class="img-grid img-count-{{images.length}}">
+    <view class="img-grid img-count-{{images.length}}" wx:if="{{images.length > 0}}">
       <view class="img-grid-item" wx:for="{{images}}" wx:key="*this">
         <image src="{{item}}" mode="aspectFill" class="img-grid-img" data-index="{{index}}" bindtap="onPreviewImage" />
       </view>
@@ -33,12 +43,11 @@
       <text class="ed-meta-item"><text class="iconfont icon-pinglun"></text> {{comments.length}}条评论</text>
       <view class="ed-fav" catchtap="onToggleFav">
         <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
-        <text class="ed-meta-item">收藏</text>
+        <text class="ed-meta-item">{{isFav ? '已收藏' : '收藏'}}</text>
       </view>
     </view>
   </view>
 
-  <!-- 评论区 -->
   <view class="ed-card">
     <text class="ed-section-title">评论 ({{comments.length}})</text>
     <view class="comment-list">
@@ -57,7 +66,6 @@
     </view>
   </view>
 
-  <!-- 底部评论输入 -->
   <view class="ed-bottom" style="bottom: {{keyboardHeight}}px;">
     <input class="ed-input" placeholder="写评论..." bindinput="onCommentInput" value="{{commentText}}" adjust-position="{{false}}" bindfocus="onInputFocus" bindblur="onInputBlur" hold-keyboard="{{true}}" />
     <button class="ed-send-btn" bindtap="onSendComment">发送</button>

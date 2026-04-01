@@ -7,6 +7,7 @@ import { ExposureController } from './exposure.controller';
 import { ExposureService } from './exposure.service';
 import { Exposure } from '../../entities/exposure.entity';
 import { ExposureComment } from '../../entities/exposure-comment.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 describe('ExposureModule Integration Tests', () => {
@@ -14,6 +15,7 @@ describe('ExposureModule Integration Tests', () => {
   let service: ExposureService;
   let exposureRepository: any;
   let commentRepository: any;
+  let configRepository: any;
   let wechatSecurityService: any;
 
   beforeEach(async () => {
@@ -37,6 +39,10 @@ describe('ExposureModule Integration Tests', () => {
       save: jest.fn(),
     };
 
+    configRepository = {
+      find: jest.fn().mockResolvedValue([]),
+    };
+
     wechatSecurityService = {
       assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
     };
@@ -54,6 +60,10 @@ describe('ExposureModule Integration Tests', () => {
           useValue: commentRepository,
         },
         {
+          provide: getRepositoryToken(SysConfig),
+          useValue: configRepository,
+        },
+        {
           provide: WechatSecurityService,
           useValue: wechatSecurityService,
         },
@@ -69,6 +79,22 @@ describe('ExposureModule Integration Tests', () => {
   });
 
   describe('list Integration', () => {
+    it('should expose configurable category settings', async () => {
+      configRepository.find.mockResolvedValue([
+        { key: 'exposure_category_false_info_label', value: '虚假信息' },
+        { key: 'exposure_category_fraud_label', value: '骗货行为' },
+        { key: 'exposure_category_wage_theft_label', value: '拖欠工钱' },
+      ]);
+
+      const result = await (controller as any).settings();
+
+      expect(result.categories).toEqual([
+        { key: 'false_info', label: '虚假信息', avatarText: '虚' },
+        { key: 'fraud', label: '骗货行为', avatarText: '骗' },
+        { key: 'wage_theft', label: '拖欠工钱', avatarText: '拖' },
+      ]);
+    });
+
     it('should return paginated exposure list', async () => {
       const mockExposures = [
         {
@@ -80,7 +106,7 @@ describe('ExposureModule Integration Tests', () => {
           description: 'Unpaid wages',
           images: [],
           createdAt: new Date(),
-          publisher: { id: 1, nickname: 'User 1' },
+          publisher: { id: 1, nickname: 'User 1', role: 'enterprise' },
         },
       ];
 
@@ -93,12 +119,22 @@ describe('ExposureModule Integration Tests', () => {
         take: jest.fn().mockReturnThis(),
         getManyAndCount: jest.fn().mockResolvedValue([mockExposures, 1]),
       });
+      configRepository.find.mockResolvedValue([
+        { key: 'exposure_category_wage_theft_label', value: '拖欠工钱' },
+      ]);
 
       const result = await controller.list({ page: 1, pageSize: 20 });
 
       expect(result).toBeDefined();
       expect(result.list).toHaveLength(1);
       expect(result.total).toBe(1);
+      expect(result.list[0]).toEqual(
+        expect.objectContaining({
+          category: 'wage_theft',
+          type: '拖欠工钱',
+          avatarText: '拖',
+        }),
+      );
     });
 
     it('should filter by category', async () => {
@@ -256,14 +292,18 @@ describe('ExposureModule Integration Tests', () => {
       exposureRepository.save.mockResolvedValue(mockExposure);
 
       const result = await controller.create(1, {
-        company: 'Company A',
-        contact: 'John',
+        category: 'fraud',
         amount: 5000,
-        description: 'Unpaid wages',
+        description: '我自己的维权经历分享',
       });
 
       expect(result).toBeDefined();
       expect(exposureRepository.save).toHaveBeenCalled();
+      expect(exposureRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          category: 'fraud',
+        }),
+      );
     });
 
     it('should create exposure successfully for verified worker', async () => {
@@ -298,10 +338,9 @@ describe('ExposureModule Integration Tests', () => {
       exposureRepository.save.mockResolvedValue(mockExposure);
 
       const result = await controller.create(1, {
-        company: 'Company A',
-        contact: 'John',
+        category: 'wage_theft',
         amount: 5000,
-        description: 'Unpaid wages',
+        description: '我自己的维权经历分享',
       });
 
       expect(result).toBeDefined();
@@ -326,10 +365,9 @@ describe('ExposureModule Integration Tests', () => {
       exposureRepository.save.mockImplementation(async (payload) => payload);
 
       const result = await controller.create(1, {
-        company: 'Company A',
-        contact: 'John',
+        category: 'false_info',
         amount: 5000,
-        description: 'Unpaid wages',
+        description: '我自己的维权经历分享',
         images: { 0: 'image1.jpg', 1: 'image2.jpg' },
       });
 
@@ -369,10 +407,9 @@ describe('ExposureModule Integration Tests', () => {
       exposureRepository.findOne.mockResolvedValue(existingExposure);
 
       const result = await controller.create(1, {
-        company: 'Company A',
-        contact: 'John',
+        category: 'wage_theft',
         amount: 5000,
-        description: 'Unpaid wages',
+        description: '我自己的维权经历分享',
       });
 
       expect(result).toBe(existingExposure);
@@ -383,10 +420,10 @@ describe('ExposureModule Integration Tests', () => {
           where: expect.objectContaining({
             publisherId: 1,
             category: 'wage_theft',
-            companyName: 'Company A',
-            personName: 'John',
+            companyName: undefined,
+            personName: undefined,
             amount: 5000,
-            description: 'Unpaid wages',
+            description: '我自己的维权经历分享',
             createdAt: expect.any(Object),
           }),
           order: { createdAt: 'DESC' },
@@ -406,10 +443,9 @@ describe('ExposureModule Integration Tests', () => {
 
       await expect(
         controller.create(1, {
-          company: 'Company A',
-          contact: 'John',
+          category: 'fraud',
           amount: 5000,
-          description: 'Unpaid wages',
+          description: '我自己的维权经历分享',
         }),
       ).rejects.toThrow();
     });
@@ -419,45 +455,73 @@ describe('ExposureModule Integration Tests', () => {
 
       await expect(
         controller.create(999, {
-          company: 'Company A',
-          contact: 'John',
+          category: 'fraud',
           amount: 5000,
-          description: 'Unpaid wages',
+          description: '我自己的维权经历分享',
+        }),
+      ).rejects.toThrow();
+    });
+
+    it('should reject submissions that name third-party companies or contacts', async () => {
+      const mockUser = { id: 1, role: 'worker' };
+      const mockCert = {
+        id: 1,
+        userId: 1,
+        status: 'approved',
+        realName: 'John',
+      };
+
+      exposureRepository.manager.findOne.mockImplementation((entity) => {
+        if (entity.name === 'User') return Promise.resolve(mockUser);
+        if (entity.name === 'WorkerCert') return Promise.resolve(mockCert);
+        return Promise.resolve(null);
+      });
+
+      await expect(
+        controller.create(1, {
+          category: 'fraud',
+          company: '某某公司',
+          contact: '张三',
+          description: '这是我的维权经历',
         }),
       ).rejects.toThrow();
     });
   });
 
   describe('comment Integration', () => {
-    it('should add comment to exposure', async () => {
-      const mockComment = {
+    it('should create comment successfully', async () => {
+      const mockExposure = { id: 1 };
+      const mockUser = { id: 1, openid: 'openid-1' };
+      const savedComment = {
         id: 1,
         exposureId: 1,
         userId: 1,
         content: 'Great exposure!',
       };
 
-      exposureRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
-      commentRepository.create.mockReturnValue(mockComment);
-      commentRepository.save.mockResolvedValue(mockComment);
+      exposureRepository.findOne.mockResolvedValue(mockExposure);
+      exposureRepository.manager.findOne.mockImplementation((entity) => {
+        if (entity.name === 'User') return Promise.resolve(mockUser);
+        return Promise.resolve(null);
+      });
+      commentRepository.create.mockImplementation((payload) => payload);
+      commentRepository.save.mockResolvedValue(savedComment);
 
       const result = await controller.comment(1, 1, 'Great exposure!');
 
-      expect(result).toBeDefined();
+      expect(wechatSecurityService.assertSafeSubmission).toHaveBeenCalledWith(
+        expect.objectContaining({
+          texts: ['Great exposure!'],
+          openid: 'openid-1',
+        }),
+      );
+      expect(commentRepository.create).toHaveBeenCalledWith({
+        exposureId: 1,
+        userId: 1,
+        content: 'Great exposure!',
+      });
       expect(commentRepository.save).toHaveBeenCalled();
-    });
-
-    it('should handle empty comment content', async () => {
-      const mockComment = { id: 1, exposureId: 1, userId: 1, content: '' };
-
-      exposureRepository.manager.findOne.mockResolvedValue({ id: 1, openid: 'openid-1' });
-      commentRepository.create.mockReturnValue(mockComment);
-      commentRepository.save.mockResolvedValue(mockComment);
-
-      const result = await controller.comment(1, 1, '');
-
-      expect(result).toBeDefined();
-      expect(commentRepository.save).toHaveBeenCalled();
+      expect(result).toBe(savedComment);
     });
   });
 });

@@ -1,36 +1,56 @@
-<!--pages/exposure/exposure.wxml-->
 <view class="exp-page">
-  <nav-bar title="发布曝光" />
-  <!-- 对方公司名称 -->
-  <view class="form-card">
-    <text class="form-label">对方公司名称 <text class="label-hint">(至少填一项)</text></text>
-    <input class="form-input" placeholder="请输入对方公司全称" data-field="company" bindinput="onInput" />
+  <nav-bar title="分享维权经历" />
+
+  <view class="notice-card">
+    <text class="notice-title">分享前请确认</text>
+    <text class="notice-text">仅可分享本人真实维权经历、协商过程和结果反馈，禁止指名道姓描述第三方，内容提交后需人工审核并通过内容安全校验。</text>
   </view>
 
-  <!-- 对方姓名 -->
   <view class="form-card">
-    <text class="form-label">对方姓名 <text class="label-hint">(至少填一项)</text></text>
-    <input class="form-input" placeholder="请输入对方联系人姓名" data-field="contact" bindinput="onInput" />
-  </view>
-
-  <!-- 欠款金额 -->
-  <view class="form-card">
-    <text class="form-label required">欠款金额</text>
-    <view class="input-with-prefix">
-      <text class="input-prefix">¥</text>
-      <input class="form-input" style="flex:1;border:none;background:transparent;" type="digit" placeholder="请输入欠款金额" data-field="amount" bindinput="onInput" />
+    <text class="form-label required">经历类型</text>
+    <view class="category-grid">
+      <view
+        class="category-item {{form.category === item.key ? 'category-item-active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="key"
+        data-key="{{item.key}}"
+        bindtap="onSelectCategory"
+      >
+        <text class="category-avatar">{{item.avatarText}}</text>
+        <text class="category-text">{{item.label}}</text>
+      </view>
     </view>
   </view>
 
-  <!-- 曝光内容 -->
   <view class="form-card">
-    <text class="form-label required">曝光内容</text>
-    <textarea class="form-textarea" placeholder="请详细描述事件经过、欠款原因、沟通情况等..." data-field="description" bindinput="onInput" />
+    <text class="form-label">涉及金额 <text class="label-hint">(选填)</text></text>
+    <view class="input-with-prefix">
+      <text class="input-prefix">¥</text>
+      <input
+        class="form-input form-input-plain"
+        type="digit"
+        placeholder="如有金额损失可填写"
+        data-field="amount"
+        bindinput="onInput"
+      />
+    </view>
   </view>
 
-  <!-- 上传证据 -->
   <view class="form-card">
-    <text class="form-label">上传证据 <text class="label-hint">(最多9张)</text></text>
+    <text class="form-label required">经历描述</text>
+    <textarea
+      class="form-textarea"
+      maxlength="1000"
+      show-confirm-bar="{{false}}"
+      placeholder="请用第一人称描述你的维权经过、沟通方式和结果反馈。禁止填写第三方姓名、公司、电话、微信等可识别信息。"
+      data-field="description"
+      bindinput="onInput"
+    />
+    <text class="form-tip">建议写清时间线、你采取的措施以及最终结果，方便其他用户参考。</text>
+  </view>
+
+  <view class="form-card">
+    <text class="form-label">辅助材料 <text class="label-hint">(选填，最多9张)</text></text>
     <view class="image-grid">
       <view class="image-item" wx:for="{{images}}" wx:key="*this">
         <image src="{{item}}" mode="aspectFill" class="upload-img" />
@@ -38,21 +58,19 @@
       </view>
       <view class="image-add" bindtap="onChooseImage" wx:if="{{images.length < 9}}">
         <text class="add-icon">+</text>
-        <text class="add-text">添加</text>
+        <text class="add-text">添加图片</text>
       </view>
     </view>
   </view>
 
-  <!-- 协议勾选 -->
   <view class="agree-row" bindtap="onToggleAgree">
     <view class="agree-check {{agreed ? 'agree-checked' : ''}}">
       <text wx:if="{{agreed}}" class="agree-tick">✓</text>
     </view>
-    <text class="agree-text">我已阅读并同意<text class="text-primary">《曝光发布协议》</text>，承诺所发布内容真实有效，如有不实将承担法律责任。</text>
+    <text class="agree-text">我确认分享的是本人真实维权经历，不包含第三方可识别信息，内容将经人工审核和内容安全校验后展示。</text>
   </view>
 
-  <!-- 提交 -->
   <view class="submit-area">
-    <button class="submit-btn" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading}}">提交曝光</button>
+    <button class="submit-btn" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading}}">提交分享</button>
   </view>
 </view>
