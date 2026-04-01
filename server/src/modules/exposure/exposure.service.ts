@@ -323,8 +323,8 @@ export class ExposureService {
     const exp = this.expRepo.create({
       publisherId,
       category,
-      companyName: null,
-      personName: null,
+      companyName: undefined,
+      personName: undefined,
       amount: dto.amount,
       description: dto.description,
       images: this.normalizeStringArray(dto.images),
