@@ -13,11 +13,6 @@
       </view>
     </view>
 
-    <view class="ed-note">
-      <text class="ed-note-title">平台提示</text>
-      <text class="ed-note-text">本页仅用于维权经验交流，不作为对任何第三方的事实认定。内容展示前已进入人工审核与内容安全校验流程。</text>
-    </view>
-
     <view class="ed-fields">
       <view class="ed-field">
         <text class="ed-field-label">分享类型</text>
