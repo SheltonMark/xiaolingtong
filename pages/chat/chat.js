@@ -128,10 +128,11 @@ Page({
         const myId = Number((app.globalData.userInfo && app.globalData.userInfo.id) || 0)
         const otherMsg = rawList.find(m => Number(m.senderId) !== myId && m.sender)
         if (otherMsg && otherMsg.sender) {
+          const senderName = otherMsg.sender.name || otherMsg.sender.nickname || ''
           this.setData({
             otherAvatarUrl: normalizeImageUrl(otherMsg.sender.avatarUrl || ''),
-            otherAvatarText: otherMsg.sender.nickname ? otherMsg.sender.nickname[0] : '对',
-            otherName: otherMsg.sender.nickname || '对方',
+            otherAvatarText: senderName ? senderName[0] : '对',
+            otherName: senderName || '对方',
             otherActiveText: '',
             otherIsOnline: false
           })

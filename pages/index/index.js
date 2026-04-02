@@ -44,6 +44,48 @@ function pickBenefitValue(primary, fallback) {
   return hasBenefitValue(primary) ? primary : fallback
 }
 
+function normalizeDisplayName(value) {
+  return String(value || '').trim()
+}
+
+function isGenericEnterpriseName(value) {
+  const text = normalizeDisplayName(value)
+  if (!text) return true
+  return text === '企业' || text === '企业用户' || /^用户\d+$/.test(text)
+}
+
+function resolveEnterpriseName(item) {
+  const source = item || {}
+  const user = source.user || {}
+  const cert =
+    source.enterpriseCert ||
+    source.enterpriseCertification ||
+    source.certification ||
+    source.cert ||
+    user.enterpriseCert ||
+    user.enterpriseCertification ||
+    user.certification ||
+    user.cert ||
+    {}
+
+  const candidates = [
+    source.companyName,
+    source.publisherName,
+    source.company,
+    cert.companyName,
+    user.companyName,
+    user.realName,
+    user.name,
+    user.certName,
+    user.nickname
+  ]
+    .map(normalizeDisplayName)
+    .filter(Boolean)
+
+  const preferred = candidates.find((name) => !isGenericEnterpriseName(name))
+  return preferred || candidates[0] || '企业用户'
+}
+
 function getProcessModeLabel(item) {
   const direct = String((item && item.processModeLabel) || '').trim()
   if (direct) return direct
@@ -485,8 +527,7 @@ Page({
 
   _mapPosts(list) {
     return (Array.isArray(list) ? list : []).map(item => {
-      const verifiedName = item.companyName || ''
-      const companyName = verifiedName || '企业用户'
+      const companyName = resolveEnterpriseName(item)
       const user = item.user || {}
       return {
         ...item,
@@ -496,7 +537,7 @@ Page({
         content: item.type === 'process' ? normalizeProcessContent(item) : item.content,
         avatarUrl: normalizeImageUrl((user.avatarUrl) || ''),
         images: normalizeImageList(item.images),
-        avatarText: verifiedName ? companyName[0] : '企',
+        avatarText: companyName ? companyName[0] : '企',
         time: item.createdAt ? item.createdAt.substring(0, 10) : '',
         contactWechat: item.contactWechat || item.wechat || '',
         contactWechatQr: item.contactWechatQr || item.wechatQrImage || '',
@@ -511,7 +552,7 @@ Page({
   _mapJobs(list) {
     return (Array.isArray(list) ? list : []).map((item) => {
       const user = item.user || {}
-      const companyName = item.companyName || user.nickname || '企业用户'
+      const companyName = resolveEnterpriseName(item)
       const benefitSource = pickBenefitValue(item.benefits, item.tags)
       const benefitTags = normalizeBenefitTags(benefitSource)
       const titleText = item.title || '\u62db\u5de5\u4fe1\u606f'

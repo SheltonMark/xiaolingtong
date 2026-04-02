@@ -13,6 +13,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { User } from '../../entities/user.entity';
 import { ChatRealtimeService } from './chat-realtime.service';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 const VOICE_PREFIX = '__VOICE__';
 const RECENT_ACTIVE_WINDOW_MS = 10 * 60 * 1000;
@@ -30,10 +31,29 @@ export class ChatService {
     @InjectRepository(WorkerCert)
     private workerCertRepo: Repository<WorkerCert>,
     private realtime: ChatRealtimeService,
+    private wechatSecurityService: WechatSecurityService,
   ) {}
 
   private toNumber(value: any): number {
     return Number(value || 0);
+  }
+
+  private normalizeName(value: any): string {
+    return String(value || '').trim();
+  }
+
+  private isGenericDisplayName(value: any): boolean {
+    const text = this.normalizeName(value);
+    if (!text) return true;
+    return (
+      text === '企业用户' ||
+      text === '企业' ||
+      text === '临工用户' ||
+      text === '临工' ||
+      /^用户\d+$/.test(text) ||
+      /^企业\d+$/.test(text) ||
+      /^临工\d+$/.test(text)
+    );
   }
 
   private formatTime(date?: Date | null): string {
@@ -120,6 +140,7 @@ export class ChatService {
         ? {
             id: msg.sender.id,
             nickname: msg.sender.nickname,
+            name: msg.sender.name,
             avatarUrl: msg.sender.avatarUrl,
           }
         : null,
@@ -133,14 +154,35 @@ export class ChatService {
     workerCertMap: Map<number, WorkerCert>,
   ): string {
     const entCert = entCertMap.get(otherId);
-    if (entCert?.companyName) {
-      return entCert.companyName;
+    const enterpriseName = this.normalizeName(entCert?.companyName);
+    if (enterpriseName) {
+      return enterpriseName;
     }
 
     const workerCert = workerCertMap.get(otherId);
-    if (workerCert?.realName) {
-      return workerCert.realName;
+    const workerName = this.normalizeName(workerCert?.realName);
+    if (workerName) {
+      return workerName;
     }
+
+    let fallbackName = this.normalizeName(fallbackUser?.name);
+    if (!this.isGenericDisplayName(fallbackName)) {
+      return fallbackName;
+    }
+
+    fallbackName = '';
+
+    let fallbackNickname = this.normalizeName(fallbackUser?.nickname);
+    if (!this.isGenericDisplayName(fallbackNickname)) {
+      return fallbackNickname;
+    }
+
+    fallbackNickname = '';
+
+    fallbackUser = {
+      ...(fallbackUser || ({} as User)),
+      nickname: fallbackName || fallbackNickname || `用户${otherId}`,
+    } as User;
 
     return fallbackUser?.nickname || `用户${otherId}`;
   }
@@ -194,6 +236,42 @@ export class ChatService {
         workerCertMap.set(certUserId, cert);
       }
     });
+
+    const missingEntCertUserIds = otherUserIds.filter(
+      (id) => !entCertMap.has(Number(id)),
+    );
+    if (missingEntCertUserIds.length) {
+      const entCertFallbacks = await this.entCertRepo
+        .createQueryBuilder('c')
+        .where('c.userId IN (:...userIds)', { userIds: missingEntCertUserIds })
+        .orderBy('c.userId', 'ASC')
+        .addOrderBy('c.id', 'DESC')
+        .getMany();
+      entCertFallbacks.forEach((cert) => {
+        const certUserId = Number(cert.userId);
+        if (!entCertMap.has(certUserId)) {
+          entCertMap.set(certUserId, cert);
+        }
+      });
+    }
+
+    const missingWorkerCertUserIds = otherUserIds.filter(
+      (id) => !workerCertMap.has(Number(id)),
+    );
+    if (missingWorkerCertUserIds.length) {
+      const workerCertFallbacks = await this.workerCertRepo
+        .createQueryBuilder('c')
+        .where('c.userId IN (:...userIds)', { userIds: missingWorkerCertUserIds })
+        .orderBy('c.userId', 'ASC')
+        .addOrderBy('c.id', 'DESC')
+        .getMany();
+      workerCertFallbacks.forEach((cert) => {
+        const certUserId = Number(cert.userId);
+        if (!workerCertMap.has(certUserId)) {
+          workerCertMap.set(certUserId, cert);
+        }
+      });
+    }
 
     const conversationIds = list.map((item) => item.id);
     const unreadRows = await this.msgRepo
@@ -289,15 +367,27 @@ export class ChatService {
     const otherId = this.toNumber(isUserA ? conv.userB : conv.userA);
     const other = (isUserA ? conv.userBRef : conv.userARef) as User | null;
 
-    const entCert = await this.entCertRepo.findOne({
+    let entCert = await this.entCertRepo.findOne({
       where: { userId: otherId, status: 'approved' },
       order: { id: 'DESC' },
     });
+    if (!entCert) {
+      entCert = await this.entCertRepo.findOne({
+        where: { userId: otherId },
+        order: { id: 'DESC' },
+      });
+    }
 
-    const workerCert = await this.workerCertRepo.findOne({
+    let workerCert = await this.workerCertRepo.findOne({
       where: { userId: otherId, status: 'approved' },
       order: { id: 'DESC' },
     });
+    if (!workerCert) {
+      workerCert = await this.workerCertRepo.findOne({
+        where: { userId: otherId },
+        order: { id: 'DESC' },
+      });
+    }
 
     const entCertMap = new Map<number, EnterpriseCert>();
     if (entCert) entCertMap.set(otherId, entCert);
@@ -325,6 +415,11 @@ export class ChatService {
     const type = dto.type === 'image' ? 'image' : 'text';
     const content = String(dto.content || '').trim();
     if (!content) throw new BadRequestException('消息内容不能为空');
+
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: type === 'text' ? [content] : [],
+      images: type === 'image' ? [content] : [],
+    });
 
     const msg = this.msgRepo.create({
       conversationId,
