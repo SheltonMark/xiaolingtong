@@ -11,6 +11,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { ChatRealtimeService } from './chat-realtime.service';
 import { User } from '../../entities/user.entity';
+import { WechatSecurityModule } from '../wechat-security/wechat-security.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { User } from '../../entities/user.entity';
       User,
     ]),
     AuthModule,
+    WechatSecurityModule,
   ],
   controllers: [ChatController],
   providers: [ChatService, ChatRealtimeService],
