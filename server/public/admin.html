@@ -233,7 +233,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-certs"><div class="panel"><div class="panel-header"><h4>认证审核</h4><div class="toolbar"><select id="certTypeFilter" onchange="loadCerts()"><option value="enterprise">企业认证</option><option value="worker">临工认证</option></select><select id="certStatusFilter" onchange="loadCerts()"><option value="">全部状态</option><option value="pending">待审核</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select><button class="search-btn" onclick="loadCerts()">刷新</button></div></div><table><thead><tr id="certHeader"></tr></thead><tbody id="certTable"></tbody></table><div class="pagination" id="certPagination"></div></div></div>
     <div class="page-section" id="page-reports"><div class="panel"><div class="panel-header"><h4>举报处理</h4></div><table><thead><tr><th>ID</th><th>类型</th><th>目标ID</th><th>原因</th><th>描述</th><th>图片</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="reportTable"></tbody></table><div class="pagination" id="reportPagination"></div></div></div>
     <div class="page-section" id="page-jobs"><div class="panel"><div class="panel-header"><h4>&#25307;&#24037;&#31649;&#29702;</h4><div class="toolbar"><select id="jobManageStatusFilter" onchange="loadJobs()"><option value="">&#20840;&#37096;&#29366;&#24577;</option><option value="recruiting">&#25307;&#24037;&#20013;</option><option value="full">&#24050;&#20998;&#37197;</option><option value="working">&#36827;&#34892;&#20013;</option><option value="pending_settlement">&#24453;&#32467;&#31639;</option><option value="settled">&#24050;&#32467;&#31639;</option><option value="closed">&#24050;&#20851;&#38381;</option></select><button class="search-btn" onclick="loadJobs()">&#21047;&#26032;</button></div></div><table><thead><tr><th>ID</th><th>&#26631;&#39064;</th><th>&#20225;&#19994;</th><th>&#38656;&#27714;/&#25253;&#21517;</th><th>&#34218;&#36164;</th><th>&#26085;&#26399;</th><th>&#29366;&#24577;</th><th>&#25805;&#20316;</th></tr></thead><tbody id="jobTable"></tbody></table><div class="pagination" id="jobPagination"></div></div></div>
-    <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>图片</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
+    <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4><div class="toolbar"><button class="search-btn" onclick="loadExposures()">刷新</button></div></div><div style="margin:0 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:#F8FAFC;"><div style="font-size:13px;color:#475569;margin-bottom:12px;">维权页面 Tab 按钮文案配置（保存后，前端维权页会读取最新配置）</div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;align-items:end;"><div><label style="display:block;font-size:12px;color:#64748B;margin-bottom:6px;">Tab 1 文案</label><input id="exposureTabFalseInfoLabel" placeholder="例如：维权经历"></div><div><label style="display:block;font-size:12px;color:#64748B;margin-bottom:6px;">Tab 2 文案</label><input id="exposureTabFraudLabel" placeholder="例如：协商过程"></div><div><label style="display:block;font-size:12px;color:#64748B;margin-bottom:6px;">Tab 3 文案</label><input id="exposureTabWageTheftLabel" placeholder="例如：结果反馈"></div><div style="display:flex;justify-content:flex-end;"><button class="add-btn" onclick="saveExposureTabConfigs()">保存 Tab 配置</button></div></div></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>图片</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
     <div class="page-section" id="page-keywords"><div class="panel"><div class="panel-header"><h4>关键词黑名单</h4><div class="toolbar"><input type="text" id="newKeyword" placeholder="输入关键词"><button class="add-btn" onclick="addKeyword()">添加</button></div></div><table><thead><tr><th>ID</th><th>关键词</th><th>添加时间</th><th>操作</th></tr></thead><tbody id="keywordTable"></tbody></table></div></div>
     <div class="page-section" id="page-notices"><div class="panel"><div class="panel-header"><h4>&#20844;&#21578;&#31649;&#29702;</h4><div class="toolbar"><button class="add-btn" onclick="showNoticeModal()">&#21457;&#24067;&#20844;&#21578;</button></div></div><table><thead><tr><th>ID</th><th>&#26631;&#39064;</th><th>&#31867;&#22411;</th><th>&#29366;&#24577;</th><th>&#21019;&#24314;&#26102;&#38388;</th><th>&#25805;&#20316;</th></tr></thead><tbody id="noticeTable"></tbody></table></div></div>
     <div class="page-section" id="page-jobtypes"><div class="panel"><div class="panel-header"><h4>工种管理</h4><div class="toolbar"><input type="text" id="newJobType" placeholder="工种名称"><select id="newJobTypeSettle"><option value="hourly">计时</option><option value="piece">计件</option></select><button class="add-btn" onclick="addJobType()">添加</button></div></div><table><thead><tr><th>ID</th><th>工种名称</th><th>默认结算</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="jobTypeTable"></tbody></table></div></div>
@@ -656,8 +656,66 @@ async function loadJobs(page){
 }
 
 var exposurePage=1;
+var EXPOSURE_TAB_CONFIG_KEYS={
+  falseInfo:'exposure_category_false_info_label',
+  fraud:'exposure_category_fraud_label',
+  wageTheft:'exposure_category_wage_theft_label'
+};
+var EXPOSURE_TAB_CONFIG_DEFAULTS={
+  falseInfo:'维权经历',
+  fraud:'协商过程',
+  wageTheft:'结果反馈'
+};
+var exposureTabConfigsLoaded=false;
+
+function setExposureTabConfigInput(id,val){
+  var input=document.getElementById(id);
+  if(input)input.value=val||'';
+}
+function getExposureTabConfigInputValue(id){
+  var input=document.getElementById(id);
+  return input?String(input.value||'').trim():'';
+}
+async function loadExposureTabConfigs(force){
+  if(exposureTabConfigsLoaded&&!force)return;
+  var list=await api('/configs');
+  var map={};
+  if(Array.isArray(list)){
+    for(var i=0;i<list.length;i++){
+      var item=list[i]||{};
+      if(item.key)map[item.key]=String(item.value||'').trim();
+    }
+  }
+  setExposureTabConfigInput('exposureTabFalseInfoLabel',map[EXPOSURE_TAB_CONFIG_KEYS.falseInfo]||EXPOSURE_TAB_CONFIG_DEFAULTS.falseInfo);
+  setExposureTabConfigInput('exposureTabFraudLabel',map[EXPOSURE_TAB_CONFIG_KEYS.fraud]||EXPOSURE_TAB_CONFIG_DEFAULTS.fraud);
+  setExposureTabConfigInput('exposureTabWageTheftLabel',map[EXPOSURE_TAB_CONFIG_KEYS.wageTheft]||EXPOSURE_TAB_CONFIG_DEFAULTS.wageTheft);
+  exposureTabConfigsLoaded=true;
+}
+async function saveExposureTabConfigs(){
+  var falseInfoLabel=getExposureTabConfigInputValue('exposureTabFalseInfoLabel');
+  var fraudLabel=getExposureTabConfigInputValue('exposureTabFraudLabel');
+  var wageTheftLabel=getExposureTabConfigInputValue('exposureTabWageTheftLabel');
+  if(!falseInfoLabel||!fraudLabel||!wageTheftLabel){
+    toast('Tab 文案不能为空','error');
+    return;
+  }
+  var payloads=[
+    {key:EXPOSURE_TAB_CONFIG_KEYS.falseInfo,value:falseInfoLabel},
+    {key:EXPOSURE_TAB_CONFIG_KEYS.fraud,value:fraudLabel},
+    {key:EXPOSURE_TAB_CONFIG_KEYS.wageTheft,value:wageTheftLabel}
+  ];
+  for(var i=0;i<payloads.length;i++){
+    await api('/configs',{method:'PUT',body:payloads[i]});
+  }
+  setExposureTabConfigInput('exposureTabFalseInfoLabel',falseInfoLabel);
+  setExposureTabConfigInput('exposureTabFraudLabel',fraudLabel);
+  setExposureTabConfigInput('exposureTabWageTheftLabel',wageTheftLabel);
+  exposureTabConfigsLoaded=true;
+  toast('维权 Tab 配置已保存','success');
+}
 async function loadExposures(page){
   if(page)exposurePage=page;
+  await loadExposureTabConfigs();
   var d=await api('/exposures?page='+exposurePage);
   if(!d)return;var list=d.list||[];
   var h='';

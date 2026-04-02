@@ -1213,6 +1213,24 @@ export class AdminService {
         label: '查看机会过期提醒(提前N天)',
         group: 'other',
       },
+      {
+        key: 'exposure_category_false_info_label',
+        value: '维权经历',
+        label: '维权分类-维权经历',
+        group: 'exposure',
+      },
+      {
+        key: 'exposure_category_fraud_label',
+        value: '协商过程',
+        label: '维权分类-协商过程',
+        group: 'exposure',
+      },
+      {
+        key: 'exposure_category_wage_theft_label',
+        value: '结果反馈',
+        label: '维权分类-结果反馈',
+        group: 'exposure',
+      },
     ];
     for (const d of defaults) {
       const exists = await this.configRepo.findOne({ where: { key: d.key } });
