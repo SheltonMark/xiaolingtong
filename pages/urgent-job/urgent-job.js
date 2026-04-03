@@ -72,7 +72,7 @@ Page({
         jobInfo: {
           title: d.title || '未命名',
           salary: d.salary || 0,
-          salaryUnit: d.salaryUnit || '元/天',
+          salaryUnit: d.salaryUnit || (d.salaryType === 'piece' ? '元/件' : '元/时'),
           image: (d.images && d.images[0]) || ''
         }
       })

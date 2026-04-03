@@ -113,7 +113,8 @@
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{catePurchase}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
             <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
-              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
+              <image wx:if="{{item.iconUrl}}" class="cate-icon-img" src="{{item.iconUrl}}" mode="aspectFit" />
+              <text wx:else class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
             </view>
             <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
@@ -141,7 +142,8 @@
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{cateStock}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
             <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
-              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
+              <image wx:if="{{item.iconUrl}}" class="cate-icon-img" src="{{item.iconUrl}}" mode="aspectFit" />
+              <text wx:else class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
             </view>
             <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
           </view>
@@ -229,7 +231,7 @@
               <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{item.companyName[0]}}</view>
               <view class="job-company-info">
                 <text class="job-company">{{item.companyName}}</text>
-                <text class="job-meta">{{item.cityDistrict}} · {{item.publishDate}}</text>
+                <text class="job-meta">{{item.publishDate}}</text>
               </view>
             </view>
             <view class="job-pay">

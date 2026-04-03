@@ -12,6 +12,7 @@ import { Notification } from '../../entities/notification.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 import { findRecentDuplicate } from '../../common/recent-create-dedupe';
+import { getEnterpriseStatusDisplay, getEnterpriseStatusTone } from '../application/status-mapping';
 
 @Injectable()
 export class JobService {
@@ -70,10 +71,12 @@ export class JobService {
     return defaultValue;
   }
 
-  private buildVisibleContactInfo(job: Partial<Job>, includeHidden = false) {
-    const showPhone = includeHidden || this.parseVisibility(job.showPhone, !!job.contactPhone);
-    const showWechat = includeHidden || this.parseVisibility(job.showWechat, !!job.contactWechat);
-    const showWechatQr = includeHidden || this.parseVisibility(job.showWechatQr, !!job.contactWechatQr);
+  private buildVisibleContactInfo(job: Partial<Job>, opts: { includeHidden?: boolean; hasApplied?: boolean } = {}) {
+    const { includeHidden = false, hasApplied = false } = opts;
+    const canSee = includeHidden || hasApplied;
+    const showPhone = canSee || this.parseVisibility(job.showPhone, !!job.contactPhone);
+    const showWechat = canSee || this.parseVisibility(job.showWechat, !!job.contactWechat);
+    const showWechatQr = canSee || this.parseVisibility(job.showWechatQr, !!job.contactWechatQr);
 
     return {
       contactName: job.contactName || '',
@@ -499,7 +502,7 @@ export class JobService {
         benefits: normalizedBenefits,
         tags: benefitTags,
         allTags,
-        companyName: cert?.companyName || job.user?.nickname || '企业用户',
+        companyName: cert?.companyName || job.user?.nickname || job.user?.name || '企业用户',
         avatarUrl: job.user?.avatarUrl || '',
         user: {
           id: job.user?.id,
@@ -531,7 +534,7 @@ export class JobService {
       }),
     ]);
 
-    let companyName = job.user?.nickname || '企业用户';
+    let companyName = job.user?.nickname || job.user?.name || '企业用户';
     let verified = false;
     const avatarUrl = job.user?.avatarUrl || '';
 
@@ -550,7 +553,6 @@ export class JobService {
     const dateRange = job.dateStart && job.dateEnd
       ? `${job.dateStart} 至 ${job.dateEnd}`
       : '待定';
-    const contactInfo = this.buildVisibleContactInfo(job);
     const normalizedBenefits = this.normalizeBenefits(job.benefits) || [];
     const allTags = this.buildAllTags(normalizedBenefits, job.workHours);
 
@@ -561,6 +563,9 @@ export class JobService {
       });
       hasApplied = appCount > 0;
     }
+
+    const isOwner = currentUserId === job.userId;
+    const contactInfo = this.buildVisibleContactInfo(job, { includeHidden: isOwner, hasApplied });
 
     return {
       ...job,
@@ -655,6 +660,9 @@ export class JobService {
         urgent: isUrgent,
         urgentExpireAt: job.urgentExpireAt,
         createdAt: job.createdAt,
+        publishDate: job.createdAt
+          ? new Date(job.createdAt).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' }).replace(/\//g, '-')
+          : '',
         viewCount: 0
       };
     }));
@@ -816,7 +824,7 @@ export class JobService {
     if (!job) throw new BadRequestException('招工信息不存在');
     if (job.userId !== userId) throw new ForbiddenException('无权查看');
 
-    const companyName = await this.getEnterpriseCompanyName(job.userId, job.user?.nickname || '企业用户');
+    const companyName = await this.getEnterpriseCompanyName(job.userId, job.user?.nickname || job.user?.name || '企业用户');
     const applications = await this.appRepo.find({
       where: { jobId },
       relations: ['worker'],
@@ -840,17 +848,8 @@ export class JobService {
       const doneCount = await this.appRepo.count({
         where: { workerId: app.workerId, status: 'done' },
       });
-      const statusMap: Record<string, { text: string; tone: string }> = {
-        pending: { text: '待审核', tone: 'rose' },
-        accepted: { text: '已录用', tone: 'blue' },
-        confirmed: { text: '已确认出勤', tone: 'violet' },
-        working: { text: '进行中', tone: 'green' },
-        done: { text: '已完工', tone: 'slate' },
-        rejected: { text: '已拒绝', tone: 'slate' },
-        released: { text: '已释放', tone: 'slate' },
-        cancelled: { text: '已取消', tone: 'slate' },
-      };
-      const statusInfo = statusMap[app.status] || statusMap.pending;
+      const statusText = getEnterpriseStatusDisplay(app.status);
+      const statusTone = getEnterpriseStatusTone(app.status);
       const workerCert = workerCertMap.get(app.workerId);
       const displayName = this.normalizeText(app.worker?.nickname)
         || this.normalizeText(workerCert?.realName)
@@ -864,8 +863,8 @@ export class JobService {
         creditScore: app.worker?.creditScore || 100,
         doneCount,
         status: app.status,
-        statusText: statusInfo.text,
-        statusTone: statusInfo.tone,
+        statusText,
+        statusTone,
         isSupervisor: app.isSupervisor === 1,
         applyTime: app.createdAt ? new Date(app.createdAt).toLocaleDateString('zh-CN') : '',
         canAccept: app.status === 'pending',

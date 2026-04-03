@@ -1,5 +1,6 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
+const { formatSalaryUnit } = require('../../utils/salary')
 
 const TAB_CONFIG = [
   { label: '全部', key: 'all', countKey: 'totalRecords' },
@@ -8,11 +9,6 @@ const TAB_CONFIG = [
   { label: '进行中', key: 'ongoing', countKey: 'ongoingRecords' },
   { label: '已完成', key: 'done', countKey: 'completedRecords' }
 ]
-
-function isGenericCompanyName(name) {
-  const text = String(name || '').trim()
-  return !text || text === '企业' || text === '企业用户'
-}
 
 function formatJobDate(job) {
   if (job.dateRange) return job.dateRange
@@ -77,12 +73,8 @@ Page({
     get('/applications').then(res => {
       const rawList = res.data.list || res.data || []
       const summary = { ...this.data.summary, ...((res.data && res.data.summary) || {}) }
-      const baseList = rawList.map(item => this.normalizeApplication(item))
-      this.enrichApplicationsByJobDetail(baseList).then(list => {
-        this.setData({ list, summary, tabs: buildTabs(summary) }, () => this.applyFilter())
-      }).catch(() => {
-        this.setData({ list: baseList, summary, tabs: buildTabs(summary) }, () => this.applyFilter())
-      })
+      const list = rawList.map(item => this.normalizeApplication(item))
+      this.setData({ list, summary, tabs: buildTabs(summary) }, () => this.applyFilter())
     }).catch(() => {})
   },
 
@@ -93,44 +85,6 @@ Page({
       ? list
       : list.filter(item => item.filterKey === currentTab.key)
     this.setData({ filteredList })
-  },
-
-  enrichApplicationsByJobDetail(list) {
-    const source = Array.isArray(list) ? list : []
-    const missingNameItems = source.filter(item => item.jobId && isGenericCompanyName(item.company))
-    if (missingNameItems.length === 0) return Promise.resolve(source)
-
-    const requestByJobId = {}
-    const requests = missingNameItems.map(item => {
-      const jobId = item.jobId
-      if (!requestByJobId[jobId]) {
-        requestByJobId[jobId] = get('/jobs/' + jobId)
-          .then(res => ({ jobId, detail: res.data || {} }))
-          .catch(() => ({ jobId, detail: {} }))
-      }
-      return requestByJobId[jobId]
-    })
-
-    return Promise.all(requests).then(results => {
-      const detailMap = {}
-      results.forEach(({ jobId, detail }) => {
-        const company = detail && detail.company ? detail.company : {}
-        detailMap[jobId] = {
-          companyName: company.name || detail.companyName || '',
-          avatarUrl: normalizeImageUrl(company.avatarUrl || detail.avatarUrl || '')
-        }
-      })
-
-      return source.map(item => {
-        const detail = detailMap[item.jobId]
-        if (!detail) return item
-        return {
-          ...item,
-          company: isGenericCompanyName(detail.companyName) ? item.company : detail.companyName,
-          companyAvatarUrl: detail.avatarUrl || item.companyAvatarUrl
-        }
-      })
-    })
   },
 
   normalizeApplication(item) {
@@ -150,7 +104,7 @@ Page({
     const statusInfo = statusMap[item.status] || statusMap.pending
     const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
     const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
-    const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/天')
+    const salaryUnit = formatSalaryUnit(job.salaryUnit, job.salaryType)
 
     return {
       id: item.id,

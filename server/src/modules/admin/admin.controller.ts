@@ -267,9 +267,24 @@ export class AdminController {
     return this.adminService.adList(query);
   }
 
+  @Post('ads')
+  createAd(@Body() body: any) {
+    return this.adminService.createAd(body);
+  }
+
+  @Put('ads/:id')
+  updateAd(@Param('id') id: number, @Body() body: any) {
+    return this.adminService.updateAd(id, body);
+  }
+
   @Put('ads/:id/audit')
   auditAd(@Param('id') id: number, @Body('action') action: string) {
     return this.adminService.auditAd(id, action);
+  }
+
+  @Put('ads/:id/takedown')
+  takedownAd(@Param('id') id: number) {
+    return this.adminService.takedownAd(id);
   }
 
   // 品类标签管理

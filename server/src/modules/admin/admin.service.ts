@@ -839,6 +839,49 @@ export class AdminService {
     };
   }
 
+  async createAd(dto: any) {
+    const ad = this.adRepo.create({
+      userId: dto.userId || 0,
+      slot: dto.slot || 'banner',
+      title: dto.title,
+      imageUrl: dto.imageUrl,
+      link: dto.link || null,
+      linkType: dto.linkType || 'internal',
+      durationDays: Number(dto.durationDays) || 30,
+      price: Number(dto.price) || 0,
+      status: 'active',
+      startAt: new Date(),
+      endAt: new Date(
+        Date.now() + (Number(dto.durationDays) || 30) * 86400000,
+      ),
+    });
+    await this.adRepo.save(ad);
+    return { message: '广告已创建并上线' };
+  }
+
+  async updateAd(id: number, dto: any) {
+    const ad = await this.adRepo.findOneBy({ id });
+    if (!ad) return { message: '不存在' };
+    const update: any = {};
+    if (dto.title !== undefined) update.title = dto.title;
+    if (dto.imageUrl !== undefined) update.imageUrl = dto.imageUrl;
+    if (dto.slot !== undefined) update.slot = dto.slot;
+    if (dto.link !== undefined) update.link = dto.link || null;
+    if (dto.linkType !== undefined) update.linkType = dto.linkType || 'internal';
+    if (dto.durationDays !== undefined) {
+      update.durationDays = Number(dto.durationDays);
+      if (ad.startAt) {
+        update.endAt = new Date(
+          new Date(ad.startAt).getTime() + Number(dto.durationDays) * 86400000,
+        );
+      }
+    }
+    if (dto.price !== undefined) update.price = Number(dto.price);
+    if (Object.keys(update).length === 0) return { message: '无修改' };
+    await this.adRepo.update(id, update);
+    return { message: '已更新' };
+  }
+
   async auditAd(id: number, action: string) {
     if (action === 'approve') {
       const ad = await this.adRepo.findOneBy({ id });
@@ -854,6 +897,13 @@ export class AdminService {
       await this.adRepo.update(id, { status: 'expired' });
     }
     return { message: action === 'approve' ? '已通过' : '已驳回' };
+  }
+
+  async takedownAd(id: number) {
+    const ad = await this.adRepo.findOneBy({ id });
+    if (!ad) return { message: '不存在' };
+    await this.adRepo.update(id, { status: 'expired' });
+    return { message: '已下架' };
   }
 
   // 品类标签管理

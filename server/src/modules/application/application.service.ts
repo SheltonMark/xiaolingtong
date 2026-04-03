@@ -124,7 +124,7 @@ export class ApplicationService {
       const job = app.job;
       if (!job) return app;
       const cert = certMap.get(job.userId);
-      const companyName = cert?.companyName || job.user?.nickname || '企业用户';
+      const companyName = cert?.companyName || job.user?.nickname || job.user?.name || '企业用户';
       return {
         ...app,
         job: {

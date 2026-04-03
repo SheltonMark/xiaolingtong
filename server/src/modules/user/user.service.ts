@@ -571,7 +571,7 @@ export class UserService {
     const allowed: any = {};
     const nickname = this.normalizeText(dto.nickname);
     const phone = this.normalizeText(dto.phone);
-    if (nickname) allowed.nickname = nickname;
+    if (nickname) { allowed.nickname = nickname; allowed.name = nickname; }
     if (phone) allowed.phone = phone;
     if (Object.keys(allowed).length === 0) return { message: '无更新' };
     await this.wechatSecurityService.assertSafeSubmission({

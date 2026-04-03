@@ -1,5 +1,6 @@
 const { get, del, post } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
+const { formatSalaryUnit } = require('../../utils/salary')
 const auth = require('../../utils/auth')
 
 function formatDate(value) {
@@ -270,7 +271,7 @@ Page({
     const statusInfo = statusMap[item.status] || statusMap.pending
     const company = job.companyName || user.companyName || user.nickname || item.companyName || '企业'
     const companyAvatarUrl = normalizeImageUrl(job.avatarUrl || user.avatarUrl || '')
-    const salaryUnit = job.salaryUnit || (job.salaryType === 'piece' ? '元/件' : '元/时')
+    const salaryUnit = formatSalaryUnit(job.salaryUnit, job.salaryType)
 
     return {
       id: item.id,

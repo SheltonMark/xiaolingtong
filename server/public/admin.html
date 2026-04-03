@@ -287,7 +287,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
     <div class="page-section" id="page-notices"><div class="panel"><div class="panel-header"><h4>公告管理</h4><div class="toolbar"><button class="add-btn" onclick="showNoticeModal()">发布公告</button></div></div><table><thead><tr><th>ID</th><th>图片预览</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="noticeTable"></tbody></table></div></div>
     <div class="page-section" id="page-jobtypes"><div class="panel"><div class="panel-header"><h4>工种管理</h4><div class="toolbar"><input type="text" id="newJobType" placeholder="工种名称"><select id="newJobTypeSettle"><option value="hourly">计时</option><option value="piece">计件</option></select><button class="add-btn" onclick="addJobType()">添加</button></div></div><table><thead><tr><th>ID</th><th>图标</th><th>工种名称</th><th>默认结算</th><th>排序</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="jobTypeTable"></tbody></table></div></div>
     <div class="page-section" id="page-cities"><div class="panel"><div class="panel-header"><h4>开放城市</h4><div class="toolbar"><input type="text" id="newCity" placeholder="城市名称"><button class="add-btn" onclick="addCity()">添加</button></div></div><table><thead><tr><th>ID</th><th>城市名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="cityTable"></tbody></table></div></div>
-    <div class="page-section" id="page-ads"><div class="panel"><div class="panel-header"><h4>广告管理</h4><div class="toolbar"><select id="adStatusFilter" onchange="loadAds()"><option value="">全部状态</option><option value="pending">待审核</option><option value="active">投放中</option><option value="expired">已过期</option></select><button class="search-btn" onclick="loadAds()">刷新</button></div></div><table><thead><tr><th>ID</th><th>广告主</th><th>位置</th><th>标题</th><th>天数</th><th>价格</th><th>状态</th><th>投放时间</th><th>操作</th></tr></thead><tbody id="adTable"></tbody></table><div class="pagination" id="adPagination"></div></div></div>
+    <div class="page-section" id="page-ads"><div class="panel"><div class="panel-header"><h4>广告管理</h4><div class="toolbar"><select id="adStatusFilter" onchange="loadAds()"><option value="">全部状态</option><option value="pending">待审核</option><option value="active">投放中</option><option value="expired">已过期/已下架</option></select><button class="search-btn" onclick="loadAds()">刷新</button><button class="add-btn" onclick="showAdModal()">新增广告</button></div></div><table><thead><tr><th>ID</th><th>图片</th><th>广告主</th><th>位置</th><th>标题</th><th>跳转</th><th>天数</th><th>价格</th><th>状态</th><th>投放时间</th><th>操作</th></tr></thead><tbody id="adTable"></tbody></table><div class="pagination" id="adPagination"></div></div></div>
     <div class="page-section" id="page-admins"><div class="panel"><div class="panel-header"><h4>管理员账号</h4><div class="toolbar"><button class="add-btn" onclick="showAdminModal()">添加管理员</button></div></div><table><thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="adminTable"></tbody></table></div></div>
     <div class="page-section" id="page-categories">
       <div class="panel">
@@ -346,6 +346,34 @@ tr:hover td { background:rgba(35,39,54,.5); }
 </div></div></div>
 <div class="modal-overlay" id="joDetailPanel"><div class="modal" style="width:1020px;max-width:94vw;border-radius:16px;"><div class="panel-header"><h4 id="joDetailTitle">&#25307;&#24037;&#35814;&#24773;</h4><button class="btn btn-primary" onclick="closeJobOrderDetail()">&#20851;&#38381;</button></div><div id="joDetailContent" style="max-height:72vh;overflow:auto;padding-top:8px;"></div></div></div>
   </div>
+</div>
+<div class="modal-overlay" id="adModal">
+<div class="modal" style="width:520px;max-width:94vw;border-radius:16px;">
+  <h4 id="adModalTitle">新增广告</h4>
+  <input type="hidden" id="adModalId">
+  <div class="form-group"><label>广告标题</label><input type="text" id="adModalTitle_input" placeholder="广告标题"></div>
+  <div class="form-group"><label>投放位置</label><select id="adModalSlot"><option value="banner">横幅 Banner</option><option value="feed">信息流</option></select></div>
+  <div class="form-group"><label>广告图片</label>
+    <div class="notice-upload-row"><label class="notice-file-btn"><input type="file" id="adModalImageFile" class="notice-file-sr-only" accept="image/*" onchange="onAdImageSelected(this)">选择图片</label><img id="adModalImagePreview" style="max-width:240px;max-height:120px;border-radius:8px;display:none;border:1px solid var(--border);"></div>
+    <input type="hidden" id="adModalImageUrl">
+  </div>
+  <div class="form-group"><label>跳转类型</label>
+    <select id="adModalLinkType" onchange="onAdLinkTypeChange()">
+      <option value="">不跳转</option>
+      <option value="internal">站内信息（帖子ID）</option>
+      <option value="external">外部 H5 链接</option>
+    </select>
+  </div>
+  <div class="form-group" id="adModalLinkGroup" style="display:none;">
+    <label id="adModalLinkLabel">跳转链接</label>
+    <input type="text" id="adModalLink" placeholder="">
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+    <div class="form-group"><label>投放天数</label><input type="number" id="adModalDays" placeholder="30" value="30"></div>
+    <div class="form-group"><label>价格（元）</label><input type="number" id="adModalPrice" placeholder="0" value="0"></div>
+  </div>
+  <div class="modal-actions"><button class="cancel" onclick="hideAdModal()">取消</button><button class="confirm" onclick="saveAd()">确认</button></div>
+</div>
 </div>
 <div class="modal-overlay" id="editCatModal"><div class="modal" style="width:420px;max-width:92vw;border-radius:16px;"><h4>编辑品类</h4><input type="hidden" id="editCatId"><div class="form-group"><label>分类名称</label><input type="text" id="editCatName" placeholder="分类名称"></div><div class="form-group"><label>排序（数字越小越靠前）</label><input type="number" id="editCatSort" placeholder="0"></div><div class="form-group"><label>分类图标</label><div style="display:flex;align-items:center;gap:12px;"><img id="editCatIconPreview" style="width:48px;height:48px;border-radius:8px;object-fit:cover;display:none;border:1px solid var(--border);"><label class="notice-file-btn" style="cursor:pointer;"><input type="file" id="editCatIconFile" class="notice-file-sr-only" accept="image/*" onchange="onCatIconSelected(this,'editCatIconPreview','editCatIconUrl')">选择图标</label><button class="btn btn-danger" style="font-size:12px;padding:4px 10px;" onclick="document.getElementById('editCatIconUrl').value='';document.getElementById('editCatIconPreview').style.display='none';toast('图标已清除','info');">清除图标</button></div><input type="hidden" id="editCatIconUrl"></div><div class="modal-actions"><button class="cancel" onclick="hideEditCatModal()">取消</button><button class="confirm" onclick="saveEditCategory()">保存</button></div></div></div>
 <div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">发布公告</h4><div class="form-group"><label>公告图片（必填）</label><div class="notice-upload-row"><label class="notice-file-btn"><input type="file" id="noticeImageFile" class="notice-file-sr-only" accept="image/*" onchange="onNoticeImageSelected(this)">选择图片</label><img id="noticeImagePreview" style="max-width:200px;max-height:120px;border-radius:8px;display:none;border:1px solid var(--border);"></div><input type="hidden" id="noticeImageUrl"></div><div class="form-group"><label>展示说明</label><div style="padding:14px 16px;border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">公告将以图片形式展示在企业首页 Banner 轮播中。建议图片尺寸 750x340 像素。</div></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">取消</button><button class="confirm" onclick="saveNotice()">确认</button></div></div></div>
@@ -1590,28 +1618,122 @@ async function promptJobManagerShare(jobId){
 }
 
 var adPage=1;
+var adListCache=[];
 async function loadAds(page){
   if(page)adPage=page;
   var status=document.getElementById('adStatusFilter').value;
   var d=await api('/ads?page='+adPage+'&status='+status);
-  if(!d)return;var list=d.list||[];
-  var sm={pending:['待审核','badge-orange'],active:['投放中','badge-green'],expired:['已过期','badge-gray']};
+  if(!d)return;var list=d.list||[];adListCache=list;
+  var sm={pending:['待审核','badge-orange'],active:['投放中','badge-green'],expired:['已过期/已下架','badge-gray']};
   var h='';
   for(var i=0;i<list.length;i++){var a=list[i];var st=sm[a.status]||['未知','badge-gray'];
+    var imgCell=a.imageUrl?'<img src="'+a.imageUrl+'" style="max-width:80px;max-height:40px;border-radius:4px;object-fit:cover;">':'<span style="color:#94a3b8">无图</span>';
+    var linkCell='-';
+    if(a.link){
+      if(a.linkType==='external')linkCell='<a href="'+a.link+'" target="_blank" style="color:var(--primary);font-size:12px;">外部H5</a>';
+      else linkCell='<span style="font-size:12px;color:var(--text-muted);">帖子#'+a.link+'</span>';
+    }
     var ops='';
     if(a.status==='pending'){
       ops+='<button class="btn btn-success" onclick="auditAd('+a.id+',\x27approve\x27)">通过</button>';
       ops+='<button class="btn btn-danger" onclick="auditAd('+a.id+',\x27reject\x27)">驳回</button>';
     }
+    if(a.status==='active'){
+      ops+='<button class="btn btn-danger" onclick="takedownAd('+a.id+')">下架</button>';
+    }
+    ops+='<button class="btn btn-primary" onclick="showEditAdModal('+a.id+')">编辑</button>';
     var timeRange=a.startAt?(a.startAt||'').substring(0,10)+' ~ '+(a.endAt||'').substring(0,10):'-';
-    h+='<tr><td>'+a.id+'</td><td>'+adminDisplayName(a)+'</td><td>'+(a.slot==='banner'?'横幅':'信息流')+'</td><td>'+a.title+'</td><td>'+a.durationDays+'</td><td>'+a.price+'元</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+timeRange+'</td><td>'+ops+'</td></tr>';
+    h+='<tr><td>'+a.id+'</td><td>'+imgCell+'</td><td>'+adminDisplayName(a)+'</td><td>'+(a.slot==='banner'?'横幅':'信息流')+'</td><td>'+a.title+'</td><td>'+linkCell+'</td><td>'+a.durationDays+'</td><td>'+a.price+'元</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+timeRange+'</td><td>'+ops+'</td></tr>';
   }
-  document.getElementById('adTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无广告</td></tr>';
+  document.getElementById('adTable').innerHTML=h||'<tr><td colspan="11" class="empty">暂无广告</td></tr>';
   renderPagination('adPagination',d.total,adPage,d.pageSize,'loadAds');
 }
 async function auditAd(id,action){
   var ok=await xconfirm(action==='approve'?'确认通过该广告？':'确认驳回该广告？');
   if(ok){await api('/ads/'+id+'/audit',{method:'PUT',body:{action:action}});toast(action==='approve'?'已通过':'已驳回','success');loadAds();}
+}
+async function takedownAd(id){
+  var ok=await xconfirm('确认下架该广告？下架后将停止展示。');
+  if(ok){await api('/ads/'+id+'/takedown',{method:'PUT'});toast('已下架','success');loadAds();}
+}
+
+function onAdLinkTypeChange(){
+  var lt=document.getElementById('adModalLinkType').value;
+  var g=document.getElementById('adModalLinkGroup');
+  var label=document.getElementById('adModalLinkLabel');
+  var input=document.getElementById('adModalLink');
+  if(!lt){g.style.display='none';return;}
+  g.style.display='block';
+  if(lt==='internal'){label.textContent='帖子ID';input.placeholder='输入要跳转的帖子ID，如 123';}
+  else{label.textContent='H5 链接';input.placeholder='输入完整 URL，如 https://example.com';}
+}
+async function onAdImageSelected(input){
+  if(!input.files||!input.files[0])return;
+  var fd=new FormData();fd.append('file',input.files[0]);
+  try{
+    var res=await fetch('/api/upload',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+    var data=await res.json();
+    var url=data.url||(data.data&&data.data.url)||'';
+    if(url){document.getElementById('adModalImageUrl').value=url;var prev=document.getElementById('adModalImagePreview');prev.src=url;prev.style.display='block';toast('图片上传成功','success');}
+    else{toast('上传失败: '+(data.message||'未知错误'),'error');}
+  }catch(e){toast('上传失败: '+e.message,'error');}
+}
+function resetAdModal(){
+  document.getElementById('adModalId').value='';
+  document.getElementById('adModalTitle_input').value='';
+  document.getElementById('adModalSlot').value='banner';
+  document.getElementById('adModalImageUrl').value='';
+  document.getElementById('adModalImagePreview').style.display='none';
+  document.getElementById('adModalImagePreview').src='';
+  document.getElementById('adModalImageFile').value='';
+  document.getElementById('adModalLinkType').value='';
+  document.getElementById('adModalLink').value='';
+  document.getElementById('adModalLinkGroup').style.display='none';
+  document.getElementById('adModalDays').value='30';
+  document.getElementById('adModalPrice').value='0';
+}
+function showAdModal(){
+  resetAdModal();
+  document.getElementById('adModalTitle').textContent='新增广告';
+  document.getElementById('adModal').classList.add('show');
+}
+function showEditAdModal(id){
+  var ad=adListCache.find(function(a){return a.id===id;});
+  if(!ad)return;
+  resetAdModal();
+  document.getElementById('adModalTitle').textContent='编辑广告';
+  document.getElementById('adModalId').value=id;
+  document.getElementById('adModalTitle_input').value=ad.title||'';
+  document.getElementById('adModalSlot').value=ad.slot||'banner';
+  if(ad.imageUrl){document.getElementById('adModalImageUrl').value=ad.imageUrl;var prev=document.getElementById('adModalImagePreview');prev.src=ad.imageUrl;prev.style.display='block';}
+  document.getElementById('adModalLinkType').value=ad.linkType&&ad.link?ad.linkType:'';
+  document.getElementById('adModalLink').value=ad.link||'';
+  onAdLinkTypeChange();
+  document.getElementById('adModalDays').value=ad.durationDays||30;
+  document.getElementById('adModalPrice').value=ad.price||0;
+  document.getElementById('adModal').classList.add('show');
+}
+function hideAdModal(){document.getElementById('adModal').classList.remove('show');}
+async function saveAd(){
+  var id=document.getElementById('adModalId').value;
+  var title=document.getElementById('adModalTitle_input').value.trim();
+  if(!title){toast('请输入广告标题','error');return;}
+  var imageUrl=document.getElementById('adModalImageUrl').value;
+  if(!imageUrl){toast('请上传广告图片','error');return;}
+  var slot=document.getElementById('adModalSlot').value;
+  var linkType=document.getElementById('adModalLinkType').value||'';
+  var link=linkType?document.getElementById('adModalLink').value.trim():'';
+  var days=parseInt(document.getElementById('adModalDays').value)||30;
+  var price=parseFloat(document.getElementById('adModalPrice').value)||0;
+  var body={title:title,imageUrl:imageUrl,slot:slot,linkType:linkType||'internal',link:link,durationDays:days,price:price};
+  if(id){
+    await api('/ads/'+id,{method:'PUT',body:body});
+    toast('广告已更新','success');
+  }else{
+    await api('/ads',{method:'POST',body:body});
+    toast('广告已创建','success');
+  }
+  hideAdModal();loadAds();
 }
 
 async function loadAdmins(){

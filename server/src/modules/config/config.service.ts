@@ -51,37 +51,50 @@ export class ConfigService {
       where,
       order: { level: 'ASC', sort: 'ASC', id: 'ASC' },
     });
-    const topLevel = categories.filter((item) => Number(item.parentId || 0) === 0);
+    const topLevel = categories.filter(
+      (item) => Number(item.parentId || 0) === 0,
+    );
+    const topLevelIds = new Set(topLevel.map((item) => item.id));
     const childrenMap = new Map<number, Category[]>();
+    const orphans: Category[] = [];
 
     categories.forEach((item) => {
       const parentId = Number(item.parentId || 0);
       if (!parentId) return;
-      if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
-      childrenMap.get(parentId)?.push(item);
+      if (topLevelIds.has(parentId)) {
+        if (!childrenMap.has(parentId)) childrenMap.set(parentId, []);
+        childrenMap.get(parentId)?.push(item);
+      } else {
+        orphans.push(item);
+      }
+    });
+
+    const mapNode = (c: Category) => ({
+      id: c.id,
+      name: c.name,
+      parentId: c.parentId,
+      level: c.level,
+      sort: c.sort,
+      iconUrl: c.iconUrl || null,
     });
 
     const tree = topLevel.map((item) => ({
-      id: item.id,
-      name: item.name,
-      parentId: item.parentId,
-      level: item.level,
-      sort: item.sort,
-      children: (childrenMap.get(item.id) || []).map((child) => ({
-        id: child.id,
-        name: child.name,
-        parentId: child.parentId,
-        level: child.level,
-        sort: child.sort,
-      })),
+      ...mapNode(item),
+      children: (childrenMap.get(item.id) || []).map(mapNode),
     }));
 
-    const listSource = tree.flatMap((item) => (item.children.length ? item.children : [item]));
+    const listSource = [
+      ...tree.flatMap((item) =>
+        item.children.length ? item.children : [item],
+      ),
+      ...orphans.map(mapNode),
+    ];
     const list = listSource.map((item) => ({
       id: item.id,
       name: item.name,
       parentId: item.parentId,
       level: item.level,
+      iconUrl: item.iconUrl || null,
     }));
 
     return { list, tree };

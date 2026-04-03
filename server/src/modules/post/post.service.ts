@@ -240,7 +240,8 @@ export class PostService {
     const processModeLabel = this.getProcessModeLabel(processMode);
     return {
       ...post,
-      companyName: (cert && cert.companyName) || '',
+      companyName: (cert && cert.companyName) || post.user?.nickname || post.user?.name || '',
+      avatarUrl: post.user?.avatarUrl || '',
       processMode: processMode || undefined,
       processModeLabel: processModeLabel || undefined,
       enterpriseVerified,

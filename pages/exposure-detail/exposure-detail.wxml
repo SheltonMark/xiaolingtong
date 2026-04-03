@@ -15,7 +15,7 @@
 
     <view class="ed-fields">
       <view class="ed-field">
-        <text class="ed-field-label">分享类型</text>
+        <text class="ed-field-label">类型</text>
         <text class="ed-field-value">{{detail.categoryText}}</text>
       </view>
       <view class="ed-field" wx:if="{{detail.amountText}}">
@@ -40,6 +40,10 @@
         <text class="ed-meta-item">{{isFav ? '已收藏' : '收藏'}}</text>
       </view>
     </view>
+  </view>
+
+  <view class="ed-disclaimer">
+    <text class="ed-disclaimer-text">以上所涉及内容、数据和信息都来自于用户自发，不代表聚采通的观点和立场，如有任何不实或疑惑，请联系聚采通工作人员。</text>
   </view>
 
   <view class="ed-card">

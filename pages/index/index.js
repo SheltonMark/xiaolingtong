@@ -152,11 +152,14 @@ const JOB_FILTER_ICON_PRESETS = [
   { icon: '\ue786', bg: '#F3E8FF', iconColor: '#8B5CF6' }
 ]
 
-function buildIconFilters(labels, presets) {
-  return (labels || []).filter(Boolean).map((label, index) => {
+function buildIconFilters(items, presets) {
+  return (items || []).filter(Boolean).map((item, index) => {
+    const label = typeof item === 'string' ? item : item.name
+    const iconUrl = typeof item === 'string' ? '' : (item.iconUrl || '')
     const preset = presets[index % presets.length]
     return {
-      icon: preset.icon,
+      icon: iconUrl ? '' : preset.icon,
+      iconUrl,
       label,
       bg: preset.bg,
       iconColor: preset.iconColor,
@@ -337,19 +340,19 @@ Page({
   loadCategoryFilters() {
     const loadByBiz = (bizType) => get('/config/categories', { bizType }).then(res => {
       const payload = res.data || res || {}
-      return (payload.list || []).map(item => item && item.name).filter(Boolean)
+      return (payload.list || []).filter(item => item && item.name)
     }).catch(() => [])
 
-    Promise.all([loadByBiz('purchase'), loadByBiz('stock'), loadByBiz('process')]).then(([pLabels, sLabels, prLabels]) => {
+    Promise.all([loadByBiz('purchase'), loadByBiz('stock'), loadByBiz('process')]).then(([pItems, sItems, prItems]) => {
       const updates = {}
-      if (pLabels.length) updates.catePurchase = buildIconFilters(pLabels, CATEGORY_FILTER_ICON_PRESETS)
-      if (sLabels.length) {
-        updates.cateStock = buildIconFilters(sLabels, CATEGORY_FILTER_ICON_PRESETS)
-        updates.stockCategoryOptions = sLabels
+      if (pItems.length) updates.catePurchase = buildIconFilters(pItems, CATEGORY_FILTER_ICON_PRESETS)
+      if (sItems.length) {
+        updates.cateStock = buildIconFilters(sItems, CATEGORY_FILTER_ICON_PRESETS)
+        updates.stockCategoryOptions = sItems.map(i => i.name)
       }
-      if (prLabels.length) {
-        updates.cateProcess = buildIconFilters(prLabels, CATEGORY_FILTER_ICON_PRESETS)
-        updates.processCategoryOptions = prLabels
+      if (prItems.length) {
+        updates.cateProcess = buildIconFilters(prItems, CATEGORY_FILTER_ICON_PRESETS)
+        updates.processCategoryOptions = prItems.map(i => i.name)
       }
       if (Object.keys(updates).length) this.setData(updates)
     })
