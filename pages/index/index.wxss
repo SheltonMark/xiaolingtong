@@ -624,57 +624,35 @@
   margin-left: auto;
 }
 
-/* 招工快捷入口 */
-.job-quick-actions {
+/* 企业端招工卡片底部操作按钮 */
+.job-card-actions {
   display: flex;
-  justify-content: space-around;
-  padding: 24rpx 32rpx;
-  background-color: #ffffff;
-  border-radius: 24rpx;
-  margin: 0 24rpx 20rpx;
+  gap: 16rpx;
+  margin-top: 4rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid #F1F5F9;
 }
-.job-quick-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12rpx;
-}
-.job-quick-icon {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 20rpx;
+.job-card-action-btn {
+  flex: 1;
+  height: 72rpx;
+  border-radius: 16rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.job-quick-icon-text {
-  font-size: 36rpx;
-}
-.job-quick-label {
-  font-size: 22rpx;
-  color: #475569;
+  gap: 8rpx;
+  font-size: 26rpx;
   font-weight: 500;
 }
-
-/* 招工视图切换 */
-.job-view-toggle {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 32rpx 16rpx;
+.job-card-action-icon {
+  font-size: 28rpx;
 }
-.job-view-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 8rpx 24rpx;
-  border-radius: 999rpx;
-  font-size: 22rpx;
-  font-weight: 500;
-  color: #3B82F6;
-  background-color: #EFF6FF;
+.job-card-action-manage {
+  background: #FFF7ED;
+  color: #D97706;
 }
-.job-view-btn-active {
-  color: #ffffff;
-  background-color: #3B82F6;
+.job-card-action-settle {
+  background: #ECFDF5;
+  color: #10B981;
 }
 
 /* 悬浮发布招工按钮 */
@@ -696,8 +674,10 @@
 .pf-mode-row {
   display: flex;
   align-items: center;
-  gap: 12rpx;
-  flex-wrap: wrap;
+  gap: 20rpx;
+}
+.pf-mode-row picker {
+  flex: 1;
 }
 .pf-pill {
   height: 56rpx;

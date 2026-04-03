@@ -409,6 +409,22 @@ Page({
     })
   },
 
+  onEarlyFinishApplicant(e) {
+    const workerId = (e.detail && e.detail.id) || e.currentTarget.dataset.id
+    wx.showModal({
+      title: '提前结束',
+      content: '确认提前结束该工人的工作？工人将收到通知。',
+      confirmColor: '#D97706',
+      success: (res) => {
+        if (!res.confirm) return
+        post('/jobs/' + this.data.jobId + '/applications/' + workerId + '/early-finish').then(() => {
+          wx.showToast({ title: '已提前结束', icon: 'success' })
+          this.loadManage(this.data.jobId)
+        }).catch(() => {})
+      }
+    })
+  },
+
   onConfirmAttendance() {
     if (this.data.attendance && this.data.attendance.status === 'confirmed') {
       wx.showToast({ title: '汇总单已确认', icon: 'none' })

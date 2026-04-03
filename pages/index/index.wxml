@@ -207,38 +207,6 @@
 
     <!-- Tab 3: 招工 -->
     <view wx:if="{{currentTab === 3}}">
-      <!-- 招工管理快捷入口 -->
-      <view class="job-quick-actions">
-        <view class="job-quick-btn" bindtap="onJobManage">
-          <view class="job-quick-icon" style="background-color:#FFF7ED;">
-            <text class="job-quick-icon-text" style="color:#D97706;">&#xe61c;</text>
-          </view>
-          <text class="job-quick-label">招工管理</text>
-        </view>
-        <view class="job-quick-btn" bindtap="onSettlement">
-          <view class="job-quick-icon" style="background-color:#FFFBEB;">
-            <text class="job-quick-icon-text" style="color:#F59E0B;">&#xe611;</text>
-          </view>
-          <text class="job-quick-label">工资结算</text>
-        </view>
-        <view class="job-quick-btn" bindtap="onPublishJob">
-          <view class="job-quick-icon" style="background-color:#FFF1F2;">
-            <text class="job-quick-icon-text" style="color:#F43F5E;">&#xe619;</text>
-          </view>
-          <text class="job-quick-label">发布招工</text>
-        </view>
-      </view>
-
-      <!-- 切换视图：我的招工 / 所有招工 -->
-      <view class="job-view-toggle">
-        <view class="job-view-btn {{jobViewMode === 'mine' ? 'job-view-btn-active' : ''}}" bindtap="onToggleJobView" wx:if="{{jobViewMode !== 'mine'}}">
-          <text>我的招工</text>
-        </view>
-        <view class="job-view-btn {{jobViewMode === 'all' ? 'job-view-btn-active' : ''}}" bindtap="onToggleJobView" wx:if="{{jobViewMode !== 'all'}}">
-          <text>查看所有招工</text>
-        </view>
-      </view>
-
       <view class="cate-grid-wrap">
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{cateJob}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
@@ -251,7 +219,7 @@
       </view>
       <view class="list-wrap">
         <view class="section-header">
-          <text class="section-title">{{jobViewMode === 'mine' ? '我的招工' : '所有招工信息'}}</text>
+          <text class="section-title">我的招工</text>
         </view>
         <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
               data-id="{{item.id}}" bindtap="onJobTap">
@@ -286,8 +254,18 @@
               <view class="progress-fill" style="width: {{item.applied / item.need * 100}}%;"></view>
             </view>
           </view>
+          <view class="job-card-actions">
+            <view class="job-card-action-btn job-card-action-manage" catchtap="onJobManageCard" data-id="{{item.id}}">
+              <text class="job-card-action-icon iconfont icon-guanli"></text>
+              <text>招工管理</text>
+            </view>
+            <view class="job-card-action-btn job-card-action-settle" catchtap="onJobSettleCard" data-id="{{item.id}}">
+              <text class="job-card-action-icon iconfont icon-jiesuan"></text>
+              <text>工资结算</text>
+            </view>
+          </view>
         </view>
-        <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="{{jobViewMode === 'mine' ? '您还没有发布招工信息' : '暂无招工信息'}}" subText="{{jobViewMode === 'mine' ? '点击下方按钮发布第一条招工' : ''}}" />
+        <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="您还没有发布招工信息" subText="点击下方按钮发布第一条招工" />
       </view>
       <!-- 悬浮发布招工按钮 -->
       <view class="fab-publish" bindtap="onPublishJob">

@@ -18,6 +18,10 @@ Component({
 
     onReject(e) {
       this.triggerEvent('reject', { id: e.currentTarget.dataset.id })
+    },
+
+    onEarlyFinish(e) {
+      this.triggerEvent('earlyfinish', { id: e.currentTarget.dataset.id })
     }
   }
 })

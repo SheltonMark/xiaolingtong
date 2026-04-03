@@ -3,7 +3,7 @@ export class JobStateMachine {
   private static readonly TRANSITIONS = {
     pending: ['accepted', 'rejected', 'cancelled'],
     accepted: ['confirmed', 'rejected', 'cancelled'],
-    confirmed: ['working', 'released', 'cancelled'],
+    confirmed: ['working', 'released', 'cancelled', 'done'],
     working: ['done', 'cancelled'],
     done: [],
     rejected: [],

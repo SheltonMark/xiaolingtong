@@ -52,6 +52,16 @@ export class JobController {
     return this.jobService.rejectApplication(Number(id), Number(workerId), userId);
   }
 
+  @Post(':id/applications/:workerId/early-finish')
+  @Roles('enterprise')
+  earlyFinishApplication(
+    @Param('id') id: number,
+    @Param('workerId') workerId: number,
+    @CurrentUser('sub') userId: number,
+  ) {
+    return this.jobService.earlyFinishApplication(Number(id), Number(workerId), userId);
+  }
+
   @Post(':id/supervisor')
   @Roles('enterprise')
   setSupervisor(

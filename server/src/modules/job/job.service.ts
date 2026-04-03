@@ -870,6 +870,7 @@ export class JobService {
         applyTime: app.createdAt ? new Date(app.createdAt).toLocaleDateString('zh-CN') : '',
         canAccept: app.status === 'pending',
         canReject: ['pending', 'accepted'].includes(app.status),
+        canEarlyFinish: ['confirmed', 'working'].includes(app.status),
         canSetSupervisor: ['accepted', 'confirmed', 'working', 'done'].includes(app.status),
       };
     }));
@@ -962,6 +963,36 @@ export class JobService {
     }));
 
     return { message: '已拒绝' };
+  }
+
+  async earlyFinishApplication(jobId: number, workerId: number, userId: number) {
+    const job = await this.jobRepo.findOne({ where: { id: jobId } });
+    if (job && this.isSameUserId(job.userId, userId)) {
+      job.userId = userId as any;
+    }
+    if (!job) throw new BadRequestException('招工信息不存在');
+    if (job.userId !== userId) throw new ForbiddenException('无权操作');
+
+    const app = await this.appRepo.findOne({ where: { jobId, workerId } });
+    if (!app) throw new BadRequestException('报名记录不存在');
+    if (!['confirmed', 'working'].includes(app.status)) {
+      throw new BadRequestException('当前状态不可提前结束');
+    }
+
+    app.status = 'done';
+    await this.appRepo.save(app);
+
+    const companyName = await this.getEnterpriseCompanyName(job.userId, '企业');
+    await this.notiRepo.save(this.notiRepo.create({
+      userId: workerId,
+      type: 'job_apply',
+      title: '订单已提前结束',
+      content: `${companyName}已提前结束你在"${job.title}"的工作`,
+      link: '/pages/my-applications/my-applications',
+      data: { jobId, workerId, status: 'done', earlyFinish: true },
+    }));
+
+    return { message: '已提前结束' };
   }
 
   async setSupervisor(jobId: number, userId: number, dto: { workerId: number }) {

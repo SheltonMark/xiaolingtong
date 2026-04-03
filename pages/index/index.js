@@ -742,15 +742,9 @@ Page({
       } else if (currentTab === 2) {
         this.loadProcessList(params)
       } else if (currentTab === 3) {
-        if (this.data.jobViewMode === 'mine') {
-          get('/jobs/mine', params).then(res => {
-            this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
-          }).catch(() => {})
-        } else {
-          get('/jobs', params).then(res => {
-            this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
-          }).catch(() => {})
-        }
+        get('/jobs/mine', params).then(res => {
+          this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
+        }).catch(() => {})
       }
     } else {
       // 临工端
@@ -790,18 +784,14 @@ Page({
     }).catch(() => {})
   },
 
-  onToggleJobView() {
-    const newMode = this.data.jobViewMode === 'mine' ? 'all' : 'mine'
-    this.setData({ jobViewMode: newMode })
-    this.loadDataByCategory()
+  onJobManageCard(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + id + '&tab=applications' })
   },
 
-  onJobManage() {
-    wx.navigateTo({ url: '/pages/job-manage/job-manage' })
-  },
-
-  onSettlement() {
-    wx.navigateTo({ url: '/pages/settlement/settlement' })
+  onJobSettleCard(e) {
+    const id = e.currentTarget.dataset.id
+    wx.navigateTo({ url: '/pages/job-process/job-process?jobId=' + id + '&tab=settlement' })
   },
 
   onSearch() {

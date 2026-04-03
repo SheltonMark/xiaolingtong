@@ -60,6 +60,7 @@
     <view class="st-applicant-actions">
       <button class="st-mini-btn st-mini-primary" wx:if="{{item.canAccept}}" data-id="{{item.workerId}}" bindtap="onAccept">录用</button>
       <button class="st-mini-btn st-mini-ghost" wx:if="{{item.canReject}}" data-id="{{item.workerId}}" bindtap="onReject">拒绝</button>
+      <button class="st-mini-btn st-mini-warn" wx:if="{{item.canEarlyFinish}}" data-id="{{item.workerId}}" bindtap="onEarlyFinish">提前结束</button>
     </view>
   </view>
 </view>
