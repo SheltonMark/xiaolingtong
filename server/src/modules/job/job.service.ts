@@ -369,6 +369,7 @@ export class JobService {
       description: this.normalizeText(dto.description || dto.content),
       benefits: this.normalizeBenefits(dto.benefits ?? dto.tags),
       images: this.normalizeImages(dto.images),
+      videos: this.normalizeImages(dto.videos),
       urgent: dto.urgent ? 1 : 0,
     };
   }
@@ -564,6 +565,7 @@ export class JobService {
     return {
       ...job,
       images: this.normalizeImages(job.images) || [],
+      videos: this.normalizeImages(job.videos) || [],
       need: job.needCount,
       total: job.needCount,
       jobType: job.jobType || '',
@@ -992,7 +994,7 @@ export class JobService {
 
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [payload],
-      images: [payload.images, payload.contactWechatQr],
+      images: [payload.images, payload.contactWechatQr, payload.videos],
       openid: submitter?.openid,
     });
 
@@ -1010,10 +1012,13 @@ export class JobService {
     await this.checkKeywords((dto.title || '') + (dto.description || ''));
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [dto],
-      images: [dto.images, dto.contactWechatQr],
+      images: [dto.images, dto.contactWechatQr, dto.videos],
       openid: submitter?.openid,
     });
     Object.assign(job, dto);
+    if (Object.prototype.hasOwnProperty.call(dto, 'videos')) {
+      job.videos = this.normalizeImages(dto.videos) ?? null;
+    }
     return this.jobRepo.save(job);
   }
 

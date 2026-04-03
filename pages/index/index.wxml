@@ -168,10 +168,12 @@
     <view wx:if="{{currentTab === 2}}">
       <view class="pf-bar">
         <view class="pf-mode-row">
-          <view class="pf-pill {{processFilterMode === '' ? 'pf-pill-on' : ''}}" bindtap="onProcessModeFilter" data-mode="">全部</view>
-          <view class="pf-pill {{processFilterMode === 'offering' ? 'pf-pill-on' : ''}}" bindtap="onProcessModeFilter" data-mode="offering">承接加工</view>
-          <view class="pf-pill {{processFilterMode === 'seeking' ? 'pf-pill-on' : ''}}" bindtap="onProcessModeFilter" data-mode="seeking">找代加工</view>
-          <view class="pf-divider"></view>
+          <picker mode="selector" range="{{processModeFilterOptions}}" bindchange="onProcessModeFilterPicker">
+            <view class="pf-pill pf-pill-filter {{processFilterMode ? 'pf-pill-on' : ''}}">
+              <text>{{processFilterModeLabel || '类型'}}</text>
+              <text class="pf-arrow">▾</text>
+            </view>
+          </picker>
           <picker mode="selector" range="{{['不限'].concat(processCategoryOptions)}}" bindchange="onProcessCategoryFilter">
             <view class="pf-pill pf-pill-filter {{processFilterCategory ? 'pf-pill-on' : ''}}">
               <text>{{processFilterCategory || '品类'}}</text>

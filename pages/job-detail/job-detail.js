@@ -60,6 +60,7 @@ Page({
       const jobData = {
         ...job,
         images: normalizeImageList(job.images),
+        videos: normalizeImageList(job.videos),
         benefits: normalizeBenefits(pickBenefitValue(job.benefits, job.tags))
       }
       this.setData({ job: jobData, hasApplied: !!job.hasApplied, wechatCardVisible: false })

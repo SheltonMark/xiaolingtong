@@ -251,6 +251,8 @@ Page({
     userLocation: null, // {latitude, longitude}
     // 代加工筛选状态
     processFilterMode: '',
+    processFilterModeLabel: '',
+    processModeFilterOptions: ['全部', '承接加工', '找代加工'],
     processFilterCategory: '',
     processFilterDistance: '',
     processDistanceOptions: ['不限', '3km内', '5km内', '10km内'],
@@ -389,11 +391,24 @@ Page({
 
   loadData() {
     if (this.data.userRole === 'enterprise') {
-      // 使用 loadDataByCategory 替代，支持分类筛选
+      this._autoLocateEnterprise()
       this.loadDataByCategory()
     } else {
       this.autoLocateAndLoadWorkerJobs()
     }
+  },
+
+  _autoLocateEnterprise() {
+    if (this.data.userLocation || this._enterpriseLocating) return
+    this._enterpriseLocating = true
+    getUserLocation().then(location => {
+      this._enterpriseLocating = false
+      this.setData({ userLocation: location }, () => {
+        this.loadDataByCategory()
+      })
+    }).catch(() => {
+      this._enterpriseLocating = false
+    })
   },
 
   autoLocateAndLoadWorkerJobs() {
@@ -1345,6 +1360,17 @@ Page({
   onProcessModeFilter(e) {
     const mode = e.currentTarget.dataset.mode || ''
     this.setData({ processFilterMode: mode })
+    this.loadProcessList()
+  },
+
+  onProcessModeFilterPicker(e) {
+    const idx = Number(e.detail.value)
+    const modeMap = ['', 'offering', 'seeking']
+    const labelMap = ['', '承接加工', '找代加工']
+    this.setData({
+      processFilterMode: modeMap[idx] || '',
+      processFilterModeLabel: labelMap[idx] || ''
+    })
     this.loadProcessList()
   },
 
