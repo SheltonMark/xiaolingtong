@@ -308,10 +308,26 @@ export class AdminController {
     return this.adminService.toggleCategory(id);
   }
 
+  // 临时工业务看板
+  @Get('job-dashboard')
+  jobDashboard(@Query() query: any) {
+    return this.adminService.jobDashboard(query);
+  }
+
+  @Get('job-dashboard/:id')
+  jobDashboardDetail(@Param('id') id: number) {
+    return this.adminService.jobDashboardDetail(Number(id));
+  }
+
   // 财务管理
   @Get('finance')
   financeOverview() {
     return this.adminService.financeOverview();
+  }
+
+  @Get('finance-detail')
+  financeDetail(@Query() query: any) {
+    return this.adminService.financeDetail(query);
   }
 
   @Get('transactions')

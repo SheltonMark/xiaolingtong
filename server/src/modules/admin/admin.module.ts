@@ -26,6 +26,9 @@ import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Notification } from '../../entities/notification.entity';
+import { SettlementItem } from '../../entities/settlement-item.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 
 @Module({
   imports: [
@@ -47,6 +50,9 @@ import { Notification } from '../../entities/notification.entity';
       Category,
       MemberOrder,
       Settlement,
+      SettlementItem,
+      AttendanceSheet,
+      WorkLog,
       Wallet,
       WalletTransaction,
       BeanTransaction,

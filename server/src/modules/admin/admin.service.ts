@@ -28,6 +28,9 @@ import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Notification } from '../../entities/notification.entity';
+import { SettlementItem } from '../../entities/settlement-item.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 import * as crypto from 'crypto';
 
 function hashPwd(pwd: string): string {
@@ -76,6 +79,12 @@ export class AdminService {
     @InjectRepository(JobApplication)
     private appRepo: Repository<JobApplication>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
+    @InjectRepository(SettlementItem)
+    private settlementItemRepo: Repository<SettlementItem>,
+    @InjectRepository(AttendanceSheet)
+    private attendanceSheetRepo: Repository<AttendanceSheet>,
+    @InjectRepository(WorkLog)
+    private workLogRepo: Repository<WorkLog>,
     private jwt: JwtService,
   ) {}
 
@@ -1152,6 +1161,396 @@ export class AdminService {
     }
 
     return { message: '管理员分成比例已调整为 ' + rate + '%' };
+  }
+
+  async jobDashboard(query: any) {
+    const date = query.date || new Date().toISOString().slice(0, 10);
+    const dayStart = date + ' 00:00:00';
+    const dayEnd = date + ' 23:59:59';
+
+    const activeStatuses = ['recruiting', 'full', 'working', 'pending_settlement'];
+    const workingAppStatuses = ['confirmed', 'working'];
+
+    const [
+      todayJobs,
+      activeJobs,
+      todayApplied,
+      currentWorking,
+      todaySettlements,
+    ] = await Promise.all([
+      this.jobRepo
+        .createQueryBuilder('j')
+        .select('COUNT(DISTINCT j.id)', 'jobCount')
+        .addSelect('COUNT(DISTINCT j.userId)', 'entCount')
+        .where('j.createdAt BETWEEN :s AND :e', { s: dayStart, e: dayEnd })
+        .getRawOne(),
+      this.jobRepo
+        .createQueryBuilder('j')
+        .select('COUNT(DISTINCT j.id)', 'jobCount')
+        .addSelect('COUNT(DISTINCT j.userId)', 'entCount')
+        .where('j.status IN (:...st)', { st: activeStatuses })
+        .getRawOne(),
+      this.appRepo
+        .createQueryBuilder('a')
+        .select('COUNT(*)', 'cnt')
+        .where('a.createdAt BETWEEN :s AND :e', { s: dayStart, e: dayEnd })
+        .getRawOne(),
+      this.appRepo
+        .createQueryBuilder('a')
+        .select('COUNT(*)', 'cnt')
+        .where('a.status IN (:...st)', { st: workingAppStatuses })
+        .getRawOne(),
+      this.settlementRepo
+        .createQueryBuilder('s')
+        .select('COALESCE(SUM(s.platformFee),0)', 'profit')
+        .addSelect('COALESCE(SUM(s.supervisorFee),0)', 'supFee')
+        .addSelect('COALESCE(SUM(s.workerTotal),0)', 'workerPay')
+        .addSelect('COALESCE(SUM(s.factoryTotal),0)', 'factoryTotal')
+        .where('s.createdAt BETWEEN :s AND :e', { s: dayStart, e: dayEnd })
+        .andWhere('s.status IN (:...st)', { st: ['paid', 'distributed', 'completed'] })
+        .getRawOne(),
+    ]);
+
+    // Enterprise-level aggregation for active jobs
+    const entRows: any[] = await this.jobRepo
+      .createQueryBuilder('j')
+      .select('j.userId', 'userId')
+      .addSelect('COUNT(DISTINCT j.id)', 'activeJobCount')
+      .addSelect('COALESCE(SUM(j.needCount),0)', 'totalNeed')
+      .where('j.status IN (:...st)', { st: activeStatuses })
+      .groupBy('j.userId')
+      .getRawMany();
+
+    const entUserIds = entRows.map((r) => Number(r.userId));
+    const nameMap = await this.buildUserDisplayNameMap(entUserIds);
+
+    // Per-enterprise app counts + settlement totals
+    const enterprises: any[] = [];
+    for (const row of entRows) {
+      const uid = Number(row.userId);
+      const jobIds = await this.jobRepo
+        .createQueryBuilder('j')
+        .select('j.id')
+        .where('j.userId = :uid AND j.status IN (:...st)', { uid, st: activeStatuses })
+        .getMany();
+      const jids = jobIds.map((j) => j.id);
+
+      let totalApplied = 0;
+      let totalWorking = 0;
+      let totalSettled = 0;
+      let totalUnpaid = 0;
+
+      if (jids.length) {
+        const appCounts = await this.appRepo
+          .createQueryBuilder('a')
+          .select('COUNT(*)', 'total')
+          .addSelect(`SUM(CASE WHEN a.status IN ('confirmed','working') THEN 1 ELSE 0 END)`, 'working')
+          .where('a.jobId IN (:...jids)', { jids })
+          .getRawOne();
+        totalApplied = +(appCounts.total || 0);
+        totalWorking = +(appCounts.working || 0);
+
+        const stlSums = await this.settlementRepo
+          .createQueryBuilder('s')
+          .select('COALESCE(SUM(s.factoryTotal),0)', 'settled')
+          .addSelect(
+            `COALESCE(SUM(CASE WHEN s.status = 'pending' THEN s.factoryTotal ELSE 0 END),0)`,
+            'unpaid',
+          )
+          .where('s.jobId IN (:...jids)', { jids })
+          .getRawOne();
+        totalSettled = +(stlSums.settled || 0);
+        totalUnpaid = +(stlSums.unpaid || 0);
+      }
+
+      enterprises.push({
+        userId: uid,
+        companyName: nameMap.get(uid) || '企业' + uid,
+        activeJobCount: +row.activeJobCount,
+        totalNeed: +row.totalNeed,
+        totalApplied,
+        totalWorking,
+        totalSettled,
+        totalUnpaid,
+      });
+    }
+
+    return {
+      date,
+      todayJobCount: +(todayJobs.jobCount || 0),
+      todayEnterpriseCount: +(todayJobs.entCount || 0),
+      activeJobCount: +(activeJobs.jobCount || 0),
+      activeEnterpriseCount: +(activeJobs.entCount || 0),
+      totalWorkerApplied: +(todayApplied.cnt || 0),
+      totalWorkerWorking: +(currentWorking.cnt || 0),
+      todayProfit: +(todaySettlements.profit || 0),
+      todaySupervisorFee: +(todaySettlements.supFee || 0),
+      todayWorkerPay: +(todaySettlements.workerPay || 0),
+      todayFactoryTotal: +(todaySettlements.factoryTotal || 0),
+      enterprises,
+    };
+  }
+
+  async jobDashboardDetail(jobId: number) {
+    const job = await this.jobRepo.findOne({
+      where: { id: jobId },
+      relations: ['user'],
+    });
+    if (!job) throw new BadRequestException('招工不存在');
+
+    const applications = await this.appRepo.find({
+      where: { jobId },
+      relations: ['worker'],
+      order: { createdAt: 'ASC' },
+    });
+
+    const nameMap = await this.buildUserDisplayNameMap([
+      job.userId,
+      ...applications.map((a) => a.workerId),
+    ]);
+    const companyName = this.resolveDisplayName(nameMap, job.userId, job.user);
+
+    const summary = {
+      applied: applications.length,
+      pending: applications.filter((a) => a.status === 'pending').length,
+      accepted: applications.filter((a) => a.status === 'accepted').length,
+      confirmed: applications.filter((a) => a.status === 'confirmed').length,
+      working: applications.filter((a) => a.status === 'working').length,
+      done: applications.filter((a) => a.status === 'done').length,
+      rejected: applications.filter((a) => a.status === 'rejected').length,
+      cancelled: applications.filter((a) => a.status === 'cancelled').length,
+    };
+
+    // Settlement data
+    const settlement = await this.settlementRepo.findOne({ where: { jobId } });
+    const settlementItems = settlement
+      ? await this.settlementItemRepo.find({ where: { settlementId: settlement.id } })
+      : [];
+    const itemMap = new Map(settlementItems.map((si) => [Number(si.workerId), si]));
+
+    // Work logs for hours/pieces
+    const workLogs = await this.workLogRepo.find({ where: { jobId } });
+    const logMap = new Map<number, { hours: number; pieces: number; days: number }>();
+    for (const log of workLogs) {
+      const wid = Number(log.workerId);
+      const cur = logMap.get(wid) || { hours: 0, pieces: 0, days: 0 };
+      cur.hours += +(log.hours || 0);
+      cur.pieces += +(log.pieces || 0);
+      cur.days += 1;
+      logMap.set(wid, cur);
+    }
+
+    const workers = applications.map((a) => {
+      const wid = Number(a.workerId);
+      const w = a.worker || ({} as any);
+      const si = itemMap.get(wid);
+      const wl = logMap.get(wid);
+      return {
+        workerId: wid,
+        name: this.resolveDisplayName(nameMap, wid, w),
+        phone: w.phone || '',
+        status: a.status,
+        isSupervisor: !!(a.isSupervisor),
+        totalHours: si ? +(si.hours || 0) : wl ? wl.hours : 0,
+        totalPieces: wl ? wl.pieces : 0,
+        workerPay: si ? +(si.workerPay || 0) : 0,
+        checkInCount: wl ? wl.days : 0,
+      };
+    });
+
+    const finance = settlement
+      ? {
+          factoryTotal: +(settlement.factoryTotal || 0),
+          workerTotal: +(settlement.workerTotal || 0),
+          supervisorFee: +(settlement.supervisorFee || 0),
+          platformFee: +(settlement.platformFee || 0),
+          commissionRate: +(settlement.commissionRate || 0),
+          paymentStatus: settlement.status,
+        }
+      : {
+          factoryTotal: 0,
+          workerTotal: 0,
+          supervisorFee: 0,
+          platformFee: 0,
+          commissionRate: 0,
+          paymentStatus: 'none',
+        };
+
+    // Attendance photos
+    const sheets = await this.attendanceSheetRepo.find({ where: { jobId } });
+    const photos: string[] = [];
+    for (const sheet of sheets) {
+      const urls = sheet.photoUrls;
+      if (Array.isArray(urls)) photos.push(...urls);
+      else if (typeof urls === 'string') {
+        try { photos.push(...JSON.parse(urls)); } catch { /* skip */ }
+      }
+    }
+
+    return {
+      job: {
+        id: job.id,
+        title: job.title,
+        jobType: job.jobType,
+        status: job.status,
+        needCount: job.needCount,
+        salary: job.salary,
+        salaryUnit: job.salaryUnit,
+        dateStart: job.dateStart,
+        dateEnd: job.dateEnd,
+        workHours: job.workHours,
+        location: job.location,
+      },
+      companyName,
+      summary,
+      workers,
+      finance,
+      photos,
+    };
+  }
+
+  async financeDetail(query: any) {
+    const date = query.date || new Date().toISOString().slice(0, 10);
+    const dayStart = date + ' 00:00:00';
+    const dayEnd = date + ' 23:59:59';
+
+    // Membership today
+    const memberToday = await this.memberOrderRepo
+      .createQueryBuilder('o')
+      .select('COALESCE(SUM(o.price),0)', 'total')
+      .where('o.payStatus = :s AND o.paidAt BETWEEN :ds AND :de', { s: 'paid', ds: dayStart, de: dayEnd })
+      .getRawOne();
+    const memberOrders = await this.memberOrderRepo
+      .createQueryBuilder('o')
+      .leftJoinAndSelect('o.user', 'u')
+      .where('o.payStatus = :s AND o.paidAt BETWEEN :ds AND :de', { s: 'paid', ds: dayStart, de: dayEnd })
+      .orderBy('o.paidAt', 'DESC')
+      .getMany();
+    const memberNameMap = await this.buildUserDisplayNameMap(memberOrders.map((o) => (o as any).userId));
+
+    // Settlement aggregation today
+    const stlToday = await this.settlementRepo
+      .createQueryBuilder('s')
+      .select('COALESCE(SUM(s.factoryTotal),0)', 'factoryPaid')
+      .addSelect('COALESCE(SUM(s.workerTotal),0)', 'workerPay')
+      .addSelect('COALESCE(SUM(s.supervisorFee),0)', 'supFee')
+      .addSelect('COALESCE(SUM(s.platformFee),0)', 'profit')
+      .where('s.status IN (:...st) AND s.paidAt BETWEEN :ds AND :de', {
+        st: ['paid', 'distributed', 'completed'],
+        ds: dayStart,
+        de: dayEnd,
+      })
+      .getRawOne();
+
+    // Unpaid enterprises (settlements with status=pending)
+    const unpaidStls = await this.settlementRepo
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.job', 'j')
+      .where('s.status = :st', { st: 'pending' })
+      .getMany();
+
+    const unpaidByEnt = new Map<number, { totalOwed: number; totalPaid: number; jobs: any[] }>();
+    for (const stl of unpaidStls) {
+      const eid = Number(stl.enterpriseId);
+      const cur = unpaidByEnt.get(eid) || { totalOwed: 0, totalPaid: 0, jobs: [] };
+      cur.totalOwed += +(stl.factoryTotal || 0);
+      cur.jobs.push({
+        jobId: stl.jobId,
+        title: stl.job?.title || '',
+        factoryTotal: +(stl.factoryTotal || 0),
+        status: stl.status,
+      });
+      unpaidByEnt.set(eid, cur);
+    }
+    const unpaidEntIds = Array.from(unpaidByEnt.keys());
+    const unpaidNameMap = await this.buildUserDisplayNameMap(unpaidEntIds);
+    const unpaidEnterprises = unpaidEntIds.map((uid) => {
+      const data = unpaidByEnt.get(uid)!;
+      return {
+        userId: uid,
+        companyName: unpaidNameMap.get(uid) || '企业' + uid,
+        totalOwed: data.totalOwed,
+        totalPaid: data.totalPaid,
+        remaining: data.totalOwed - data.totalPaid,
+        jobs: data.jobs,
+      };
+    });
+
+    // Worker pay details (from all paid settlements)
+    const paidItems = await this.settlementItemRepo
+      .createQueryBuilder('si')
+      .innerJoin('si.settlement', 's')
+      .innerJoin('s.job', 'j')
+      .addSelect(['s.id', 's.status', 'j.id', 'j.title'])
+      .where('s.status IN (:...st)', { st: ['paid', 'distributed', 'completed'] })
+      .getMany();
+    const workerAgg = new Map<number, { totalPay: number; jobs: any[] }>();
+    for (const item of paidItems) {
+      const wid = Number(item.workerId);
+      const cur = workerAgg.get(wid) || { totalPay: 0, jobs: [] };
+      cur.totalPay += +(item.workerPay || 0);
+      cur.jobs.push({
+        jobId: (item as any).settlement?.job?.id || 0,
+        title: (item as any).settlement?.job?.title || '',
+        hours: +(item.hours || 0),
+        pay: +(item.workerPay || 0),
+      });
+      workerAgg.set(wid, cur);
+    }
+    const workerIds = Array.from(workerAgg.keys());
+    const workerNameMap = await this.buildUserDisplayNameMap(workerIds);
+    const workerPayDetails = workerIds.map((wid) => {
+      const data = workerAgg.get(wid)!;
+      return {
+        workerId: wid,
+        name: workerNameMap.get(wid) || '工人' + wid,
+        phone: '',
+        totalPay: data.totalPay,
+        jobs: data.jobs,
+      };
+    });
+
+    // Settlement orders list
+    const allSettlements = await this.settlementRepo
+      .createQueryBuilder('s')
+      .leftJoinAndSelect('s.job', 'j')
+      .orderBy('s.createdAt', 'DESC')
+      .limit(100)
+      .getMany();
+    const stlEntIds = allSettlements.map((s) => Number(s.enterpriseId));
+    const stlNameMap = await this.buildUserDisplayNameMap(stlEntIds);
+    const settlementOrders = allSettlements.map((s) => ({
+      jobId: s.jobId,
+      title: s.job?.title || '',
+      companyName: stlNameMap.get(Number(s.enterpriseId)) || '',
+      factoryTotal: +(s.factoryTotal || 0),
+      workerTotal: +(s.workerTotal || 0),
+      supervisorFee: +(s.supervisorFee || 0),
+      platformFee: +(s.platformFee || 0),
+      status: s.status,
+    }));
+
+    return {
+      date,
+      membership: {
+        todayAmount: +(memberToday.total || 0),
+        recentOrders: memberOrders.map((o: any) => ({
+          userId: o.userId,
+          name: memberNameMap.get(Number(o.userId)) || '',
+          amount: +(o.price || 0),
+          paidAt: o.paidAt,
+        })),
+      },
+      settlement: {
+        todayFactoryPaid: +(stlToday.factoryPaid || 0),
+        todayWorkerPay: +(stlToday.workerPay || 0),
+        todaySupervisorFee: +(stlToday.supFee || 0),
+        todayPlatformProfit: +(stlToday.profit || 0),
+        unpaidEnterprises,
+        workerPayDetails,
+        settlementOrders,
+      },
+    };
   }
 
   async initDefaultConfigs() {
