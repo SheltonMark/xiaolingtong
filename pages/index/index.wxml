@@ -228,7 +228,7 @@
           <view class="job-header">
             <view class="job-header-left">
               <image wx:if="{{myAvatarUrl || item.avatarUrl}}" src="{{myAvatarUrl || item.avatarUrl}}" class="job-avatar-img" mode="aspectFill" />
-              <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{(myName || item.companyName)[0]}}</view>
+              <view wx:else class="text-avatar text-avatar-lg" style="background-color:#10B981;">{{myName[0] || item.companyName[0]}}</view>
               <view class="job-company-info">
                 <text class="job-company">{{myName || item.companyName}}</text>
                 <text class="job-meta">{{item.publishDate}}</text>
