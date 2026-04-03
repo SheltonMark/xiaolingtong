@@ -276,7 +276,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
       </div>
       <div class="panel"><div class="panel-header"><h4>招工管理</h4><div class="toolbar"><select id="jobManageStatusFilter" onchange="loadJobs()"><option value="">全部状态</option><option value="recruiting">招工中</option><option value="full">已分配</option><option value="working">进行中</option><option value="pending_settlement">待结算</option><option value="settled">已结算</option><option value="closed">已关闭</option></select><button class="search-btn" onclick="loadJobs()">刷新</button></div></div><table><thead><tr><th>ID</th><th>标题</th><th>企业</th><th>需求/报名</th><th>薪资</th><th>日期</th><th>状态</th><th>操作</th></tr></thead><tbody id="jobTable"></tbody></table><div class="pagination" id="jobPagination"></div></div>
       <div class="modal-overlay" id="jobDetailOverlay" onclick="closeJobDashDetail()" style="display:none">
-        <div class="modal-panel" onclick="event.stopPropagation()" style="max-width:900px;max-height:90vh;overflow-y:auto">
+        <div class="modal" onclick="event.stopPropagation()" style="width:900px;max-width:94vw;max-height:90vh;overflow-y:auto">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h4 id="jobDetailTitle" style="margin:0">订单详情</h4><button onclick="closeJobDashDetail()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--text)">&times;</button></div>
           <div id="jobDetailContent"></div>
         </div>
