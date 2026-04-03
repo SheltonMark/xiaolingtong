@@ -176,7 +176,7 @@
               <text class="pf-arrow">▾</text>
             </view>
           </picker>
-          <picker mode="selector" range="{{['不限'].concat(processCategoryOptions)}}" bindchange="onProcessCategoryFilter">
+          <picker mode="selector" range="{{processCategoryPickerRange}}" bindchange="onProcessCategoryFilter">
             <view class="pf-pill pf-pill-filter {{processFilterCategory ? 'pf-pill-on' : ''}}">
               <text>{{processFilterCategory || '品类'}}</text>
               <text class="pf-arrow">▾</text>

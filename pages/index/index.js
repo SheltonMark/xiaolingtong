@@ -260,6 +260,7 @@ Page({
     processFilterDistance: '',
     processDistanceOptions: ['不限', '3km内', '5km内', '10km内'],
     processCategoryOptions: [],
+    processCategoryPickerRange: ['不限'],
     wechatCardVisible: false,
     wechatCard: {
       wechatId: '',
@@ -359,6 +360,7 @@ Page({
       if (prItems.length) {
         updates.cateProcess = buildIconFilters(prItems, CATEGORY_FILTER_ICON_PRESETS)
         updates.processCategoryOptions = prItems.map(i => i.name)
+        updates.processCategoryPickerRange = ['不限'].concat(prItems.map(i => i.name))
       }
       if (Object.keys(updates).length) this.setData(updates)
     })
@@ -1375,7 +1377,7 @@ Page({
 
   onProcessCategoryFilter(e) {
     const idx = Number(e.detail.value)
-    const allOptions = ['不限'].concat(this.data.processCategoryOptions)
+    const allOptions = this.data.processCategoryPickerRange
     const val = allOptions[idx] || ''
     this.setData({ processFilterCategory: val === '不限' ? '' : val })
     this.loadProcessList()

@@ -75,6 +75,7 @@ input,select,button,textarea { font-family:inherit; }
 .panel-header h4 { font-size:15px; font-weight:600; }
 .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:stretch; }
 .toolbar input,.toolbar select { height:36px; padding:0 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; outline:none; box-sizing:border-box; margin:0; }
+.toolbar input[type="date"]::-webkit-calendar-picker-indicator { filter:invert(0.7); cursor:pointer; }
 .toolbar select option { background:var(--bg-card); }
 .toolbar .search-btn,.toolbar .add-btn,.add-btn,.search-btn { height:36px; padding:0 16px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; box-sizing:border-box; white-space:nowrap; margin:0; display:inline-flex; align-items:center; justify-content:center; -webkit-appearance:none; appearance:none; }
 .toolbar .search-btn:hover,.toolbar .add-btn:hover,.add-btn:hover,.search-btn:hover { background:var(--accent-h); }
@@ -1150,10 +1151,12 @@ async function loadConfigs(){
       .replace(/'/g,'&#39;');
   }
   var agreementKeys=['user_agreement_content','privacy_policy_content','rights_agreement_content'];
+  var exposureKeys=['exposure_category_false_info_label','exposure_category_fraud_label','exposure_category_wage_theft_label'];
   var grouped={};
   for(var i=0;i<list.length;i++){
     var c=list[i];
     if(agreementKeys.indexOf(c.key)!==-1)continue;
+    if(exposureKeys.indexOf(c.key)!==-1)continue;
     var g=toDisplayGroup(c);
     if(!grouped[g])grouped[g]=[];
     grouped[g].push(c);
