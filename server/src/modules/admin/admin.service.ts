@@ -108,15 +108,25 @@ export class AdminService {
       this.entCertRepo
         .createQueryBuilder('cert')
         .select(['cert.userId', 'cert.companyName'])
-        .where('cert.userId IN (:...ids)', { ids })
+        .where('cert.userId IN (:...ids) AND cert.status = :st', { ids, st: 'approved' })
         .getMany(),
       this.workerCertRepo
         .createQueryBuilder('cert')
         .select(['cert.userId', 'cert.realName'])
-        .where('cert.userId IN (:...ids)', { ids })
+        .where('cert.userId IN (:...ids) AND cert.status = :st', { ids, st: 'approved' })
         .getMany(),
     ]);
 
+    // 先填入用户自己编辑的名称（nickname/name）
+    users.forEach((user) => {
+      const userId = Number(user.id);
+      nameMap.set(
+        userId,
+        user.nickname || user.name || user.phone || ('\u7528\u6237' + userId),
+      );
+    });
+
+    // 已通过实名认证的名字覆盖 nickname
     entCerts.forEach((cert) => {
       if (cert?.companyName) {
         nameMap.set(Number(cert.userId), cert.companyName);
@@ -125,18 +135,8 @@ export class AdminService {
 
     workerCerts.forEach((cert) => {
       const userId = Number(cert.userId);
-      if (!nameMap.has(userId) && cert?.realName) {
+      if (cert?.realName) {
         nameMap.set(userId, cert.realName);
-      }
-    });
-
-    users.forEach((user) => {
-      const userId = Number(user.id);
-      if (!nameMap.has(userId)) {
-        nameMap.set(
-          userId,
-          user.nickname || user.name || user.phone || ('\u7528\u6237' + userId),
-        );
       }
     });
 
