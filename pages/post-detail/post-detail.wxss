@@ -29,6 +29,23 @@
 .title-meta { display: flex; align-items: center; justify-content: space-between; }
 .meta-text { font-size: 20rpx; color: #94A3B8; }
 
+/* 地址与距离 */
+.location-row {
+  display: flex; align-items: center; gap: 8rpx; margin-bottom: 12rpx;
+}
+.loc-icon { font-size: 28rpx; color: #3B82F6; flex-shrink: 0; }
+.loc-text { font-size: 24rpx; color: #475569; flex: 1; }
+.nav-icon {
+  font-size: 32rpx; color: #3B82F6; flex-shrink: 0;
+  padding: 8rpx; margin: -8rpx;
+}
+.distance-pill {
+  display: inline-flex; align-items: center;
+  padding: 4rpx 16rpx; border-radius: 999rpx;
+  background-color: #F0FDF4; margin-bottom: 12rpx;
+}
+.distance-val { font-size: 22rpx; color: #16A34A; font-weight: 500; }
+
 /* 区块通用 */
 .section-header-row {
   display: flex; align-items: center; gap: 12rpx; margin-bottom: 24rpx;

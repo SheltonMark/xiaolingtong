@@ -333,18 +333,24 @@ Page({
   },
 
   loadCategoryFilters() {
-    get('/config/categories').then((res) => {
+    const loadByBiz = (bizType) => get('/config/categories', { bizType }).then(res => {
       const payload = res.data || res || {}
-      const labels = (payload.list || []).map((item) => item && item.name).filter(Boolean)
-      if (!labels.length) return
-      const categoryFilters = buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS)
-      this.setData({
-        catePurchase: categoryFilters,
-        cateStock: buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS),
-        cateProcess: buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS),
-        processCategoryOptions: labels
-      })
-    }).catch(() => {})
+      return (payload.list || []).map(item => item && item.name).filter(Boolean)
+    }).catch(() => [])
+
+    Promise.all([loadByBiz('purchase'), loadByBiz('stock'), loadByBiz('process')]).then(([pLabels, sLabels, prLabels]) => {
+      const updates = {}
+      if (pLabels.length) updates.catePurchase = buildIconFilters(pLabels, CATEGORY_FILTER_ICON_PRESETS)
+      if (sLabels.length) {
+        updates.cateStock = buildIconFilters(sLabels, CATEGORY_FILTER_ICON_PRESETS)
+        updates.stockCategoryOptions = sLabels
+      }
+      if (prLabels.length) {
+        updates.cateProcess = buildIconFilters(prLabels, CATEGORY_FILTER_ICON_PRESETS)
+        updates.processCategoryOptions = prLabels
+      }
+      if (Object.keys(updates).length) this.setData(updates)
+    })
   },
 
   loadJobTypes() {
@@ -710,7 +716,13 @@ Page({
         }).catch(() => {})
       } else if (currentTab === 1) {
         get('/posts', { type: 'stock', ...params }).then(res => {
-          this.setData({ stockList: this._mapPosts(res.data.list || res.data || []) })
+          const list = this._mapPosts(res.data.list || res.data || [])
+          this.setData({ stockList: list })
+          if (this.data.userLocation) {
+            calculateDistanceForList(this.data.userLocation, list).then(ld => {
+              this.setData({ stockList: ld })
+            }).catch(() => {})
+          }
         }).catch(() => {})
       } else if (currentTab === 2) {
         this.loadProcessList(params)
@@ -830,7 +842,11 @@ Page({
     } else if (currentTab === 1) {
       params.type = 'stock'
       get('/posts', params).then(res => {
-        this.setData({ stockList: this._mapPosts(res.data.list || res.data || []) })
+        const list = this._mapPosts(res.data.list || res.data || [])
+        this.setData({ stockList: list })
+        if (this.data.userLocation) {
+          calculateDistanceForList(this.data.userLocation, list).then(ld => this.setData({ stockList: ld })).catch(() => {})
+        }
       }).catch(() => {
         wx.showToast({ title: '搜索失败', icon: 'none' })
       })

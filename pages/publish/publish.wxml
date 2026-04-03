@@ -75,10 +75,6 @@
       </picker>
     </view>
     <view class="form-card">
-      <view class="form-group-inner">
-        <text class="form-label required">规格参数</text>
-        <textarea class="form-textarea" placeholder="如：入耳式，主动降噪，续航6小时" data-field="spec" bindinput="onInput" />
-      </view>
       <view class="form-row">
         <view class="form-col">
           <text class="form-label required">库存数量</text>
@@ -88,24 +84,24 @@
           </view>
         </view>
         <view class="form-col">
-          <text class="form-label required">单价</text>
+          <text class="form-label">价格 <text class="label-hint">(选填)</text></text>
           <view class="input-with-unit">
-            <input class="form-input" style="flex:1;" type="digit" placeholder="价格" data-field="price" bindinput="onInput" />
+            <input class="form-input" style="flex:1;" type="digit" placeholder="单价" data-field="price" bindinput="onInput" />
             <text class="input-unit">元</text>
           </view>
         </view>
       </view>
-      <view class="form-group-inner" style="margin-top:24rpx;">
-        <text class="form-label required">最小起订量</text>
-        <view class="input-with-unit">
-          <input class="form-input" style="flex:1;" type="number" placeholder="如：100" data-field="minOrder" bindinput="onInput" />
-          <text class="input-unit">个起</text>
-        </view>
+    </view>
+    <view class="form-card">
+      <text class="form-label required">库存所在地址</text>
+      <view class="form-picker" bindtap="onChooseLocation">
+        <text class="{{locationAddress ? '' : 'placeholder'}}">{{locationAddress || '点击选择地址'}}</text>
+        <text class="picker-arrow">📍</text>
       </view>
     </view>
     <view class="form-card">
-      <text class="form-label">补充描述 <text class="label-hint">(选填)</text></text>
-      <textarea class="form-textarea form-textarea-lg" placeholder="其他需要说明的信息，如支持OEM、可验货等" data-field="description" bindinput="onInput" />
+      <text class="form-label">详情描述 <text class="label-hint">(选填)</text></text>
+      <textarea class="form-textarea form-textarea-lg" placeholder="请描述产品详情：规格参数、包装方式、支持OEM、可验货等信息。" data-field="description" bindinput="onInput" />
     </view>
   </block>
 
@@ -130,55 +126,15 @@
       </picker>
     </view>
     <view class="form-card">
-      <text class="form-label">地址 <text class="label-hint">(选填，方便就近匹配)</text></text>
+      <text class="form-label required">地址</text>
       <view class="form-picker" bindtap="onChooseLocation">
         <text class="{{locationAddress ? '' : 'placeholder'}}">{{locationAddress || '点击选择地址'}}</text>
         <text class="picker-arrow">📍</text>
       </view>
     </view>
     <view class="form-card">
-      <text class="form-label required">工艺说明</text>
-      <textarea class="form-textarea" placeholder="详细描述加工工艺、设备能力等" data-field="processDesc" bindinput="onInput" />
-    </view>
-    <view class="form-card">
-      <view class="form-row">
-        <view class="form-col">
-          <text class="form-label required">产能</text>
-          <view class="input-with-unit">
-            <input class="form-input" style="flex:1;" type="number" placeholder="数量" data-field="capacity" bindinput="onInput" />
-            <text class="input-unit">件/天</text>
-          </view>
-        </view>
-        <view class="form-col">
-          <text class="form-label required">最小起订量</text>
-          <view class="input-with-unit">
-            <input class="form-input" style="flex:1;" type="number" placeholder="数量" data-field="minOrder" bindinput="onInput" />
-            <text class="input-unit">个起</text>
-          </view>
-        </view>
-      </view>
-      <view class="form-row" style="margin-top:24rpx;">
-        <view class="form-col">
-          <text class="form-label required">加工单价</text>
-          <view class="input-with-unit">
-            <input class="form-input" style="flex:1;" type="digit" placeholder="价格" data-field="price" bindinput="onInput" />
-            <text class="input-unit">元/件</text>
-          </view>
-        </view>
-        <view class="form-col">
-          <text class="form-label required">交货周期</text>
-          <picker mode="selector" range="{{deliveryOptions}}" bindchange="onDeliveryChange">
-            <view class="form-picker">
-              <text class="{{form.deliveryDays ? '' : 'placeholder'}}">{{form.deliveryDays || '选择'}}</text>
-              <text class="picker-arrow">📅</text>
-            </view>
-          </picker>
-        </view>
-      </view>
-    </view>
-    <view class="form-card">
-      <text class="form-label">补充描述 <text class="label-hint">(选填)</text></text>
-      <textarea class="form-textarea form-textarea-lg" placeholder="其他需要说明的信息，如来图定制、支持打样等" data-field="description" bindinput="onInput" />
+      <text class="form-label">详情描述 <text class="label-hint">(选填)</text></text>
+      <textarea class="form-textarea form-textarea-xl" placeholder="请描述加工详情：加工工艺、设备能力、产能、单价、来图定制、支持打样等信息。" data-field="description" bindinput="onInput" />
     </view>
   </block>
 

@@ -391,7 +391,7 @@ Page({
     const userRole = this.data.userRole || 'enterprise'
     const userId = this.getCurrentUserId()
     const notificationTask = get('/notifications', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } }))
-    const noticeTask = get('/notifications/notices').catch(() => ({ data: [] }))
+    const noticeTask = Promise.resolve({ data: [] })
     const walletTask = userRole === 'worker'
       ? get('/wallet/transactions', { page: 1, pageSize: 1000 }).catch(() => ({ data: { list: [] } }))
       : Promise.resolve(null)

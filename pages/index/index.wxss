@@ -690,18 +690,19 @@
 .fab-publish-text { font-size: 20rpx; font-weight: 600; margin-top: 2rpx; }
 
 /* ===== 代加工筛选栏 ===== */
-.process-filter-bar {
-  padding: 20rpx 32rpx 0;
+.pf-bar {
+  padding: 16rpx 32rpx 0;
 }
-.process-mode-tabs {
+.pf-mode-row {
   display: flex;
-  gap: 16rpx;
-  margin-bottom: 16rpx;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
 }
-.process-mode-tab {
-  flex: 1;
-  height: 64rpx;
-  border-radius: 12rpx;
+.pf-pill {
+  height: 56rpx;
+  padding: 0 24rpx;
+  border-radius: 28rpx;
   background-color: #F1F5F9;
   color: #64748B;
   font-size: 24rpx;
@@ -709,29 +710,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 4rpx;
+  white-space: nowrap;
 }
-.process-mode-tab-active {
+.pf-pill-on {
   background-color: #3B82F6;
   color: #ffffff;
 }
-.process-filter-row {
-  display: flex;
-  gap: 16rpx;
+.pf-pill-filter {
+  background-color: #FFFFFF;
+  border: 1rpx solid #E2E8F0;
 }
-.process-filter-row picker {
-  flex: 1;
+.pf-pill-filter.pf-pill-on {
+  border-color: #3B82F6;
+  background-color: #EFF6FF;
+  color: #2563EB;
 }
-.process-filter-row .filter-item {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4rpx;
-  padding: 12rpx 0;
-  background-color: #F1F5F9;
-  border-radius: 12rpx;
+.pf-arrow {
+  font-size: 18rpx;
+  margin-left: 2rpx;
 }
-.process-filter-row .filter-text {
-  font-size: 24rpx;
-  color: #1E293B;
+.pf-divider {
+  width: 1rpx;
+  height: 28rpx;
+  background-color: #E2E8F0;
 }

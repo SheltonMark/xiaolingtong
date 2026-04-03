@@ -50,6 +50,20 @@
   border-radius: 50%;
 }
 
+/* 协议/隐私链接行 */
+.cell-link {
+  background: linear-gradient(135deg, #F8FAFC 0%, #FFFFFF 100%);
+}
+.cell-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+.cell-link-icon {
+  font-size: 30rpx;
+  color: #3B82F6;
+}
+
 /* 退出登录 */
 .logout-wrap {
   margin: 48rpx 32rpx 0;

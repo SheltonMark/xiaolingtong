@@ -21,6 +21,14 @@
       <text class="tag tag-amber">{{detail.industry}}</text>
     </view>
     <text class="detail-title">{{detail.title}}</text>
+    <view class="location-row" wx:if="{{detail.address || detail.location}}">
+      <text class="loc-icon iconfont icon-address"></text>
+      <text class="loc-text">{{detail.address || detail.location}}</text>
+      <text class="nav-icon iconfont icon-daohang" wx:if="{{detail.lat && detail.lng}}" bindtap="onNavigate"></text>
+    </view>
+    <view wx:if="{{detail.distanceText}}" class="distance-pill">
+      <text class="distance-val">距您 {{detail.distanceText}}</text>
+    </view>
     <view class="title-meta">
       <text class="meta-text">发布时间：{{detail.publishTime}}</text>
       <text class="meta-text">有效期至：{{detail.expireTime}}</text>

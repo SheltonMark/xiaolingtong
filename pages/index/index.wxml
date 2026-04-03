@@ -153,6 +153,7 @@
         </view>
         <info-card wx:for="{{stockList}}" wx:key="id"
                    item="{{item}}"
+                   show-distance="{{true}}"
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
                    bind:phone="onPhone"
@@ -165,24 +166,22 @@
 
     <!-- Tab 2: 代加工 -->
     <view wx:if="{{currentTab === 2}}">
-      <!-- 二级筛选栏：类型 + 品类 + 距离 -->
-      <view class="process-filter-bar">
-        <view class="process-mode-tabs">
-          <view class="process-mode-tab {{processFilterMode === '' ? 'process-mode-tab-active' : ''}}" bindtap="onProcessModeFilter" data-mode="">全部</view>
-          <view class="process-mode-tab {{processFilterMode === 'offering' ? 'process-mode-tab-active' : ''}}" bindtap="onProcessModeFilter" data-mode="offering">承接加工</view>
-          <view class="process-mode-tab {{processFilterMode === 'seeking' ? 'process-mode-tab-active' : ''}}" bindtap="onProcessModeFilter" data-mode="seeking">找代加工</view>
-        </view>
-        <view class="process-filter-row">
+      <view class="pf-bar">
+        <view class="pf-mode-row">
+          <view class="pf-pill {{processFilterMode === '' ? 'pf-pill-on' : ''}}" bindtap="onProcessModeFilter" data-mode="">全部</view>
+          <view class="pf-pill {{processFilterMode === 'offering' ? 'pf-pill-on' : ''}}" bindtap="onProcessModeFilter" data-mode="offering">承接加工</view>
+          <view class="pf-pill {{processFilterMode === 'seeking' ? 'pf-pill-on' : ''}}" bindtap="onProcessModeFilter" data-mode="seeking">找代加工</view>
+          <view class="pf-divider"></view>
           <picker mode="selector" range="{{['不限'].concat(processCategoryOptions)}}" bindchange="onProcessCategoryFilter">
-            <view class="filter-item">
-              <text class="filter-text">{{processFilterCategory || '品类'}}</text>
-              <view class="filter-arrow-triangle"></view>
+            <view class="pf-pill pf-pill-filter {{processFilterCategory ? 'pf-pill-on' : ''}}">
+              <text>{{processFilterCategory || '品类'}}</text>
+              <text class="pf-arrow">▾</text>
             </view>
           </picker>
           <picker mode="selector" range="{{processDistanceOptions}}" bindchange="onProcessDistanceFilter">
-            <view class="filter-item">
-              <text class="filter-text">{{processFilterDistance || '距离'}}</text>
-              <view class="filter-arrow-triangle"></view>
+            <view class="pf-pill pf-pill-filter {{processFilterDistance ? 'pf-pill-on' : ''}}">
+              <text>{{processFilterDistance || '距离'}}</text>
+              <text class="pf-arrow">▾</text>
             </view>
           </picker>
         </view>

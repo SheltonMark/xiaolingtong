@@ -65,7 +65,9 @@ Page({
   },
 
   loadCategories() {
-    get('/config/categories').then((res) => {
+    const bizTypes = ['purchase', 'stock', 'process']
+    const bizType = bizTypes[this.data.typeIndex] || 'purchase'
+    get('/config/categories', { bizType }).then((res) => {
       const payload = res.data || res || {}
       const list = (payload.list || []).map((item) => item && item.name).filter(Boolean)
       this.setData({
@@ -120,7 +122,9 @@ Page({
   },
 
   onTypeChange(e) {
-    this.setData({ typeIndex: Number(e.currentTarget.dataset.index) })
+    this.setData({ typeIndex: Number(e.currentTarget.dataset.index) }, () => {
+      this.loadCategories()
+    })
   },
 
   onInput(e) {
@@ -259,6 +263,10 @@ Page({
     }
     if (!form.category) {
       wx.showToast({ title: '请选择品类', icon: 'none' })
+      return
+    }
+    if ((typeIndex === 2 || typeIndex === 1) && !locationAddress) {
+      wx.showToast({ title: '请选择地址', icon: 'none' })
       return
     }
     if (!phoneChecked && !wechatChecked && !wechatQrChecked) {

@@ -1,5 +1,6 @@
 const { get, post } = require('../../utils/request')
 const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
+const { calculateDistanceForList, getUserLocation } = require('../../utils/distance')
 const auth = require('../../utils/auth')
 
 const TYPE_TEXT_MAP = {
@@ -165,17 +166,13 @@ Page({
     } else if (type === 'stock') {
       this.pushDetailField(list, '物品名称', source.productName || detail.title, { bold: true })
       this.pushDetailField(list, '品类', detail.industry)
-      this.pushDetailField(list, '规格参数', source.spec)
       this.pushDetailField(list, '库存数量', source.quantity ? `${source.quantity}个` : '')
-      this.pushDetailField(list, '单价', source.price ? `${source.price}元` : '', { highlight: true })
-      this.pushDetailField(list, '最小起订量', source.minOrder ? `${source.minOrder}个` : '')
+      this.pushDetailField(list, '价格', source.price ? `${source.price}元` : '', { highlight: true })
+      this.pushDetailField(list, '库存地址', detail.address || detail.location)
     } else if (type === 'process') {
       this.pushDetailField(list, '加工类型', this.getProcessModeLabel(detail) || source.processType || detail.title, { bold: true })
-      this.pushDetailField(list, '工艺说明', source.processDesc)
-      this.pushDetailField(list, '产能', source.capacity ? `${source.capacity}件/天` : '')
-      this.pushDetailField(list, '加工单价', source.price ? `${source.price}元/件` : '', { highlight: true })
-      this.pushDetailField(list, '最小起订量', source.minOrder ? `${source.minOrder}个` : '')
-      this.pushDetailField(list, '交货周期', source.deliveryDays)
+      this.pushDetailField(list, '品类', detail.industry)
+      this.pushDetailField(list, '地址', detail.address || detail.location)
     }
 
     if (!list.length) {
@@ -240,7 +237,34 @@ Page({
         isUnlocked,
         wechatCardVisible: false
       })
+
+      if (detail.lat || detail.lng || detail.address || detail.location) {
+        getUserLocation()
+          .then(userLocation => calculateDistanceForList(userLocation, [detail]))
+          .then(listWithDistance => {
+            const item = Array.isArray(listWithDistance) ? listWithDistance[0] : null
+            if (!item || !item.distanceText) return
+            this.setData({
+              'detail.distance': item.distance,
+              'detail.distanceText': item.distanceText
+            })
+          })
+          .catch(() => {})
+      }
     }).catch(() => {})
+  },
+
+  onNavigate() {
+    const { detail } = this.data
+    const lat = Number(detail.lat)
+    const lng = Number(detail.lng)
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || (!lat && !lng)) {
+      wx.showToast({ title: '暂无导航坐标', icon: 'none' })
+      return
+    }
+    wx.navigateTo({
+      url: `/pages/navigation/navigation?lat=${lat}&lng=${lng}&name=${encodeURIComponent(detail.title || '目的地')}&address=${encodeURIComponent(detail.address || detail.location || '')}`
+    })
   },
 
   onSwiperChange(e) {

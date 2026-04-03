@@ -27,12 +27,18 @@
   </view>
 
   <view class="section">
-    <view class="cell cell-border" bindtap="onAgreement">
-      <text class="cell-label">用户协议</text>
+    <view class="cell cell-border cell-link" bindtap="onAgreement">
+      <view class="cell-left">
+        <text class="cell-link-icon iconfont icon-xiangqing"></text>
+        <text class="cell-label">用户协议</text>
+      </view>
       <text class="cell-arrow">›</text>
     </view>
-    <view class="cell cell-border" bindtap="onPrivacy">
-      <text class="cell-label">隐私政策</text>
+    <view class="cell cell-border cell-link" bindtap="onPrivacy">
+      <view class="cell-left">
+        <text class="cell-link-icon iconfont icon-anquan"></text>
+        <text class="cell-label">隐私政策</text>
+      </view>
       <text class="cell-arrow">›</text>
     </view>
     <view class="cell">
