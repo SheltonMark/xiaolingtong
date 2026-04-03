@@ -525,8 +525,8 @@ export class PostService {
       showWechatQr: wechatQrVisible ? 1 : 0,
     };
     if (normalizedAddress) postData.address = normalizedAddress;
-    if (Number.isFinite(parsedLat)) postData.lat = parsedLat;
-    if (Number.isFinite(parsedLng)) postData.lng = parsedLng;
+    if (Number.isFinite(parsedLat)) postData.lat = parsedLat!;
+    if (Number.isFinite(parsedLng)) postData.lng = parsedLng!;
     if (Object.keys(structuredFields).length) postData.fields = structuredFields;
     if (normalizedImages?.length) postData.images = normalizedImages;
     if (normalizedContactName) postData.contactName = normalizedContactName;
