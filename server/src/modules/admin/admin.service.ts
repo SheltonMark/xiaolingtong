@@ -841,7 +841,7 @@ export class AdminService {
 
   async createAd(dto: any) {
     const ad = this.adRepo.create({
-      userId: dto.userId || 0,
+      userId: dto.userId || null,
       slot: dto.slot || 'banner',
       title: dto.title,
       imageUrl: dto.imageUrl,
@@ -925,9 +925,9 @@ export class AdminService {
     bizType?: string,
     iconUrl?: string,
   ) {
-    const exists = await this.categoryRepo.findOne({
-      where: { name, parentId },
-    });
+    const where: any = { name, parentId };
+    if (bizType) where.bizType = bizType;
+    const exists = await this.categoryRepo.findOne({ where });
     if (exists) return { message: '分类已存在' };
     await this.categoryRepo.save(
       this.categoryRepo.create({

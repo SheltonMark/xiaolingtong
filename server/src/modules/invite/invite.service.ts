@@ -59,10 +59,24 @@ export class InviteService {
       list: list.map((r) => ({
         id: r.id,
         inviteeId: r.inviteeId,
-        nickname: r.invitee?.nickname || '',
+        nickname:
+          r.invitee?.nickname || r.invitee?.name || r.invitee?.phone || '',
         avatarUrl: r.invitee?.avatarUrl || '',
         role: r.invitee?.role || '',
-        createdAt: r.createdAt,
+        createdAt: r.createdAt
+          ? new Date(r.createdAt)
+              .toLocaleString('zh-CN', {
+                timeZone: 'Asia/Shanghai',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+              })
+              .replace(/\//g, '-')
+          : '',
       })),
       total,
       page: +page,

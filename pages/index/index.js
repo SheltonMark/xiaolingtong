@@ -309,6 +309,12 @@ Page({
     if (userRole === 'worker') {
       this.autoLocateAndLoadWorkerJobs()
     } else {
+      const app = getApp()
+      const ui = app.globalData.userInfo || {}
+      this.setData({
+        myAvatarUrl: ui.avatarUrl || app.globalData.avatarUrl || wx.getStorageSync('avatarUrl') || '',
+        myName: ui.nickname || ui.name || wx.getStorageSync('nickname') || ''
+      })
       this.loadHomeBanners()
       this.loadData()
     }

@@ -389,6 +389,15 @@ tr:hover td { background:rgba(35,39,54,.5); }
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="userDetailModal">
+  <div class="modal" style="width:600px;max-width:94vw;border-radius:16px;">
+    <h4>用户详情</h4>
+    <div id="userDetailContent" style="max-height:68vh;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="document.getElementById('userDetailModal').classList.remove('show')">关闭</button>
+    </div>
+  </div>
+</div>
 <div id="toastContainer" class="toast-container"></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
 <div class="prompt-overlay" id="promptOverlay"><div class="prompt-box"><p id="promptMsg"></p><input type="text" id="promptInput"><div class="prompt-btns"><button class="pb-cancel" onclick="promptResolve(null)">取消</button><button class="pb-ok" onclick="promptResolve(document.getElementById('promptInput').value)">确认</button></div></div></div>
@@ -1451,9 +1460,11 @@ function adminDisplayName(item){
 function formatJobSalary(amount,unit){
   var value=Number(amount||0);
   var text=Number.isInteger(value)?value.toFixed(0):value.toFixed(2);
+  if(!unit)return text+'元';
+  var u=String(unit).trim();
+  if(/^元\//.test(u))return text+u;
   var unitMap={hourly:'元/时',piece:'元/件',day:'元/天',month:'元/月','时':'元/时','小时':'元/时','件':'元/件','天':'元/天','月':'元/月'};
-  var suffix=unitMap[unit]||('元/'+String(unit||'').replace(/^按/,''));
-  if(!unit)suffix='元';
+  var suffix=unitMap[u]||('元/'+u.replace(/^按/,''));
   return text+suffix;
 }
 
@@ -1727,10 +1738,11 @@ async function saveAd(){
   var price=parseFloat(document.getElementById('adModalPrice').value)||0;
   var body={title:title,imageUrl:imageUrl,slot:slot,linkType:linkType||'internal',link:link,durationDays:days,price:price};
   if(id){
-    await api('/ads/'+id,{method:'PUT',body:body});
-    toast('广告已更新','success');
+    var r=await api('/ads/'+id,{method:'PUT',body:body});
+    if(r&&r.message)toast(r.message,'success');else toast('广告已更新','success');
   }else{
-    await api('/ads',{method:'POST',body:body});
+    var r=await api('/ads',{method:'POST',body:body});
+    if(!r||r.statusCode>=400){toast('创建失败: '+(r&&r.message||'服务器错误'),'error');return;}
     toast('广告已创建','success');
   }
   hideAdModal();loadAds();

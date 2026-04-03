@@ -13,7 +13,7 @@ export class AdOrder {
   @PrimaryGeneratedColumn('increment', { type: 'bigint' })
   id: number;
 
-  @Column({ type: 'bigint' })
+  @Column({ type: 'bigint', nullable: true })
   userId: number;
 
   @Column({ type: 'enum', enum: ['banner', 'feed'] })
@@ -53,7 +53,7 @@ export class AdOrder {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'userId' })
   user: User;
 }

@@ -1,23 +1,18 @@
 <!--pages/job-detail/job-detail.wxml-->
 <view class="jd-page">
   <nav-bar title="招工详情" />
-  <!-- 现场图片 -->
-  <view style="position:relative;" wx:if="{{job.images && job.images.length > 0}}">
+  <!-- 现场媒体（视频优先 + 图片） -->
+  <view style="position:relative;" wx:if="{{mediaList && mediaList.length > 0}}">
     <swiper class="jd-swiper"
-            indicator-dots autoplay circular bindchange="onSwiperChange">
-      <swiper-item wx:for="{{job.images}}" wx:key="*this">
-        <image src="{{item}}" mode="aspectFill" class="jd-swiper-img" />
+            indicator-dots="{{false}}" circular bindchange="onSwiperChange">
+      <swiper-item wx:for="{{mediaList}}" wx:key="src">
+        <video wx:if="{{item.type === 'video'}}" src="{{item.src}}" class="jd-swiper-img"
+          controls show-center-play-btn object-fit="cover"
+          style="width:100%;height:100%;border-radius:0;" />
+        <image wx:else src="{{item.src}}" mode="aspectFill" class="jd-swiper-img" />
       </swiper-item>
     </swiper>
-    <view class="swiper-counter">{{swiperCurrent + 1}}/{{job.images.length}}</view>
-  </view>
-
-  <!-- 现场视频 -->
-  <view wx:if="{{job.videos && job.videos.length > 0}}" class="video-section" style="padding:0 24rpx;margin-top:16rpx;">
-    <video wx:for="{{job.videos}}" wx:key="*this"
-      src="{{item}}" class="jd-video"
-      controls show-center-play-btn
-      style="width:100%;border-radius:16rpx;margin-bottom:16rpx;" />
+    <view class="swiper-counter">{{swiperCurrent + 1}}/{{mediaList.length}}</view>
   </view>
 
   <!-- 核心信息 -->
