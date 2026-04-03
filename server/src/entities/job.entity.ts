@@ -76,6 +76,9 @@ export class Job {
   @Column({ type: 'json', nullable: true })
   images: string[];
 
+  @Column({ type: 'json', nullable: true })
+  videos: string[];
+
   @Column({ type: 'tinyint', default: 0 })
   urgent: number;
 

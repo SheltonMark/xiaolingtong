@@ -13,9 +13,10 @@
         <text class="author-name">{{displayName || item.companyName || '企业用户'}}</text>
         <text class="vip-badge" wx:if="{{item.isMember}}">VIP</text>
       </view>
-      <text class="author-meta" wx:if="{{item.companyMeta && item.time}}">{{item.companyMeta}} · {{item.time}}</text>
-      <text class="author-meta" wx:elif="{{item.companyMeta}}">{{item.companyMeta}}</text>
-      <text class="author-meta" wx:elif="{{item.time}}">{{item.time}}</text>
+      <text class="author-meta" wx:if="{{item.companyMeta && item.time}}">{{item.companyMeta}} · {{item.time}}<text wx:if="{{showDistance && item.distanceText}}"> · 距您{{item.distanceText}}</text></text>
+      <text class="author-meta" wx:elif="{{item.companyMeta}}">{{item.companyMeta}}<text wx:if="{{showDistance && item.distanceText}}"> · 距您{{item.distanceText}}</text></text>
+      <text class="author-meta" wx:elif="{{item.time}}">{{item.time}}<text wx:if="{{showDistance && item.distanceText}}"> · 距您{{item.distanceText}}</text></text>
+      <text class="author-meta" wx:elif="{{showDistance && item.distanceText}}">距您{{item.distanceText}}</text>
     </view>
     <view class="header-btns">
       <view class="header-pill-btn pill-report" catchtap="onTapReport">
@@ -34,10 +35,13 @@
     <text class="card-mode-badge">{{item.processModeLabel}}</text>
   </view>
   <text class="card-content">{{item.content}}</text>
-  <!-- 图片网格 -->
-  <view class="img-grid img-count-{{item.images.length}}" wx:if="{{item.images && item.images.length > 0}}">
-    <view class="img-grid-item" wx:for="{{item.images}}" wx:for-item="img" wx:key="*this">
+  <!-- 图片网格（最多显示 maxImages 张） -->
+  <view class="img-grid img-count-{{cardImages.length}}" wx:if="{{cardImages.length > 0}}">
+    <view class="img-grid-item" wx:for="{{cardImages}}" wx:for-item="img" wx:key="*this">
       <image src="{{img}}" mode="aspectFill" class="img-grid-img" data-urls="{{item.images}}" data-current="{{img}}" catchtap="onPreviewImage" />
+      <view class="img-extra-badge" wx:if="{{index === cardImages.length - 1 && extraImageCount > 0}}">
+        <text>+{{extraImageCount}}</text>
+      </view>
     </view>
   </view>
   <!-- 底部三按钮 -->

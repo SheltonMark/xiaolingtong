@@ -32,7 +32,7 @@ function getFavoriteDate(item) {
 Page({
   data: {
     currentTab: 0,
-    tabs: ['全部', '供需', '招工', '曝光'],
+    tabs: ['全部', '供需', '招工', '维权'],
     allFavorites: [],
     displayList: []
   },
@@ -82,7 +82,7 @@ Page({
       // 招工
       displayList = allFavorites.filter(item => item.targetType === 'job')
     } else if (currentTab === 3) {
-      // 曝光
+      // 维权
       displayList = allFavorites.filter(item => item.targetType === 'exposure')
     }
 

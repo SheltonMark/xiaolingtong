@@ -1,8 +1,49 @@
-const { get, post, upload } = require('../../utils/request')
+const { get, post, upload, uploadVideo } = require('../../utils/request')
+const auth = require('../../utils/auth')
 
 Page({
   onLoad() {
-    this.loadJobTypes()
+    if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    this.checkCertAndInit()
+  },
+
+  // 发布招工前校验企业认证
+  checkCertAndInit() {
+    get('/auth/profile').then((res) => {
+      const profile = res.data || res
+      const certStatus = profile.certStatus || 'none'
+
+      if (certStatus === 'pending') {
+        wx.showModal({
+          title: '认证审核中',
+          content: '您的企业认证正在审核中，通过后即可发布招工',
+          showCancel: false,
+          success: () => wx.navigateBack()
+        })
+        return
+      }
+
+      if (certStatus !== 'approved') {
+        wx.showModal({
+          title: '需要企业认证',
+          content: '发布招工前需要先完成企业认证',
+          confirmText: '去认证',
+          cancelText: '返回',
+          success: (r) => {
+            if (r.confirm) {
+              wx.navigateTo({ url: '/pages/cert-enterprise/cert-enterprise' })
+            } else {
+              wx.navigateBack()
+            }
+          }
+        })
+        return
+      }
+
+      this.loadJobTypes()
+    }).catch(() => {
+      this.loadJobTypes()
+    })
   },
 
   loadJobTypes() {
@@ -34,7 +75,9 @@ Page({
     benefits: ['包午餐', '有空调', '包住宿', '有班车', '长期合作', '熟手优先'],
     selectedBenefits: [],
     images: [],
+    videos: [],
     isUploading: false,
+    isVideoUploading: false,
     submitting: false
   },
 
@@ -107,15 +150,45 @@ Page({
     this.setData({ images })
   },
 
+  onChooseVideo() {
+    if (this.data.videos.length >= 1) {
+      wx.showToast({ title: '最多上传1个视频', icon: 'none' })
+      return
+    }
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['video'],
+      maxDuration: 60,
+      success: (res) => {
+        const file = res.tempFiles[0]
+        this.setData({ isVideoUploading: true })
+        uploadVideo(file.tempFilePath).then(result => {
+          const url = (result.data && result.data.url) || result.data || ''
+          if (url) {
+            this.setData({ videos: [url] })
+          }
+        }).catch(() => {
+          wx.showToast({ title: '视频上传失败', icon: 'none' })
+        }).finally(() => {
+          this.setData({ isVideoUploading: false })
+        })
+      }
+    })
+  },
+
+  onDeleteVideo() {
+    this.setData({ videos: [] })
+  },
+
   onSubmit() {
     if (this.data.submitting) {
       return
     }
-    if (this.data.isUploading) {
-      wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
+    if (this.data.isUploading || this.data.isVideoUploading) {
+      wx.showToast({ title: '文件上传中，请稍后提交', icon: 'none' })
       return
     }
-    const { form, salaryMode, salaryModes, selectedBenefits, images } = this.data
+    const { form, salaryMode, salaryModes, selectedBenefits, images, videos } = this.data
     if (!form.title || !form.salary || !form.need || !form.jobType) {
       wx.showToast({ title: '请填写必填项', icon: 'none' })
       return
@@ -151,7 +224,8 @@ Page({
       contactName: form.contactName,
       contactPhone: form.contactPhone,
       benefits: selectedBenefits,
-      images
+      images,
+      videos
     }
     wx.showLoading({ title: '发布中...' })
     this.setData({ submitting: true })

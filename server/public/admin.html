@@ -46,6 +46,9 @@ input,select,button,textarea { font-family:inherit; }
 .menu-item:hover { background:var(--bg-hover); color:var(--text); }
 .menu-item.active { background:rgba(59,130,246,.12); color:var(--accent); }
 .menu-item.active svg { opacity:1; }
+.menu-item { position:relative; }
+.menu-badge { position:absolute; right:10px; top:50%; transform:translateY(-50%); min-width:18px; height:18px; line-height:18px; padding:0 5px; border-radius:9px; background:var(--red); color:#fff; font-size:11px; font-weight:600; text-align:center; display:none; }
+.menu-badge.show { display:inline-block; }
 .sidebar-footer { padding:16px 20px; border-top:1px solid var(--border); }
 .sidebar-footer .admin-info { font-size:12px; color:var(--text-muted); margin-bottom:8px; display:block; }
 .sidebar-footer .logout-btn { font-size:12px; color:var(--red); cursor:pointer; background:none; border:none; padding:0; font-weight:500; }
@@ -215,18 +218,18 @@ tr:hover td { background:rgba(35,39,54,.5); }
       <div class="menu-group">概览</div>
       <div class="menu-item active" onclick="switchPage('dashboard',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>数据概览</div>
       <div class="menu-group">审核中心</div>
-      <div class="menu-item" onclick="switchPage('posts',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>信息审核</div>
-      <div class="menu-item" onclick="switchPage('certs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>认证审核</div>
-      <div class="menu-item" onclick="switchPage('reports',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>举报处理</div>
+      <div class="menu-item" id="menu-posts" onclick="switchPage('posts',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>信息审核<span class="menu-badge" id="badge-posts"></span></div>
+      <div class="menu-item" id="menu-certs" onclick="switchPage('certs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>认证审核<span class="menu-badge" id="badge-certs"></span></div>
+      <div class="menu-item" id="menu-reports" onclick="switchPage('reports',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>举报处理<span class="menu-badge" id="badge-reports"></span></div>
       <div class="menu-group">管理</div>
       <div class="menu-item" onclick="switchPage('users',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>用户管理</div>
-      <div class="menu-item" onclick="switchPage('jobs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>招工管理</div>
-      <div class="menu-item" onclick="switchPage('exposures',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>曝光管理</div>
+      <div class="menu-item" id="menu-jobs" onclick="switchPage('jobs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"/></svg>招工管理<span class="menu-badge" id="badge-jobs"></span></div>
+      <div class="menu-item" id="menu-exposures" onclick="switchPage('exposures',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>曝光管理<span class="menu-badge" id="badge-exposures"></span></div>
       <div class="menu-group">系统</div>
       <div class="menu-item" onclick="switchPage('keywords',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.63 5.84C17.27 5.33 16.67 5 16 5L5 5.01C3.9 5.01 3 5.9 3 7v10c0 1.1.9 1.99 2 1.99L16 19c.67 0 1.27-.33 1.63-.84L22 12l-4.37-6.16z"/></svg>关键词黑名单</div>
       <div class="menu-item" onclick="switchPage('notices',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>公告管理</div>
       <div class="menu-item" onclick="switchPage('configs',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z"/></svg>系统配置</div>
-      <div class="menu-item" onclick="switchPage('stats',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>数据统计</div>
+      <div class="menu-item" onclick="switchPage('agreements',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6zm2-6h8v2H8v-2zm0-3h8v2H8v-2zm0 6h5v2H8v-2z"/></svg>协议管理</div>
       <div class="menu-item" onclick="switchPage('finance',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>财务管理</div>
       <div class="menu-item" style="display:none" onclick="switchPage('joborders',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>用工订单</div>
       <div class="menu-item" onclick="switchPage('ads',this)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zm-4-4h-4v-2h4v-4h2v4h-2v2z"/></svg>广告管理</div>
@@ -240,29 +243,38 @@ tr:hover td { background:rgba(35,39,54,.5); }
   <div class="mobile-nav" style="display:none;background:var(--bg-sidebar);padding:12px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:20"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:16px;font-weight:600">小灵通管理</span><button onclick="toggleMobileMenu()" style="background:none;border:none;color:var(--text);font-size:20px;cursor:pointer">☰</button></div><div id="mobileMenu" style="display:none;padding-top:12px;max-height:60vh;overflow-y:auto"></div></div>
   <div class="main">
     <div class="page-header"><h3 id="pageTitle">数据概览</h3><p id="pageDesc">平台运营数据总览</p></div>
-    <div class="page-section active" id="page-dashboard"><div class="stat-cards" id="statCards"></div></div>
+    <div class="page-section active" id="page-dashboard"><div class="stat-cards" id="statCards"></div><div class="panel" style="margin-top:20px"><div class="panel-header"><h4>详细统计</h4></div><div class="stat-cards" id="statsDetailCards"></div></div></div>
     <div class="page-section" id="page-users"><div class="panel"><div class="panel-header"><h4>用户管理</h4><div class="toolbar"><select id="userRoleFilter" onchange="loadUsers()"><option value="">全部角色</option><option value="enterprise">企业</option><option value="worker">临工</option></select><input type="text" id="userKeyword" placeholder="搜索名称/手机号"><button class="search-btn" onclick="loadUsers()">搜索</button></div></div><table><thead><tr><th>ID</th><th>名称</th><th>角色</th><th>手机</th><th>灵豆</th><th>信用分</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTable"></tbody></table><div class="pagination" id="userPagination"></div></div></div>
-    <div class="page-section" id="page-posts"><div class="panel"><div class="panel-header"><h4>信息审核</h4><div class="toolbar"><select id="postTypeFilter" onchange="loadPosts()"><option value="">全部类型</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><select id="postStatusFilter" onchange="loadPosts()"><option value="">全部状态</option><option value="active">已发布</option><option value="pending">待审核</option><option value="deleted">已删除</option></select><button class="search-btn" onclick="loadPosts()">刷新</button></div></div><table><thead><tr><th>ID</th><th>类型</th><th>标题/内容</th><th>图片</th><th>发布者</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="postTable"></tbody></table><div class="pagination" id="postPagination"></div></div></div>
+    <div class="page-section" id="page-posts"><div class="panel"><div class="panel-header"><h4>信息审核</h4><div class="toolbar"><select id="postTypeFilter" onchange="loadPosts()"><option value="">全部类型</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><select id="postStatusFilter" onchange="loadPosts()"><option value="">全部状态</option><option value="active">已发布</option><option value="pending">待审核</option><option value="deleted">已删除</option></select><button class="search-btn" onclick="loadPosts()">刷新</button></div></div><table><thead><tr><th>ID</th><th>类型</th><th>发布者</th><th>发布时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="postTable"></tbody></table><div class="pagination" id="postPagination"></div></div></div>
     <div class="page-section" id="page-certs"><div class="panel"><div class="panel-header"><h4>认证审核</h4><div class="toolbar"><select id="certTypeFilter" onchange="loadCerts()"><option value="enterprise">企业认证</option><option value="worker">临工认证</option></select><select id="certStatusFilter" onchange="loadCerts()"><option value="">全部状态</option><option value="pending">待审核</option><option value="approved">已通过</option><option value="rejected">已驳回</option></select><button class="search-btn" onclick="loadCerts()">刷新</button></div></div><table><thead><tr id="certHeader"></tr></thead><tbody id="certTable"></tbody></table><div class="pagination" id="certPagination"></div></div></div>
-    <div class="page-section" id="page-reports"><div class="panel"><div class="panel-header"><h4>举报处理</h4></div><table><thead><tr><th>ID</th><th>类型</th><th>目标ID</th><th>原因</th><th>描述</th><th>图片</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody id="reportTable"></tbody></table><div class="pagination" id="reportPagination"></div></div></div>
+    <div class="page-section" id="page-reports"><div class="panel"><div class="panel-header"><h4>举报处理</h4></div><table><thead><tr><th>ID</th><th>举报类型</th><th>举报原因</th><th>时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="reportTable"></tbody></table><div class="pagination" id="reportPagination"></div></div></div>
     <div class="page-section" id="page-jobs"><div class="panel"><div class="panel-header"><h4>&#25307;&#24037;&#31649;&#29702;</h4><div class="toolbar"><select id="jobManageStatusFilter" onchange="loadJobs()"><option value="">&#20840;&#37096;&#29366;&#24577;</option><option value="recruiting">&#25307;&#24037;&#20013;</option><option value="full">&#24050;&#20998;&#37197;</option><option value="working">&#36827;&#34892;&#20013;</option><option value="pending_settlement">&#24453;&#32467;&#31639;</option><option value="settled">&#24050;&#32467;&#31639;</option><option value="closed">&#24050;&#20851;&#38381;</option></select><button class="search-btn" onclick="loadJobs()">&#21047;&#26032;</button></div></div><table><thead><tr><th>ID</th><th>&#26631;&#39064;</th><th>&#20225;&#19994;</th><th>&#38656;&#27714;/&#25253;&#21517;</th><th>&#34218;&#36164;</th><th>&#26085;&#26399;</th><th>&#29366;&#24577;</th><th>&#25805;&#20316;</th></tr></thead><tbody id="jobTable"></tbody></table><div class="pagination" id="jobPagination"></div></div></div>
-    <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4><div class="toolbar"><button class="search-btn" onclick="loadExposures()">刷新</button></div></div><div class="exposure-config-panel"><div class="exposure-config-tip">维权页面 Tab 按钮文案配置（保存后，前端维权页会读取最新配置）</div><div class="exposure-config-grid"><div class="exposure-config-item"><label>Tab 1 文案</label><input id="exposureTabFalseInfoLabel" placeholder="例如：维权经历"></div><div class="exposure-config-item"><label>Tab 2 文案</label><input id="exposureTabFraudLabel" placeholder="例如：协商过程"></div><div class="exposure-config-item"><label>Tab 3 文案</label><input id="exposureTabWageTheftLabel" placeholder="例如：结果反馈"></div><div class="exposure-config-actions"><button class="add-btn" onclick="saveExposureTabConfigs()">保存 Tab 配置</button></div></div></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>内容</th><th>图片</th><th>状态</th><th>发布时间</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
+    <div class="page-section" id="page-exposures"><div class="panel"><div class="panel-header"><h4>曝光管理</h4><div class="toolbar"><button class="search-btn" onclick="loadExposures()">刷新</button></div></div><div class="exposure-config-panel"><div class="exposure-config-tip">维权页面 Tab 按钮文案配置（保存后，前端维权页会读取最新配置）</div><div class="exposure-config-grid"><div class="exposure-config-item"><label>Tab 1 文案</label><input id="exposureTabFalseInfoLabel" placeholder="例如：维权经历"></div><div class="exposure-config-item"><label>Tab 2 文案</label><input id="exposureTabFraudLabel" placeholder="例如：协商过程"></div><div class="exposure-config-item"><label>Tab 3 文案</label><input id="exposureTabWageTheftLabel" placeholder="例如：结果反馈"></div><div class="exposure-config-actions"><button class="add-btn" onclick="saveExposureTabConfigs()">保存 Tab 配置</button></div></div></div><table><thead><tr><th>ID</th><th>公司/个人</th><th>金额</th><th>发布时间</th><th>状态</th><th>操作</th></tr></thead><tbody id="exposureTable"></tbody></table><div class="pagination" id="exposurePagination"></div></div></div>
     <div class="page-section" id="page-keywords"><div class="panel"><div class="panel-header"><h4>关键词黑名单</h4><div class="toolbar"><input type="text" id="newKeyword" placeholder="输入关键词"><button class="add-btn" onclick="addKeyword()">添加</button></div></div><table><thead><tr><th>ID</th><th>关键词</th><th>添加时间</th><th>操作</th></tr></thead><tbody id="keywordTable"></tbody></table></div></div>
-    <div class="page-section" id="page-notices"><div class="panel"><div class="panel-header"><h4>&#20844;&#21578;&#31649;&#29702;</h4><div class="toolbar"><button class="add-btn" onclick="showNoticeModal()">&#21457;&#24067;&#20844;&#21578;</button></div></div><table><thead><tr><th>ID</th><th>&#26631;&#39064;</th><th>&#31867;&#22411;</th><th>&#29366;&#24577;</th><th>&#21019;&#24314;&#26102;&#38388;</th><th>&#25805;&#20316;</th></tr></thead><tbody id="noticeTable"></tbody></table></div></div>
-    <div class="page-section" id="page-jobtypes"><div class="panel"><div class="panel-header"><h4>工种管理</h4><div class="toolbar"><input type="text" id="newJobType" placeholder="工种名称"><select id="newJobTypeSettle"><option value="hourly">计时</option><option value="piece">计件</option></select><button class="add-btn" onclick="addJobType()">添加</button></div></div><table><thead><tr><th>ID</th><th>工种名称</th><th>默认结算</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="jobTypeTable"></tbody></table></div></div>
+    <div class="page-section" id="page-notices"><div class="panel"><div class="panel-header"><h4>公告管理</h4><div class="toolbar"><button class="add-btn" onclick="showNoticeModal()">发布公告</button></div></div><table><thead><tr><th>ID</th><th>图片</th><th>标题</th><th>类型</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="noticeTable"></tbody></table></div></div>
+    <div class="page-section" id="page-jobtypes"><div class="panel"><div class="panel-header"><h4>工种管理</h4><div class="toolbar"><input type="text" id="newJobType" placeholder="工种名称"><select id="newJobTypeSettle"><option value="hourly">计时</option><option value="piece">计件</option></select><button class="add-btn" onclick="addJobType()">添加</button></div></div><table><thead><tr><th>ID</th><th>图标</th><th>工种名称</th><th>默认结算</th><th>排序</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="jobTypeTable"></tbody></table></div></div>
     <div class="page-section" id="page-cities"><div class="panel"><div class="panel-header"><h4>开放城市</h4><div class="toolbar"><input type="text" id="newCity" placeholder="城市名称"><button class="add-btn" onclick="addCity()">添加</button></div></div><table><thead><tr><th>ID</th><th>城市名称</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="cityTable"></tbody></table></div></div>
     <div class="page-section" id="page-ads"><div class="panel"><div class="panel-header"><h4>广告管理</h4><div class="toolbar"><select id="adStatusFilter" onchange="loadAds()"><option value="">全部状态</option><option value="pending">待审核</option><option value="active">投放中</option><option value="expired">已过期</option></select><button class="search-btn" onclick="loadAds()">刷新</button></div></div><table><thead><tr><th>ID</th><th>广告主</th><th>位置</th><th>标题</th><th>天数</th><th>价格</th><th>状态</th><th>投放时间</th><th>操作</th></tr></thead><tbody id="adTable"></tbody></table><div class="pagination" id="adPagination"></div></div></div>
     <div class="page-section" id="page-admins"><div class="panel"><div class="panel-header"><h4>管理员账号</h4><div class="toolbar"><button class="add-btn" onclick="showAdminModal()">添加管理员</button></div></div><table><thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="adminTable"></tbody></table></div></div>
-    <div class="page-section" id="page-categories"><div class="panel"><div class="panel-header"><h4>品类标签管理</h4><div class="toolbar"><input type="text" id="newCatName" placeholder="分类名称"><select id="newCatParent"><option value="0">一级分类</option></select><button class="add-btn" onclick="addCategory()">添加</button></div></div><div style="margin:0 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">状态说明：启用后会在首页 icon 和发布页分类中展示；禁用后前端会隐藏该分类，但不会删除历史帖子数据。卡片上的状态徽标表示当前生效状态，右侧按钮用于切换启用/禁用。</div><div id="categoryContent"></div></div></div>
-    <div class="page-section" id="page-stats"><div class="panel"><div class="panel-header"><h4>数据统计</h4></div><div id="statsContent"></div></div></div>
+    <div class="page-section" id="page-categories"><div class="panel"><div class="panel-header"><h4>品类标签管理</h4><div class="toolbar"><input type="text" id="newCatName" placeholder="分类名称"><select id="newCatParent"><option value="0">一级分类</option></select><select id="newCatBizType"><option value="">通用</option><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select><button class="add-btn" onclick="addCategory()">添加</button></div></div><div style="margin:0 0 16px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">状态说明：启用后会在首页 icon 和发布页分类中展示；禁用后前端会隐藏该分类，但不会删除历史帖子数据。bizType 用于区分采购/库存/代加工三套独立品类。</div><div id="categoryContent"></div></div></div>
     <div class="page-section" id="page-finance"><div class="stat-cards" id="financeCards"></div><div class="panel"><div class="panel-header"><h4>交易明细</h4><div class="toolbar"><select id="txTypeFilter" onchange="loadTransactions()"><option value="">全部类型</option><option value="income">收入</option><option value="withdraw">提现</option><option value="refund">退款</option></select><button class="search-btn" onclick="loadTransactions()">刷新</button></div></div><table><thead><tr><th>ID</th><th>用户</th><th>类型</th><th>金额</th><th>状态</th><th>备注</th><th>时间</th></tr></thead><tbody id="txTable"></tbody></table><div class="pagination" id="txPagination"></div></div></div>
       <div class="page-section" id="page-joborders" style="display:none"></div>
     <div class="page-section" id="page-configs"><div class="panel"><div class="panel-header"><h4>系统配置</h4></div><div class="config-grid" id="configGrid"></div></div></div>
+    <div class="page-section" id="page-agreements"><div class="panel"><div class="panel-header"><h4>协议管理</h4></div><div style="padding:12px 0;color:var(--text-sec);font-size:13px;">编辑协议内容（支持HTML格式，前端使用 rich-text 渲染）</div><div class="agreement-edit-list"><div class="agreement-edit-item"><label style="font-weight:600;font-size:14px;margin-bottom:8px;display:block;">用户协议</label><textarea id="agree_user_agreement_content" rows="10" style="width:100%;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;font-family:monospace;"></textarea><div style="margin-top:8px;display:flex;gap:8px;align-items:center;"><button class="add-btn" onclick="saveAgreement('user_agreement_content')">保存用户协议</button><button class="search-btn" onclick="previewAgreement('user_agreement_content')">预览</button></div></div><div class="agreement-edit-item" style="margin-top:24px;"><label style="font-weight:600;font-size:14px;margin-bottom:8px;display:block;">隐私政策</label><textarea id="agree_privacy_policy_content" rows="10" style="width:100%;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;font-family:monospace;"></textarea><div style="margin-top:8px;display:flex;gap:8px;align-items:center;"><button class="add-btn" onclick="saveAgreement('privacy_policy_content')">保存隐私政策</button><button class="search-btn" onclick="previewAgreement('privacy_policy_content')">预览</button></div></div><div class="agreement-edit-item" style="margin-top:24px;"><label style="font-weight:600;font-size:14px;margin-bottom:8px;display:block;">维权协议</label><textarea id="agree_rights_agreement_content" rows="10" style="width:100%;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;font-family:monospace;"></textarea><div style="margin-top:8px;display:flex;gap:8px;align-items:center;"><button class="add-btn" onclick="saveAgreement('rights_agreement_content')">保存维权协议</button><button class="search-btn" onclick="previewAgreement('rights_agreement_content')">预览</button></div></div></div></div></div>
 <div class="modal-overlay" id="joDetailPanel"><div class="modal" style="width:1020px;max-width:94vw;border-radius:16px;"><div class="panel-header"><h4 id="joDetailTitle">&#25307;&#24037;&#35814;&#24773;</h4><button class="btn btn-primary" onclick="closeJobOrderDetail()">&#20851;&#38381;</button></div><div id="joDetailContent" style="max-height:72vh;overflow:auto;padding-top:8px;"></div></div></div>
   </div>
 </div>
-<div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">&#21457;&#24067;&#20844;&#21578;</h4><div class="form-group"><label>&#26631;&#39064;</label><input type="text" id="noticeTitle" placeholder="&#20844;&#21578;&#26631;&#39064;"></div><div class="form-group"><label>&#20869;&#23481;</label><textarea id="noticeContent" rows="4" placeholder="&#20844;&#21578;&#20869;&#23481;" style="resize:vertical"></textarea></div><div class="form-group"><label>&#23637;&#31034;&#35828;&#26126;</label><div style="padding:14px 16px;border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">&#21457;&#24067;&#21518;&#23558;&#21516;&#26102;&#23637;&#31034;&#22312;&#23567;&#31243;&#24207;&#28040;&#24687;&#20013;&#24515;&#20844;&#21578;&#21306;&#22495;&#65292;&#24182;&#25554;&#20837;&#20225;&#19994;&#29992;&#25143;&#39318;&#39029; Banner &#36718;&#25773;&#12290;</div></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">&#21462;&#28040;</button><button class="confirm" onclick="saveNotice()">&#30830;&#35748;</button></div></div></div>
+<div class="modal-overlay" id="noticeModal"><div class="modal"><h4 id="noticeModalTitle">发布公告</h4><div class="form-group"><label>公告图片（推荐）</label><div style="display:flex;align-items:center;gap:12px;"><input type="file" id="noticeImageFile" accept="image/*" onchange="onNoticeImageSelected(this)"><img id="noticeImagePreview" style="max-width:200px;max-height:120px;border-radius:8px;display:none;"></div><input type="hidden" id="noticeImageUrl"></div><div class="form-group"><label>标题（可选，无图片时必填）</label><input type="text" id="noticeTitle" placeholder="公告标题"></div><div class="form-group"><label>内容（可选，无图片时必填）</label><textarea id="noticeContent" rows="4" placeholder="公告内容" style="resize:vertical"></textarea></div><div class="form-group"><label>展示说明</label><div style="padding:14px 16px;border-radius:12px;background:#F8FAFC;color:#475569;font-size:13px;line-height:1.7;">上传图片后，公告将以图片形式展示在企业首页 Banner 轮播中；未上传图片则以文字卡片形式展示。</div></div><div class="modal-actions"><button class="cancel" onclick="hideNoticeModal()">取消</button><button class="confirm" onclick="saveNotice()">确认</button></div></div></div>
 
+<div class="modal-overlay" id="auditDetailModal">
+  <div class="modal" style="width:760px;max-width:94vw;border-radius:16px;">
+    <h4 id="auditDetailTitle">详情</h4>
+    <div id="auditDetailContent" style="max-height:68vh;overflow-y:auto;"></div>
+    <div class="modal-actions" id="auditDetailActions">
+      <button class="cancel" onclick="hideAuditDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
 <div id="toastContainer" class="toast-container"></div>
 <div class="confirm-overlay" id="confirmOverlay"><div class="confirm-box"><p id="confirmMsg"></p><div class="confirm-btns"><button class="cb-cancel" onclick="confirmResolve(false)">取消</button><button class="cb-ok" onclick="confirmResolve(true)">确认</button></div></div></div>
 <div class="prompt-overlay" id="promptOverlay"><div class="prompt-box"><p id="promptMsg"></p><input type="text" id="promptInput"><div class="prompt-btns"><button class="pb-cancel" onclick="promptResolve(null)">取消</button><button class="pb-ok" onclick="promptResolve(document.getElementById('promptInput').value)">确认</button></div></div></div>
@@ -364,7 +376,7 @@ function doLogout(){token='';currentAdmin=null;localStorage.removeItem('admin_to
 
 function showLayout(){document.getElementById('loginPage').style.display='none';document.getElementById('layoutPage').style.display='block';document.getElementById('adminName').textContent=currentAdmin?currentAdmin.nickname:'管理员';loadDashboard();}
 
-var PH={dashboard:['数据概览','平台运营数据总览'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],stats:['数据统计','平台运营数据分析'],admins:['管理员','管理后台账号'],jobtypes:['工种管理','管理招工工种分类'],cities:['开放城市','管理平台开放城市'],ads:['广告管理','管理广告投放'],categories:['品类标签','管理行业品类分类标签'],finance:['财务管理','收入支出统计与交易明细'],joborders:['用工订单','管理用工订单分配与结算']};
+var PH={dashboard:['数据概览','平台运营数据总览与统计分析'],users:['用户管理','管理平台注册用户'],posts:['信息审核','审核发布的供需信息'],certs:['认证审核','审核企业和临工认证'],reports:['举报处理','处理用户举报信息'],jobs:['招工管理','管理招工信息'],exposures:['曝光管理','管理曝光举报信息'],keywords:['关键词黑名单','管理敏感词过滤'],notices:['公告管理','发布和管理平台公告'],configs:['系统配置','平台参数设置'],agreements:['协议管理','编辑用户协议、隐私政策和维权协议'],stats:['数据概览','平台运营数据总览与统计分析'],admins:['管理员','管理后台账号'],jobtypes:['工种管理','管理招工工种分类'],cities:['开放城市','管理平台开放城市'],ads:['广告管理','管理广告投放'],categories:['品类标签','管理行业品类分类标签'],finance:['财务管理','收入支出统计与交易明细'],joborders:['用工订单','管理用工订单分配与结算']};
 
 function switchPage(name,el){
   document.querySelectorAll('.page-section').forEach(function(s){s.classList.remove('active');});
@@ -374,7 +386,7 @@ function switchPage(name,el){
   var h=PH[name]||['',''];
   document.getElementById('pageTitle').textContent=h[0];
   document.getElementById('pageDesc').textContent=h[1];
-  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,stats:loadStats,admins:loadAdmins,jobtypes:loadJobTypes,cities:loadCities,ads:loadAds,categories:loadCategories,finance:loadFinance,joborders:loadJobOrders};
+  var L={dashboard:loadDashboard,users:loadUsers,posts:loadPosts,certs:loadCerts,reports:loadReports,jobs:loadJobs,exposures:loadExposures,keywords:loadKeywords,notices:loadNotices,configs:loadConfigs,agreements:loadAgreements,stats:loadStats,admins:loadAdmins,jobtypes:loadJobTypes,cities:loadCities,ads:loadAds,categories:loadCategories,finance:loadFinance,joborders:loadJobOrders};
   if(L[name])L[name]();
 }
 
@@ -393,6 +405,37 @@ async function loadDashboard(){
   var items=[['总用户数','sc-blue','u','userCount'],['企业用户','sc-green','e','enterpriseCount'],['临工用户','sc-orange','w','workerCount'],['发布信息','sc-cyan','p','postCount'],['招工信息','sc-blue','w','jobCount'],['曝光信息','sc-red','x','exposureCount']];
   for(var i=0;i<items.length;i++){var it=items[i];h+='<div class="stat-card '+it[1]+'"><div class="sc-top"><span class="sc-label">'+it[0]+'</span><div class="sc-icon">'+svg(IC[it[2]])+'</div></div><div class="sc-value">'+(d[it[3]]||0)+'</div></div>';}
   document.getElementById('statCards').innerHTML=h;
+  loadDashboardStats();
+  loadPendingCounts();
+}
+async function loadDashboardStats(){
+  var d=await api('/stats/overview');if(!d)return;
+  var h='';
+  h+='<div class="stat-card sc-green"><div class="sc-top"><span class="sc-label">今日新增用户</span></div><div class="sc-value">'+d.users.today+'</div></div>';
+  h+='<div class="stat-card sc-cyan"><div class="sc-top"><span class="sc-label">近7天新增</span></div><div class="sc-value">'+d.users.week+'</div></div>';
+  h+='<div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">近30天新增</span></div><div class="sc-value">'+d.users.month+'</div></div>';
+  h+='<div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">待审核信息</span></div><div class="sc-value">'+d.posts.pending+'</div></div>';
+  h+='<div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">待审核企业认证</span></div><div class="sc-value">'+d.certs.pendingEnterprise+'</div></div>';
+  h+='<div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">待审核临工认证</span></div><div class="sc-value">'+d.certs.pendingWorker+'</div></div>';
+  h+='<div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">待处理举报</span></div><div class="sc-value">'+d.reports.pending+'</div></div>';
+  h+='<div class="stat-card sc-cyan"><div class="sc-top"><span class="sc-label">总发布信息</span></div><div class="sc-value">'+d.posts.total+'</div></div>';
+  h+='<div class="stat-card sc-green"><div class="sc-top"><span class="sc-label">总招工</span></div><div class="sc-value">'+d.jobs.total+'</div></div>';
+  h+='<div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">总曝光</span></div><div class="sc-value">'+d.exposures.total+'</div></div>';
+  h+='<div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">总举报</span></div><div class="sc-value">'+d.reports.total+'</div></div>';
+  document.getElementById('statsDetailCards').innerHTML=h;
+}
+function updateBadge(id,count){
+  var el=document.getElementById(id);if(!el)return;
+  if(count>0){el.textContent=count>99?'99+':count;el.classList.add('show');}
+  else{el.classList.remove('show');el.textContent='';}
+}
+async function loadPendingCounts(){
+  var d=await api('/pending-counts');if(!d)return;
+  updateBadge('badge-posts',d.posts||0);
+  updateBadge('badge-reports',d.reports||0);
+  updateBadge('badge-certs',d.certs||0);
+  updateBadge('badge-exposures',d.exposures||0);
+  updateBadge('badge-jobs',d.jobs||0);
 }
 
 var userPage=1;
@@ -411,6 +454,7 @@ async function loadUsers(page){
     var displayName=adminDisplayName(u)||u.name||u.phone||'-';
     var ops=u.status==='active'?'<button class="btn btn-danger" onclick="banUser('+u.id+')">封禁</button>':'<button class="btn btn-success" onclick="unbanUser('+u.id+')">解封</button>';
     ops+='<button class="btn btn-primary" onclick="promptCredit('+u.id+','+(u.creditScore||0)+')">信用分</button>';
+    ops+='<button class="btn btn-warning" onclick="promptBean('+u.id+','+(u.beanBalance||0)+')">灵豆</button>';
     ops+='<button class="btn btn-primary" onclick="showUserDetail('+u.id+')">详情</button>';
     h+='<tr><td>'+u.id+'</td><td>'+displayName+'</td><td><span class="badge '+roleB+'">'+roleT+'</span></td><td>'+(u.phone||'-')+'</td><td>'+(u.beanBalance||0)+'</td><td>'+(u.creditScore||0)+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(u.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
   }
@@ -420,32 +464,57 @@ async function loadUsers(page){
 async function banUser(id){var ok=await xconfirm('确认封禁该用户？');if(ok){await api('/users/'+id+'/ban',{method:'PUT'});toast('已封禁','success');loadUsers();}}
 async function unbanUser(id){var ok=await xconfirm('确认解封该用户？');if(ok){await api('/users/'+id+'/unban',{method:'PUT'});toast('已解封','success');loadUsers();}}
 async function promptCredit(id,cur){var v=await xprompt('调整信用分（当前：'+cur+'）',cur);if(v!==null&&v!==''){await api('/users/'+id+'/credit',{method:'PUT',body:{creditScore:+v}});toast('信用分已更新','success');loadUsers();}}
+async function promptBean(id,cur){var v=await xprompt('调整灵豆余额（当前：'+cur+'）\n正数为充值，负数为扣减',0);if(v!==null&&v!==''){var amount=parseInt(v);if(isNaN(amount)||amount===0){toast('请输入有效数字','error');return;}var remark=amount>0?'管理员手动充值':'管理员手动扣减';await api('/users/'+id+'/bean-balance',{method:'PUT',body:{amount:amount,remark:remark}});toast('灵豆余额已更新','success');loadUsers();}}
 
 var postPage=1;
+var _postListCache=[];
 async function loadPosts(page){
   if(page)postPage=page;
   var type=document.getElementById('postTypeFilter').value;
   var status=document.getElementById('postStatusFilter').value;
   var d=await api('/posts?page='+postPage+'&type='+type+'&status='+status);
   if(!d)return;var list=d.list||[];
+  _postListCache=list;
   var tm={purchase:'采购需求',stock:'工厂库存',process:'代加工'};
   var sm={active:['已发布','badge-green'],pending:['待审核','badge-orange'],deleted:['已删除','badge-gray'],expired:['已过期','badge-gray']};
   var h='';
   for(var i=0;i<list.length;i++){var p=list[i];var st=sm[p.status]||['未知','badge-gray'];
-    var ops='';
-    if(p.status!=='active')ops+='<button class="btn btn-success" onclick="auditPost('+p.id+',\x27approve\x27)">通过</button>';
-    if(p.status!=='deleted')ops+='<button class="btn btn-danger" onclick="auditPost('+p.id+',\x27reject\x27)">驳回</button>';
-    h+='<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(tm[p.type]||p.type)+'</span></td><td>'+((p.title||p.content||'').substring(0,30))+'</td><td>'+adminDisplayName(p)+'</td><td>'+(p.viewCount||0)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(p.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    h+='<tr><td>'+p.id+'</td><td><span class="badge badge-blue">'+(tm[p.type]||p.type)+'</span></td><td>'+adminDisplayName(p)+'</td><td>'+(p.createdAt||'').substring(0,10)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td><button class="btn btn-primary" onclick="showPostDetail('+i+')">查看详情</button></td></tr>';
   }
-  document.getElementById('postTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+  document.getElementById('postTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
   renderPagination('postPagination',d.total,postPage,d.pageSize,'loadPosts');
 }
+function showPostDetail(idx){
+  var p=_postListCache[idx];if(!p)return;
+  var tm={purchase:'采购需求',stock:'工厂库存',process:'代加工'};
+  var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">类型</span><span style="font-size:13px;">'+(tm[p.type]||p.type)+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">发布者</span><span style="font-size:13px;">'+adminDisplayName(p)+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">状态</span><span style="font-size:13px;">'+p.status+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">发布时间</span><span style="font-size:13px;">'+(p.createdAt||'').substring(0,19).replace('T',' ')+'</span></div>';
+  h+='</div>';
+  if(p.title)h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">标题</span><span style="font-size:14px;font-weight:600;">'+escHtml(p.title)+'</span></div>';
+  if(p.content)h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">内容</span><div style="font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-all;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;">'+escHtml(p.content)+'</div></div>';
+  var imgs=p.images||[];
+  if(imgs.length){h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:8px;">图片（'+imgs.length+'张）</span><div style="display:flex;flex-wrap:wrap;gap:8px;">';for(var j=0;j<imgs.length;j++){var u=escAttr(imgs[j]);h+='<img src="'+u+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)" onclick="showImagePreview(\''+u+'\',\'图片'+(j+1)+'\')">';}h+='</div></div>';}
+  if(p.contactName||p.phone)h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">联系方式</span><span style="font-size:13px;">'+(p.contactName||'')+' '+(p.phone||'')+'</span></div>';
+  document.getElementById('auditDetailTitle').textContent='信息详情 #'+p.id;
+  document.getElementById('auditDetailContent').innerHTML=h;
+  var acts='<button class="cancel" onclick="hideAuditDetailModal()">关闭</button>';
+  if(p.status!=='active')acts='<button class="btn btn-success" style="padding:8px 20px;" onclick="auditPost('+p.id+',\'approve\')">通过</button>'+acts;
+  if(p.status!=='deleted')acts='<button class="btn btn-danger" style="padding:8px 20px;" onclick="auditPost('+p.id+',\'reject\')">驳回</button>'+acts;
+  document.getElementById('auditDetailActions').innerHTML=acts;
+  document.getElementById('auditDetailModal').classList.add('show');
+}
+function hideAuditDetailModal(){document.getElementById('auditDetailModal').classList.remove('show');}
 async function auditPost(id,action){
   var ok=await xconfirm(action==='approve'?'确认通过？':'确认驳回？');
   if(ok){
     await api('/posts/'+id+'/audit',{method:'PUT',body:{action:action}});
     toast(action==='approve'?'已通过':'已驳回','success');
+    hideAuditDetailModal();
     loadPosts();
+    loadPendingCounts();
   }
 }
 
@@ -634,21 +703,49 @@ function hideCertImageModal(){
 }
 
 var reportPage=1;
+var _reportListCache=[];
 async function loadReports(page){
   if(page)reportPage=page;
   var d=await api('/reports?page='+reportPage);
   if(!d)return;var list=d.list||[];
+  _reportListCache=list;
   var sm={pending:['待处理','badge-orange'],handled:['已处理','badge-green'],dismissed:['已驳回','badge-gray']};
   var h='';
   for(var i=0;i<list.length;i++){var r=list[i];var st=sm[r.status]||['未知','badge-gray'];
-    var ops=r.status==='pending'?'<button class="btn btn-success" onclick="handleReport('+r.id+',\x27resolve\x27)">处理</button><button class="btn btn-danger" onclick="handleReport('+r.id+',\x27dismiss\x27)">驳回</button>':'-';
-    var imgs='-';if(r.images&&r.images.length){imgs='';for(var j=0;j<r.images.length;j++){var reportImage=escAttr(r.images[j]);imgs+='<img src="'+reportImage+'" data-preview-url="'+reportImage+'" data-preview-title="举报图片'+(j+1)+'" style="width:56px;height:56px;object-fit:cover;border-radius:6px;margin:2px;cursor:pointer;border:1px solid var(--border)" onclick="showImagePreview(this.dataset.previewUrl,this.dataset.previewTitle)">';}}
-    h+='<tr><td>'+r.id+'</td><td>'+r.targetType+'</td><td>'+r.targetId+'</td><td>'+r.reason+'</td><td style="max-width:260px;white-space:pre-wrap;word-break:break-all;">'+(((r.description||'').substring(0,60))||'-')+'</td><td style="max-width:220px;">'+imgs+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+(r.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    var typeMap={post:'帖子',job:'招工',exposure:'曝光',user:'用户'};
+    h+='<tr><td>'+r.id+'</td><td>'+(typeMap[r.targetType]||r.targetType)+'</td><td>'+escHtml(r.reason||'-')+'</td><td>'+(r.createdAt||'').substring(0,10)+'</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td><button class="btn btn-primary" onclick="showReportDetail('+i+')">查看详情</button></td></tr>';
   }
-  document.getElementById('reportTable').innerHTML=h||'<tr><td colspan="9" class="empty">暂无数据</td></tr>';
+  document.getElementById('reportTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
   renderPagination('reportPagination',d.total,reportPage,d.pageSize,'loadReports');
 }
-async function handleReport(id,action){await api('/reports/'+id+'/handle',{method:'PUT',body:{action:action}});loadReports();}
+function showReportDetail(idx){
+  var r=_reportListCache[idx];if(!r)return;
+  var typeMap={post:'帖子',job:'招工',exposure:'曝光',user:'用户'};
+  var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">举报类型</span><span style="font-size:13px;">'+(typeMap[r.targetType]||r.targetType)+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">目标ID</span><span style="font-size:13px;">'+r.targetId+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">状态</span><span style="font-size:13px;">'+r.status+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">举报时间</span><span style="font-size:13px;">'+(r.createdAt||'').substring(0,19).replace('T',' ')+'</span></div>';
+  h+='</div>';
+  h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">举报原因</span><div style="font-size:13px;font-weight:600;">'+escHtml(r.reason||'-')+'</div></div>';
+  if(r.description)h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">详细描述</span><div style="font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-all;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;">'+escHtml(r.description)+'</div></div>';
+  var imgs=r.images||[];
+  if(imgs.length){h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:8px;">举报图片（'+imgs.length+'张）</span><div style="display:flex;flex-wrap:wrap;gap:8px;">';for(var j=0;j<imgs.length;j++){var u=escAttr(imgs[j]);h+='<img src="'+u+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)" onclick="showImagePreview(\''+u+'\',\'举报图片'+(j+1)+'\')">';}h+='</div></div>';}
+  document.getElementById('auditDetailTitle').textContent='举报详情 #'+r.id;
+  document.getElementById('auditDetailContent').innerHTML=h;
+  var acts='<button class="cancel" onclick="hideAuditDetailModal()">关闭</button>';
+  if(r.status==='pending'){
+    acts='<button class="btn btn-success" style="padding:8px 20px;" onclick="handleReport('+r.id+',\'resolve\')">处理</button><button class="btn btn-danger" style="padding:8px 20px;" onclick="dismissReport('+r.id+')">驳回</button>'+acts;
+  }
+  document.getElementById('auditDetailActions').innerHTML=acts;
+  document.getElementById('auditDetailModal').classList.add('show');
+}
+async function handleReport(id,action){await api('/reports/'+id+'/handle',{method:'PUT',body:{action:action}});toast(action==='resolve'?'已处理':'已驳回','success');hideAuditDetailModal();loadReports();loadPendingCounts();}
+async function dismissReport(id){
+  var reason=await xprompt('请输入驳回原因（可选）');
+  if(reason===null)return;
+  await api('/reports/'+id+'/handle',{method:'PUT',body:{action:'dismiss',reason:reason}});toast('已驳回','success');hideAuditDetailModal();loadReports();loadPendingCounts();
+}
 
 var jobPage=1;
 async function loadJobs(page){
@@ -726,30 +823,48 @@ async function saveExposureTabConfigs(){
   exposureTabConfigsLoaded=true;
   toast('维权 Tab 配置已保存','success');
 }
+var _exposureListCache=[];
 async function loadExposures(page){
   if(page)exposurePage=page;
   await loadExposureTabConfigs();
   var d=await api('/exposures?page='+exposurePage);
   if(!d)return;var list=d.list||[];
+  _exposureListCache=list;
   var h='';
   for(var i=0;i<list.length;i++){var e=list[i];
     var companyName=(e.companyName||e.personName||'-');
     var statusBadge=e.status==='pending'?'<span class="badge badge-orange">待审核</span>':e.status==='approved'?'<span class="badge badge-green">已通过</span>':'<span class="badge badge-red">已拒绝</span>';
-    var ops='';
-    if(e.status==='pending'){
-      ops+='<button class="btn btn-success" onclick="approveExposure('+e.id+')">通过</button>';
-      ops+='<button class="btn btn-warning" onclick="rejectExposure('+e.id+')">拒绝</button>';
-    }
-    ops+='<button class="btn btn-danger" onclick="deleteExposure('+e.id+')">删除</button>';
-    var imgs='';if(e.images&&e.images.length){for(var j=0;j<e.images.length;j++){var exposureImage=escAttr(e.images[j]);imgs+='<img src="'+exposureImage+'" data-preview-url="'+exposureImage+'" data-preview-title="曝光图片'+(j+1)+'" style="width:60px;height:60px;object-fit:cover;border-radius:4px;margin:2px;cursor:pointer;" onclick="showImagePreview(this.dataset.previewUrl,this.dataset.previewTitle)">';}}else{imgs='-';}
-    h+='<tr><td>'+e.id+'</td><td>'+companyName+'</td><td>'+(e.amount||'-')+'</td><td style="max-width:300px;white-space:pre-wrap;word-break:break-all;">'+(e.description||'-')+'</td><td style="max-width:200px;">'+imgs+'</td><td>'+statusBadge+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td>'+ops+'</td></tr>';
+    h+='<tr><td>'+e.id+'</td><td>'+escHtml(companyName)+'</td><td>'+(e.amount||'-')+'</td><td>'+(e.createdAt||'').substring(0,10)+'</td><td>'+statusBadge+'</td><td><button class="btn btn-primary" onclick="showExposureDetail('+i+')">查看详情</button></td></tr>';
   }
-  document.getElementById('exposureTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无数据</td></tr>';
+  document.getElementById('exposureTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无数据</td></tr>';
   renderPagination('exposurePagination',d.total,exposurePage,d.pageSize,'loadExposures');
 }
-async function approveExposure(id){var ok=await xconfirm('确认通过该曝光信息？');if(ok){await api('/exposures/'+id+'/approve',{method:'POST'});toast('已通过','success');loadExposures();}}
-async function rejectExposure(id){var ok=await xconfirm('确认拒绝该曝光信息？');if(ok){await api('/exposures/'+id+'/reject',{method:'POST'});toast('已拒绝','success');loadExposures();}}
-async function deleteExposure(id){var ok=await xconfirm('确认删除该曝光信息？');if(ok){await api('/exposures/'+id,{method:'DELETE'});toast('已删除','success');loadExposures();}}
+function showExposureDetail(idx){
+  var e=_exposureListCache[idx];if(!e)return;
+  var catMap={false_info:'虚假信息',fraud:'诈骗',wage_theft:'欠薪'};
+  var h='<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">被曝光方</span><span style="font-size:13px;">'+escHtml(e.companyName||e.personName||'-')+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">分类</span><span style="font-size:13px;">'+(catMap[e.category]||e.category||'-')+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">涉及金额</span><span style="font-size:13px;">'+(e.amount||'-')+'</span></div>';
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">状态</span><span style="font-size:13px;">'+e.status+'</span></div>';
+  h+='</div>';
+  if(e.description)h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">详细描述</span><div style="font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-all;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;">'+escHtml(e.description)+'</div></div>';
+  var imgs=e.images||[];
+  if(imgs.length){h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:8px;">曝光图片（'+imgs.length+'张）</span><div style="display:flex;flex-wrap:wrap;gap:8px;">';for(var j=0;j<imgs.length;j++){var u=escAttr(imgs[j]);h+='<img src="'+u+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)" onclick="showImagePreview(\''+u+'\',\'曝光图片'+(j+1)+'\')">';}h+='</div></div>';}
+  h+='<div style="padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">发布时间</span><span style="font-size:13px;">'+(e.createdAt||'').substring(0,19).replace('T',' ')+'</span></div>';
+  document.getElementById('auditDetailTitle').textContent='曝光详情 #'+e.id;
+  document.getElementById('auditDetailContent').innerHTML=h;
+  var acts='<button class="cancel" onclick="hideAuditDetailModal()">关闭</button>';
+  if(e.status==='pending'){
+    acts='<button class="btn btn-success" style="padding:8px 20px;" onclick="approveExposure('+e.id+')">通过</button><button class="btn btn-warning" style="padding:8px 20px;" onclick="rejectExposure('+e.id+')">拒绝</button>'+acts;
+  }
+  acts='<button class="btn btn-danger" style="padding:8px 20px;" onclick="deleteExposure('+e.id+')">删除</button>'+acts;
+  document.getElementById('auditDetailActions').innerHTML=acts;
+  document.getElementById('auditDetailModal').classList.add('show');
+}
+async function approveExposure(id){var ok=await xconfirm('确认通过该曝光信息？');if(ok){await api('/exposures/'+id+'/approve',{method:'POST'});toast('已通过','success');hideAuditDetailModal();loadExposures();loadPendingCounts();}}
+async function rejectExposure(id){var ok=await xconfirm('确认拒绝该曝光信息？');if(ok){await api('/exposures/'+id+'/reject',{method:'POST'});toast('已拒绝','success');hideAuditDetailModal();loadExposures();loadPendingCounts();}}
+async function deleteExposure(id){var ok=await xconfirm('确认删除该曝光信息？');if(ok){await api('/exposures/'+id,{method:'DELETE'});toast('已删除','success');hideAuditDetailModal();loadExposures();loadPendingCounts();}}
 
 async function loadKeywords(){
   var list=await api('/keywords');if(!list)return;
@@ -767,15 +882,28 @@ async function loadNotices(){
   var h='';
   for(var i=0;i<list.length;i++){var n=list[i];
     var stB=n.isActive?'badge-green':'badge-gray';
-    var stT=n.isActive?'\u542f\u7528':'\u7981\u7528';
-    var togT=n.isActive?'\u7981\u7528':'\u542f\u7528';
-    h+='<tr><td>'+n.id+'</td><td>'+n.title+'</td><td>\u7cfb\u7edf\u901a\u77e5</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(n.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-warning" onclick="toggleNotice('+n.id+','+n.isActive+')">'+togT+'</button><button class="btn btn-danger" onclick="deleteNotice('+n.id+')">\u5220\u9664</button></td></tr>';
+    var stT=n.isActive?'启用':'禁用';
+    var togT=n.isActive?'禁用':'启用';
+    var imgCell=n.imageUrl?'<img src="'+n.imageUrl+'" style="max-width:80px;max-height:50px;border-radius:4px;">':'<span style="color:#94a3b8">无</span>';
+    var typeT=n.imageUrl?'图片公告':'文字公告';
+    h+='<tr><td>'+n.id+'</td><td>'+imgCell+'</td><td>'+(n.title||'-')+'</td><td>'+typeT+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(n.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-warning" onclick="toggleNotice('+n.id+','+n.isActive+')">'+togT+'</button><button class="btn btn-danger" onclick="deleteNotice('+n.id+')">删除</button></td></tr>';
   }
-  document.getElementById('noticeTable').innerHTML=h||'<tr><td colspan="6" class="empty">\u6682\u65e0\u516c\u544a</td></tr>';
+  document.getElementById('noticeTable').innerHTML=h||'<tr><td colspan="7" class="empty">暂无公告</td></tr>';
 }
-function showNoticeModal(){document.getElementById('noticeModal').classList.add('show');document.getElementById('noticeTitle').value='';document.getElementById('noticeContent').value='';}
+function showNoticeModal(){document.getElementById('noticeModal').classList.add('show');document.getElementById('noticeTitle').value='';document.getElementById('noticeContent').value='';document.getElementById('noticeImageUrl').value='';document.getElementById('noticeImagePreview').style.display='none';document.getElementById('noticeImageFile').value='';}
 function hideNoticeModal(){document.getElementById('noticeModal').classList.remove('show');}
-async function saveNotice(){var t=document.getElementById('noticeTitle').value.trim();var c=document.getElementById('noticeContent').value.trim();if(!t||!c){toast('\u8bf7\u586b\u5199\u6807\u9898\u548c\u5185\u5bb9','error');return;}await api('/notices',{method:'POST',body:{title:t,content:c,position:'message'}});hideNoticeModal();toast('\u516c\u544a\u5df2\u53d1\u5e03','success');loadNotices();}
+async function onNoticeImageSelected(input){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  var fd=new FormData();fd.append('file',file);
+  try{
+    var res=await fetch('/api/upload',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+    var data=await res.json();
+    if(data.url){document.getElementById('noticeImageUrl').value=data.url;var prev=document.getElementById('noticeImagePreview');prev.src=data.url;prev.style.display='block';toast('图片上传成功','success');}
+    else{toast('上传失败','error');}
+  }catch(e){toast('上传失败: '+e.message,'error');}
+}
+async function saveNotice(){var t=document.getElementById('noticeTitle').value.trim();var c=document.getElementById('noticeContent').value.trim();var img=document.getElementById('noticeImageUrl').value.trim();if(!img&&(!t||!c)){toast('请上传公告图片，或填写标题和内容','error');return;}var body={position:'message'};if(t)body.title=t;if(c)body.content=c;if(img)body.imageUrl=img;await api('/notices',{method:'POST',body:body});hideNoticeModal();toast('公告已发布','success');loadNotices();}
 async function toggleNotice(id,cur){await api('/notices/'+id,{method:'PUT',body:{isActive:cur?0:1}});loadNotices();}
 async function deleteNotice(id){var ok=await xconfirm('\u786e\u8ba4\u5220\u9664\u8be5\u516c\u544a\uff1f');if(ok){await api('/notices/'+id,{method:'DELETE'});toast('\u5df2\u5220\u9664','success');loadNotices();}}
 
@@ -823,9 +951,11 @@ async function loadConfigs(){
       .replace(/"/g,'&quot;')
       .replace(/'/g,'&#39;');
   }
+  var agreementKeys=['user_agreement_content','privacy_policy_content','rights_agreement_content'];
   var grouped={};
   for(var i=0;i<list.length;i++){
     var c=list[i];
+    if(agreementKeys.indexOf(c.key)!==-1)continue;
     var g=toDisplayGroup(c);
     if(!grouped[g])grouped[g]=[];
     grouped[g].push(c);
@@ -853,6 +983,27 @@ async function loadConfigs(){
 }
 async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});toast('已保存','success');}
 
+async function loadAgreements(){
+  var list=await api('/configs');if(!list||!list.length)return;
+  var keys=['user_agreement_content','privacy_policy_content','rights_agreement_content'];
+  for(var i=0;i<keys.length;i++){
+    var cfg=list.find(function(c){return c.key===keys[i];});
+    var el=document.getElementById('agree_'+keys[i]);
+    if(el)el.value=cfg?cfg.value:'';
+  }
+}
+async function saveAgreement(key){
+  var v=document.getElementById('agree_'+key).value;
+  await api('/configs',{method:'PUT',body:{key:key,value:v}});
+  toast('协议已保存','success');
+}
+function previewAgreement(key){
+  var v=document.getElementById('agree_'+key).value;
+  var w=window.open('','_blank','width=420,height=700');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>协议预览</title><style>body{max-width:400px;margin:20px auto;padding:0 16px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:#1E293B;font-size:14px;line-height:1.8;}h2{font-size:18px;margin:0 0 4px;}h3{font-size:15px;margin:20px 0 8px;color:#1E293B;}p{margin:4px 0;color:#64748B;}</style></head><body>'+v+'</body></html>');
+  w.document.close();
+}
+
 
 async function loadJobTypes(){
   var list=await api('/job-types');if(!list)return;
@@ -861,9 +1012,10 @@ async function loadJobTypes(){
     var stB=j.isActive?'badge-green':'badge-red';
     var stT=j.isActive?'启用':'禁用';
     var togT=j.isActive?'禁用':'启用';
-    h+='<tr><td>'+j.id+'</td><td>'+j.name+'</td><td>'+(j.defaultSettlement==='hourly'?'计时':'计件')+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(j.createdAt||'').substring(0,10)+'</td><td><button class="btn '+(j.isActive?'btn-danger':'btn-success')+'" onclick="toggleJobType('+j.id+')">'+togT+'</button></td></tr>';
+    var iconHtml=j.iconUrl?'<img src="'+j.iconUrl+'" style="width:28px;height:28px;border-radius:4px;object-fit:cover;">':'<span style="color:var(--text-muted)">-</span>';
+    h+='<tr><td>'+j.id+'</td><td>'+iconHtml+'</td><td>'+j.name+'</td><td>'+(j.defaultSettlement==='hourly'?'计时':'计件')+'</td><td>'+(j.sort||0)+'</td><td><span class="badge '+stB+'">'+stT+'</span></td><td>'+(j.createdAt||'').substring(0,10)+'</td><td><button class="btn btn-primary" onclick="editJobType('+j.id+',\''+j.name.replace(/'/g,"\\'")+'\',' +(j.sort||0)+',\''+(j.iconUrl||'').replace(/'/g,"\\'")+'\')">编辑</button><button class="btn '+(j.isActive?'btn-danger':'btn-success')+'" onclick="toggleJobType('+j.id+')">'+togT+'</button></td></tr>';
   }
-  document.getElementById('jobTypeTable').innerHTML=h||'<tr><td colspan="6" class="empty">暂无工种</td></tr>';
+  document.getElementById('jobTypeTable').innerHTML=h||'<tr><td colspan="8" class="empty">暂无工种</td></tr>';
 }
 async function addJobType(){
   var n=document.getElementById('newJobType').value.trim();
@@ -874,6 +1026,13 @@ async function addJobType(){
   loadJobTypes();
 }
 async function toggleJobType(id){await api('/job-types/'+id+'/toggle',{method:'PUT'});loadJobTypes();}
+async function editJobType(id,curName,curSort,curIcon){
+  var name=await xprompt('工种名称',curName);if(name===null)return;
+  var sort=await xprompt('排序（数字越小越靠前）',curSort);if(sort===null)return;
+  var iconUrl=await xprompt('图标URL（留空清除）',curIcon);if(iconUrl===null)iconUrl=curIcon;
+  await api('/job-types/'+id,{method:'PUT',body:{name:name||curName,sort:parseInt(sort)||0,iconUrl:iconUrl||''}});
+  toast('已更新','success');loadJobTypes();
+}
 
 async function loadCities(){
   var list=await api('/cities');if(!list)return;
@@ -895,6 +1054,8 @@ async function addCity(){
 }
 async function toggleCity(id){await api('/cities/'+id+'/toggle',{method:'PUT'});loadCities();}
 
+var bizTypeLabels={purchase:'采购需求',stock:'工厂库存',process:'代加工'};
+function bizTypeLabel(v){return bizTypeLabels[v]||'通用';}
 async function loadCategories(){
   var list=await api('/categories');if(!list)return;
   var sel=document.getElementById('newCatParent');
@@ -902,33 +1063,32 @@ async function loadCategories(){
   for(var i=0;i<list.length;i++){sel.innerHTML+='<option value="'+list[i].id+'">└ '+list[i].name+'的子分类</option>';}
   function safeText(v){
     return String(v===undefined||v===null?'':v)
-      .replace(/&/g,'&amp;')
-      .replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;')
-      .replace(/"/g,'&quot;')
-      .replace(/'/g,'&#39;');
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
   function statusText(active){return active?'启用':'禁用';}
   function statusBadge(active){return active?'badge-green':'badge-red';}
-  function statusHint(active){
-    return active ? '前端展示中' : '前端已隐藏';
-  }
+  function statusHint(active){return active?'前端展示中':'前端已隐藏';}
   function toggleBtn(item){
     return '<button class="btn '+(item.isActive?'btn-danger':'btn-success')+'" onclick="toggleCategory('+item.id+')">'+(item.isActive?'设为禁用':'恢复启用')+'</button>';
   }
+  function editBtn(item){
+    return '<button class="btn btn-primary" onclick="editCategory('+item.id+',\''+safeText(item.name).replace(/'/g,"\\'")+'\','+(item.sort||0)+',\''+(item.iconUrl||'').replace(/'/g,"\\'")+'\',\''+(item.bizType||'').replace(/'/g,"\\'")+'\')">编辑</button>';
+  }
+  function iconHtml(url){return url?'<img src="'+url+'" style="width:24px;height:24px;border-radius:4px;object-fit:cover;vertical-align:middle;margin-right:6px;">':'';}
   var h='<div style="display:flex;flex-direction:column;gap:16px">';
   for(var i=0;i<list.length;i++){var c=list[i];var ch=c.children||[];
+    var btLabel=bizTypeLabel(c.bizType);
     h+='<div style="border:1px solid var(--border);border-radius:12px;background:var(--bg);overflow:hidden">';
     h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">';
-    h+='<div><div style="font-size:16px;font-weight:600;color:var(--text)">'+safeText(c.name)+'</div><div style="font-size:12px;color:var(--text-muted);margin-top:4px">一级分类 ID '+c.id+' · 子分类 '+ch.length+' 个</div><div style="font-size:12px;color:var(--text-muted);margin-top:6px">'+statusHint(c.isActive)+'</div></div>';
-    h+='<div style="display:flex;align-items:center;gap:8px"><span class="badge '+statusBadge(c.isActive)+'">'+statusText(c.isActive)+'</span>'+toggleBtn(c)+'</div>';
+    h+='<div>'+iconHtml(c.iconUrl)+'<span style="font-size:16px;font-weight:600;color:var(--text)">'+safeText(c.name)+'</span><div style="font-size:12px;color:var(--text-muted);margin-top:4px">一级分类 ID '+c.id+' · 子分类 '+ch.length+' 个 · 排序 '+(c.sort||0)+' · <span class="badge badge-blue">'+btLabel+'</span></div><div style="font-size:12px;color:var(--text-muted);margin-top:6px">'+statusHint(c.isActive)+'</div></div>';
+    h+='<div style="display:flex;align-items:center;gap:8px"><span class="badge '+statusBadge(c.isActive)+'">'+statusText(c.isActive)+'</span>'+editBtn(c)+toggleBtn(c)+'</div>';
     h+='</div>';
     if(ch.length===0){
       h+='<div class="empty" style="padding:24px">暂无子分类，可先新增二级分类后再启用到前端。</div>';
     }else{
-      h+='<table><thead><tr><th>ID</th><th>名称</th><th>层级</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
+      h+='<table><thead><tr><th>ID</th><th>图标</th><th>名称</th><th>bizType</th><th>排序</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead><tbody>';
       for(var j=0;j<ch.length;j++){var s=ch[j];
-        h+='<tr><td>'+s.id+'</td><td>'+safeText(s.name)+'</td><td>二级分类</td><td><div style="display:flex;flex-direction:column;gap:6px"><span class="badge '+statusBadge(s.isActive)+'">'+statusText(s.isActive)+'</span><span style="font-size:12px;color:var(--text-muted)">'+statusHint(s.isActive)+'</span></div></td><td>'+(s.createdAt||'').substring(0,10)+'</td><td>'+toggleBtn(s)+'</td></tr>';
+        h+='<tr><td>'+s.id+'</td><td>'+(s.iconUrl?'<img src="'+s.iconUrl+'" style="width:24px;height:24px;border-radius:4px;object-fit:cover;">':'-')+'</td><td>'+safeText(s.name)+'</td><td><span class="badge badge-blue">'+bizTypeLabel(s.bizType)+'</span></td><td>'+(s.sort||0)+'</td><td><div style="display:flex;flex-direction:column;gap:6px"><span class="badge '+statusBadge(s.isActive)+'">'+statusText(s.isActive)+'</span><span style="font-size:12px;color:var(--text-muted)">'+statusHint(s.isActive)+'</span></div></td><td>'+(s.createdAt||'').substring(0,10)+'</td><td>'+editBtn(s)+toggleBtn(s)+'</td></tr>';
       }
       h+='</tbody></table>';
     }
@@ -941,11 +1101,20 @@ async function addCategory(){
   var n=document.getElementById('newCatName').value.trim();
   if(!n){toast('请输入分类名称','error');return;}
   var p=parseInt(document.getElementById('newCatParent').value);
-  await api('/categories',{method:'POST',body:{name:n,parentId:p,level:p===0?1:2}});
+  var bt=document.getElementById('newCatBizType').value||null;
+  await api('/categories',{method:'POST',body:{name:n,parentId:p,level:p===0?1:2,bizType:bt}});
   document.getElementById('newCatName').value='';
   loadCategories();
 }
 async function toggleCategory(id){await api('/categories/'+id+'/toggle',{method:'PUT'});loadCategories();}
+async function editCategory(id,curName,curSort,curIcon,curBiz){
+  var name=await xprompt('分类名称',curName);if(name===null)return;
+  var sort=await xprompt('排序（数字越小越靠前）',curSort);if(sort===null)return;
+  var biz=await xprompt('bizType（purchase/stock/process，留空为通用）',curBiz);if(biz===null)biz=curBiz;
+  var iconUrl=await xprompt('图标URL（留空清除）',curIcon);if(iconUrl===null)iconUrl=curIcon;
+  await api('/categories/'+id,{method:'PUT',body:{name:name||curName,sort:parseInt(sort)||0,bizType:biz||null,iconUrl:iconUrl||null}});
+  toast('已更新','success');loadCategories();
+}
 
 async function loadFinance(){
   var d=await api('/finance');if(!d)return;
@@ -1190,24 +1359,7 @@ async function saveAdmin(){
 async function toggleAdmin(id){await api('/admins/'+id+'/toggle',{method:'PUT'});loadAdmins();}
 async function resetAdminPwd(id){var ok=await xconfirm('确认重置密码为123456？');if(ok){await api('/admins/'+id+'/reset-pwd',{method:'PUT'});toast('密码已重置为123456','success');}}
 
-async function loadStats(){
-  var d=await api('/stats/overview');if(!d)return;
-  var h='<div class="stat-cards">';
-  h+='<div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">总用户</span></div><div class="sc-value">'+d.users.total+'</div></div>';
-  h+='<div class="stat-card sc-green"><div class="sc-top"><span class="sc-label">今日新增</span></div><div class="sc-value">'+d.users.today+'</div></div>';
-  h+='<div class="stat-card sc-cyan"><div class="sc-top"><span class="sc-label">近7天新增</span></div><div class="sc-value">'+d.users.week+'</div></div>';
-  h+='<div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">近30天新增</span></div><div class="sc-value">'+d.users.month+'</div></div>';
-  h+='<div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">待审核信息</span></div><div class="sc-value">'+d.posts.pending+'</div></div>';
-  h+='<div class="stat-card sc-blue"><div class="sc-top"><span class="sc-label">待审核企业认证</span></div><div class="sc-value">'+d.certs.pendingEnterprise+'</div></div>';
-  h+='<div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">待审核临工认证</span></div><div class="sc-value">'+d.certs.pendingWorker+'</div></div>';
-  h+='<div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">待处理举报</span></div><div class="sc-value">'+d.reports.pending+'</div></div>';
-  h+='<div class="stat-card sc-cyan"><div class="sc-top"><span class="sc-label">总发布信息</span></div><div class="sc-value">'+d.posts.total+'</div></div>';
-  h+='<div class="stat-card sc-green"><div class="sc-top"><span class="sc-label">总招工</span></div><div class="sc-value">'+d.jobs.total+'</div></div>';
-  h+='<div class="stat-card sc-orange"><div class="sc-top"><span class="sc-label">总曝光</span></div><div class="sc-value">'+d.exposures.total+'</div></div>';
-  h+='<div class="stat-card sc-red"><div class="sc-top"><span class="sc-label">总举报</span></div><div class="sc-value">'+d.reports.total+'</div></div>';
-  h+='</div>';
-  document.getElementById('statsContent').innerHTML=h;
-}
+async function loadStats(){loadDashboard();switchPage('dashboard');}
 
 async function showUserDetail(id){
   var d=await api('/users/'+id+'/detail');if(!d)return;

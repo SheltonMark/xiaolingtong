@@ -1,4 +1,4 @@
-const { get, post, upload } = require('../../utils/request')
+const { get, post, upload, uploadVideo } = require('../../utils/request')
 const auth = require('../../utils/auth')
 const { getDefaultContactProfile } = require('../../utils/contact-profile')
 const { normalizeImageUrl } = require('../../utils/image')
@@ -34,7 +34,9 @@ Page({
       { label: '熟手优先', selected: false }
     ],
     images: [],
+    videos: [],
     isUploading: false,
+    isVideoUploading: false,
     submitting: false,
     phoneChecked: false,
     wechatChecked: false,
@@ -43,8 +45,48 @@ Page({
 
   onLoad() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
-    this.loadJobTypes()
-    this.initContactInfo()
+    this.checkCertAndInit()
+  },
+
+  // 发布招工前校验企业认证（以接口为准，避免 globalData 尚未同步）
+  checkCertAndInit() {
+    get('/auth/profile').then((res) => {
+      const profile = res.data || res
+      const certStatus = profile.certStatus || 'none'
+
+      if (certStatus === 'pending') {
+        wx.showModal({
+          title: '认证审核中',
+          content: '您的企业认证正在审核中，通过后即可发布招工',
+          showCancel: false,
+          success: () => wx.navigateBack()
+        })
+        return
+      }
+
+      if (certStatus !== 'approved') {
+        wx.showModal({
+          title: '需要企业认证',
+          content: '发布招工前需要先完成企业认证',
+          confirmText: '去认证',
+          cancelText: '返回',
+          success: (r) => {
+            if (r.confirm) {
+              wx.navigateTo({ url: '/pages/cert-enterprise/cert-enterprise' })
+            } else {
+              wx.navigateBack()
+            }
+          }
+        })
+        return
+      }
+
+      this.loadJobTypes()
+      this.initContactInfo()
+    }).catch(() => {
+      this.loadJobTypes()
+      this.initContactInfo()
+    })
   },
 
   loadJobTypes() {
@@ -177,17 +219,47 @@ Page({
     this.setData({ images })
   },
 
+  onChooseVideo() {
+    if (this.data.videos.length >= 1) {
+      wx.showToast({ title: '最多上传1个视频', icon: 'none' })
+      return
+    }
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['video'],
+      maxDuration: 60,
+      success: (res) => {
+        const file = res.tempFiles[0]
+        this.setData({ isVideoUploading: true })
+        uploadVideo(file.tempFilePath).then(result => {
+          const url = (result.data && result.data.url) || result.data || ''
+          if (url) {
+            this.setData({ videos: [url] })
+          }
+        }).catch(() => {
+          wx.showToast({ title: '视频上传失败', icon: 'none' })
+        }).finally(() => {
+          this.setData({ isVideoUploading: false })
+        })
+      }
+    })
+  },
+
+  onDeleteVideo() {
+    this.setData({ videos: [] })
+  },
+
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
     if (this.data.submitting) {
       return
     }
-    if (this.data.isUploading) {
-      wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
+    if (this.data.isUploading || this.data.isVideoUploading) {
+      wx.showToast({ title: '文件上传中，请稍后提交', icon: 'none' })
       return
     }
 
-    const { form, settleType, benefits, images, phoneChecked, wechatChecked, wechatQrChecked } = this.data
+    const { form, settleType, benefits, images, videos, phoneChecked, wechatChecked, wechatQrChecked } = this.data
     if (!form.title) { wx.showToast({ title: '请输入招工标题', icon: 'none' }); return }
     if (!form.jobType) { wx.showToast({ title: '\u8bf7\u9009\u62e9\u5de5\u79cd', icon: 'none' }); return }
     if (!form.price) { wx.showToast({ title: '请输入工价', icon: 'none' }); return }
@@ -228,7 +300,8 @@ Page({
       showWechat: wechatChecked,
       showWechatQr: wechatQrChecked,
       benefits: selectedBenefits,
-      images
+      images,
+      videos
     }).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '发布成功', icon: 'success' })

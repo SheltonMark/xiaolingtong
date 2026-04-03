@@ -4,6 +4,7 @@ const { extractUploadUrl } = require('./image')
 
 const TIMEOUT = 10000         // 普通请求超时 10s
 const UPLOAD_TIMEOUT = 30000  // 上传超时 30s
+const VIDEO_UPLOAD_TIMEOUT = 120000  // 视频上传超时 120s
 
 // 将 wx.request fail 的 errMsg 转成用户可读提示
 function getNetErrTitle(errMsg) {
@@ -180,4 +181,68 @@ function upload(filePath) {
   })
 }
 
-module.exports = { request, get, post, put, del, upload }
+function uploadVideo(filePath) {
+  return new Promise((resolve, reject) => {
+    const token = auth.getToken()
+    wx.uploadFile({
+      url: config.baseUrl + config.apiPrefix + '/upload/video',
+      filePath,
+      name: 'file',
+      header: token ? { 'Authorization': 'Bearer ' + token } : {},
+      timeout: VIDEO_UPLOAD_TIMEOUT,
+      success(res) {
+        if (res.statusCode === 401) {
+          auth.goLogin()
+          reject(new Error('登录已过期，请重新登录'))
+          return
+        }
+        if (res.statusCode >= 400) {
+          wx.showToast({ title: `上传失败(${res.statusCode})`, icon: 'none' })
+          reject(new Error('上传失败：' + res.statusCode))
+          return
+        }
+        let data
+        try {
+          data = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+        } catch (e) {
+          wx.showToast({ title: '上传响应异常', icon: 'none' })
+          reject(new Error('上传响应解析失败'))
+          return
+        }
+        if (data?.code && data.code !== 200 && data.code !== 0) {
+          wx.showToast({ title: data.message || '上传失败', icon: 'none' })
+          reject(new Error(data.message || '上传失败'))
+          return
+        }
+
+        let normalized
+        if (data && typeof data === 'object' && !Array.isArray(data)) {
+          if (Object.prototype.hasOwnProperty.call(data, 'data')) {
+            normalized = data
+          } else {
+            normalized = { ...data, data }
+          }
+        } else {
+          normalized = { data }
+        }
+
+        const uploadUrl = extractUploadUrl(normalized)
+        if (uploadUrl) {
+          if (normalized && typeof normalized.data === 'object' && normalized.data) {
+            normalized = { ...normalized, data: { ...normalized.data, url: uploadUrl } }
+          } else {
+            normalized = { ...normalized, data: uploadUrl, url: uploadUrl }
+          }
+        }
+
+        resolve(normalized)
+      },
+      fail(err) {
+        wx.showToast({ title: getNetErrTitle(err.errMsg), icon: 'none' })
+        reject(err)
+      }
+    })
+  })
+}
+
+module.exports = { request, get, post, put, del, upload, uploadVideo }

@@ -339,7 +339,7 @@
   padding: 40rpx 0 24rpx;
 }
 .section-title {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #1E293B;
 }
@@ -381,7 +381,7 @@
   min-width: 0;
 }
 .job-company {
-  font-size: 26rpx;
+  font-size: 28rpx;
   font-weight: 600;
   color: #1E293B;
   overflow: hidden;
@@ -409,7 +409,7 @@
   margin-bottom: 16rpx;
 }
 .job-title-text {
-  font-size: 28rpx; font-weight: 600; color: #1E293B;
+  font-size: 32rpx; font-weight: 600; color: #1E293B;
 }
 .urgent-tag {
   font-size: 22rpx; color: #F43F5E; background: #FFF1F2;
@@ -426,14 +426,14 @@
 
 /* 薪资行（企业端招工tab用） */
 .job-salary-line {
-  font-size: 26rpx;
+  font-size: 28rpx;
   color: #1E293B;
   line-height: 1.625;
   margin-bottom: 8rpx;
   display: block;
 }
 .job-desc {
-  font-size: 24rpx;
+  font-size: 28rpx;
   color: #64748B;
   line-height: 1.6;
   margin-bottom: 20rpx;
@@ -624,6 +624,59 @@
   margin-left: auto;
 }
 
+/* 招工快捷入口 */
+.job-quick-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 24rpx 32rpx;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  margin: 0 24rpx 20rpx;
+}
+.job-quick-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+.job-quick-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.job-quick-icon-text {
+  font-size: 36rpx;
+}
+.job-quick-label {
+  font-size: 22rpx;
+  color: #475569;
+  font-weight: 500;
+}
+
+/* 招工视图切换 */
+.job-view-toggle {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 32rpx 16rpx;
+}
+.job-view-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 8rpx 24rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  color: #3B82F6;
+  background-color: #EFF6FF;
+}
+.job-view-btn-active {
+  color: #ffffff;
+  background-color: #3B82F6;
+}
+
 /* 悬浮发布招工按钮 */
 .fab-publish {
   position: fixed; bottom: calc(160rpx + env(safe-area-inset-bottom)); right: 32rpx;
@@ -635,3 +688,50 @@
 }
 .fab-publish-icon { font-size: 40rpx; font-weight: 300; line-height: 1; }
 .fab-publish-text { font-size: 20rpx; font-weight: 600; margin-top: 2rpx; }
+
+/* ===== 代加工筛选栏 ===== */
+.process-filter-bar {
+  padding: 20rpx 32rpx 0;
+}
+.process-mode-tabs {
+  display: flex;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+.process-mode-tab {
+  flex: 1;
+  height: 64rpx;
+  border-radius: 12rpx;
+  background-color: #F1F5F9;
+  color: #64748B;
+  font-size: 24rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.process-mode-tab-active {
+  background-color: #3B82F6;
+  color: #ffffff;
+}
+.process-filter-row {
+  display: flex;
+  gap: 16rpx;
+}
+.process-filter-row picker {
+  flex: 1;
+}
+.process-filter-row .filter-item {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4rpx;
+  padding: 12rpx 0;
+  background-color: #F1F5F9;
+  border-radius: 12rpx;
+}
+.process-filter-row .filter-text {
+  font-size: 24rpx;
+  color: #1E293B;
+}

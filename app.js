@@ -11,6 +11,8 @@ App({
     inviteCode: '',
     pendingInviteCode: '',
     userId: null,
+    certStatus: 'none',
+    isVerified: false,
 
     // ===== 测试模式开关 =====
     // 设置为 true 启用测试模式，可以模拟不同用户
@@ -51,6 +53,10 @@ App({
       this.globalData.isMember = user.isMember || false
       this.globalData.beanBalance = user.beanBalance || 0
       this.globalData.inviteCode = user.inviteCode || ''
+      const certStatus = user.certStatus || 'none'
+      this.globalData.certStatus = certStatus
+      this.globalData.isVerified =
+        user.isVerified === true || certStatus === 'approved'
 
       // 保存真实userId
       this.globalData.userId = user.id || null
@@ -67,6 +73,8 @@ App({
       // token 过期或无效，静默清除，不跳登录页
       wx.removeStorageSync('token')
       this.globalData.isLoggedIn = false
+      this.globalData.certStatus = 'none'
+      this.globalData.isVerified = false
     })
   },
 

@@ -52,7 +52,10 @@ Page({
     contactInfo: buildFallbackContactInfo(),
     phoneChecked: false,
     wechatChecked: false,
-    wechatQrChecked: false
+    wechatQrChecked: false,
+    locationAddress: '',
+    locationLat: null,
+    locationLng: null
   },
 
   onLoad() {
@@ -83,7 +86,10 @@ Page({
       form: { ...DEFAULT_FORM },
       images: [],
       processModeIndex: -1,
-      validityIndex: 2
+      validityIndex: 2,
+      locationAddress: '',
+      locationLat: null,
+      locationLng: null
     })
     this.initContactInfo()
   },
@@ -138,6 +144,19 @@ Page({
     this.setData({
       processModeIndex: index,
       'form.processMode': option ? option.value : ''
+    })
+  },
+
+  onChooseLocation() {
+    wx.chooseLocation({
+      success: (res) => {
+        this.setData({
+          locationAddress: res.address || res.name || '',
+          locationLat: res.latitude || null,
+          locationLng: res.longitude || null
+        })
+      },
+      fail: () => {}
     })
   },
 
@@ -223,7 +242,7 @@ Page({
       return
     }
 
-    const { form, phoneChecked, wechatChecked, wechatQrChecked, images, typeIndex, contactInfo } = this.data
+    const { form, phoneChecked, wechatChecked, wechatQrChecked, images, typeIndex, contactInfo, locationAddress, locationLat, locationLng } = this.data
     const types = ['purchase', 'stock', 'process']
     const contactName = (contactInfo.name || '').trim()
     const contactPhone = (contactInfo.phone || '').trim()
@@ -287,7 +306,10 @@ Page({
       showPhone: phoneChecked,
       showWechat: wechatChecked,
       showWechatQr: wechatQrChecked,
-      validityDays: Number(this.data.validityOptions[this.data.validityIndex].replace('天', ''))
+      validityDays: Number(this.data.validityOptions[this.data.validityIndex].replace('天', '')),
+      address: locationAddress || undefined,
+      lat: locationLat || undefined,
+      lng: locationLng || undefined
     }
 
     wx.showLoading({ title: '发布中...' })

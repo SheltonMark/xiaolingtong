@@ -20,7 +20,7 @@ type TopPricingItem = {
 
 type HomeBannerItem = {
   id: string;
-  kind: 'ad' | 'notice' | 'default';
+  kind: 'ad' | 'notice' | 'notice-img' | 'default';
   title?: string;
   sub?: string;
   bg?: string;
@@ -303,9 +303,10 @@ export class PromotionService {
       )
       .map((notice) => ({
         id: `notice-${notice.id}`,
-        kind: 'notice',
+        kind: notice.imageUrl ? 'notice-img' : 'notice',
         title: notice.title,
         sub: notice.content,
+        imageUrl: notice.imageUrl || '',
         time: this.formatBannerDate(notice.createdAt),
       }));
 

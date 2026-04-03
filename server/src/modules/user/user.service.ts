@@ -569,9 +569,15 @@ export class UserService {
 
   async updateProfile(userId: number, dto: any) {
     const allowed: any = {};
-    if (dto.nickname) allowed.nickname = dto.nickname;
-    if (dto.phone) allowed.phone = dto.phone;
+    const nickname = this.normalizeText(dto.nickname);
+    const phone = this.normalizeText(dto.phone);
+    if (nickname) allowed.nickname = nickname;
+    if (phone) allowed.phone = phone;
     if (Object.keys(allowed).length === 0) return { message: '无更新' };
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [allowed.nickname, allowed.phone],
+      images: [],
+    });
     await this.userRepo.update(userId, allowed);
     return { message: '已更新', ...allowed };
   }
@@ -593,12 +599,21 @@ export class UserService {
     const user = await this.userRepo.findOneBy({ id: userId });
     const normalizedPhone = this.normalizeText(dto.phone) || null;
     const trustedPhone = this.normalizeText(user?.verifiedPhone);
+    const contactName = this.normalizeText(dto.contactName) || null;
+    const wechatId = this.normalizeText(dto.wechatId) || null;
+    const wechatQrImage = this.normalizeText(dto.wechatQrImage) || null;
+
+    await this.wechatSecurityService.assertSafeSubmission({
+      texts: [contactName, normalizedPhone, wechatId],
+      images: [wechatQrImage],
+    });
+
     const payload = {
-      contactName: this.normalizeText(dto.contactName) || null,
+      contactName,
       phone: normalizedPhone,
       phoneVerified: normalizedPhone && trustedPhone && normalizedPhone === trustedPhone ? 1 : 0,
-      wechatId: this.normalizeText(dto.wechatId) || null,
-      wechatQrImage: this.normalizeText(dto.wechatQrImage) || null,
+      wechatId,
+      wechatQrImage,
     };
 
     const existing = await this.contactProfileRepo.findOneBy({ userId, isDefault: 1 });

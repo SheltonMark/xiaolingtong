@@ -81,7 +81,12 @@
             <image src="{{item.imageUrl}}" class="banner-img banner-img-ad" mode="aspectFill" />
             <text class="ad-tag">广告</text>
           </view>
-          <!-- 默认渐变模式 -->
+          <!-- 公告图片模式 -->
+          <view class="banner-slide banner-slide-ad" wx:elif="{{item.kind === 'notice-img'}}" style="position:relative;">
+            <image src="{{item.imageUrl}}" class="banner-img banner-img-ad" mode="aspectFill" />
+            <text class="ad-tag" style="background:rgba(37,99,235,0.7);">公告</text>
+          </view>
+          <!-- 公告文字模式 -->
           <view class="banner-slide banner-slide-notice" wx:elif="{{item.kind === 'notice'}}">
             <view class="banner-notice-card">
               <view class="banner-notice-top">
@@ -160,14 +165,26 @@
 
     <!-- Tab 2: 代加工 -->
     <view wx:if="{{currentTab === 2}}">
-      <view class="cate-grid-wrap">
-        <view class="cate-grid">
-          <view class="cate-item" wx:for="{{cateProcess}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
-            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
-              <text class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
+      <!-- 二级筛选栏：类型 + 品类 + 距离 -->
+      <view class="process-filter-bar">
+        <view class="process-mode-tabs">
+          <view class="process-mode-tab {{processFilterMode === '' ? 'process-mode-tab-active' : ''}}" bindtap="onProcessModeFilter" data-mode="">全部</view>
+          <view class="process-mode-tab {{processFilterMode === 'offering' ? 'process-mode-tab-active' : ''}}" bindtap="onProcessModeFilter" data-mode="offering">承接加工</view>
+          <view class="process-mode-tab {{processFilterMode === 'seeking' ? 'process-mode-tab-active' : ''}}" bindtap="onProcessModeFilter" data-mode="seeking">找代加工</view>
+        </view>
+        <view class="process-filter-row">
+          <picker mode="selector" range="{{['不限'].concat(processCategoryOptions)}}" bindchange="onProcessCategoryFilter">
+            <view class="filter-item">
+              <text class="filter-text">{{processFilterCategory || '品类'}}</text>
+              <view class="filter-arrow-triangle"></view>
             </view>
-            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
-          </view>
+          </picker>
+          <picker mode="selector" range="{{processDistanceOptions}}" bindchange="onProcessDistanceFilter">
+            <view class="filter-item">
+              <text class="filter-text">{{processFilterDistance || '距离'}}</text>
+              <view class="filter-arrow-triangle"></view>
+            </view>
+          </picker>
         </view>
       </view>
       <view class="list-wrap">
@@ -176,6 +193,7 @@
         </view>
         <info-card wx:for="{{processList}}" wx:key="id"
                    item="{{item}}"
+                   show-distance="{{true}}"
                    bind:tap="onCardTap"
                    bind:wechat="onWechat"
                    bind:phone="onPhone"
@@ -186,8 +204,40 @@
       </view>
     </view>
 
-    <!-- Tab 3: 发布招工 -->
+    <!-- Tab 3: 招工 -->
     <view wx:if="{{currentTab === 3}}">
+      <!-- 招工管理快捷入口 -->
+      <view class="job-quick-actions">
+        <view class="job-quick-btn" bindtap="onJobManage">
+          <view class="job-quick-icon" style="background-color:#FFF7ED;">
+            <text class="job-quick-icon-text" style="color:#D97706;">&#xe61c;</text>
+          </view>
+          <text class="job-quick-label">招工管理</text>
+        </view>
+        <view class="job-quick-btn" bindtap="onSettlement">
+          <view class="job-quick-icon" style="background-color:#FFFBEB;">
+            <text class="job-quick-icon-text" style="color:#F59E0B;">&#xe611;</text>
+          </view>
+          <text class="job-quick-label">工资结算</text>
+        </view>
+        <view class="job-quick-btn" bindtap="onPublishJob">
+          <view class="job-quick-icon" style="background-color:#FFF1F2;">
+            <text class="job-quick-icon-text" style="color:#F43F5E;">&#xe619;</text>
+          </view>
+          <text class="job-quick-label">发布招工</text>
+        </view>
+      </view>
+
+      <!-- 切换视图：我的招工 / 所有招工 -->
+      <view class="job-view-toggle">
+        <view class="job-view-btn {{jobViewMode === 'mine' ? 'job-view-btn-active' : ''}}" bindtap="onToggleJobView" wx:if="{{jobViewMode !== 'mine'}}">
+          <text>我的招工</text>
+        </view>
+        <view class="job-view-btn {{jobViewMode === 'all' ? 'job-view-btn-active' : ''}}" bindtap="onToggleJobView" wx:if="{{jobViewMode !== 'all'}}">
+          <text>查看所有招工</text>
+        </view>
+      </view>
+
       <view class="cate-grid-wrap">
         <view class="cate-grid">
           <view class="cate-item" wx:for="{{cateJob}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
@@ -200,7 +250,7 @@
       </view>
       <view class="list-wrap">
         <view class="section-header">
-          <text class="section-title">最新招工信息</text>
+          <text class="section-title">{{jobViewMode === 'mine' ? '我的招工' : '所有招工信息'}}</text>
         </view>
         <view class="job-card" wx:for="{{jobListEnterprise}}" wx:key="id"
               data-id="{{item.id}}" bindtap="onJobTap">
@@ -236,7 +286,7 @@
             </view>
           </view>
         </view>
-        <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="暂无招工信息" />
+        <empty-state wx:if="{{!jobListEnterprise || jobListEnterprise.length === 0}}" text="{{jobViewMode === 'mine' ? '您还没有发布招工信息' : '暂无招工信息'}}" subText="{{jobViewMode === 'mine' ? '点击下方按钮发布第一条招工' : ''}}" />
       </view>
       <!-- 悬浮发布招工按钮 -->
       <view class="fab-publish" bindtap="onPublishJob">

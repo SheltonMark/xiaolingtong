@@ -11,6 +11,7 @@ import { ContactUnlock } from '../../entities/contact-unlock.entity';
 import { Post } from '../../entities/post.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 function createConversationListQuery(result: any[]) {
   return {
@@ -79,6 +80,7 @@ describe('ChatService', () => {
   let enterpriseCertRepository: any;
   let workerCertRepository: any;
   let chatRealtimeService: any;
+  let wechatSecurityService: any;
 
   beforeEach(async () => {
     conversationRepository = {
@@ -118,6 +120,10 @@ describe('ChatService', () => {
       markUserActive: jest.fn().mockResolvedValue(undefined),
     };
 
+    wechatSecurityService = {
+      assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ChatService,
@@ -148,6 +154,10 @@ describe('ChatService', () => {
         {
           provide: ChatRealtimeService,
           useValue: chatRealtimeService,
+        },
+        {
+          provide: WechatSecurityService,
+          useValue: wechatSecurityService,
         },
       ],
     }).compile();
@@ -290,6 +300,55 @@ describe('ChatService', () => {
         'new_message',
         expect.any(Object),
       );
+    });
+
+    it('runs content security checks for text messages before saving', async () => {
+      const mockConversation = { id: 1, userA: 1, userB: 2 };
+      const mockMessage = {
+        id: 6,
+        conversationId: 1,
+        senderId: 1,
+        type: 'text',
+        content: 'hello world',
+        createdAt: new Date('2026-03-21T09:31:00.000Z'),
+      };
+
+      conversationRepository.findOne.mockResolvedValue(mockConversation);
+      chatMessageRepository.create.mockReturnValue(mockMessage);
+      chatMessageRepository.save.mockResolvedValue(mockMessage);
+      conversationRepository.update.mockResolvedValue({ affected: 1 });
+
+      await service.sendMessage(1, 1, { type: 'text', content: 'hello world' });
+
+      expect(wechatSecurityService.assertSafeSubmission).toHaveBeenCalledWith({
+        texts: ['hello world'],
+        images: [],
+      });
+    });
+
+    it('runs content security checks for image messages before saving', async () => {
+      const mockConversation = { id: 1, userA: 1, userB: 2 };
+      const imageUrl = 'https://cdn.test/chat-image.png';
+      const mockMessage = {
+        id: 7,
+        conversationId: 1,
+        senderId: 1,
+        type: 'image',
+        content: imageUrl,
+        createdAt: new Date('2026-03-21T09:32:00.000Z'),
+      };
+
+      conversationRepository.findOne.mockResolvedValue(mockConversation);
+      chatMessageRepository.create.mockReturnValue(mockMessage);
+      chatMessageRepository.save.mockResolvedValue(mockMessage);
+      conversationRepository.update.mockResolvedValue({ affected: 1 });
+
+      await service.sendMessage(1, 1, { type: 'image', content: imageUrl });
+
+      expect(wechatSecurityService.assertSafeSubmission).toHaveBeenCalledWith({
+        texts: [],
+        images: [imageUrl],
+      });
     });
   });
 

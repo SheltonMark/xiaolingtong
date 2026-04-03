@@ -82,6 +82,7 @@
   box-sizing: border-box;
 }
 .form-textarea-lg { height: 160rpx; }
+.form-textarea-xl { height: 240rpx; }
 .form-picker {
   display: flex;
   align-items: center;

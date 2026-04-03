@@ -183,7 +183,8 @@ Page({
     ],
     // 企业端
     currentTab: 0,
-    tabs: ['采购需求', '工厂库存', '代加工', '发布招工'],
+    tabs: ['采购需求', '工厂库存', '代加工', '招工'],
+    jobViewMode: 'mine',
     purchaseList: [],
     stockList: [],
     processList: [],
@@ -248,6 +249,12 @@ Page({
     sortBy: 'default',
     // 用户位置
     userLocation: null, // {latitude, longitude}
+    // 代加工筛选状态
+    processFilterMode: '',
+    processFilterCategory: '',
+    processFilterDistance: '',
+    processDistanceOptions: ['不限', '3km内', '5km内', '10km内'],
+    processCategoryOptions: [],
     wechatCardVisible: false,
     wechatCard: {
       wechatId: '',
@@ -334,7 +341,8 @@ Page({
       this.setData({
         catePurchase: categoryFilters,
         cateStock: buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS),
-        cateProcess: buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS)
+        cateProcess: buildIconFilters(labels, CATEGORY_FILTER_ICON_PRESETS),
+        processCategoryOptions: labels
       })
     }).catch(() => {})
   },
@@ -544,7 +552,11 @@ Page({
         contactPhone: item.contactPhone || item.phone || '',
         wechat: item.contactWechat || item.wechat || '',
         phone: item.contactPhone || item.phone || '',
-        isMember: !!(user.isMember)
+        isMember: !!(user.isMember),
+        address: item.address || item.location || '',
+        lat: item.lat || null,
+        lng: item.lng || null,
+        distanceText: item.distanceText || ''
       }
     })
   },
@@ -557,6 +569,8 @@ Page({
       const benefitTags = normalizeBenefitTags(benefitSource)
       const titleText = item.title || '\u62db\u5de5\u4fe1\u606f'
       const jobTypeText = item.jobType || item.jobTypeName || item.typeName || ''
+      const need = item.need || item.needCount || 0
+      const applied = item.applied || item.appliedCount || 0
       const allTags = Array.isArray(item.allTags) && item.allTags.length
         ? item.allTags
         : benefitTags.concat(item.workHours ? [{
@@ -566,6 +580,8 @@ Page({
           }] : [])
       return {
         ...item,
+        need,
+        applied,
         companyName,
         avatarUrl: normalizeImageUrl(item.avatarUrl || user.avatarUrl || ''),
         tags: benefitTags,
@@ -573,8 +589,8 @@ Page({
         allTags,
         jobTypeText,
         jobCardTitle: jobTypeText
-          ? (titleText === jobTypeText ? `\u9700\u8981${jobTypeText}${String(item.need || 0)}\u4eba` : `${titleText} \u00b7 \u9700\u8981${jobTypeText}${String(item.need || 0)}\u4eba`)
-          : `${titleText} \u00b7 \u9700\u8981${String(item.need || 0)}\u4eba`
+          ? (titleText === jobTypeText ? `\u9700\u8981${jobTypeText}${String(need)}\u4eba` : `${titleText} \u00b7 \u9700\u8981${jobTypeText}${String(need)}\u4eba`)
+          : `${titleText} \u00b7 \u9700\u8981${String(need)}\u4eba`
       }
     })
   },
@@ -697,13 +713,17 @@ Page({
           this.setData({ stockList: this._mapPosts(res.data.list || res.data || []) })
         }).catch(() => {})
       } else if (currentTab === 2) {
-        get('/posts', { type: 'process', ...params }).then(res => {
-          this.setData({ processList: this._mapPosts(res.data.list || res.data || []) })
-        }).catch(() => {})
+        this.loadProcessList(params)
       } else if (currentTab === 3) {
-        get('/jobs', params).then(res => {
-          this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
-        }).catch(() => {})
+        if (this.data.jobViewMode === 'mine') {
+          get('/jobs/mine', params).then(res => {
+            this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
+          }).catch(() => {})
+        } else {
+          get('/jobs', params).then(res => {
+            this.setData({ jobListEnterprise: this._mapJobs(res.data.list || res.data || []) })
+          }).catch(() => {})
+        }
       }
     } else {
       // 临工端
@@ -711,6 +731,50 @@ Page({
         this.setData({ jobList: this._mapJobs(res.data.list || res.data || []) })
       }).catch(() => {})
     }
+  },
+
+  loadProcessList(extraParams) {
+    const params = { type: 'process', ...(extraParams || {}) }
+    if (this.data.processFilterMode) {
+      params.processMode = this.data.processFilterMode
+    }
+    if (this.data.processFilterCategory) {
+      params.industry = this.data.processFilterCategory
+    }
+    get('/posts', params).then(res => {
+      let list = this._mapPosts(res.data.list || res.data || [])
+      if (this.data.userLocation) {
+        calculateDistanceForList(this.data.userLocation, list).then(listWithDistance => {
+          if (this.data.processFilterDistance) {
+            listWithDistance = filterByDistance(listWithDistance, this.data.processFilterDistance)
+          }
+          listWithDistance.sort((a, b) => {
+            if (a.distance === null) return 1
+            if (b.distance === null) return -1
+            return a.distance - b.distance
+          })
+          this.setData({ processList: listWithDistance })
+        }).catch(() => {
+          this.setData({ processList: list })
+        })
+      } else {
+        this.setData({ processList: list })
+      }
+    }).catch(() => {})
+  },
+
+  onToggleJobView() {
+    const newMode = this.data.jobViewMode === 'mine' ? 'all' : 'mine'
+    this.setData({ jobViewMode: newMode })
+    this.loadDataByCategory()
+  },
+
+  onJobManage() {
+    wx.navigateTo({ url: '/pages/job-manage/job-manage' })
+  },
+
+  onSettlement() {
+    wx.navigateTo({ url: '/pages/settlement/settlement' })
   },
 
   onSearch() {
@@ -1144,6 +1208,11 @@ Page({
       return
     }
 
+    if (this.data.userRole === 'worker' && !item.hasApplied) {
+      wx.showToast({ title: '请先报名该岗位', icon: 'none' })
+      return
+    }
+
     wx.showLoading({ title: '进入聊天中...' })
     post('/conversations/with-user/' + targetUserId, { jobId }).then((res) => {
       const conversationId = res.data && res.data.id
@@ -1255,5 +1324,42 @@ Page({
     const val = this.data.salaryOptions[idx]
     this.setData({ salaryIndex: idx, filterSalaryRange: val === '全部' ? '' : val })
     this.loadWorkerJobs()
+  },
+
+  onProcessModeFilter(e) {
+    const mode = e.currentTarget.dataset.mode || ''
+    this.setData({ processFilterMode: mode })
+    this.loadProcessList()
+  },
+
+  onProcessCategoryFilter(e) {
+    const idx = Number(e.detail.value)
+    const allOptions = ['不限'].concat(this.data.processCategoryOptions)
+    const val = allOptions[idx] || ''
+    this.setData({ processFilterCategory: val === '不限' ? '' : val })
+    this.loadProcessList()
+  },
+
+  onProcessDistanceFilter(e) {
+    const idx = Number(e.detail.value)
+    const val = this.data.processDistanceOptions[idx] || ''
+    if (val !== '不限' && !this.data.userLocation) {
+      wx.showLoading({ title: '获取位置中...' })
+      getUserLocation().then((location) => {
+        wx.hideLoading()
+        this.setData({
+          userLocation: location,
+          processFilterDistance: val
+        })
+        this.loadProcessList()
+      }).catch(() => {
+        wx.hideLoading()
+        this.showLocationPermissionModal()
+        this.setData({ processFilterDistance: '' })
+      })
+    } else {
+      this.setData({ processFilterDistance: val === '不限' ? '' : val })
+      this.loadProcessList()
+    }
   }
 })

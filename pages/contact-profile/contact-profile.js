@@ -1,4 +1,4 @@
-const { put, upload } = require('../../utils/request')
+const { get, put, upload } = require('../../utils/request')
 const auth = require('../../utils/auth')
 const { getDefaultContactProfile } = require('../../utils/contact-profile')
 const { normalizeImageUrl } = require('../../utils/image')
@@ -11,6 +11,7 @@ Page({
     verifiedPhone: '',
     phoneVerified: false,
     form: {
+      nickname: '',
       contactName: '',
       phone: '',
       wechatId: '',
@@ -25,19 +26,25 @@ Page({
 
   loadProfile() {
     this.setData({ loading: true })
-    getDefaultContactProfile().then((profile) => {
-      const verifiedPhone = profile.phoneVerified ? (profile.phone || '') : ''
+    Promise.all([
+      get('/auth/profile'),
+      getDefaultContactProfile()
+    ]).then(([profileRes, contactProfile]) => {
+      const user = profileRes.data || {}
+      const verifiedPhone = contactProfile.phoneVerified ? (contactProfile.phone || '') : ''
       this.setData({
         loading: false,
         verifiedPhone,
-        phoneVerified: !!profile.phoneVerified,
+        phoneVerified: !!contactProfile.phoneVerified,
         form: {
-          contactName: profile.contactName || '',
-          phone: profile.phone || '',
-          wechatId: profile.wechatId || '',
-          wechatQrImage: normalizeImageUrl(profile.wechatQrImage || '')
+          nickname: user.nickname || '',
+          contactName: contactProfile.contactName || '',
+          phone: contactProfile.phone || '',
+          wechatId: contactProfile.wechatId || '',
+          wechatQrImage: normalizeImageUrl(contactProfile.wechatQrImage || '')
         }
       })
+      this._originalNickname = user.nickname || ''
     }).catch(() => {
       this.setData({ loading: false })
     })
@@ -86,6 +93,10 @@ Page({
 
   onSave() {
     const { form } = this.data
+    if (!form.nickname.trim()) {
+      wx.showToast({ title: '请输入名称', icon: 'none' })
+      return
+    }
     if (!form.contactName.trim()) {
       wx.showToast({ title: '请输入联系人', icon: 'none' })
       return
@@ -95,12 +106,25 @@ Page({
       return
     }
     this.setData({ saving: true })
-    put('/contact-profile/default', {
+
+    const nicknameChanged = form.nickname.trim() !== (this._originalNickname || '')
+    const updateContact = put('/contact-profile/default', {
       contactName: form.contactName.trim(),
       phone: form.phone.trim(),
       wechatId: form.wechatId.trim(),
       wechatQrImage: form.wechatQrImage
-    }).then(() => {
+    })
+    const updateNickname = nicknameChanged
+      ? put('/settings/profile', { nickname: form.nickname.trim() })
+      : Promise.resolve()
+
+    Promise.all([updateContact, updateNickname]).then(() => {
+      this._originalNickname = form.nickname.trim()
+      const app = getApp()
+      if (app.globalData) {
+        app.globalData.userInfo = app.globalData.userInfo || {}
+        app.globalData.userInfo.nickname = form.nickname.trim()
+      }
       this.setData({
         saving: false,
         verifiedPhone: this.data.phoneVerified ? form.phone.trim() : this.data.verifiedPhone
@@ -109,5 +133,11 @@ Page({
     }).catch(() => {
       this.setData({ saving: false })
     })
+  },
+
+  onShow() {
+    if (auth.isLoggedIn() && !this.data.loading) {
+      this.loadProfile()
+    }
   }
 })

@@ -116,6 +116,15 @@ export class AdminController {
     return this.adminService.updateUserCredit(id, creditScore);
   }
 
+  // 灵豆余额调整
+  @Put('users/:id/bean-balance')
+  updateBeanBalance(
+    @Param('id') id: number,
+    @Body() body: { amount: number; remark?: string },
+  ) {
+    return this.adminService.updateBeanBalance(id, body.amount, body.remark);
+  }
+
   // 关键词黑名单
   @Get('keywords')
   keywordList() {
@@ -176,6 +185,11 @@ export class AdminController {
     return this.adminService.statsOverview();
   }
 
+  @Get('pending-counts')
+  pendingCounts() {
+    return this.adminService.pendingCounts();
+  }
+
   // 管理员账号管理
   @Get('admins')
   adminList() {
@@ -204,8 +218,26 @@ export class AdminController {
   }
 
   @Post('job-types')
-  addJobType(@Body() body: { name: string; defaultSettlement?: string }) {
-    return this.adminService.addJobType(body.name, body.defaultSettlement);
+  addJobType(
+    @Body()
+    body: {
+      name: string;
+      defaultSettlement?: string;
+      sort?: number;
+      iconUrl?: string;
+    },
+  ) {
+    return this.adminService.addJobType(
+      body.name,
+      body.defaultSettlement,
+      body.sort,
+      body.iconUrl,
+    );
+  }
+
+  @Put('job-types/:id')
+  updateJobType(@Param('id') id: number, @Body() body: any) {
+    return this.adminService.updateJobType(id, body);
   }
 
   @Put('job-types/:id/toggle')
@@ -248,13 +280,27 @@ export class AdminController {
 
   @Post('categories')
   addCategory(
-    @Body() body: { name: string; parentId?: number; level?: number },
+    @Body()
+    body: {
+      name: string;
+      parentId?: number;
+      level?: number;
+      bizType?: string;
+      iconUrl?: string;
+    },
   ) {
     return this.adminService.addCategory(
       body.name,
       body.parentId || 0,
       body.level || 1,
+      body.bizType,
+      body.iconUrl,
     );
+  }
+
+  @Put('categories/:id')
+  updateCategory(@Param('id') id: number, @Body() body: any) {
+    return this.adminService.updateCategory(id, body);
   }
 
   @Put('categories/:id/toggle')

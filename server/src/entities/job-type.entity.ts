@@ -19,6 +19,12 @@ export class JobType {
   @Column({ type: 'tinyint', default: 1 })
   isActive: number;
 
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  iconUrl: string;
+
+  @Column({ type: 'int', default: 0 })
+  sort: number;
+
   @CreateDateColumn()
   createdAt: Date;
 }

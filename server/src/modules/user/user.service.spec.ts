@@ -10,6 +10,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { ContactProfile } from '../../entities/contact-profile.entity';
 import { VerificationSession } from '../../entities/verification-session.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 describe('UserService', () => {
   let service: UserService;
@@ -20,6 +21,7 @@ describe('UserService', () => {
   let verificationSessionRepo: jest.Mocked<any>;
   let configService: jest.Mocked<any>;
   let configValues: Record<string, any>;
+  let wechatSecurityService: jest.Mocked<any>;
 
   beforeEach(async () => {
     configValues = {
@@ -64,6 +66,10 @@ describe('UserService', () => {
       save: jest.fn(),
     } as jest.Mocked<any>;
 
+    wechatSecurityService = {
+      assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
+    } as jest.Mocked<any>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserService,
@@ -90,6 +96,10 @@ describe('UserService', () => {
         {
           provide: getRepositoryToken(VerificationSession),
           useValue: verificationSessionRepo,
+        },
+        {
+          provide: WechatSecurityService,
+          useValue: wechatSecurityService,
         },
       ],
     }).compile();
@@ -534,6 +544,10 @@ describe('UserService', () => {
       expect(userRepo.update).toHaveBeenCalledWith(userId, {
         nickname: 'New Nickname',
       });
+      expect(wechatSecurityService.assertSafeSubmission).toHaveBeenCalledWith({
+        texts: ['New Nickname'],
+        images: [],
+      });
       expect(result.nickname).toBe('New Nickname');
       expect(result.message).toBe('已更新');
     });
@@ -658,6 +672,10 @@ describe('UserService', () => {
         status: 'active',
         phoneVerified: 0,
         ...payload,
+      });
+      expect(wechatSecurityService.assertSafeSubmission).toHaveBeenCalledWith({
+        texts: ['李四', '13800138000', 'lisi'],
+        images: ['https://cdn.test/lisi-qr.png'],
       });
       expect(result.wechatId).toBe('lisi');
     });

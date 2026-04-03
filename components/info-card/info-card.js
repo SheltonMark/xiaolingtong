@@ -1,23 +1,26 @@
 Component({
   properties: {
     item: { type: Object, value: {} },
-    showContact: { type: Boolean, value: true }
+    showContact: { type: Boolean, value: true },
+    showDistance: { type: Boolean, value: false },
+    maxImages: { type: Number, value: 2 }
   },
   data: {
-    displayName: ''
+    displayName: '',
+    cardImages: [],
+    extraImageCount: 0
   },
   lifetimes: {
     attached() {
       this.updateDisplayName()
+      this.updateCardImages()
     },
     ready() {
-      // 页面显示时也更新一次
       this.updateDisplayName()
     }
   },
   pageLifetimes: {
     show() {
-      // 页面显示时更新显示名称
       this.updateDisplayName()
     }
   },
@@ -27,9 +30,22 @@ Component({
     },
     'item': function() {
       this.updateDisplayName()
+      this.updateCardImages()
     }
   },
   methods: {
+    updateCardImages() {
+      const images = this.data.item.images || []
+      const max = this.data.maxImages
+      if (!Array.isArray(images) || images.length === 0) {
+        this.setData({ cardImages: [], extraImageCount: 0 })
+        return
+      }
+      const cardImages = images.slice(0, max)
+      const extraImageCount = Math.max(0, images.length - max)
+      this.setData({ cardImages, extraImageCount })
+    },
+
     maskCompanyName(name) {
       const trimmed = String(name || '').trim()
       if (!trimmed) return ''

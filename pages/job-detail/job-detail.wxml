@@ -12,6 +12,14 @@
     <view class="swiper-counter">{{swiperCurrent + 1}}/{{job.images.length}}</view>
   </view>
 
+  <!-- 现场视频 -->
+  <view wx:if="{{job.videos && job.videos.length > 0}}" class="video-section" style="padding:0 24rpx;margin-top:16rpx;">
+    <video wx:for="{{job.videos}}" wx:key="*this"
+      src="{{item}}" class="jd-video"
+      controls show-center-play-btn
+      style="width:100%;border-radius:16rpx;margin-bottom:16rpx;" />
+  </view>
+
   <!-- 核心信息 -->
   <view class="salary-section">
     <view class="salary-row">
@@ -95,7 +103,7 @@
       </view>
       <view class="contact-row">
         <text class="contact-label">联系电话</text>
-        <text class="contact-value text-primary font-medium" bindtap="onCallPhone">{{job.company.phone}}</text>
+        <text class="contact-value text-primary font-medium" bindtap="onCallPhone">{{userRole === 'worker' && !hasApplied ? '报名后可查看' : job.company.phone}}</text>
       </view>
       <view class="contact-row" wx:if="{{job.company.wechat || job.company.wechatQrImage}}">
         <text class="contact-label">微信联系</text>

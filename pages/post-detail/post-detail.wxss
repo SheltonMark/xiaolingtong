@@ -4,7 +4,7 @@
   padding-bottom: 0;
 }
 .swiper-wrap { position: relative; background-color: #0F172A; }
-.image-swiper { width: 100%; height: 420rpx; }
+.image-swiper { width: 100%; height: 750rpx; }
 .swiper-img { width: 100%; height: 100%; }
 .swiper-counter {
   position: absolute; bottom: 16rpx; right: 24rpx;

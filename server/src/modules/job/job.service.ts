@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { Job } from '../../entities/job.entity';
 import { Keyword } from '../../entities/keyword.entity';
 import { JobApplication } from '../../entities/job-application.entity';
@@ -397,7 +397,7 @@ export class JobService {
     });
   }
 
-  async list(query: any) {
+  async list(query: any, currentUserId?: number) {
     const { keyword, jobType, salaryType, minSalary, maxSalary, page = 1, pageSize = 20 } = query;
     const today = this.formatDate();
     const qb = this.jobRepo.createQueryBuilder('j')
@@ -445,6 +445,16 @@ export class JobService {
       for (const cert of certs) {
         if (!certMap.has(cert.userId)) certMap.set(cert.userId, cert);
       }
+    }
+
+    const appliedJobIds = new Set<number>();
+    if (currentUserId && list.length > 0) {
+      const jobIds = list.map((job) => job.id);
+      const apps = await this.appRepo.find({
+        where: { workerId: currentUserId, jobId: In(jobIds), status: Not('cancelled') },
+        select: ['jobId'],
+      });
+      for (const app of apps) appliedJobIds.add(Number(app.jobId));
     }
 
     const formattedList = await Promise.all(list.map(async (job) => {
@@ -498,6 +508,7 @@ export class JobService {
         isMember: !!job.user?.isMember,
         time: job.createdAt ? new Date(job.createdAt).toLocaleDateString('zh-CN').replace(/\//g, '-') : '',
         canApply: this.isWorkerVisibleJob(job),
+        hasApplied: appliedJobIds.has(job.id),
         visibleStatusText: '可报名',
       };
     }));
@@ -505,7 +516,7 @@ export class JobService {
     return { list: formattedList, total, page: +page, pageSize: +pageSize };
   }
 
-  async detail(id: number) {
+  async detail(id: number, currentUserId?: number) {
     const job = await this.jobRepo.findOne({ where: { id }, relations: ['user'] });
     if (!job) throw new BadRequestException('招工信息不存在');
 
@@ -542,6 +553,14 @@ export class JobService {
     const normalizedBenefits = this.normalizeBenefits(job.benefits) || [];
     const allTags = this.buildAllTags(normalizedBenefits, job.workHours);
 
+    let hasApplied = false;
+    if (currentUserId) {
+      const appCount = await this.appRepo.count({
+        where: { jobId: id, workerId: currentUserId, status: Not('cancelled') },
+      });
+      hasApplied = appCount > 0;
+    }
+
     return {
       ...job,
       images: this.normalizeImages(job.images) || [],
@@ -559,6 +578,7 @@ export class JobService {
       tags: this.buildBenefitTags(normalizedBenefits),
       allTags,
       canApply: this.isWorkerVisibleJob(job),
+      hasApplied,
       company: {
         name: companyName,
         verified,

@@ -1,9 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OpenCity } from '../../entities/open-city.entity';
 import { JobType } from '../../entities/job-type.entity';
 import { Category } from '../../entities/category.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
+
+const AGREEMENT_KEY_MAP: Record<string, string> = {
+  user_agreement: 'user_agreement_content',
+  privacy_policy: 'privacy_policy_content',
+  rights_agreement: 'rights_agreement_content',
+};
 
 @Injectable()
 export class ConfigService {
@@ -11,7 +18,15 @@ export class ConfigService {
     @InjectRepository(OpenCity) private cityRepo: Repository<OpenCity>,
     @InjectRepository(JobType) private jobTypeRepo: Repository<JobType>,
     @InjectRepository(Category) private categoryRepo: Repository<Category>,
+    @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
   ) {}
+
+  async getAgreement(type: string) {
+    const key = AGREEMENT_KEY_MAP[type];
+    if (!key) throw new NotFoundException('协议类型不存在');
+    const config = await this.configRepo.findOne({ where: { key } });
+    return { content: config?.value || '' };
+  }
 
   async getActiveCities() {
     const cities = await this.cityRepo.find({
@@ -29,9 +44,11 @@ export class ConfigService {
     return { list: jobTypes.map((jt) => ({ id: jt.id, name: jt.name })) };
   }
 
-  async getActiveCategories() {
+  async getActiveCategories(bizType?: string) {
+    const where: any = { isActive: 1 };
+    if (bizType) where.bizType = bizType;
     const categories = await this.categoryRepo.find({
-      where: { isActive: 1 },
+      where,
       order: { level: 'ASC', sort: 'ASC', id: 'ASC' },
     });
     const topLevel = categories.filter((item) => Number(item.parentId || 0) === 0);

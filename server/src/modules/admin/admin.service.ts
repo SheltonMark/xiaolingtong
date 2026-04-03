@@ -492,6 +492,29 @@ export class AdminService {
     return { message: '信用分已更新' };
   }
 
+  // 灵豆余额调整
+  async updateBeanBalance(id: number, amount: number, remark?: string) {
+    const user = await this.userRepo.findOneBy({ id });
+    if (!user) throw new BadRequestException('用户不存在');
+
+    const newBalance = (user.beanBalance || 0) + amount;
+    if (newBalance < 0) throw new BadRequestException('余额不足，调整后余额不能为负');
+
+    await this.userRepo.update(id, { beanBalance: newBalance });
+
+    await this.beanTxRepo.save(
+      this.beanTxRepo.create({
+        userId: id,
+        type: amount > 0 ? 'admin_add' : 'admin_deduct',
+        amount: Math.abs(amount),
+        refType: 'admin',
+        remark: remark || (amount > 0 ? '管理员充值' : '管理员扣减'),
+      }),
+    );
+
+    return { message: '灵豆余额已更新', newBalance };
+  }
+
   // 关键词黑名单
   async keywordList() {
     return this.keywordRepo.find({ order: { createdAt: 'DESC' } });
@@ -646,6 +669,32 @@ export class AdminService {
     };
   }
 
+  async pendingCounts() {
+    const [
+      pendingPosts,
+      pendingReports,
+      pendingEntCerts,
+      pendingWorkerCerts,
+      pendingExposures,
+      pendingJobs,
+    ] = await Promise.all([
+      this.postRepo.count({ where: { status: 'pending' as any } }),
+      this.reportRepo.count({ where: { status: 'pending' as any } }),
+      this.entCertRepo.count({ where: { status: 'pending' as any } }),
+      this.workerCertRepo.count({ where: { status: 'pending' as any } }),
+      this.exposureRepo.count({ where: { status: 'pending' as any } }),
+      this.jobRepo.count({ where: { status: 'pending' as any } }),
+    ]);
+
+    return {
+      posts: pendingPosts,
+      reports: pendingReports,
+      certs: pendingEntCerts + pendingWorkerCerts,
+      exposures: pendingExposures,
+      jobs: pendingJobs,
+    };
+  }
+
   // 管理员账号管理
   async adminList() {
     return this.adminRepo.find({
@@ -685,19 +734,41 @@ export class AdminService {
 
   // 工种管理
   async jobTypeList() {
-    return this.jobTypeRepo.find({ order: { createdAt: 'DESC' } });
+    return this.jobTypeRepo.find({ order: { sort: 'ASC', createdAt: 'DESC' } });
   }
 
-  async addJobType(name: string, defaultSettlement?: string) {
+  async addJobType(
+    name: string,
+    defaultSettlement?: string,
+    sort?: number,
+    iconUrl?: string,
+  ) {
     const exists = await this.jobTypeRepo.findOne({ where: { name } });
     if (exists) return { message: '工种已存在' };
     await this.jobTypeRepo.save(
       this.jobTypeRepo.create({
         name,
         defaultSettlement: defaultSettlement || 'hourly',
+        sort: sort ?? 0,
+        ...(iconUrl ? { iconUrl } : {}),
       }),
     );
     return { message: '已添加' };
+  }
+
+  async updateJobType(id: number, dto: any) {
+    const jt = await this.jobTypeRepo.findOneBy({ id });
+    if (!jt) return { message: '不存在' };
+    const update: any = {};
+    if (dto.name !== undefined) update.name = dto.name;
+    if (dto.sort !== undefined) update.sort = Number(dto.sort);
+    if (dto.iconUrl !== undefined) update.iconUrl = dto.iconUrl || null;
+    if (dto.defaultSettlement !== undefined)
+      update.defaultSettlement = dto.defaultSettlement;
+    if (dto.isActive !== undefined) update.isActive = dto.isActive;
+    if (Object.keys(update).length === 0) return { message: '无修改' };
+    await this.jobTypeRepo.update(id, update);
+    return { message: '已更新' };
   }
 
   async toggleJobType(id: number) {
@@ -788,7 +859,13 @@ export class AdminService {
     }));
   }
 
-  async addCategory(name: string, parentId: number, level: number) {
+  async addCategory(
+    name: string,
+    parentId: number,
+    level: number,
+    bizType?: string,
+    iconUrl?: string,
+  ) {
     const exists = await this.categoryRepo.findOne({
       where: { name, parentId },
     });
@@ -798,9 +875,25 @@ export class AdminService {
         name,
         parentId: parentId || 0,
         level: level || 1,
+        ...(bizType ? { bizType } : {}),
+        ...(iconUrl ? { iconUrl } : {}),
       }),
     );
     return { message: '已添加' };
+  }
+
+  async updateCategory(id: number, dto: any) {
+    const c = await this.categoryRepo.findOneBy({ id });
+    if (!c) return { message: '不存在' };
+    const update: any = {};
+    if (dto.name !== undefined) update.name = dto.name;
+    if (dto.sort !== undefined) update.sort = Number(dto.sort);
+    if (dto.iconUrl !== undefined) update.iconUrl = dto.iconUrl || null;
+    if (dto.bizType !== undefined) update.bizType = dto.bizType || null;
+    if (dto.isActive !== undefined) update.isActive = dto.isActive;
+    if (Object.keys(update).length === 0) return { message: '无修改' };
+    await this.categoryRepo.update(id, update);
+    return { message: '已更新' };
   }
 
   async toggleCategory(id: number) {
@@ -1230,6 +1323,24 @@ export class AdminService {
         value: '结果反馈',
         label: '维权分类-结果反馈',
         group: 'exposure',
+      },
+      {
+        key: 'user_agreement_content',
+        value: '<h2 style="text-align:center;">小灵通平台用户服务协议</h2><p style="text-align:center;color:#94A3B8;font-size:12px;">更新日期：2026年1月1日 · 生效日期：2026年1月1日</p><h3>一、总则</h3><p>1.1 欢迎您使用小灵通平台（以下简称"本平台"）。本协议是您与小灵通平台运营方之间关于使用本平台服务所订立的协议。</p><p>1.2 您在使用本平台服务前，应当仔细阅读本协议。如您不同意本协议的任何条款，请勿注册或使用本平台服务。</p><h3>二、账号注册与管理</h3><p>2.1 用户需通过微信授权登录注册账号，并选择企业用户或临工用户身份。</p><p>2.2 用户应提供真实、准确的注册信息，并及时更新。因信息不实导致的后果由用户自行承担。</p><p>2.3 用户账号仅限本人使用，不得转让、借用或出售。</p><h3>三、服务内容</h3><p>3.1 本平台为企业用户提供采购需求发布、工厂库存展示、代加工对接、临工招聘等服务。</p><p>3.2 本平台为临工用户提供岗位浏览、报名应聘、打卡出勤、工资结算等服务。</p><p>3.3 平台提供灵豆虚拟货币系统，用于信息查看、推广置顶等增值服务。</p><h3>四、用户行为规范</h3><p>4.1 用户不得发布虚假信息、恶意刷单、诱导线下交易等违规行为。</p><p>4.2 企业用户应按时支付临工工资，不得拖欠或克扣。</p><p>4.3 临工用户应按时到岗，遵守工作纪律，不得无故旷工。</p><h3>五、费用与结算</h3><p>5.1 平台对企业用户收取服务费，具体费率以页面展示为准。</p><p>5.2 临工工资由企业通过平台支付，平台扣除服务费后发放至临工钱包。</p><p>5.3 临工可随时将钱包余额提现至微信零钱。</p><h3>六、免责声明</h3><p>6.1 本平台仅提供信息对接服务，不对用户间的交易行为承担担保责任。</p><p>6.2 因不可抗力导致的服务中断，本平台不承担责任。</p>',
+        label: '用户协议内容',
+        group: 'agreement',
+      },
+      {
+        key: 'privacy_policy_content',
+        value: '<h2 style="text-align:center;">小灵通平台隐私保护政策</h2><p style="text-align:center;color:#94A3B8;font-size:12px;">更新日期：2026年1月1日 · 生效日期：2026年1月1日</p><h3>一、信息收集</h3><p>1.1 我们会收集您在注册、认证过程中提供的个人信息，包括但不限于：微信昵称、手机号码、真实姓名、身份证号码。</p><p>1.2 企业用户还需提供：企业名称、统一社会信用代码、营业执照照片、法人身份信息。</p><p>1.3 在使用签到功能时，我们会获取您的地理位置信息，仅用于工作签到验证。</p><h3>二、信息使用</h3><p>2.1 为您提供平台核心服务（信息发布、岗位匹配、工资结算等）。</p><p>2.2 用于身份验证和实名认证。</p><p>2.3 用于平台安全风控和信用评估。</p><p>2.4 向您发送服务通知（报名结果、出勤提醒、工资到账等）。</p><h3>三、信息存储与保护</h3><p>3.1 您的个人信息存储在中国境内的安全服务器上。</p><p>3.2 我们采用加密技术保护您的敏感信息（身份证号、银行卡号等）。</p><p>3.3 我们会定期审查信息安全措施，防止信息泄露、损毁或丢失。</p><h3>四、信息共享</h3><p>4.1 未经您的同意，我们不会向第三方共享您的个人信息，以下情况除外：</p><p>· 为完成交易需向交易对方展示必要信息（如企业名称、联系方式）</p><p>· 根据法律法规要求或政府主管部门的要求</p><p>· 为保护平台及其他用户的合法权益</p><h3>五、您的权利</h3><p>5.1 您有权查看、修改您的个人信息。</p><p>5.2 您有权注销账号，注销后我们将删除您的个人信息。</p><p>5.3 如有隐私相关问题，请通过平台客服联系我们。</p>',
+        label: '隐私政策内容',
+        group: 'agreement',
+      },
+      {
+        key: 'rights_agreement_content',
+        value: '<h2 style="text-align:center;">小灵通平台维权协议</h2><p style="text-align:center;color:#94A3B8;font-size:12px;">更新日期：2026年1月1日 · 生效日期：2026年1月1日</p><h3>一、维权范围</h3><p>1.1 本协议适用于通过小灵通平台发生的用工纠纷、工资争议等维权事项。</p><p>1.2 平台提供维权信息发布渠道，协助双方沟通协商。</p><h3>二、维权流程</h3><p>2.1 用户可在维权专区发布维权信息，描述纠纷经过及诉求。</p><p>2.2 平台将对维权信息进行审核，确保内容真实合规。</p><p>2.3 平台可协助双方进行调解，但不承担仲裁义务。</p><h3>三、注意事项</h3><p>3.1 发布维权信息需实事求是，不得捏造虚假信息。</p><p>3.2 涉及法律纠纷的，建议通过劳动仲裁或法律途径解决。</p><p>3.3 平台保留对恶意发布不实维权信息的用户进行处理的权利。</p>',
+        label: '维权协议内容',
+        group: 'agreement',
       },
     ];
     for (const d of defaults) {

@@ -42,9 +42,7 @@ Page({
             wx.showToast({ title: '头像已更新', icon: 'success' })
           })
         }).catch(() => {
-          getApp().globalData.avatarUrl = tempPath
-          wx.setStorageSync('avatarUrl', tempPath)
-          this.setData({ avatarUrl: tempPath })
+          wx.showToast({ title: '头像更新失败，请重试', icon: 'none' })
         })
       }
     })

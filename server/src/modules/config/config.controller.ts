@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ConfigService } from './config.service';
 import { Public } from '../../common/decorators/public.decorator';
 
@@ -20,7 +20,13 @@ export class ConfigController {
 
   @Public()
   @Get('categories')
-  getCategories() {
-    return this.configService.getActiveCategories();
+  getCategories(@Query('bizType') bizType?: string) {
+    return this.configService.getActiveCategories(bizType);
+  }
+
+  @Public()
+  @Get('agreements/:type')
+  getAgreement(@Param('type') type: string) {
+    return this.configService.getAgreement(type);
   }
 }

@@ -161,3 +161,10 @@
 .save-btn::after {
   border: none;
 }
+
+.form-hint {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 20rpx;
+  color: #94A3B8;
+}

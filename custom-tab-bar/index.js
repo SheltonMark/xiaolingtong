@@ -9,14 +9,14 @@ Component({
     unreadCount: 0,
     entList: [
       { pagePath: '/pages/index/index', text: '首页', isTab: true },
-      { pagePath: '/pages/exposure-board/exposure-board', text: '风险', isTab: true },
+      { pagePath: '/pages/exposure-board/exposure-board', text: '维权吧', isTab: true },
       { pagePath: '/pages/publish/publish', text: '发布', isCenter: true, isTab: true },
       { pagePath: '/pages/messages/messages', text: '消息', isTab: true },
       { pagePath: '/pages/mine/mine', text: '我的', isTab: true }
     ],
     workerList: [
       { pagePath: '/pages/index/index', text: '首页', isTab: true },
-      { pagePath: '/pages/exposure-board/exposure-board', text: '风险', isTab: true },
+      { pagePath: '/pages/exposure-board/exposure-board', text: '维权吧', isTab: true },
       { pagePath: '/pages/messages/messages', text: '消息', isTab: true },
       { pagePath: '/pages/mine/mine', text: '我的', isTab: true }
     ]
@@ -59,6 +59,7 @@ Component({
         this.setData({ unreadCount: 0 })
         return
       }
+
       const conversationTask = get('/conversations').catch(() => ({ data: [] }))
 
       if (userRole === 'worker') {
@@ -74,10 +75,10 @@ Component({
             transactions: walletRes.data,
             userId: this.getCurrentUserId()
           })
-          const chatList = (chatRes.data || chatRes)
+          const chatList = chatRes.data || chatRes
           const chatCount = Array.isArray(chatList)
-            ? chatList.reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
-            : (chatList.list || []).reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
+            ? chatList.reduce((sum, item) => sum + Number(item.unreadCount || 0), 0)
+            : (chatList.list || []).reduce((sum, item) => sum + Number(item.unreadCount || 0), 0)
           this.setData({ unreadCount: systemUnread + chatCount })
         })
         return
@@ -86,15 +87,16 @@ Component({
       Promise.all([
         get('/notifications/unread-count').catch(() => ({ data: { count: 0 } })),
         conversationTask
-      ]).then(([notiRes, chatRes]) => {
-        const notiCount = (notiRes.data || notiRes).count || 0
-        const chatList = (chatRes.data || chatRes)
+      ]).then(([notificationRes, chatRes]) => {
+        const notificationCount = (notificationRes.data || notificationRes).count || 0
+        const chatList = chatRes.data || chatRes
         const chatCount = Array.isArray(chatList)
-          ? chatList.reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
-          : (chatList.list || []).reduce((sum, c) => sum + Number(c.unreadCount || 0), 0)
-        this.setData({ unreadCount: notiCount + chatCount })
+          ? chatList.reduce((sum, item) => sum + Number(item.unreadCount || 0), 0)
+          : (chatList.list || []).reduce((sum, item) => sum + Number(item.unreadCount || 0), 0)
+        this.setData({ unreadCount: notificationCount + chatCount })
       })
     },
+
     switchTab(e) {
       const data = e.currentTarget.dataset
       const url = data.path

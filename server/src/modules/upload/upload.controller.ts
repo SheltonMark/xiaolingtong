@@ -102,4 +102,29 @@ export class UploadController {
 
     return { url, originalName: file.originalname };
   }
+
+  @Post('video')
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 50 * 1024 * 1024 },
+  }))
+  async uploadVideo(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const key = `uploads/videos/${uniqueSuffix}${extname(file.originalname)}`;
+
+    let url = '';
+    if (this.hasCosConfig()) {
+      try {
+        url = await this.uploadToCos(key, file);
+      } catch (error: any) {
+        const message = error?.message || 'COS upload failed';
+        this.logger.warn(`COS upload failed, falling back to local storage: ${message}`);
+      }
+    }
+
+    if (!url) {
+      url = await this.saveLocally(key, file, req);
+    }
+
+    return { url, originalName: file.originalname };
+  }
 }

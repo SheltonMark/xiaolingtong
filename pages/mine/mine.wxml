@@ -160,7 +160,7 @@
         <view class="fav-card" wx:for="{{favorites}}" wx:for-index="idx" wx:key="id"
               wx:if="{{idx < 3}}">
           <view class="dynamic-top">
-            <text class="dynamic-type type-{{item.targetType === 'post' ? 'blue' : item.targetType === 'job' ? 'orange' : 'rose'}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+            <text class="dynamic-type type-{{item.targetType === 'post' ? 'blue' : item.targetType === 'job' ? 'orange' : 'rose'}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '维权'}}</text>
             <text class="dynamic-date" wx:if="{{item.displayDate}}">{{item.displayDate}}</text>
           </view>
           <text class="dynamic-title">{{item.title}}</text>
@@ -295,7 +295,7 @@
         <view class="fav-card" wx:for="{{favorites}}" wx:for-index="idx" wx:key="id"
               wx:if="{{idx < 3}}">
           <view class="dynamic-top">
-            <text class="dynamic-type type-{{item.targetType === 'post' ? 'blue' : item.targetType === 'job' ? 'orange' : 'rose'}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+            <text class="dynamic-type type-{{item.targetType === 'post' ? 'blue' : item.targetType === 'job' ? 'orange' : 'rose'}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '维权'}}</text>
             <text class="dynamic-date" wx:if="{{item.displayDate}}">{{item.displayDate}}</text>
           </view>
           <text class="dynamic-title">{{item.title}}</text>

@@ -10,8 +10,8 @@ export class JobController {
 
   @Public()
   @Get()
-  list(@Query() query: any) {
-    return this.jobService.list(query);
+  list(@Query() query: any, @CurrentUser('sub') userId?: number) {
+    return this.jobService.list(query, userId);
   }
 
   @Get('mine')
@@ -64,8 +64,8 @@ export class JobController {
 
   @Public()
   @Get(':id')
-  detail(@Param('id') id: number) {
-    return this.jobService.detail(id);
+  detail(@Param('id') id: number, @CurrentUser('sub') userId?: number) {
+    return this.jobService.detail(id, userId);
   }
 
   @Post()

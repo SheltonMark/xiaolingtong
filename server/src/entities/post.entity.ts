@@ -62,6 +62,15 @@ export class Post {
   @Column({ length: 128, nullable: true })
   location: string;
 
+  @Column({ length: 256, nullable: true })
+  address: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  lat: number;
+
+  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  lng: number;
+
   @Column({ type: 'int', default: 0 })
   viewCount: number;
 

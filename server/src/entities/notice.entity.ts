@@ -10,11 +10,14 @@ export class Notice {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
-  @Column({ length: 128 })
+  @Column({ length: 128, nullable: true })
   title: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   content: string;
+
+  @Column({ length: 512, nullable: true })
+  imageUrl: string;
 
   @Column({ type: 'enum', enum: ['popup', 'message'], default: 'message' })
   position: string;

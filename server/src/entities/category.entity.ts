@@ -25,6 +25,12 @@ export class Category {
   @Column({ type: 'tinyint', default: 1 })
   isActive: number;
 
+  @Column({ type: 'varchar', length: 512, nullable: true })
+  iconUrl: string;
+
+  @Column({ type: 'varchar', length: 32, nullable: true })
+  bizType: string;
+
   @CreateDateColumn()
   createdAt: Date;
 }

@@ -14,7 +14,7 @@
   <view class="favorites-list">
     <view class="fav-card" wx:for="{{displayList}}" wx:key="id">
       <view class="post-top">
-        <text class="type-tag type-{{item.targetType === 'post' ? 'blue' : item.targetType === 'job' ? 'orange' : 'rose'}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '曝光'}}</text>
+        <text class="type-tag type-{{item.targetType === 'post' ? 'blue' : item.targetType === 'job' ? 'orange' : 'rose'}}">{{item.targetType === 'post' ? '供需' : item.targetType === 'job' ? '招工' : '维权'}}</text>
         <text class="post-date" wx:if="{{item.displayDate}}">{{item.displayDate}}</text>
       </view>
       <text class="post-title">{{item.title}}</text>

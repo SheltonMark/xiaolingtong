@@ -133,11 +133,27 @@
         </view>
       </view>
     </view>
+
+    <!-- 视频 -->
+    <view class="form-group">
+      <text class="form-label">现场视频 <text class="label-hint">(选填，最多1个，60秒内)</text></text>
+      <view class="image-grid">
+        <view class="image-add" bindtap="onChooseVideo" wx:if="{{videos.length < 1}}">
+          <text class="add-icon">▶</text>
+          <text class="add-text">添加视频</text>
+        </view>
+        <view class="video-item" wx:for="{{videos}}" wx:key="*this" style="position:relative;">
+          <video src="{{item}}" class="upload-video" style="width:200rpx;height:200rpx;" />
+          <view class="image-delete" data-index="{{index}}" catchtap="onDeleteVideo">×</view>
+        </view>
+      </view>
+      <view wx:if="{{isVideoUploading}}" style="color:#999;font-size:24rpx;margin-top:8rpx;">视频上传中...</view>
+    </view>
   </view>
 
   <!-- 提交 -->
   <view class="submit-wrap">
-    <button class="btn btn-primary" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading}}">提交发布</button>
+    <button class="btn btn-primary" bindtap="onSubmit" loading="{{submitting}}" disabled="{{submitting || isUploading || isVideoUploading}}">提交发布</button>
     <text class="submit-hint">招工信息免费发布，审核通过后展示</text>
   </view>
 </view>

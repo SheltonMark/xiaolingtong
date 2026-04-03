@@ -39,6 +39,7 @@ Page({
     userRole: 'worker',
     swiperCurrent: 0,
     isFav: false,
+    hasApplied: false,
     job: {},
     wechatCardVisible: false,
     wechatCard: {
@@ -61,7 +62,7 @@ Page({
         images: normalizeImageList(job.images),
         benefits: normalizeBenefits(pickBenefitValue(job.benefits, job.tags))
       }
-      this.setData({ job: jobData, wechatCardVisible: false })
+      this.setData({ job: jobData, hasApplied: !!job.hasApplied, wechatCardVisible: false })
 
       // 计算距离：优先使用 lat/lng，缺失时自动使用地址地理编码
       getUserLocation()
@@ -109,12 +110,38 @@ Page({
 
   onApply() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    const { certStatus, isVerified } = getApp().globalData
+
+    // 审核中 isVerified 为 false，须先于未认证分支判断
+    if (certStatus === 'pending') {
+      wx.showModal({
+        title: '提示',
+        content: '您的认证正在审核中，请耐心等待',
+        showCancel: false
+      })
+      return
+    }
+    if (!isVerified) {
+      wx.showModal({
+        title: '提示',
+        content: '您尚未完成实名认证，报名前需要先完成认证',
+        confirmText: '去认证',
+        success: (res) => {
+          if (res.confirm) {
+            wx.navigateTo({ url: '/pages/cert-worker/cert-worker' })
+          }
+        }
+      })
+      return
+    }
+
     wx.showModal({
       title: '确认报名',
       content: '报名后等待平台分配，开工前一天需确认出勤',
       success: (res) => {
         if (res.confirm) {
           post('/jobs/' + this.data.job.id + '/apply').then(() => {
+            this.setData({ hasApplied: true })
             wx.showToast({ title: '报名成功', icon: 'success' })
           }).catch(() => {})
         }
@@ -140,6 +167,10 @@ Page({
   },
 
   onCallPhone() {
+    if (this.data.userRole === 'worker' && !this.data.hasApplied) {
+      wx.showToast({ title: '请先报名该岗位', icon: 'none' })
+      return
+    }
     const phoneNumber = this.data.job?.company?.phone || ''
     if (!phoneNumber) {
       wx.showToast({ title: '暂无联系电话', icon: 'none' })
@@ -149,6 +180,10 @@ Page({
   },
 
   openWechatCard() {
+    if (this.data.userRole === 'worker' && !this.data.hasApplied) {
+      wx.showToast({ title: '请先报名该岗位', icon: 'none' })
+      return
+    }
     const company = (this.data.job && this.data.job.company) || {}
     const wechatId = company.wechat || ''
     const wechatQrImage = company.wechatQrImage || ''

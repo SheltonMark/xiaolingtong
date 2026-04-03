@@ -1,9 +1,21 @@
 <view class="contact-profile-page">
-  <nav-bar title="联系方式" />
+  <nav-bar title="我的资料" />
 
   <view class="hero-card">
-    <text class="hero-title">默认联系方式</text>
-    <text class="hero-sub">发布时自动带出，可单次修改</text>
+    <text class="hero-title">我的资料</text>
+    <text class="hero-sub">修改名称后将在全平台同步显示</text>
+  </view>
+
+  <view class="form-card">
+    <text class="form-label required">名称</text>
+    <input
+      class="form-input"
+      placeholder="请输入您的名称"
+      data-field="nickname"
+      value="{{form.nickname}}"
+      bindinput="onInput"
+    />
+    <text class="form-hint">修改后将更新您的平台显示名称</text>
   </view>
 
   <view class="form-card">

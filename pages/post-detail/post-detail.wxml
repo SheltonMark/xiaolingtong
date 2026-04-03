@@ -7,7 +7,7 @@
             indicator-dots autoplay circular
             bindchange="onSwiperChange">
       <swiper-item wx:for="{{detail.images}}" wx:key="*this">
-        <image src="{{item}}" mode="aspectFit" class="swiper-img" data-urls="{{detail.images}}" data-current="{{item}}" catchtap="onPreviewImage" />
+        <image src="{{item}}" mode="aspectFill" class="swiper-img" data-urls="{{detail.images}}" data-current="{{item}}" catchtap="onPreviewImage" />
       </swiper-item>
     </swiper>
     <view class="swiper-counter">{{swiperCurrent + 1}}/{{detail.images.length}}</view>

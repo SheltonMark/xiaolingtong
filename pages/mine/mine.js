@@ -67,7 +67,7 @@ Page({
       { icon: '\ue611', label: '工资结算', bg: '#FFFBEB', iconColor: '#F59E0B', url: '/pages/settlement/settlement' },
       { icon: '\ue661', label: '我的邀请', bg: '#F0F9FF', iconColor: '#0EA5E9', url: '/pages/my-invites/my-invites' },
       { icon: '\ue63b', label: '广告投放', bg: '#F3E8FF', iconColor: '#8B5CF6', url: '/pages/ad-purchase/ad-purchase' },
-      { icon: '\ue605', label: '联系方式', bg: '#EEF2FF', iconColor: '#4F46E5', url: '/pages/contact-profile/contact-profile' }
+      { icon: '\ue605', label: '我的资料', bg: '#EEF2FF', iconColor: '#4F46E5', url: '/pages/contact-profile/contact-profile' }
     ],
     myPosts: [],
     // 临工端
@@ -77,7 +77,8 @@ Page({
       { icon: '\ue611', label: '我的钱包', bg: '#FFF7ED', iconColor: '#F97316', url: '/pages/wallet/wallet' },
       { icon: '\ue670', label: '收入明细', bg: '#EFF6FF', iconColor: '#6366F1', url: '/pages/income/income' },
       { icon: '\ue614', label: '实名认证', bg: '#ECFDF5', iconColor: '#10B981', url: '/pages/cert-worker/cert-worker' },
-      { icon: '\ue8a0', label: '临工管理', bg: '#FFF1F2', iconColor: '#F43F5E', url: '/pages/work-record/work-record' }
+      { icon: '\ue8a0', label: '临工管理', bg: '#FFF1F2', iconColor: '#F43F5E', url: '/pages/work-record/work-record' },
+      { icon: '\ue605', label: '我的资料', bg: '#EEF2FF', iconColor: '#4F46E5', url: '/pages/contact-profile/contact-profile' }
     ]
   },
 

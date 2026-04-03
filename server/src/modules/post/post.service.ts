@@ -264,13 +264,14 @@ export class PostService {
   }
 
   async list(query: any, userId?: number) {
-    const { type, industry, keyword, page = 1, pageSize = 20 } = query;
+    const { type, industry, keyword, processMode, page = 1, pageSize = 20 } = query;
     const qb = this.postRepo.createQueryBuilder('p')
       .leftJoinAndSelect('p.user', 'u')
       .where('p.status = :status', { status: 'active' });
 
     if (type) qb.andWhere('p.type = :type', { type });
     if (industry) qb.andWhere('p.industry = :industry', { industry });
+    if (processMode) qb.andWhere('p.processMode = :processMode', { processMode });
     if (keyword) {
       qb.andWhere(
         '(p.title LIKE :kw OR p.content LIKE :kw)',
@@ -427,6 +428,9 @@ export class PostService {
       contactPhone,
       contactWechat,
       contactWechatQr,
+      address: rawAddress,
+      lat: rawLat,
+      lng: rawLng,
       ...structuredFields
     } = dto;
 
@@ -504,6 +508,10 @@ export class PostService {
       openid: submitter?.openid,
     });
 
+    const normalizedAddress = this.normalizeText(rawAddress) || null;
+    const parsedLat = rawLat !== undefined && rawLat !== null && rawLat !== '' ? Number(rawLat) : null;
+    const parsedLng = rawLng !== undefined && rawLng !== null && rawLng !== '' ? Number(rawLng) : null;
+
     const postData: Partial<Post> = {
       userId,
       type,
@@ -516,6 +524,9 @@ export class PostService {
       showWechat: wechatVisible ? 1 : 0,
       showWechatQr: wechatQrVisible ? 1 : 0,
     };
+    if (normalizedAddress) postData.address = normalizedAddress;
+    if (Number.isFinite(parsedLat)) postData.lat = parsedLat;
+    if (Number.isFinite(parsedLng)) postData.lng = parsedLng;
     if (Object.keys(structuredFields).length) postData.fields = structuredFields;
     if (normalizedImages?.length) postData.images = normalizedImages;
     if (normalizedContactName) postData.contactName = normalizedContactName;
