@@ -321,7 +321,9 @@ Page({
       // 如果已经解锁过了
       if (data.alreadyUnlocked) {
         wx.showToast({ title: '已解锁，无需重复解锁', icon: 'none' })
-        this.loadDetail(postId) // 刷新数据
+        this.loadDetail(postId).then(() => {
+          setTimeout(() => this.onShowContact(), 200)
+        })
         return
       }
 
@@ -441,9 +443,10 @@ Page({
 
   onShowContact() {
     const contactInfo = this.data.contactInfo || {}
-    const wechat = contactInfo.wechat || ''
-    const wechatQrImage = contactInfo.wechatQrImage || ''
-    const phone = contactInfo.phone || ''
+    const detail = this.data.detail || {}
+    const wechat = contactInfo.wechat || detail.contactWechat || ''
+    const wechatQrImage = contactInfo.wechatQrImage || detail.contactWechatQr || ''
+    const phone = contactInfo.phone || detail.contactPhone || ''
     const hasWechat = !!(wechat || wechatQrImage)
 
     if (!hasWechat && !phone) {
