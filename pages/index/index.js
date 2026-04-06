@@ -627,6 +627,38 @@ Page({
     })
   },
 
+  _extractPagedList(payload) {
+    const data = payload && payload.data ? payload.data : (payload || {})
+    const list = Array.isArray(data.list) ? data.list : (Array.isArray(data) ? data : [])
+    const total = Number(data.total || 0)
+    return { list, total }
+  },
+
+  async _fetchAllPosts(params = {}) {
+    const pageSize = 50
+    const maxPages = 100
+    const all = []
+    let page = 1
+
+    while (page <= maxPages) {
+      const res = await get('/posts', { ...params, page, pageSize })
+      const { list, total } = this._extractPagedList(res)
+      if (!list.length) break
+
+      all.push(...list)
+
+      if (total > 0) {
+        if (all.length >= total) break
+      } else if (list.length < pageSize) {
+        break
+      }
+
+      page += 1
+    }
+
+    return all
+  },
+
   _getAllItems() {
     return [
       ...(this.data.purchaseList || []),
@@ -737,15 +769,15 @@ Page({
     // 根据当前tab加载对应数据
     if (this.data.userRole === 'enterprise') {
       if (currentTab === 0) {
-        get('/posts', { type: 'purchase', ...params }).then(res => {
-          this.setData({ purchaseList: this._mapPosts(res.data.list || res.data || []) })
+        this._fetchAllPosts({ type: 'purchase', ...params }).then(list => {
+          this.setData({ purchaseList: this._mapPosts(list) })
         }).catch(() => {})
       } else if (currentTab === 1) {
-        get('/posts', { type: 'stock', ...params }).then(res => {
-          const list = this._mapPosts(res.data.list || res.data || [])
-          this.setData({ stockList: list })
+        this._fetchAllPosts({ type: 'stock', ...params }).then(rawList => {
+          const stockList = this._mapPosts(rawList)
+          this.setData({ stockList })
           if (this.data.userLocation) {
-            calculateDistanceForList(this.data.userLocation, list).then(ld => {
+            calculateDistanceForList(this.data.userLocation, stockList).then(ld => {
               this.setData({ stockList: ld })
             }).catch(() => {})
           }
@@ -773,8 +805,8 @@ Page({
     if (this.data.processFilterCategory) {
       params.industry = this.data.processFilterCategory
     }
-    get('/posts', params).then(res => {
-      let list = this._mapPosts(res.data.list || res.data || [])
+    this._fetchAllPosts(params).then(rawList => {
+      let list = this._mapPosts(rawList)
       if (this.data.userLocation) {
         calculateDistanceForList(this.data.userLocation, list).then(listWithDistance => {
           if (this.data.processFilterDistance) {
@@ -850,15 +882,15 @@ Page({
     const currentTab = this.data.currentTab
     if (currentTab === 0) {
       params.type = 'purchase'
-      get('/posts', params).then(res => {
-        this.setData({ purchaseList: this._mapPosts(res.data.list || res.data || []) })
+      this._fetchAllPosts(params).then(list => {
+        this.setData({ purchaseList: this._mapPosts(list) })
       }).catch(() => {
         wx.showToast({ title: '搜索失败', icon: 'none' })
       })
     } else if (currentTab === 1) {
       params.type = 'stock'
-      get('/posts', params).then(res => {
-        const list = this._mapPosts(res.data.list || res.data || [])
+      this._fetchAllPosts(params).then(rawList => {
+        const list = this._mapPosts(rawList)
         this.setData({ stockList: list })
         if (this.data.userLocation) {
           calculateDistanceForList(this.data.userLocation, list).then(ld => this.setData({ stockList: ld })).catch(() => {})
@@ -867,12 +899,7 @@ Page({
         wx.showToast({ title: '搜索失败', icon: 'none' })
       })
     } else if (currentTab === 2) {
-      params.type = 'process'
-      get('/posts', params).then(res => {
-        this.setData({ processList: this._mapPosts(res.data.list || res.data || []) })
-      }).catch(() => {
-        wx.showToast({ title: '搜索失败', icon: 'none' })
-      })
+      this.loadProcessList(params)
     } else if (currentTab === 3) {
       // 招工信息
       this.loadJobList()

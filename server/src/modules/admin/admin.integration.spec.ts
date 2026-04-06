@@ -12,6 +12,7 @@ import { User } from '../../entities/user.entity';
 import { Post } from '../../entities/post.entity';
 import { Job } from '../../entities/job.entity';
 import { Exposure } from '../../entities/exposure.entity';
+import { ExposureComment } from '../../entities/exposure-comment.entity';
 import { Report } from '../../entities/report.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
@@ -29,6 +30,9 @@ import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Notification } from '../../entities/notification.entity';
+import { SettlementItem } from '../../entities/settlement-item.entity';
+import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
+import { WorkLog } from '../../entities/work-log.entity';
 
 describe('AdminModule Integration Tests', () => {
   let controller: AdminController;
@@ -38,6 +42,7 @@ describe('AdminModule Integration Tests', () => {
   let postRepository: any;
   let jobRepository: any;
   let exposureRepository: any;
+  let exposureCommentRepository: any;
   let reportRepository: any;
   let entCertRepository: any;
   let workerCertRepository: any;
@@ -50,6 +55,9 @@ describe('AdminModule Integration Tests', () => {
   let categoryRepository: any;
   let memberOrderRepository: any;
   let settlementRepository: any;
+  let settlementItemRepository: any;
+  let attendanceSheetRepository: any;
+  let workLogRepository: any;
   let walletRepository: any;
   let walletTxRepository: any;
   let beanTxRepository: any;
@@ -120,6 +128,10 @@ describe('AdminModule Integration Tests', () => {
       delete: jest.fn(),
       update: jest.fn(),
       createQueryBuilder: jest.fn(),
+    };
+
+    exposureCommentRepository = {
+      delete: jest.fn(),
     };
 
     reportRepository = {
@@ -218,6 +230,22 @@ describe('AdminModule Integration Tests', () => {
       count: jest.fn(),
     };
 
+    settlementItemRepository = {
+      find: jest.fn(),
+      count: jest.fn(),
+      createQueryBuilder: jest.fn(),
+    };
+
+    attendanceSheetRepository = {
+      find: jest.fn(),
+      count: jest.fn(),
+    };
+
+    workLogRepository = {
+      find: jest.fn(),
+      count: jest.fn(),
+    };
+
     walletRepository = {
       find: jest.fn(),
       count: jest.fn(),
@@ -276,6 +304,10 @@ describe('AdminModule Integration Tests', () => {
         {
           provide: getRepositoryToken(Exposure),
           useValue: exposureRepository,
+        },
+        {
+          provide: getRepositoryToken(ExposureComment),
+          useValue: exposureCommentRepository,
         },
         {
           provide: getRepositoryToken(Report),
@@ -344,6 +376,18 @@ describe('AdminModule Integration Tests', () => {
         {
           provide: getRepositoryToken(Notification),
           useValue: notificationRepository,
+        },
+        {
+          provide: getRepositoryToken(SettlementItem),
+          useValue: settlementItemRepository,
+        },
+        {
+          provide: getRepositoryToken(AttendanceSheet),
+          useValue: attendanceSheetRepository,
+        },
+        {
+          provide: getRepositoryToken(WorkLog),
+          useValue: workLogRepository,
         },
         {
           provide: JwtService,
@@ -686,11 +730,15 @@ describe('AdminModule Integration Tests', () => {
 
   describe('deleteExposure Integration', () => {
     it('should delete exposure', async () => {
+      exposureCommentRepository.delete.mockResolvedValue({ affected: 1 });
       exposureRepository.delete.mockResolvedValue({ affected: 1 });
 
       const result = await controller.deleteExposure(1);
 
       expect(result).toBeDefined();
+      expect(exposureCommentRepository.delete).toHaveBeenCalledWith({
+        exposureId: 1,
+      });
       expect(exposureRepository.delete).toHaveBeenCalledWith(1);
     });
   });

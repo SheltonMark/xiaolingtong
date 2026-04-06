@@ -560,23 +560,33 @@ export class UserService {
   }
 
   async updateAvatar(userId: number, avatarUrl: string) {
+    const normalizedAvatarUrl = this.normalizeText(avatarUrl);
+    if (!normalizedAvatarUrl) {
+      throw new BadRequestException('头像不能为空');
+    }
+    const user = await this.userRepo.findOneBy({ id: userId });
     await this.wechatSecurityService.assertSafeSubmission({
-      images: [avatarUrl],
+      images: [normalizedAvatarUrl],
+      openid: user?.openid,
     });
-    await this.userRepo.update(userId, { avatarUrl });
-    return { avatarUrl };
+    await this.userRepo.update(userId, { avatarUrl: normalizedAvatarUrl });
+    return { avatarUrl: normalizedAvatarUrl };
   }
 
   async updateProfile(userId: number, dto: any) {
     const allowed: any = {};
     const nickname = this.normalizeText(dto.nickname);
     const phone = this.normalizeText(dto.phone);
+    const avatarUrl = this.normalizeText(dto.avatarUrl);
     if (nickname) { allowed.nickname = nickname; allowed.name = nickname; }
     if (phone) allowed.phone = phone;
+    if (avatarUrl) allowed.avatarUrl = avatarUrl;
     if (Object.keys(allowed).length === 0) return { message: '无更新' };
+    const user = await this.userRepo.findOneBy({ id: userId });
     await this.wechatSecurityService.assertSafeSubmission({
       texts: [allowed.nickname, allowed.phone],
-      images: [],
+      images: [allowed.avatarUrl],
+      openid: user?.openid,
     });
     await this.userRepo.update(userId, allowed);
     return { message: '已更新', ...allowed };

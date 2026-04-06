@@ -28,6 +28,7 @@ import { WalletTransaction } from '../../entities/wallet-transaction.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { JobApplication } from '../../entities/job-application.entity';
 import { Notification } from '../../entities/notification.entity';
+import { ExposureComment } from '../../entities/exposure-comment.entity';
 import { SettlementItem } from '../../entities/settlement-item.entity';
 import { AttendanceSheet } from '../../entities/attendance-sheet.entity';
 import { WorkLog } from '../../entities/work-log.entity';
@@ -55,6 +56,8 @@ export class AdminService {
     @InjectRepository(Post) private postRepo: Repository<Post>,
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(Exposure) private exposureRepo: Repository<Exposure>,
+    @InjectRepository(ExposureComment)
+    private exposureCommentRepo: Repository<ExposureComment>,
     @InjectRepository(Report) private reportRepo: Repository<Report>,
     @InjectRepository(EnterpriseCert)
     private entCertRepo: Repository<EnterpriseCert>,
@@ -391,7 +394,11 @@ export class AdminService {
   }
 
   async deleteExposure(id: number) {
-    await this.exposureRepo.delete(id);
+    await this.exposureCommentRepo.delete({ exposureId: id } as any);
+    const result = await this.exposureRepo.delete(id);
+    if (!result.affected) {
+      throw new BadRequestException('曝光信息不存在');
+    }
     return { message: '已删除' };
   }
 

@@ -9,6 +9,7 @@ import { User } from '../../entities/user.entity';
 import { Post } from '../../entities/post.entity';
 import { Job } from '../../entities/job.entity';
 import { Exposure } from '../../entities/exposure.entity';
+import { ExposureComment } from '../../entities/exposure-comment.entity';
 import { Report } from '../../entities/report.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
@@ -38,6 +39,7 @@ import { WorkLog } from '../../entities/work-log.entity';
       Post,
       Job,
       Exposure,
+      ExposureComment,
       Report,
       EnterpriseCert,
       WorkerCert,
