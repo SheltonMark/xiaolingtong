@@ -1,4 +1,4 @@
-const { get } = require('../../utils/request')
+const { get, extractWxacodeUrl } = require('../../utils/request')
 const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
@@ -115,8 +115,7 @@ Page({
       let wxacodeUrl = ''
       try {
         const wxacodeRes = await get('/invite/wxacode')
-        const wr = wxacodeRes.data || wxacodeRes || {}
-        wxacodeUrl = wr.wxacodeUrl || ''
+        wxacodeUrl = extractWxacodeUrl(wxacodeRes)
       } catch (e) {
         console.warn('[invite-poster] wxacode skip:', e && e.message)
       }

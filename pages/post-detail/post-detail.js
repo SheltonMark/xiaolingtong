@@ -700,16 +700,6 @@ Page({
     })
   },
 
-  async _loadImageOrNull(src) {
-    if (!src) return null
-    try {
-      return await this._loadImage(src)
-    } catch (e) {
-      console.warn('[poster] getImageInfo fail:', src, e && e.errMsg)
-      return null
-    }
-  },
-
   _wrapText(ctx, text, maxWidth) {
     const lines = []
     let line = ''
@@ -738,6 +728,7 @@ Page({
       const configRes = await get('/config/poster')
       const cfg = configRes.data || configRes || {}
       const postBg = cfg.postBg || ''
+      const postQrFallback = cfg.postQrcode || ''
 
       if (!postBg) {
         wx.hideLoading()
@@ -753,23 +744,19 @@ Page({
       } catch (e) {
         console.warn('[poster] post wxacode:', e && e.message)
       }
-      const qrSrc = postQrUrl ? normalizeImageUrl(postQrUrl) : ''
+      const qrSrc = postQrUrl || postQrFallback
 
       const images = detail.images || []
       const firstImg = images.length ? images[0] : ''
 
-      const bgPath = await this._loadImageOrNull(normalizeImageUrl(postBg))
-      if (!bgPath) {
-        wx.hideLoading()
-        wx.showToast({ title: '背景图加载失败，请检查网络', icon: 'none' })
-        return
-      }
-      const imgPath = firstImg
-        ? await this._loadImageOrNull(normalizeImageUrl(firstImg))
-        : null
-      const qrPath = qrSrc ? await this._loadImageOrNull(qrSrc) : null
+      const loadTasks = [this._loadImage(postBg)]
+      if (firstImg) loadTasks.push(this._loadImage(firstImg))
+      if (qrSrc) loadTasks.push(this._loadImage(normalizeImageUrl(qrSrc)))
 
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      const loaded = await Promise.all(loadTasks)
+      const bgPath = loaded[0]
+      const imgPath = firstImg ? loaded[1] : null
+      const qrPath = qrSrc ? loaded[loadTasks.length - 1] : null
 
       const query = wx.createSelectorQuery()
       const canvas = await new Promise((resolve) => {
@@ -777,12 +764,6 @@ Page({
           .fields({ node: true, size: true })
           .exec((res) => resolve(res[0]))
       })
-
-      if (!canvas || !canvas.node) {
-        wx.hideLoading()
-        wx.showToast({ title: '画布未就绪，请重试', icon: 'none' })
-        return
-      }
 
       const canvasNode = canvas.node
       const ctx = canvasNode.getContext('2d')

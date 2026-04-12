@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import axios from 'axios';
 import { mkdir, writeFile } from 'fs/promises';
-import { join, dirname } from 'path';
+import { join } from 'path';
 import { User } from '../../entities/user.entity';
 import { InviteRecord } from '../../entities/invite-record.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
@@ -134,9 +134,26 @@ export class InviteService {
     return this.accessToken;
   }
 
+  /** 小程序端无法访问 localhost / 内网 IP，勿把已缓存的公网 URL 改写成这类地址 */
+  private isNonPublicHost(hostOrUrl: string): boolean {
+    const raw = String(hostOrUrl || '').trim();
+    if (!raw) return true;
+    try {
+      const u = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
+      const h = u.hostname.toLowerCase();
+      if (h === 'localhost' || h === '127.0.0.1') return true;
+      if (/^10\./.test(h)) return true;
+      if (/^192\.168\./.test(h)) return true;
+      if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(h)) return true;
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   /**
-   * 缓存里存的是「当时」的完整 URL；换域名/API_HOST 后旧链接可能不在小程序 download 白名单内。
-   * 文件仍在服务端同一路径，按当前 API_HOST 重拼公开地址即可。
+   * 缓存里存的是「当时」的完整 URL；换域名后按当前公网 API_HOST 重拼路径。
+   * 若环境变量 API_HOST 为 localhost/内网（常见：Nginx 反代未改 env），则保留原 URL，避免把可访问的公网链接改坏。
    */
   private normalizeWxacodePublicUrl(stored: string): string {
     const apiHost = String(this.nestConfig.get('API_HOST') || '').replace(
@@ -144,10 +161,34 @@ export class InviteService {
       '',
     );
     if (!stored?.trim() || !apiHost) return stored;
+    if (this.isNonPublicHost(apiHost)) {
+      return stored;
+    }
 
     const m = stored.match(/(\/uploads\/wxacode\/[^?#\s]+)/i);
     if (!m) return stored;
     return `${apiHost}${m[1]}`;
+  }
+
+  /** 新生成文件写入 sys_config 时的对外基址：优先公网 API_HOST，其次 PUBLIC_ASSET_HOST，再退回 API_HOST（本机调试用） */
+  private resolvePublicBaseUrlForWxa(): string {
+    const apiHost = String(this.nestConfig.get('API_HOST') || '').replace(
+      /\/+$/,
+      '',
+    );
+    if (apiHost && !this.isNonPublicHost(apiHost)) {
+      return apiHost;
+    }
+    const assetHost = String(
+      this.nestConfig.get('PUBLIC_ASSET_HOST') || '',
+    ).replace(/\/+$/, '');
+    if (assetHost) {
+      return assetHost;
+    }
+    if (apiHost) {
+      return apiHost;
+    }
+    return 'https://quanqiutong888.com';
   }
 
   /** 无数量限制小程序码，scene 最长 32 字符 */
@@ -198,10 +239,8 @@ export class InviteService {
     await mkdir(uploadDir, { recursive: true });
     await writeFile(join(uploadDir, filename), Buffer.from(resp.data));
 
-    const apiHost = String(
-      this.nestConfig.get('API_HOST') || '',
-    ).replace(/\/+$/, '');
-    const url = apiHost ? `${apiHost}/${key}` : `/${key}`;
+    const base = this.resolvePublicBaseUrlForWxa();
+    const url = base ? `${base}/${key}` : `/${key}`;
 
     await this.configRepo.save(
       this.configRepo.create({

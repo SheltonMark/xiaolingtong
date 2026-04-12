@@ -245,4 +245,23 @@ function uploadVideo(filePath) {
   })
 }
 
-module.exports = { request, get, post, put, del, upload, uploadVideo }
+/** 从 get() 返回体中取出 wxacodeUrl（兼容 { code, data: { wxacodeUrl } } 与直接 { wxacodeUrl }） */
+function extractWxacodeUrl(res) {
+  if (!res) return ''
+  const inner = res.data !== undefined && res.data !== null ? res.data : res
+  if (inner && typeof inner === 'object' && inner.wxacodeUrl) {
+    return String(inner.wxacodeUrl).trim()
+  }
+  return ''
+}
+
+module.exports = {
+  request,
+  get,
+  post,
+  put,
+  del,
+  upload,
+  uploadVideo,
+  extractWxacodeUrl,
+}
