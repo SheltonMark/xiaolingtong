@@ -436,11 +436,22 @@ Page({
 
   openWechatCard() {
     const contactInfo = this.data.contactInfo || {}
-    const wechatId = contactInfo.wechat || ''
-    const wechatQrImage = contactInfo.wechatQrImage || ''
+    const detail = this.data.detail || {}
+    const wechatId = (contactInfo.wechat || detail.contactWechat || '').trim()
+    const wechatQrImage = (contactInfo.wechatQrImage || detail.contactWechatQr || '').trim()
+    const phone = (contactInfo.phone || detail.contactPhone || '').trim()
 
     if (!wechatId && !wechatQrImage) {
-      wx.showToast({ title: '发布者未留微信信息', icon: 'none' })
+      if (phone) {
+        wx.showModal({
+          title: '提示',
+          content: '发布者未留微信，可在「立即联系」中选择拨打电话联系对方',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      } else {
+        wx.showToast({ title: '发布者未留微信信息', icon: 'none' })
+      }
       return
     }
 
@@ -492,18 +503,43 @@ Page({
   },
 
   onCopyWechat() {
-    const wechat = (this.data.contactInfo && this.data.contactInfo.wechat) || this.data.detail.contactWechat
+    const detail = this.data.detail || {}
+    const contactInfo = this.data.contactInfo || {}
+    const wechat = (contactInfo.wechat || detail.contactWechat || '').trim()
+    const phone = (contactInfo.phone || detail.contactPhone || '').trim()
     if (!wechat) {
-      wx.showToast({ title: '暂无微信号', icon: 'none' })
+      if (phone) {
+        wx.showModal({
+          title: '提示',
+          content: '发布者未留微信号，可拨打电话联系对方',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      } else {
+        wx.showToast({ title: '暂无微信号', icon: 'none' })
+      }
       return
     }
     wx.setClipboardData({ data: wechat })
   },
 
   onCallPhone() {
-    const phone = (this.data.contactInfo && this.data.contactInfo.phone) || this.data.detail.contactPhone
+    const detail = this.data.detail || {}
+    const contactInfo = this.data.contactInfo || {}
+    const phone = (contactInfo.phone || detail.contactPhone || '').trim()
+    const hasWechat = !!(contactInfo.wechat || detail.contactWechat || '').trim() ||
+      !!(contactInfo.wechatQrImage || detail.contactWechatQr || '').trim()
     if (!phone) {
-      wx.showToast({ title: '暂无手机号', icon: 'none' })
+      if (hasWechat) {
+        wx.showModal({
+          title: '提示',
+          content: '发布者未留电话，可查看微信联系对方',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      } else {
+        wx.showToast({ title: '暂无手机号', icon: 'none' })
+      }
       return
     }
     wx.makePhoneCall({ phoneNumber: phone, fail() {} })

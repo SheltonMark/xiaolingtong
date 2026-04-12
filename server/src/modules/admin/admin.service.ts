@@ -1864,19 +1864,19 @@ export class AdminService {
       {
         key: 'poster_post_bg',
         value: '',
-        label: '帖子海报背景模板图URL',
+        label: '帖子海报背景模板图（上传）',
         group: 'poster',
       },
       {
         key: 'poster_post_qrcode',
         value: '',
-        label: '帖子海报二维码图URL',
+        label: '帖子海报右下角二维码图（上传）',
         group: 'poster',
       },
       {
         key: 'poster_invite_bg',
         value: '',
-        label: '邀请海报背景模板图URL',
+        label: '邀请海报背景模板图（上传）',
         group: 'poster',
       },
       {

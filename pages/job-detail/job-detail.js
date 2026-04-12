@@ -177,9 +177,20 @@ Page({
       wx.showToast({ title: '请先报名该岗位', icon: 'none' })
       return
     }
-    const phoneNumber = this.data.job?.company?.phone || ''
+    const company = (this.data.job && this.data.job.company) || {}
+    const phoneNumber = (company.phone || '').trim()
     if (!phoneNumber) {
-      wx.showToast({ title: '暂无联系电话', icon: 'none' })
+      const hasWechat = !!(company.wechat || '').trim() || !!(company.wechatQrImage || '').trim()
+      if (hasWechat) {
+        wx.showModal({
+          title: '提示',
+          content: '企业未留电话，可点击「查看微信」联系对方',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      } else {
+        wx.showToast({ title: '暂无联系电话', icon: 'none' })
+      }
       return
     }
     wx.makePhoneCall({ phoneNumber, fail() {} })
@@ -191,10 +202,20 @@ Page({
       return
     }
     const company = (this.data.job && this.data.job.company) || {}
-    const wechatId = company.wechat || ''
-    const wechatQrImage = company.wechatQrImage || ''
+    const wechatId = (company.wechat || '').trim()
+    const wechatQrImage = (company.wechatQrImage || '').trim()
     if (!wechatId && !wechatQrImage) {
-      wx.showToast({ title: '暂无微信信息', icon: 'none' })
+      const phone = (company.phone || '').trim()
+      if (phone) {
+        wx.showModal({
+          title: '提示',
+          content: '企业未留微信，可点击「电话」联系对方',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      } else {
+        wx.showToast({ title: '暂无微信信息', icon: 'none' })
+      }
       return
     }
     this.setData({

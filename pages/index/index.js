@@ -1019,10 +1019,19 @@ Page({
   },
 
   openWechatCard(item) {
-    const wechatId = item.contactWechat || item.wechat || ''
-    const wechatQrImage = item.contactWechatQr || item.wechatQrImage || ''
+    const wechatId = (item.contactWechat || item.wechat || '').trim()
+    const wechatQrImage = (item.contactWechatQr || item.wechatQrImage || '').trim()
     if (!wechatId && !wechatQrImage) {
-      wx.showToast({ title: '发布者未留微信信息', icon: 'none' })
+      if (String(item.contactPhone || item.phone || '').trim()) {
+        wx.showModal({
+          title: '提示',
+          content: '发布者未留微信，可点击「电话」联系发布者',
+          showCancel: false,
+          confirmText: '知道了'
+        })
+      } else {
+        wx.showToast({ title: '发布者未留微信信息', icon: 'none' })
+      }
       return
     }
     this.setData({
@@ -1072,11 +1081,23 @@ Page({
     }
 
     if (this.isPostUnlocked(item)) {
-      if (!item.contactPhone) {
-        wx.showToast({ title: '发布者未留电话', icon: 'none' })
+      const phone = String(item.contactPhone || item.phone || '').trim()
+      if (!phone) {
+        const w = (item.contactWechat || item.wechat || '').trim()
+        const qr = (item.contactWechatQr || item.wechatQrImage || '').trim()
+        if (w || qr) {
+          wx.showModal({
+            title: '提示',
+            content: '发布者未留电话，可点击「微信」联系发布者',
+            showCancel: false,
+            confirmText: '知道了'
+          })
+        } else {
+          wx.showToast({ title: '发布者未留电话', icon: 'none' })
+        }
         return
       }
-      wx.makePhoneCall({ phoneNumber: item.contactPhone, fail() {} })
+      wx.makePhoneCall({ phoneNumber: phone, fail() {} })
       return
     }
 
