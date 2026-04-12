@@ -21,6 +21,8 @@ type TopPricingItem = {
 type HomeBannerItem = {
   id: string;
   kind: 'ad' | 'notice' | 'notice-img' | 'default';
+  /** 商业广告：后台/运营为 admin，用户付费为 user */
+  source?: 'admin' | 'user';
   title?: string;
   sub?: string;
   bg?: string;
@@ -29,6 +31,24 @@ type HomeBannerItem = {
   linkType?: string;
   time?: string;
 };
+
+/** 首页 Tab 与 ad_orders.slot 对应（旧 banner 位不参与新首页接口） */
+export const HOME_MODULE_TO_SLOT: Record<string, string> = {
+  purchase: 'home_purchase',
+  stock: 'home_stock',
+  process: 'home_process',
+  job: 'home_job',
+};
+
+/** 用户付费投放允许的 slot */
+export const PURCHASABLE_AD_SLOTS = [
+  'feed',
+  'banner',
+  'home_purchase',
+  'home_stock',
+  'home_process',
+  'home_job',
+] as const;
 
 @Injectable()
 export class PromotionService {
@@ -83,26 +103,25 @@ export class PromotionService {
       : `${date.getFullYear()}-${mm}-${dd}`;
   }
 
-  private mixEnterpriseHomeBanners(
-    ads: HomeBannerItem[],
-    notices: HomeBannerItem[],
+  /** 两组轮播项交错：先取 first 一条再取 second 一条，直至耗尽 */
+  private interleaveBannerGroups(
+    first: HomeBannerItem[],
+    second: HomeBannerItem[],
   ): HomeBannerItem[] {
     const list: HomeBannerItem[] = [];
-    let adIndex = 0;
-    let noticeIndex = 0;
-
-    while (adIndex < ads.length || noticeIndex < notices.length) {
-      if (adIndex < ads.length) {
-        list.push(ads[adIndex]);
-        adIndex += 1;
+    let i = 0;
+    let j = 0;
+    while (i < first.length || j < second.length) {
+      if (i < first.length) {
+        list.push(first[i]);
+        i += 1;
       }
-      if (noticeIndex < notices.length) {
-        list.push(notices[noticeIndex]);
-        noticeIndex += 1;
+      if (j < second.length) {
+        list.push(second[j]);
+        j += 1;
       }
     }
-
-    return list.concat(this.buildDefaultEnterpriseBanners());
+    return list;
   }
 
   private async getConfig(key: string, defaultValue: string): Promise<string> {
@@ -232,6 +251,11 @@ export class PromotionService {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
 
+    const slot = String(dto.slot || '').trim();
+    if (!slot || !PURCHASABLE_AD_SLOTS.includes(slot as any)) {
+      throw new BadRequestException('无效的投放位置');
+    }
+
     // 会员广告投放9折
     let actualPrice = dto.price;
     if (this.isMemberActive(user)) {
@@ -240,7 +264,7 @@ export class PromotionService {
 
     const ad = this.adRepo.create({
       userId,
-      slot: dto.slot,
+      slot,
       title: dto.title,
       imageUrl: dto.imageUrl,
       link: dto.link,
@@ -279,9 +303,21 @@ export class PromotionService {
     return { list: ads };
   }
 
-  async getEnterpriseHomeBanners() {
+  /**
+   * 企业首页 Banner（按 Tab 模块独立）
+   * @param module purchase | stock | process | job，缺省为 purchase（兼容旧客户端）
+   */
+  async getEnterpriseHomeBanners(module?: string) {
+    const key = (module || 'purchase').trim().toLowerCase();
+    const slot = HOME_MODULE_TO_SLOT[key];
+    if (!slot) {
+      throw new BadRequestException(
+        'module 须为 purchase、stock、process、job 之一',
+      );
+    }
+
     const now = new Date();
-    const adRes = await this.getActiveAds('banner');
+    const adRes = await this.getActiveAds(slot);
     const rawNotices = await this.noticeRepo.find({
       order: { createdAt: 'DESC' },
       take: 20,
@@ -289,7 +325,8 @@ export class PromotionService {
 
     const adBanners: HomeBannerItem[] = (adRes.list || []).map((ad) => ({
       id: `ad-${ad.id}`,
-      kind: 'ad',
+      kind: 'ad' as const,
+      source: ad.userId ? ('user' as const) : ('admin' as const),
       imageUrl: ad.imageUrl,
       link: ad.link,
       linkType: ad.linkType || 'internal',
@@ -303,15 +340,29 @@ export class PromotionService {
       )
       .map((notice) => ({
         id: `notice-${notice.id}`,
-        kind: notice.imageUrl ? 'notice-img' : 'notice',
+        kind: (notice.imageUrl ? 'notice-img' : 'notice') as
+          | 'notice-img'
+          | 'notice',
         title: notice.title,
         sub: notice.content,
         imageUrl: notice.imageUrl || '',
         time: this.formatBannerDate(notice.createdAt),
       }));
 
+    const defaults = this.buildDefaultEnterpriseBanners();
+
+    if (adBanners.length > 0) {
+      return {
+        list: this.interleaveBannerGroups(adBanners, noticeBanners),
+      };
+    }
+
+    if (noticeBanners.length === 0) {
+      return { list: defaults };
+    }
+
     return {
-      list: this.mixEnterpriseHomeBanners(adBanners, noticeBanners),
+      list: this.interleaveBannerGroups(noticeBanners, defaults),
     };
   }
 

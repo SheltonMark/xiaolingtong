@@ -36,7 +36,7 @@ export class PromotionController {
 
   @Public()
   @Get('ads/home-banners')
-  getEnterpriseHomeBanners() {
-    return this.promoService.getEnterpriseHomeBanners();
+  getEnterpriseHomeBanners(@Query('module') module?: string) {
+    return this.promoService.getEnterpriseHomeBanners(module);
   }
 }

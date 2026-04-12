@@ -16,7 +16,8 @@ export class AdOrder {
   @Column({ type: 'bigint', nullable: true })
   userId: number;
 
-  @Column({ type: 'enum', enum: ['banner', 'feed'] })
+  /** banner/feed 为历史位；首页四 Tab 为 home_purchase | home_stock | home_process | home_job */
+  @Column({ type: 'varchar', length: 32 })
   slot: string;
 
   @Column({ length: 128 })

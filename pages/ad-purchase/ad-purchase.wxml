@@ -5,29 +5,22 @@
   <view class="ad-section">
     <text class="section-title required">选择广告位</text>
     <view class="ad-options">
-      <view class="ad-option {{selectedSlot === 0 ? 'ad-option-active' : ''}}" data-index="{{0}}" bindtap="onSlotChange">
+      <view
+        class="ad-option {{selectedSlot === index ? 'ad-option-active' : ''}}"
+        wx:for="{{slots}}"
+        wx:key="key"
+        data-index="{{index}}"
+        bindtap="onSlotChange">
         <view class="ad-option-top">
           <view class="ad-option-left">
-            <view class="ad-radio {{selectedSlot === 0 ? 'ad-radio-active' : ''}}">
-              <view class="ad-radio-dot" wx:if="{{selectedSlot === 0}}"></view>
+            <view class="ad-radio {{selectedSlot === index ? 'ad-radio-active' : ''}}">
+              <view class="ad-radio-dot" wx:if="{{selectedSlot === index}}"></view>
             </view>
-            <text class="ad-option-name">首页Banner广告</text>
+            <text class="ad-option-name">{{item.name}}</text>
           </view>
-          <text class="ad-option-price {{selectedSlot === 0 ? 'text-primary' : ''}}">¥{{slots[0].price}}/天</text>
+          <text class="ad-option-price {{selectedSlot === index ? 'text-primary' : ''}}">¥{{item.price}}/天</text>
         </view>
-        <text class="ad-option-desc">展示在首页顶部轮播区，曝光量最高</text>
-      </view>
-      <view class="ad-option {{selectedSlot === 1 ? 'ad-option-active' : ''}}" data-index="{{1}}" bindtap="onSlotChange">
-        <view class="ad-option-top">
-          <view class="ad-option-left">
-            <view class="ad-radio {{selectedSlot === 1 ? 'ad-radio-active' : ''}}">
-              <view class="ad-radio-dot" wx:if="{{selectedSlot === 1}}"></view>
-            </view>
-            <text class="ad-option-name">信息流推荐位</text>
-          </view>
-          <text class="ad-option-price {{selectedSlot === 1 ? 'text-primary' : ''}}">¥{{slots[1].price}}/天</text>
-        </view>
-        <text class="ad-option-desc">展示在信息列表中，带"广告"标识，自然融入</text>
+        <text class="ad-option-desc">{{item.desc}}</text>
       </view>
     </view>
   </view>

@@ -41,9 +41,9 @@ describe('PromotionController', () => {
       list: [{ id: 'notice-1', kind: 'notice', title: '系统升级公告' }],
     } as any);
 
-    const result = await (controller as any).getEnterpriseHomeBanners();
+    const result = await (controller as any).getEnterpriseHomeBanners('stock');
 
-    expect(service.getEnterpriseHomeBanners).toHaveBeenCalledTimes(1);
+    expect(service.getEnterpriseHomeBanners).toHaveBeenCalledWith('stock');
     expect(result).toEqual({
       list: [{ id: 'notice-1', kind: 'notice', title: '系统升级公告' }],
     });

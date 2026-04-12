@@ -109,6 +109,9 @@ function normalizeProcessContent(item) {
     : content
 }
 
+/** 与 GET /ads/home-banners?module= 一致，顺序对应 Tab 0–3 */
+const TAB_MODULE_KEYS = ['purchase', 'stock', 'process', 'job']
+
 function getDefaultEnterpriseBanners() {
   return [
     {
@@ -184,6 +187,8 @@ Page({
       { id: 2, title: '会员特权', sub: '每日免费查看联系方式', bg: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)' },
       { id: 3, title: '发布招工', sub: '快速找到靠谱临工', bg: 'linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)' }
     ],
+    /** 企业端四 Tab 各自缓存的轮播数据 */
+    bannerByTab: {},
     // 企业端
     currentTab: 0,
     tabs: ['采购需求', '工厂库存', '代加工', '招工'],
@@ -385,15 +390,25 @@ Page({
   },
 
   loadHomeBanners() {
-    get('/ads/home-banners').then(res => {
-      const list = (res.data && res.data.list) || []
-      if (Array.isArray(list) && list.length > 0) {
-        this.setData({ banners: list })
-      } else {
-        this.setData({ banners: getDefaultEnterpriseBanners() })
-      }
-      // 无广告时保持默认 banners
-    }).catch(() => {})
+    const defaults = getDefaultEnterpriseBanners()
+    Promise.all(
+      TAB_MODULE_KEYS.map((module) => get('/ads/home-banners', { module }))
+    )
+      .then((responses) => {
+        const bannerByTab = {}
+        TAB_MODULE_KEYS.forEach((_, idx) => {
+          const res = responses[idx]
+          const list = (res.data && res.data.list) || []
+          bannerByTab[idx] =
+            Array.isArray(list) && list.length > 0 ? list : defaults
+        })
+        const tab = this.data.currentTab
+        this.setData({
+          bannerByTab,
+          banners: bannerByTab[tab] || defaults
+        })
+      })
+      .catch(() => {})
   },
 
   onAdBannerTap(e) {
@@ -716,7 +731,13 @@ Page({
   },
 
   onTabChange(e) {
-    this.setData({ currentTab: e.currentTarget.dataset.index })
+    const index = Number(e.currentTarget.dataset.index)
+    const defaults = getDefaultEnterpriseBanners()
+    const cached = this.data.bannerByTab && this.data.bannerByTab[index]
+    this.setData({
+      currentTab: index,
+      banners: cached && cached.length ? cached : defaults
+    })
     // tab切换时重新加载数据
     this.loadDataByCategory()
   },

@@ -376,7 +376,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
   <h4 id="adModalTitle">新增广告</h4>
   <input type="hidden" id="adModalId">
   <div class="form-group"><label>广告标题</label><input type="text" id="adModalTitle_input" placeholder="广告标题"></div>
-  <div class="form-group"><label>投放位置</label><select id="adModalSlot"><option value="banner">横幅 Banner</option><option value="feed">信息流</option></select></div>
+  <div class="form-group"><label>投放位置</label><select id="adModalSlot"><option value="home_purchase">首页·采购Tab</option><option value="home_stock">首页·库存Tab</option><option value="home_process">首页·代加工Tab</option><option value="home_job">首页·招工Tab</option><option value="banner">旧版横幅（兼容）</option><option value="feed">信息流</option></select></div>
   <div class="form-group"><label>广告图片</label>
     <div class="notice-upload-row"><label class="notice-file-btn"><input type="file" id="adModalImageFile" class="notice-file-sr-only" accept="image/*" onchange="onAdImageSelected(this)">选择图片</label><img id="adModalImagePreview" style="max-width:240px;max-height:120px;border-radius:8px;display:none;border:1px solid var(--border);"></div>
     <input type="hidden" id="adModalImageUrl">
@@ -1825,6 +1825,17 @@ async function promptJobManagerShare(jobId){
 
 var adPage=1;
 var adListCache=[];
+function adSlotLabel(slot){
+  var m={
+    home_purchase:'首页(采购)',
+    home_stock:'首页(库存)',
+    home_process:'首页(代加工)',
+    home_job:'首页(招工)',
+    banner:'旧版横幅',
+    feed:'信息流'
+  };
+  return m[slot]||slot||'-';
+}
 async function loadAds(page){
   if(page)adPage=page;
   var status=document.getElementById('adStatusFilter').value;
@@ -1849,7 +1860,7 @@ async function loadAds(page){
     }
     ops+='<button class="btn btn-primary" onclick="showEditAdModal('+a.id+')">编辑</button>';
     var timeRange=a.startAt?(a.startAt||'').substring(0,10)+' ~ '+(a.endAt||'').substring(0,10):'-';
-    h+='<tr><td>'+a.id+'</td><td>'+imgCell+'</td><td>'+adminDisplayName(a)+'</td><td>'+(a.slot==='banner'?'横幅':'信息流')+'</td><td>'+a.title+'</td><td>'+linkCell+'</td><td>'+a.durationDays+'</td><td>'+a.price+'元</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+timeRange+'</td><td>'+ops+'</td></tr>';
+    h+='<tr><td>'+a.id+'</td><td>'+imgCell+'</td><td>'+adminDisplayName(a)+'</td><td>'+adSlotLabel(a.slot)+'</td><td>'+a.title+'</td><td>'+linkCell+'</td><td>'+a.durationDays+'</td><td>'+a.price+'元</td><td><span class="badge '+st[1]+'">'+st[0]+'</span></td><td>'+timeRange+'</td><td>'+ops+'</td></tr>';
   }
   document.getElementById('adTable').innerHTML=h||'<tr><td colspan="11" class="empty">暂无广告</td></tr>';
   renderPagination('adPagination',d.total,adPage,d.pageSize,'loadAds');
@@ -1887,7 +1898,7 @@ async function onAdImageSelected(input){
 function resetAdModal(){
   document.getElementById('adModalId').value='';
   document.getElementById('adModalTitle_input').value='';
-  document.getElementById('adModalSlot').value='banner';
+  document.getElementById('adModalSlot').value='home_purchase';
   document.getElementById('adModalImageUrl').value='';
   document.getElementById('adModalImagePreview').style.display='none';
   document.getElementById('adModalImagePreview').src='';
@@ -1910,7 +1921,7 @@ function showEditAdModal(id){
   document.getElementById('adModalTitle').textContent='编辑广告';
   document.getElementById('adModalId').value=id;
   document.getElementById('adModalTitle_input').value=ad.title||'';
-  document.getElementById('adModalSlot').value=ad.slot||'banner';
+  document.getElementById('adModalSlot').value=ad.slot||'home_purchase';
   if(ad.imageUrl){document.getElementById('adModalImageUrl').value=ad.imageUrl;var prev=document.getElementById('adModalImagePreview');prev.src=ad.imageUrl;prev.style.display='block';}
   document.getElementById('adModalLinkType').value=ad.linkType&&ad.link?ad.linkType:'';
   document.getElementById('adModalLink').value=ad.link||'';

@@ -64,10 +64,11 @@ describe('PromotionService', () => {
   });
 
   describe('getEnterpriseHomeBanners', () => {
-    it('should interleave active ads and notices before appending fallback banners', async () => {
+    it('should interleave ads and notices without default slides when ads exist', async () => {
       adRepo.find.mockResolvedValue([
         {
           id: 11,
+          userId: null,
           imageUrl: 'https://img.example.com/a.png',
           link: '/pages/a',
           linkType: 'internal',
@@ -75,6 +76,7 @@ describe('PromotionService', () => {
         },
         {
           id: 12,
+          userId: 99,
           imageUrl: 'https://img.example.com/b.png',
           link: '/pages/b',
           linkType: 'internal',
@@ -100,28 +102,30 @@ describe('PromotionService', () => {
         },
       ]);
 
-      const result = await (service as any).getEnterpriseHomeBanners();
+      const result = await (service as any).getEnterpriseHomeBanners('purchase');
 
       expect(result.list.map((item: any) => item.kind)).toEqual([
         'ad',
         'notice',
         'ad',
         'notice',
-        'default',
-        'default',
-        'default',
       ]);
+      expect(result.list[0]).toMatchObject({
+        kind: 'ad',
+        source: 'admin',
+      });
+      expect(result.list[2]).toMatchObject({
+        kind: 'ad',
+        source: 'user',
+      });
       expect(result.list[1]).toMatchObject({
         kind: 'notice',
         title: '系统升级公告',
         sub: '今晚维护，请提前处理紧急事项。',
       });
-      expect(result.list[4]).toMatchObject({
-        kind: 'default',
-      });
     });
 
-    it('should exclude inactive or expired notices and keep defaults when dynamic banners are empty', async () => {
+    it('should exclude inactive or expired notices and keep defaults when no ads and no notices', async () => {
       adRepo.find.mockResolvedValue([]);
       noticeRepo.find.mockResolvedValue([
         {
@@ -142,10 +146,34 @@ describe('PromotionService', () => {
         },
       ]);
 
-      const result = await (service as any).getEnterpriseHomeBanners();
+      const result = await (service as any).getEnterpriseHomeBanners('purchase');
 
       expect(result.list).toHaveLength(3);
       expect(result.list.every((item: any) => item.kind === 'default')).toBe(
+        true,
+      );
+    });
+
+    it('should interleave notices and default slides when no ads but notices exist', async () => {
+      adRepo.find.mockResolvedValue([]);
+      noticeRepo.find.mockResolvedValue([
+        {
+          id: 41,
+          title: '有效公告',
+          content: '内容',
+          isActive: 1,
+          expireAt: null,
+          createdAt: new Date('2026-03-25T08:00:00.000Z'),
+        },
+      ]);
+
+      const result = await (service as any).getEnterpriseHomeBanners('job');
+
+      expect(result.list.length).toBeGreaterThanOrEqual(4);
+      expect(result.list.some((item: any) => item.kind === 'notice')).toBe(
+        true,
+      );
+      expect(result.list.some((item: any) => item.kind === 'default')).toBe(
         true,
       );
     });

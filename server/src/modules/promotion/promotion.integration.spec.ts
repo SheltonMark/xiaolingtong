@@ -10,6 +10,9 @@ import { Promotion } from '../../entities/promotion.entity';
 import { AdOrder } from '../../entities/ad-order.entity';
 import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
+import { Notification } from '../../entities/notification.entity';
+import { Notice } from '../../entities/notice.entity';
 import { PaymentService } from '../payment/payment.service';
 
 describe('PromotionModule Integration Tests', () => {
@@ -63,6 +66,17 @@ describe('PromotionModule Integration Tests', () => {
       get: jest.fn().mockReturnValue('https://quanqiutong888.com'),
     };
 
+    const sysConfigRepository = {
+      findOne: jest.fn().mockResolvedValue({ value: '100' }),
+    };
+    const notificationRepository = {
+      create: jest.fn((x) => x),
+      save: jest.fn().mockResolvedValue({}),
+    };
+    const noticeRepository = {
+      find: jest.fn().mockResolvedValue([]),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PromotionController],
       providers: [
@@ -82,6 +96,18 @@ describe('PromotionModule Integration Tests', () => {
         {
           provide: getRepositoryToken(BeanTransaction),
           useValue: beanTxRepository,
+        },
+        {
+          provide: getRepositoryToken(SysConfig),
+          useValue: sysConfigRepository,
+        },
+        {
+          provide: getRepositoryToken(Notification),
+          useValue: notificationRepository,
+        },
+        {
+          provide: getRepositoryToken(Notice),
+          useValue: noticeRepository,
         },
         {
           provide: PaymentService,
@@ -158,7 +184,7 @@ describe('PromotionModule Integration Tests', () => {
       const mockAd = {
         id: 1,
         userId: 1,
-        slot: 'top',
+        slot: 'home_purchase',
         title: 'Ad Title',
         price: 99.99,
         durationDays: 30,
@@ -174,7 +200,7 @@ describe('PromotionModule Integration Tests', () => {
       });
 
       const result = await controller.purchaseAd(1, {
-        slot: 'top',
+        slot: 'home_purchase',
         title: 'Ad Title',
         imageUrl: 'image.jpg',
         link: 'http://example.com',
@@ -193,7 +219,7 @@ describe('PromotionModule Integration Tests', () => {
 
       await expect(
         controller.purchaseAd(999, {
-          slot: 'top',
+          slot: 'feed',
           title: 'Ad Title',
           imageUrl: 'image.jpg',
           link: 'http://example.com',

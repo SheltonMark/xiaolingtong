@@ -1,14 +1,23 @@
 const { get, post, upload } = require('../../utils/request')
 
+function buildSlotsFromPricing(bannerPrice, feedPrice) {
+  const b = bannerPrice || 100
+  const f = feedPrice || 50
+  return [
+    { name: '采购首页轮播', key: 'home_purchase', price: b, desc: '展示在首页「采购需求」Tab 顶部轮播' },
+    { name: '库存首页轮播', key: 'home_stock', price: b, desc: '展示在首页「工厂库存」Tab 顶部轮播' },
+    { name: '代加工首页轮播', key: 'home_process', price: b, desc: '展示在首页「代加工」Tab 顶部轮播' },
+    { name: '招工首页轮播', key: 'home_job', price: b, desc: '展示在首页「招工」Tab 顶部轮播' },
+    { name: '信息流推荐位', key: 'feed', price: f, desc: '展示在信息列表中，带标识，自然融入' }
+  ]
+}
+
 Page({
   data: {
     selectedSlot: 0,
     linkType: 0,
     form: { startDate: '', endDate: '' },
-    slots: [
-      { name: '首页Banner广告', key: 'banner', price: 0 },
-      { name: '信息流推荐位', key: 'feed', price: 0 }
-    ],
+    slots: buildSlotsFromPricing(100, 50),
     days: 7,
     unitPrice: 0,
     totalPrice: 0,
@@ -36,19 +45,14 @@ Page({
       const d = res.data || res
       const bannerPrice = d.bannerPrice || 100
       const feedPrice = d.feedPrice || 50
-      const slots = [
-        { name: '首页Banner广告', key: 'banner', price: bannerPrice },
-        { name: '信息流推荐位', key: 'feed', price: feedPrice }
-      ]
-      const unitPrice = slots[this.data.selectedSlot].price
+      const slots = buildSlotsFromPricing(bannerPrice, feedPrice)
+      const si = Math.min(this.data.selectedSlot, slots.length - 1)
+      const unitPrice = slots[si].price
       const totalPrice = unitPrice * this.data.days
       const actualPrice = this.data.isMember ? Math.round(totalPrice * 0.9 * 100) / 100 : totalPrice
-      this.setData({ slots, unitPrice, totalPrice, actualPrice })
+      this.setData({ slots, selectedSlot: si, unitPrice, totalPrice, actualPrice })
     }).catch(() => {
-      const slots = [
-        { name: '首页Banner广告', key: 'banner', price: 100 },
-        { name: '信息流推荐位', key: 'feed', price: 50 }
-      ]
+      const slots = buildSlotsFromPricing(100, 50)
       const totalPrice = 100 * this.data.days
       const actualPrice = this.data.isMember ? Math.round(totalPrice * 0.9 * 100) / 100 : totalPrice
       this.setData({ slots, unitPrice: 100, totalPrice, actualPrice })

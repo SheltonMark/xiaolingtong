@@ -79,7 +79,7 @@
           <!-- 广告图片模式 -->
           <view class="banner-slide banner-slide-ad" wx:if="{{item.kind === 'ad'}}" style="position:relative;" bindtap="onAdBannerTap" data-link="{{item.link}}" data-link-type="{{item.linkType}}">
             <image src="{{item.imageUrl}}" class="banner-img banner-img-ad" mode="aspectFill" />
-            <text class="ad-tag">广告</text>
+            <text class="ad-tag">{{item.source === 'user' ? '推广' : '广告'}}</text>
           </view>
           <!-- 公告图片模式 -->
           <view class="banner-slide banner-slide-ad" wx:elif="{{item.kind === 'notice-img'}}" style="position:relative;">
