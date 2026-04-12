@@ -178,6 +178,11 @@ export class AdminController {
     return this.adminService.updateConfig(body.key, body.value);
   }
 
+  @Get('users/:id/name')
+  userName(@Param('id') id: number) {
+    return this.adminService.userName(id);
+  }
+
   // 用户详情
   @Get('users/:id/detail')
   userDetail(@Param('id') id: number) {

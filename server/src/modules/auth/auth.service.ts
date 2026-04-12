@@ -92,6 +92,7 @@ export class AuthService {
         role: user.role,
         nickname: user.nickname,
         avatarUrl: user.avatarUrl,
+        phone: user.phone || null,
         beanBalance: user.beanBalance,
         isMember: user.isMember,
         creditScore: user.creditScore,

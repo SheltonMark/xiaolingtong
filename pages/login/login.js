@@ -9,6 +9,11 @@ const TAB_BAR_ROUTES = [
   'pages/mine/mine'
 ]
 
+function hasBoundPhone(user) {
+  if (!user || user.phone == null) return false
+  return String(user.phone).trim().length > 0
+}
+
 Page({
   data: {
     loading: false,
@@ -20,6 +25,28 @@ Page({
     this.setData({
       statusBarHeight: sysInfo.statusBarHeight || 0
     })
+  },
+
+  resetSession() {
+    const app = getApp()
+    auth.clearToken()
+    app.globalData.isLoggedIn = false
+    app.globalData.userInfo = null
+    app.globalData.userId = null
+    app.globalData.avatarUrl = ''
+    app.globalData.beanBalance = 0
+    app.globalData.isMember = false
+  },
+
+  applyWxLoginSession(token, user) {
+    const app = getApp()
+    auth.setToken(token)
+    app.globalData.isLoggedIn = true
+    app.globalData.userInfo = user
+    app.globalData.userId = user.id || null
+    app.globalData.avatarUrl = user.avatarUrl || ''
+    app.globalData.beanBalance = user.beanBalance || 0
+    app.globalData.isMember = user.isMember || false
   },
 
   goToIndexPage() {
@@ -65,70 +92,49 @@ Page({
     })
   },
 
-  onWxLogin() {
-    if (this.data.loading) return
-    this.setData({ loading: true })
-    wx.login({
-      success: (loginRes) => {
-        if (!loginRes.code) {
-          wx.showToast({ title: '微信登录失败', icon: 'none' })
-          this.setData({ loading: false })
-          return
-        }
-        post('/auth/wx-login', {
-          code: loginRes.code,
-          inviteCode: getApp().globalData.pendingInviteCode || undefined
-        }).then(res => {
-          const { token, user } = res.data
-          const app = getApp()
-          const localRole = wx.getStorageSync('userRole')
-          auth.setToken(token)
-          app.globalData.isLoggedIn = true
-          app.globalData.userInfo = user
-          app.globalData.userId = user.id || null
-          app.globalData.avatarUrl = user.avatarUrl || ''
-          app.globalData.beanBalance = user.beanBalance || 0
-          app.globalData.isMember = user.isMember || false
+  continueAfterWxLogin(user) {
+    const app = getApp()
+    const localRole = wx.getStorageSync('userRole')
+    app.globalData.userInfo = user
+    app.globalData.userId = user.id || null
+    app.globalData.avatarUrl = user.avatarUrl || ''
+    app.globalData.beanBalance = user.beanBalance || 0
+    app.globalData.isMember = user.isMember || false
 
-          if (localRole && localRole !== user.role) {
-            this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
-              this.completeLogin(role, syncedUser)
-            }).catch(() => {
-              wx.redirectTo({ url: '/pages/identity/identity' })
-            })
-            return
-          }
+    if (localRole && localRole !== user.role) {
+      this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
+        this.completeLogin(role, syncedUser)
+      }).catch(() => {
+        wx.redirectTo({ url: '/pages/identity/identity' })
+      })
+      return
+    }
 
-          if (user.role) {
-            this.completeLogin(user.role, user)
-            return
-          }
+    if (user.role) {
+      this.completeLogin(user.role, user)
+      return
+    }
 
-          if (!localRole) {
-            wx.redirectTo({ url: '/pages/identity/identity' })
-            return
-          }
+    if (!localRole) {
+      wx.redirectTo({ url: '/pages/identity/identity' })
+      return
+    }
 
-          this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
-            this.completeLogin(role, syncedUser)
-          }).catch(() => {
-            wx.redirectTo({ url: '/pages/identity/identity' })
-          })
-        }).catch(() => {}).finally(() => {
-          this.setData({ loading: false })
-        })
-      },
-      fail: () => {
-        wx.showToast({ title: '微信登录失败', icon: 'none' })
-        this.setData({ loading: false })
-      }
+    this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
+      this.completeLogin(role, syncedUser)
+    }).catch(() => {
+      wx.redirectTo({ url: '/pages/identity/identity' })
     })
   },
 
-  onGetPhoneNumber(e) {
+  /**
+   * 一次点击：按钮带 getPhoneNumber，用户在微信弹窗中同意后执行登录。
+   * 服务端已有手机号的用户不再调 bind-phone；新用户用本次 code 写入手机号。
+   */
+  onWeChatLogin(e) {
     if (e.detail.errMsg !== 'getPhoneNumber:ok') {
       if (e.detail.errMsg && e.detail.errMsg.indexOf('deny') !== -1) {
-        wx.showToast({ title: '需要授权手机号才能完成快捷登录', icon: 'none' })
+        wx.showToast({ title: '需同意授权手机号才能登录', icon: 'none' })
       }
       return
     }
@@ -148,43 +154,34 @@ Page({
           this.setData({ loading: false })
           return
         }
+        const app = getApp()
         post('/auth/wx-login', {
           code: loginRes.code,
-          inviteCode: getApp().globalData.pendingInviteCode || undefined
+          inviteCode: app.globalData.pendingInviteCode || undefined
         })
           .then((res) => {
             const { token, user } = res.data
-            const app = getApp()
-            auth.setToken(token)
-            app.globalData.isLoggedIn = true
-            app.globalData.userInfo = user
-            app.globalData.userId = user.id || null
-            app.globalData.avatarUrl = user.avatarUrl || ''
-            app.globalData.beanBalance = user.beanBalance || 0
-            app.globalData.isMember = user.isMember || false
-
+            this.applyWxLoginSession(token, user)
+            if (hasBoundPhone(user)) {
+              return Promise.resolve(user)
+            }
             return post('/auth/bind-phone', { code: phoneCode }).then((phoneRes) => {
               const phone = (phoneRes.data && phoneRes.data.phone) || ''
-              if (phone) {
-                user.phone = phone
-                app.globalData.userInfo = user
+              if (!phone) {
+                throw new Error('NO_PHONE')
               }
-              return user
+              return Object.assign({}, user, { phone })
             })
           })
           .then((user) => {
-            const localRole = wx.getStorageSync('userRole')
-            if (user.role) {
-              this.completeLogin(user.role, user)
-            } else if (localRole) {
-              return this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
-                this.completeLogin(role, syncedUser)
-              })
-            } else {
-              wx.redirectTo({ url: '/pages/identity/identity' })
+            this.continueAfterWxLogin(user)
+          })
+          .catch((err) => {
+            this.resetSession()
+            if (err && err.message === 'NO_PHONE') {
+              wx.showToast({ title: '手机号绑定失败，请重试', icon: 'none' })
             }
           })
-          .catch(() => {})
           .finally(() => {
             this.setData({ loading: false })
           })

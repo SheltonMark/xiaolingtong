@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { BadRequestException } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
@@ -602,11 +603,8 @@ describe('AdminModule Integration Tests', () => {
         pageSize: 20,
       });
 
-      expect(qb.leftJoin).toHaveBeenCalledTimes(2);
-      expect(qb.andWhere).toHaveBeenCalledWith(
-        '(u.nickname LIKE :kw OR u.phone LIKE :kw OR u.name LIKE :kw OR ent.companyName LIKE :kw OR worker.realName LIKE :kw)',
-        { kw: '%灵豆%' },
-      );
+      expect(qb.leftJoin).not.toHaveBeenCalled();
+      expect(qb.andWhere).toHaveBeenCalledWith(expect.any(Brackets));
     });
   });
 

@@ -15,12 +15,15 @@
   </view>
 
   <view class="login-bottom">
-    <button class="wx-login-btn" bindtap="onWxLogin">
+    <button
+      class="wx-login-btn"
+      open-type="getPhoneNumber"
+      bindgetphonenumber="onWeChatLogin"
+      loading="{{loading}}"
+      disabled="{{loading}}"
+    >
       <text>微信一键登录</text>
     </button>
-    <button class="phone-login-btn" open-type="getPhoneNumber" bindgetphonenumber="onGetPhoneNumber">
-      <text>手机号快捷登录</text>
-    </button>
-    <text class="login-tip">手机号登录后可享受更多服务</text>
+    <text class="login-tip">点击后将弹出微信授权，同意后即可登录</text>
   </view>
 </view>

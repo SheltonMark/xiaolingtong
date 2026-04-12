@@ -144,6 +144,13 @@ tr:hover td { background:rgba(35,39,54,.5); }
   position:absolute; width:1px; height:1px; padding:0; margin:-1px;
   overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
 }
+.edit-post-images { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:10px; min-height:28px; align-items:flex-start; }
+.edit-post-img-card { flex:0 0 auto; width:100px; text-align:center; }
+.edit-post-img-card img { display:block; width:100px; height:100px; object-fit:cover; border-radius:8px; border:1px solid var(--border); cursor:pointer; }
+.edit-post-img-actions { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-top:6px; }
+.edit-post-img-actions .btn { margin-right:0; padding:3px 8px; font-size:11px; }
+.edit-post-image-toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.edit-post-image-toolbar .notice-file-btn { position:relative; }
 .cert-detail-modal { width:980px; max-width:94vw; }
 .cert-detail-layout { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr); gap:20px; align-items:start; }
 .cert-detail-section { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px; }
@@ -382,25 +389,27 @@ tr:hover td { background:rgba(35,39,54,.5); }
 <div class="modal-overlay" id="adminModal"><div class="modal"><h4>添加管理员</h4><div class="form-group"><label>用户名</label><input type="text" id="adminUsername" placeholder="登录用户名"></div><div class="form-group"><label>昵称</label><input type="text" id="adminNickname" placeholder="显示昵称（可选）"></div><div class="form-group"><label>角色</label><select id="adminRole"><option value="admin">管理员</option><option value="auditor">审核员</option></select></div><div class="form-group"><label>密码</label><input type="text" id="adminPassword" value="123456" placeholder="默认123456"></div><div class="modal-actions"><button class="cancel" onclick="hideAdminModal()">取消</button><button class="confirm" onclick="saveAdmin()">确认创建</button></div></div></div>
 
 <div class="modal-overlay" id="auditDetailModal">
-  <div class="modal" style="width:760px;max-width:94vw;border-radius:16px;">
-    <h4 id="auditDetailTitle">详情</h4>
-    <div id="auditDetailContent" style="max-height:68vh;overflow-y:auto;"></div>
-    <div class="modal-actions" id="auditDetailActions">
+  <div class="modal" style="width:760px;max-width:94vw;border-radius:16px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
+    <h4 id="auditDetailTitle" style="flex-shrink:0;">详情</h4>
+    <div id="auditDetailContent" style="flex:1;overflow-y:auto;min-height:0;"></div>
+    <div class="modal-actions" id="auditDetailActions" style="flex-shrink:0;">
       <button class="cancel" onclick="hideAuditDetailModal()">关闭</button>
     </div>
   </div>
 </div>
 <div class="modal-overlay" id="editPostModal">
-  <div class="modal" style="width:600px;max-width:94vw;border-radius:16px;">
-    <h4>编辑帖子 #<span id="editPostId"></span></h4>
-    <div style="max-height:68vh;overflow-y:auto;">
+  <div class="modal" style="width:640px;max-width:94vw;border-radius:16px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;">
+    <h4 style="flex-shrink:0;">编辑帖子 #<span id="editPostId"></span></h4>
+    <div style="flex:1;overflow-y:auto;min-height:0;">
+      <div class="form-group"><label>发布者</label><div style="display:flex;gap:8px;align-items:center;"><input type="number" id="editPostUserId" placeholder="用户ID" style="width:100px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;"><span id="editPostUserName" style="font-size:13px;color:var(--text-sec);"></span><button type="button" class="btn btn-primary" style="white-space:nowrap;" onclick="lookupEditPostUser()">查询</button></div></div>
       <div class="form-group"><label>标题</label><input type="text" id="editPostTitle" placeholder="标题"></div>
       <div class="form-group"><label>内容</label><textarea id="editPostContent" rows="6" style="width:100%;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:12px;font-size:13px;border-radius:8px;"></textarea></div>
+      <div class="form-group"><label>图片</label><div style="font-size:12px;color:var(--text-muted);margin-bottom:8px;">可删除、调整顺序；支持本地上传或粘贴完整图片 URL 添加。</div><div id="editPostImages" class="edit-post-images"></div><div class="edit-post-image-toolbar"><label class="notice-file-btn"><input type="file" id="editPostImageFile" class="notice-file-sr-only" accept="image/*" multiple onchange="onEditPostImagesSelected(this)">上传图片</label><input type="text" id="editPostImageUrl" placeholder="https://… 或 /uploads/…" style="flex:1;min-width:140px;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:13px;"><button type="button" class="add-btn" onclick="editPostImageAddUrl()">添加 URL</button></div></div>
       <div class="form-group"><label>类型</label><select id="editPostType"><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select></div>
       <div class="form-group"><label>品类</label><input type="text" id="editPostIndustry" placeholder="品类"></div>
       <div class="form-group"><label>状态</label><select id="editPostStatus"><option value="pending">待审核</option><option value="active">已发布</option><option value="deleted">已删除</option><option value="expired">已过期</option></select></div>
     </div>
-    <div class="modal-actions"><button class="cancel" onclick="hideEditPostModal()">取消</button><button class="confirm" onclick="saveEditPost()">保存</button></div>
+    <div class="modal-actions" style="flex-shrink:0;"><button class="cancel" onclick="hideEditPostModal()">取消</button><button class="confirm" onclick="saveEditPost()">保存</button></div>
   </div>
 </div>
 <div class="modal-overlay" id="userDetailModal">
@@ -579,8 +588,8 @@ var userPage=1;
 async function loadUsers(page){
   if(page)userPage=page;
   var role=document.getElementById('userRoleFilter').value;
-  var kw=document.getElementById('userKeyword').value;
-  var d=await api('/users?page='+userPage+'&role='+role+'&keyword='+kw);
+  var kw=(document.getElementById('userKeyword').value||'').trim();
+  var d=await api('/users?page='+encodeURIComponent(userPage)+'&role='+encodeURIComponent(role)+'&keyword='+encodeURIComponent(kw));
   if(!d)return;var list=d.list||[];
   var h='';
   for(var i=0;i<list.length;i++){var u=list[i];
@@ -634,7 +643,18 @@ function showPostDetail(idx){
   if(p.content)h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">内容</span><div style="font-size:13px;line-height:1.7;white-space:pre-wrap;word-break:break-all;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto;">'+escHtml(p.content)+'</div></div>';
   var imgs=p.images||[];
   if(imgs.length){h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:8px;">图片（'+imgs.length+'张）</span><div style="display:flex;flex-wrap:wrap;gap:8px;">';for(var j=0;j<imgs.length;j++){var u=escAttr(imgs[j]);h+='<img src="'+u+'" style="width:120px;height:120px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)" onclick="showImagePreview(\''+u+'\',\'图片'+(j+1)+'\')">';}h+='</div></div>';}
-  if(p.contactName||p.phone)h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:4px;">联系方式</span><span style="font-size:13px;">'+(p.contactName||'')+' '+(p.phone||'')+'</span></div>';
+  var cname=(p.contactName||'').trim();
+  var cphone=(p.contactPhone||'').trim();
+  var cwx=(p.contactWechat||'').trim();
+  var cqr=(p.contactWechatQr||'').trim();
+  if(cname||cphone||cwx||cqr){
+    h+='<div style="margin-bottom:12px;"><span style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:8px;">联系方式（发布者填写）</span><div style="font-size:13px;line-height:1.8;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;">';
+    if(cname)h+='<div><span style="color:var(--text-muted)">联系人</span> '+escHtml(cname)+'</div>';
+    if(cphone)h+='<div><span style="color:var(--text-muted)">手机号</span> '+escHtml(cphone)+'</div>';
+    if(cwx)h+='<div><span style="color:var(--text-muted)">微信号</span> '+escHtml(cwx)+'</div>';
+    if(cqr){var u=escAttr(cqr);h+='<div style="margin-top:8px;"><span style="color:var(--text-muted);display:block;margin-bottom:4px;">微信二维码</span><img src="'+u+'" style="max-width:160px;border-radius:8px;border:1px solid var(--border);cursor:pointer" onclick="showImagePreview(\''+u+'\',\'微信二维码\')"></div>';}
+    h+='</div></div>';
+  }
   document.getElementById('auditDetailTitle').textContent='信息详情 #'+p.id;
   document.getElementById('auditDetailContent').innerHTML=h;
   var acts='<button class="cancel" onclick="hideAuditDetailModal()">关闭</button>';
@@ -645,29 +665,98 @@ function showPostDetail(idx){
   document.getElementById('auditDetailModal').classList.add('show');
 }
 var _editPostIdx=-1;
+var _editPostImages=[];
+function renderEditPostImages(){
+  var box=document.getElementById('editPostImages');if(!box)return;
+  var arr=_editPostImages;
+  if(!arr.length){box.innerHTML='<span style="font-size:12px;color:var(--text-muted)">暂无图片</span>';return;}
+  var h='';
+  for(var i=0;i<arr.length;i++){
+    var u=escAttr(arr[i]);
+    h+='<div class="edit-post-img-card">';
+    h+='<img src="'+u+'" alt="" onclick="showImagePreview(\''+u+'\',\'图片'+(i+1)+'\')">';
+    h+='<div class="edit-post-img-actions">';
+    h+='<button type="button" class="btn btn-danger" onclick="editPostImageRemove('+i+')">删除</button>';
+    if(i>0)h+='<button type="button" class="btn btn-primary" onclick="editPostImageMove('+i+',-1)">上移</button>';
+    if(i<arr.length-1)h+='<button type="button" class="btn btn-primary" onclick="editPostImageMove('+i+',1)">下移</button>';
+    h+='</div></div>';
+  }
+  box.innerHTML=h;
+}
+function editPostImageRemove(i){_editPostImages.splice(i,1);renderEditPostImages();}
+function editPostImageMove(i,d){
+  var j=i+d;if(j<0||j>=_editPostImages.length)return;
+  var t=_editPostImages[i];_editPostImages[i]=_editPostImages[j];_editPostImages[j]=t;
+  renderEditPostImages();
+}
+function editPostImageAddUrl(){
+  var raw=(document.getElementById('editPostImageUrl').value||'').trim();
+  if(!raw){toast('请输入图片 URL','error');return;}
+  if(raw.indexOf('http')!==0&&raw.indexOf('/')!==0){toast('请输入以 http(s):// 或 / 开头的地址','error');return;}
+  _editPostImages.push(raw);
+  document.getElementById('editPostImageUrl').value='';
+  renderEditPostImages();
+}
+async function onEditPostImagesSelected(input){
+  if(!input||!input.files||!input.files.length)return;
+  var files=input.files;var ok=0;
+  for(var fi=0;fi<files.length;fi++){
+    var file=files[fi];
+    var fd=new FormData();fd.append('file',file);
+    try{
+      var res=await fetch('/api/upload',{method:'POST',headers:{'Authorization':'Bearer '+token},body:fd});
+      var data=await res.json();
+      var url=data.url||(data.data&&data.data.url)||'';
+      if(url){_editPostImages.push(url);ok++;}
+      else{toast('上传失败: '+(file.name||'')+' '+(data.message||''),'error');}
+    }catch(e){toast('上传失败: '+e.message,'error');}
+  }
+  input.value='';
+  renderEditPostImages();
+  if(ok)toast('已添加 '+ok+' 张图片','success');
+}
 function showEditPostModal(idx){
   _editPostIdx=idx;var p=_postListCache[idx];if(!p)return;
   hideAuditDetailModal();
   document.getElementById('editPostId').textContent=p.id;
+  document.getElementById('editPostUserId').value=p.userId||'';
+  document.getElementById('editPostUserName').textContent=adminDisplayName(p)||'（ID: '+p.userId+'）';
   document.getElementById('editPostTitle').value=p.title||'';
   document.getElementById('editPostContent').value=p.content||'';
   document.getElementById('editPostType').value=p.type||'purchase';
   document.getElementById('editPostIndustry').value=p.industry||'';
   document.getElementById('editPostStatus').value=p.status||'pending';
+  _editPostImages=Array.isArray(p.images)?p.images.slice():[];
+  document.getElementById('editPostImageUrl').value='';
+  var f=document.getElementById('editPostImageFile');if(f)f.value='';
+  renderEditPostImages();
   document.getElementById('editPostModal').classList.add('show');
+}
+async function lookupEditPostUser(){
+  var uid=(document.getElementById('editPostUserId').value||'').trim();
+  if(!uid){toast('请输入用户ID','error');return;}
+  var d=await api('/users/'+uid+'/name');
+  if(d&&d.name){document.getElementById('editPostUserName').textContent=d.name+' (ID:'+d.id+')';}
+  else{document.getElementById('editPostUserName').textContent='未找到 / 无名称';}
 }
 function hideEditPostModal(){document.getElementById('editPostModal').classList.remove('show');}
 async function saveEditPost(){
   var id=_postListCache[_editPostIdx]&&_postListCache[_editPostIdx].id;if(!id)return;
+  var newUserId=(document.getElementById('editPostUserId').value||'').trim();
+  var origUserId=_postListCache[_editPostIdx].userId;
   var dto={
     title:document.getElementById('editPostTitle').value,
     content:document.getElementById('editPostContent').value,
     type:document.getElementById('editPostType').value,
     industry:document.getElementById('editPostIndustry').value,
-    status:document.getElementById('editPostStatus').value
+    status:document.getElementById('editPostStatus').value,
+    images:_editPostImages.slice()
   };
-  await api('/posts/'+id,{method:'PUT',body:dto});
-  toast('更新成功','success');hideEditPostModal();loadPosts();
+  if(newUserId&&Number(newUserId)!==Number(origUserId)){dto.userId=Number(newUserId);}
+  try{
+    await api('/posts/'+id,{method:'PUT',body:dto});
+    toast('更新成功','success');hideEditPostModal();loadPosts();
+  }catch(e){toast('保存失败: '+(e.message||e),'error');}
 }
 function hideAuditDetailModal(){document.getElementById('auditDetailModal').classList.remove('show');}
 async function auditPost(id,action){

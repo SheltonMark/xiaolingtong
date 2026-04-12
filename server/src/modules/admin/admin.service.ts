@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { Admin } from '../../entities/admin.entity';
 import { User } from '../../entities/user.entity';
@@ -277,20 +277,46 @@ export class AdminService {
 
   // 用户管理
   async userList(query: any) {
-    const { role, keyword, page = 1, pageSize = 20 } = query;
+    const { role, keyword: rawKeyword, page = 1, pageSize = 20 } = query;
+    const keyword =
+      rawKeyword === undefined || rawKeyword === null
+        ? ''
+        : String(rawKeyword).trim();
     const qb = this.userRepo.createQueryBuilder('u');
     if (role) qb.andWhere('u.role = :role', { role });
     else qb.andWhere('u.role IS NOT NULL');
     if (keyword) {
-      qb
-        .leftJoin(EnterpriseCert, 'ent', 'ent.userId = u.id')
-        .leftJoin(WorkerCert, 'worker', 'worker.userId = u.id')
-        .andWhere(
-          '(u.nickname LIKE :kw OR u.phone LIKE :kw OR u.name LIKE :kw OR ent.companyName LIKE :kw OR worker.realName LIKE :kw)',
-          {
-            kw: `%${keyword}%`,
-          },
-        );
+      const kwPattern = `%${keyword}%`;
+      const digitsOnly = keyword.replace(/\D/g, '');
+      qb.andWhere(
+        new Brackets((sub) => {
+          sub
+            .where('u.nickname LIKE :kw', { kw: kwPattern })
+            .orWhere('u.name LIKE :kw', { kw: kwPattern })
+            .orWhere('u.phone LIKE :kw', { kw: kwPattern })
+            .orWhere('u.verifiedPhone LIKE :kw', { kw: kwPattern })
+            .orWhere(
+              'EXISTS (SELECT 1 FROM enterprise_certs ent WHERE ent.userId = u.id AND ent.companyName LIKE :kw)',
+              { kw: kwPattern },
+            )
+            .orWhere(
+              'EXISTS (SELECT 1 FROM worker_certs worker WHERE worker.userId = u.id AND worker.realName LIKE :kw)',
+              { kw: kwPattern },
+            );
+          if (digitsOnly.length >= 3) {
+            const dPat = `%${digitsOnly}%`;
+            sub
+              .orWhere(
+                "REPLACE(REPLACE(REPLACE(COALESCE(u.phone,''),' ',''),'-',''),'+','') LIKE :digits",
+                { digits: dPat },
+              )
+              .orWhere(
+                "REPLACE(REPLACE(REPLACE(COALESCE(u.verifiedPhone,''),' ',''),'-',''),'+','') LIKE :digits",
+                { digits: dPat },
+              );
+          }
+        }),
+      );
     }
     qb.orderBy('u.createdAt', 'DESC')
       .skip((page - 1) * pageSize)
@@ -370,12 +396,30 @@ export class AdminService {
   async updatePost(id: number, dto: any) {
     const post = await this.postRepo.findOneBy({ id });
     if (!post) throw new BadRequestException('帖子不存在');
-    const { title, content, type, industry, images, videos, status } = dto;
+    const { title, content, type, industry, images, videos, status, userId } =
+      dto;
+    if (userId !== undefined) {
+      const uid = Number(userId);
+      if (!uid || isNaN(uid))
+        throw new BadRequestException('无效的用户ID');
+      const userExists = await this.userRepo.findOneBy({ id: uid });
+      if (!userExists)
+        throw new BadRequestException('用户不存在: ' + uid);
+      post.userId = uid;
+    }
     if (title !== undefined) post.title = title;
     if (content !== undefined) post.content = content;
     if (type !== undefined) post.type = type;
     if (industry !== undefined) post.industry = industry;
-    if (images !== undefined) post.images = images;
+    if (images !== undefined) {
+      if (Array.isArray(images)) {
+        post.images = images
+          .map((x) =>
+            typeof x === 'string' ? x.trim() : String(x ?? '').trim(),
+          )
+          .filter(Boolean);
+      }
+    }
     if (videos !== undefined) (post as any).videos = videos;
     if (status !== undefined) post.status = status;
     await this.postRepo.save(post);
@@ -623,6 +667,12 @@ export class AdminService {
       }
     }
     return { message: '已更新' };
+  }
+
+  async userName(id: number) {
+    const nameMap = await this.buildUserDisplayNameMap([id]);
+    const name = nameMap.get(Number(id)) || '';
+    return { id: Number(id), name };
   }
 
   // 用户详情
