@@ -170,23 +170,32 @@ Page({
 
       await drawImg(bgPath, 0, 0, W, H)
 
+      // 与右下角小程序码同一套坐标，便于邀请码文字与二维码垂直居中对齐（同一水平中线）
+      const qrW = 180
+      const qrH = 180
+      const qrX = W - 220
+      const qrY = H - 260
+      const qrCenterY = qrY + qrH / 2
+
       const code = this.data.inviteCode || ''
       if (code) {
+        const padX = 40
         ctx.font = 'bold 32px sans-serif'
         ctx.fillStyle = '#1E293B'
-        ctx.textAlign = 'center'
-        ctx.fillText('我的邀请码：' + code, W / 2, 1120)
         ctx.textAlign = 'left'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('我的邀请码：' + code, padX, qrCenterY)
 
         ctx.font = '22px sans-serif'
         ctx.fillStyle = '#64748B'
         ctx.textAlign = 'center'
-        ctx.fillText('扫描二维码，一起来赚灵豆！', W / 2, 1160)
+        ctx.textBaseline = 'alphabetic'
+        ctx.fillText('扫描二维码，一起来赚灵豆！', W / 2, qrY + qrH + 36)
         ctx.textAlign = 'left'
       }
 
       if (qrPath) {
-        await drawImg(qrPath, W - 220, H - 260, 180, 180)
+        await drawImg(qrPath, qrX, qrY, qrW, qrH)
       }
 
       const tempPath = await new Promise((resolve, reject) => {
