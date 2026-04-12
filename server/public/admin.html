@@ -145,6 +145,17 @@ tr:hover td { background:rgba(35,39,54,.5); }
   box-sizing:border-box;
 }
 .form-group label.notice-file-btn:hover { background:var(--accent-h); border-color:var(--accent-h); color:#fff; }
+/* 系统配置-海报上传：不在 .form-group 内，需单独写主题色按钮 */
+.config-poster-actions label.notice-file-btn {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-height:36px; padding:0 18px; margin-bottom:0;
+  background:var(--accent); color:#fff; border:1px solid var(--accent);
+  border-radius:8px; cursor:pointer; font-size:13px; font-weight:500;
+  line-height:1; text-align:center;
+  transition:background .15s,border-color .15s;
+  box-sizing:border-box; position:relative;
+}
+.config-poster-actions label.notice-file-btn:hover { background:var(--accent-h); border-color:var(--accent-h); color:#fff; }
 .notice-file-sr-only {
   position:absolute; width:1px; height:1px; padding:0; margin:-1px;
   overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
