@@ -204,6 +204,9 @@ export class AuthService {
   }
 
   async bindPhone(userId: number, code: string) {
+    const uid = Number(userId);
+    if (!uid) throw new BadRequestException('用户无效');
+
     const appid = this.config.get('WX_APPID');
     const secret = this.config.get('WX_SECRET');
 
@@ -219,12 +222,20 @@ export class AuthService {
       `https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${accessToken}`,
       { code },
     );
-    const phoneInfo = phoneRes.data?.phone_info;
-    if (!phoneInfo?.phoneNumber) {
+    const wxBody = phoneRes.data || {};
+    if (wxBody.errcode && wxBody.errcode !== 0) {
+      throw new BadRequestException(
+        wxBody.errmsg || `微信返回错误(${wxBody.errcode})`,
+      );
+    }
+    const phoneInfo = wxBody.phone_info;
+    const phoneNumber =
+      phoneInfo?.phoneNumber || phoneInfo?.purePhoneNumber || '';
+    if (!phoneNumber) {
       throw new BadRequestException('获取手机号失败');
     }
 
-    await this.userRepo.update(userId, { phone: phoneInfo.phoneNumber });
-    return { phone: phoneInfo.phoneNumber };
+    await this.userRepo.update(uid, { phone: phoneNumber });
+    return { phone: phoneNumber };
   }
 }

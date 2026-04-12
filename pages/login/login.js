@@ -126,9 +126,17 @@ Page({
   },
 
   onGetPhoneNumber(e) {
-    if (e.detail.errMsg !== 'getPhoneNumber:ok') return
+    if (e.detail.errMsg !== 'getPhoneNumber:ok') {
+      if (e.detail.errMsg && e.detail.errMsg.indexOf('deny') !== -1) {
+        wx.showToast({ title: '需要授权手机号才能完成快捷登录', icon: 'none' })
+      }
+      return
+    }
     const phoneCode = e.detail.code
-    if (!phoneCode) return
+    if (!phoneCode) {
+      wx.showToast({ title: '未获取到手机号凭证，请重试', icon: 'none' })
+      return
+    }
 
     if (this.data.loading) return
     this.setData({ loading: true })
@@ -143,40 +151,43 @@ Page({
         post('/auth/wx-login', {
           code: loginRes.code,
           inviteCode: getApp().globalData.pendingInviteCode || undefined
-        }).then(res => {
-          const { token, user } = res.data
-          const app = getApp()
-          auth.setToken(token)
-          app.globalData.isLoggedIn = true
-          app.globalData.userInfo = user
-          app.globalData.userId = user.id || null
-          app.globalData.avatarUrl = user.avatarUrl || ''
-          app.globalData.beanBalance = user.beanBalance || 0
-          app.globalData.isMember = user.isMember || false
+        })
+          .then((res) => {
+            const { token, user } = res.data
+            const app = getApp()
+            auth.setToken(token)
+            app.globalData.isLoggedIn = true
+            app.globalData.userInfo = user
+            app.globalData.userId = user.id || null
+            app.globalData.avatarUrl = user.avatarUrl || ''
+            app.globalData.beanBalance = user.beanBalance || 0
+            app.globalData.isMember = user.isMember || false
 
-          post('/auth/bind-phone', { code: phoneCode }).then(phoneRes => {
-            const phone = (phoneRes.data && phoneRes.data.phone) || ''
-            if (phone) {
-              user.phone = phone
-              app.globalData.userInfo = user
-            }
-          }).catch(() => {}).finally(() => {
+            return post('/auth/bind-phone', { code: phoneCode }).then((phoneRes) => {
+              const phone = (phoneRes.data && phoneRes.data.phone) || ''
+              if (phone) {
+                user.phone = phone
+                app.globalData.userInfo = user
+              }
+              return user
+            })
+          })
+          .then((user) => {
             const localRole = wx.getStorageSync('userRole')
             if (user.role) {
               this.completeLogin(user.role, user)
             } else if (localRole) {
-              this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
+              return this.syncRoleAfterLogin(localRole, user).then(({ role, user: syncedUser }) => {
                 this.completeLogin(role, syncedUser)
-              }).catch(() => {
-                wx.redirectTo({ url: '/pages/identity/identity' })
               })
             } else {
               wx.redirectTo({ url: '/pages/identity/identity' })
             }
           })
-        }).catch(() => {}).finally(() => {
-          this.setData({ loading: false })
-        })
+          .catch(() => {})
+          .finally(() => {
+            this.setData({ loading: false })
+          })
       },
       fail: () => {
         wx.showToast({ title: '微信登录失败', icon: 'none' })
