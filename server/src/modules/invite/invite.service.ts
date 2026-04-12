@@ -8,6 +8,7 @@ import { ConfigService as NestConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
 import axios from 'axios';
+import { existsSync } from 'fs';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { User } from '../../entities/user.entity';
@@ -191,6 +192,30 @@ export class InviteService {
     return 'https://quanqiutong888.com';
   }
 
+  /** 从公开 URL 解析出 wxacode 文件名（仅 uploads/wxacode 下） */
+  private filenameFromPublicWxaUrl(url: string): string | null {
+    const m = String(url || '')
+      .trim()
+      .match(/\/uploads\/wxacode\/([^/?#]+)$/i);
+    return m ? m[1] : null;
+  }
+
+  private wxacodeFileExistsOnDisk(filename: string): boolean {
+    if (!filename || /[\\/]/.test(filename) || filename.includes('..')) {
+      return false;
+    }
+    const uploadDir = join(
+      __dirname,
+      '..',
+      '..',
+      '..',
+      'storage',
+      'uploads',
+      'wxacode',
+    );
+    return existsSync(join(uploadDir, filename));
+  }
+
   /** 无数量限制小程序码，scene 最长 32 字符 */
   private async generateWxacodeUnlimited(
     scene: string,
@@ -205,7 +230,15 @@ export class InviteService {
       where: { key: cacheKey },
     });
     if (cached?.value) {
-      return { wxacodeUrl: this.normalizeWxacodePublicUrl(cached.value) };
+      const normalized = this.normalizeWxacodePublicUrl(cached.value);
+      const fn = this.filenameFromPublicWxaUrl(normalized);
+      if (fn && this.wxacodeFileExistsOnDisk(fn)) {
+        return { wxacodeUrl: normalized };
+      }
+      this.logger.warn(
+        `wxacode 缓存指向的文件不存在或路径无效，将重新生成: key=${cacheKey} url=${cached.value}`,
+      );
+      await this.configRepo.delete({ key: cacheKey });
     }
 
     const token = await this.getAccessToken();
