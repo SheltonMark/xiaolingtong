@@ -367,6 +367,21 @@ export class AdminService {
     return { message: action === 'approve' ? '已通过' : '已驳回' };
   }
 
+  async updatePost(id: number, dto: any) {
+    const post = await this.postRepo.findOneBy({ id });
+    if (!post) throw new BadRequestException('帖子不存在');
+    const { title, content, type, industry, images, videos, status } = dto;
+    if (title !== undefined) post.title = title;
+    if (content !== undefined) post.content = content;
+    if (type !== undefined) post.type = type;
+    if (industry !== undefined) post.industry = industry;
+    if (images !== undefined) post.images = images;
+    if (videos !== undefined) (post as any).videos = videos;
+    if (status !== undefined) post.status = status;
+    await this.postRepo.save(post);
+    return { message: '更新成功' };
+  }
+
   // 招工审核
   async jobList(query: any) {
     const { page = 1, pageSize = 20 } = query;
@@ -614,11 +629,21 @@ export class AdminService {
   async userDetail(id: number) {
     const user = await this.userRepo.findOneBy({ id });
     if (!user) return null;
-    const posts = await this.postRepo.count({ where: { userId: id } });
-    const jobs = await this.jobRepo.count({ where: { userId: id } });
+    const postCount = await this.postRepo.count({ where: { userId: id } });
+    const jobCount = await this.jobRepo.count({ where: { userId: id } });
     const entCert = await this.entCertRepo.findOneBy({ userId: id });
     const workerCert = await this.workerCertRepo.findOneBy({ userId: id });
-    return { user, postCount: posts, jobCount: jobs, entCert, workerCert };
+    const posts = await this.postRepo.find({
+      where: { userId: id },
+      order: { createdAt: 'DESC' },
+      take: 50,
+    });
+    const jobs = await this.jobRepo.find({
+      where: { userId: id },
+      order: { createdAt: 'DESC' },
+      take: 50,
+    });
+    return { user, postCount, jobCount, entCert, workerCert, posts, jobs };
   }
 
   // 数据统计
@@ -1629,6 +1654,30 @@ export class AdminService {
         value: '799',
         label: '年会员价格(元)',
         group: 'member',
+      },
+      {
+        key: 'subscribe_tpl_new_message',
+        value: '',
+        label: '订阅消息模板ID-新消息通知',
+        group: 'subscribe',
+      },
+      {
+        key: 'subscribe_tpl_application_status',
+        value: '',
+        label: '订阅消息模板ID-报名状态变更',
+        group: 'subscribe',
+      },
+      {
+        key: 'new_user_bean_reward',
+        value: '30',
+        label: '新用户注册赠送灵豆数',
+        group: 'bean',
+      },
+      {
+        key: 'invite_bean_reward',
+        value: '5',
+        label: '邀请好友注册奖励灵豆数',
+        group: 'bean',
       },
       {
         key: 'view_contact_price',

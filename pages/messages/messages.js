@@ -1,6 +1,7 @@
 const { get, post, put } = require('../../utils/request')
 const wsChat = require('../../utils/ws-chat')
 const auth = require('../../utils/auth')
+const { requestSubscribe } = require('../../utils/subscribe')
 const {
   buildRoleSystemMessages,
   markWorkerSystemMessageRead,
@@ -189,6 +190,7 @@ Page({
       ...systemNoticeCopy
     })
 
+    requestSubscribe()
     this.loadMessages()
     wsChat.connect()
     if (!this._wsUnsubscribe) {
@@ -500,7 +502,7 @@ Page({
         Number(message.id) === Number(item.id) ? { ...message, unread: false, isRead: 1 } : message
       ))
       this.setSystemMessages(nextMessages)
-      put('/notifications/' + item.id + '/read').catch(() => {
+      post('/notifications/' + item.id + '/read').catch(() => {
         this.loadMessages()
       })
     }

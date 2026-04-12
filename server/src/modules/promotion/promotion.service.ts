@@ -51,7 +51,7 @@ export class PromotionService {
         id: 'default-1',
         kind: 'default',
         title: '新用户专享',
-        sub: '注册送 50 灵豆',
+        sub: '注册送 30 灵豆',
         bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)',
       },
       {

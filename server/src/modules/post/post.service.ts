@@ -421,6 +421,7 @@ export class PostService {
       processMode: rawProcessMode,
       description,
       images,
+      videos,
       showPhone,
       showWechat,
       showWechatQr,
@@ -530,6 +531,8 @@ export class PostService {
     if (Number.isFinite(parsedLng)) postData.lng = parsedLng!;
     if (Object.keys(structuredFields).length) postData.fields = structuredFields;
     if (normalizedImages?.length) postData.images = normalizedImages;
+    const normalizedVideos = this.normalizeStringArray(videos);
+    if (normalizedVideos?.length) postData.videos = normalizedVideos;
     if (normalizedContactName) postData.contactName = normalizedContactName;
     if (normalizedContactPhone) postData.contactPhone = normalizedContactPhone;
     if (normalizedContactWechat) postData.contactWechat = normalizedContactWechat;

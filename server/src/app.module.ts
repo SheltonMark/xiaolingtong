@@ -29,6 +29,7 @@ import { ConfigModule } from './modules/config/config.module';
 import { InviteModule } from './modules/invite/invite.module';
 import { DisputeModule } from './modules/dispute/dispute.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { SubscribeMessageModule } from './modules/subscribe-message/subscribe-message.module';
 import { shouldEnableTypeOrmSynchronize } from './config/database.config';
 
 @Module({
@@ -73,6 +74,7 @@ import { shouldEnableTypeOrmSynchronize } from './config/database.config';
     InviteModule,
     DisputeModule,
     AnalyticsModule,
+    SubscribeMessageModule,
   ],
 })
 export class AppModule {}

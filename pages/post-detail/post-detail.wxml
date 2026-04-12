@@ -1,6 +1,10 @@
 <!--pages/post-detail/post-detail.wxml-->
 <view class="detail-page">
   <nav-bar title="信息详情" />
+  <!-- 视频播放 -->
+  <view class="video-wrap" wx:if="{{detail.videos && detail.videos.length > 0}}">
+    <video src="{{detail.videos[0]}}" class="detail-video" controls show-fullscreen-btn object-fit="cover" />
+  </view>
   <!-- 图片轮播 -->
   <view class="swiper-wrap" wx:if="{{detail.images.length > 0}}">
     <swiper class="image-swiper"
@@ -78,6 +82,10 @@
     <view class="fav-btn" bindtap="onToggleFav">
       <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
     </view>
+    <view class="share-btn-wrap">
+      <text class="iconfont icon-fenxiang1 share-icon-gray"></text>
+      <button class="share-overlay-btn" open-type="share"></button>
+    </view>
     <button class="bottom-btn btn-chat" bindtap="onChat">
       <text class="bottom-btn-icon iconfont icon-xiaoxi"></text>
       <text>在线聊</text>
@@ -95,4 +103,24 @@
     wechat-qr-image="{{wechatCard.wechatQrImage}}"
     bind:close="onCloseWechatCard"
   />
+
+  <!-- 灵豆不足引导弹窗 -->
+  <view class="bean-shortage-mask" wx:if="{{showBeanShortageModal}}" catchtap="onCloseBeanShortage">
+    <view class="bean-shortage-dialog" catchtap="">
+      <view class="bean-shortage-title">灵豆不足</view>
+      <view class="bean-shortage-desc">需要 {{beanShortage.need}} 灵豆解锁，当前余额 {{beanShortage.balance}} 灵豆</view>
+      <view class="bean-shortage-actions">
+        <view class="bean-action-item" data-action="recharge" bindtap="onBeanShortageAction">
+          <text class="bean-action-icon iconfont icon-lingdou"></text>
+          <text class="bean-action-text">去充值</text>
+        </view>
+        <view class="bean-action-item" data-action="invite" bindtap="onBeanShortageAction">
+          <text class="bean-action-icon iconfont icon-yaoqing"></text>
+          <text class="bean-action-text">邀请好友赚灵豆</text>
+        </view>
+      </view>
+      <view class="bean-shortage-disclaimer">免责声明：联系方式由发布者提供，平台不对其真实性负责，请注意交易安全。</view>
+      <view class="bean-shortage-close" bindtap="onCloseBeanShortage">关闭</view>
+    </view>
+  </view>
 </view>

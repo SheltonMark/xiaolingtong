@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RoleGuard } from '../../common/guards/role.guard';
 import { APP_GUARD } from '@nestjs/core';
@@ -15,7 +16,7 @@ import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Wallet, BeanTransaction]),
+    TypeOrmModule.forFeature([User, Wallet, BeanTransaction, SysConfig]),
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({

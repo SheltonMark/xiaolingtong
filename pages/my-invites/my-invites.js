@@ -57,17 +57,24 @@ Page({
   onCopyCode() {
     const code = this.data.inviteCode
     if (!code) return wx.showToast({ title: '邀请码生成中', icon: 'none' })
-    const link = 'https://quanqiutong888.com/pages/index/index?inviteCode=' + code
     wx.setClipboardData({
-      data: link,
-      success: () => wx.showToast({ title: '链接已复制', icon: 'success' })
+      data: code,
+      success: () => wx.showToast({ title: '邀请码已复制', icon: 'success' })
     })
   },
 
+  onInviteFriend() {
+    if (!this.data.inviteCode) {
+      wx.showToast({ title: '邀请码生成中', icon: 'none' })
+      return
+    }
+  },
+
   onShareAppMessage() {
+    const code = this.data.inviteCode
     return {
       title: '我在用小灵通，快来一起找活接单！',
-      path: getApp().getSharePath('/pages/index/index')
+      path: '/pages/index/index?inviteCode=' + (code || '')
     }
   }
 })

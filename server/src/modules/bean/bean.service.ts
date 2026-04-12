@@ -22,15 +22,18 @@ export class BeanService {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new BadRequestException('用户不存在');
 
-    // 计算累计获得和累计消耗
     const transactions = await this.beanTxRepo.find({ where: { userId } });
     let totalIn = 0;
     let totalOut = 0;
+    const inTypes = ['income', 'invite_reward', 'admin_add', 'recharge', 'reward'];
+    const outTypes = ['expense', 'admin_deduct', 'unlock_contact', 'promote', 'promotion'];
     transactions.forEach((tx) => {
-      if (tx.type === 'income') {
+      if (inTypes.includes(tx.type)) {
+        totalIn += Math.abs(tx.amount);
+      } else if (outTypes.includes(tx.type) || tx.amount < 0) {
+        totalOut += Math.abs(tx.amount);
+      } else if (tx.amount > 0) {
         totalIn += tx.amount;
-      } else if (tx.type === 'expense') {
-        totalOut += tx.amount;
       }
     });
 

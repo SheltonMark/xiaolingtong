@@ -106,3 +106,29 @@
 .wx-login-btn::after {
   border: none;
 }
+.phone-login-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  width: 100%;
+  height: 88rpx;
+  background-color: #3B82F6;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 600;
+  border-radius: 24rpx;
+  border: none;
+  padding: 0;
+  box-sizing: border-box;
+  box-shadow: 0 8rpx 24rpx rgba(59, 130, 246, 0.3);
+  margin-top: 20rpx;
+}
+.phone-login-btn::after { border: none; }
+.login-tip {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  color: #94A3B8;
+  margin-top: 20rpx;
+}

@@ -36,3 +36,7 @@
 .ed-bottom { position: fixed; bottom: 0; left: 0; right: 0; background-color: #fff; border-top: 1rpx solid #F1F5F9; padding: 16rpx 24rpx; display: flex; align-items: center; gap: 16rpx; padding-bottom: calc(16rpx + env(safe-area-inset-bottom)); transition: bottom 0.2s ease; z-index: 100; }
 .ed-input { flex: 1; background-color: #F1F5F9; border-radius: 9999rpx; padding: 14rpx 28rpx; font-size: 26rpx; height: 56rpx; line-height: 28rpx; box-sizing: border-box; }
 .ed-send-btn { background-color: #F43F5E !important; color: #fff !important; font-size: 24rpx !important; padding: 0 28rpx !important; border-radius: 9999rpx !important; height: 56rpx !important; line-height: 56rpx !important; min-height: 0 !important; flex-shrink: 0 !important; width: auto !important; min-width: 0 !important; }
+.ed-share-wrap { position: relative; display: flex; align-items: center; justify-content: center; width: 56rpx; height: 56rpx; flex-shrink: 0; }
+.ed-share-icon { font-size: 36rpx; color: #94A3B8; }
+.ed-share-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; background: transparent; border: none; padding: 0; }
+.ed-share-overlay::after { border: none; }

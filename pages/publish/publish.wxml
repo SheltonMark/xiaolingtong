@@ -153,6 +153,24 @@
     </view>
   </view>
 
+  <!-- 视频上传（通用） -->
+  <view class="form-card">
+    <text class="form-label">视频 <text class="label-hint">(选填，最多1个，60秒内)</text></text>
+    <view class="image-grid">
+      <view class="image-add" bindtap="onChooseVideo" wx:if="{{videos.length < 1}}">
+        <text class="add-icon iconfont icon-shipin" style="font-size: 40rpx;"></text>
+        <text class="add-text">添加视频</text>
+      </view>
+      <view class="image-item" wx:for="{{videos}}" wx:key="*this">
+        <video src="{{item}}" class="upload-video" object-fit="cover" show-play-btn="{{true}}" controls="{{false}}" />
+        <view class="image-delete" catchtap="onDeleteVideo">×</view>
+      </view>
+    </view>
+    <view class="upload-tip" wx:if="{{isVideoUploading}}">
+      <text class="uploading-text">视频上传中...</text>
+    </view>
+  </view>
+
   <!-- 联系方式 -->
   <view class="form-card">
     <view class="contact-head">

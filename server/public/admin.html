@@ -390,6 +390,19 @@ tr:hover td { background:rgba(35,39,54,.5); }
     </div>
   </div>
 </div>
+<div class="modal-overlay" id="editPostModal">
+  <div class="modal" style="width:600px;max-width:94vw;border-radius:16px;">
+    <h4>编辑帖子 #<span id="editPostId"></span></h4>
+    <div style="max-height:68vh;overflow-y:auto;">
+      <div class="form-group"><label>标题</label><input type="text" id="editPostTitle" placeholder="标题"></div>
+      <div class="form-group"><label>内容</label><textarea id="editPostContent" rows="6" style="width:100%;resize:vertical;background:var(--bg);color:var(--text);border:1px solid var(--border);padding:12px;font-size:13px;border-radius:8px;"></textarea></div>
+      <div class="form-group"><label>类型</label><select id="editPostType"><option value="purchase">采购需求</option><option value="stock">工厂库存</option><option value="process">代加工</option></select></div>
+      <div class="form-group"><label>品类</label><input type="text" id="editPostIndustry" placeholder="品类"></div>
+      <div class="form-group"><label>状态</label><select id="editPostStatus"><option value="pending">待审核</option><option value="active">已发布</option><option value="deleted">已删除</option><option value="expired">已过期</option></select></div>
+    </div>
+    <div class="modal-actions"><button class="cancel" onclick="hideEditPostModal()">取消</button><button class="confirm" onclick="saveEditPost()">保存</button></div>
+  </div>
+</div>
 <div class="modal-overlay" id="userDetailModal">
   <div class="modal" style="width:600px;max-width:94vw;border-radius:16px;">
     <h4>用户详情</h4>
@@ -625,10 +638,36 @@ function showPostDetail(idx){
   document.getElementById('auditDetailTitle').textContent='信息详情 #'+p.id;
   document.getElementById('auditDetailContent').innerHTML=h;
   var acts='<button class="cancel" onclick="hideAuditDetailModal()">关闭</button>';
+  acts='<button class="btn btn-primary" style="padding:8px 20px;" onclick="showEditPostModal('+idx+')">编辑</button>'+acts;
   if(p.status!=='active')acts='<button class="btn btn-success" style="padding:8px 20px;" onclick="auditPost('+p.id+',\'approve\')">通过</button>'+acts;
   if(p.status!=='deleted')acts='<button class="btn btn-danger" style="padding:8px 20px;" onclick="auditPost('+p.id+',\'reject\')">驳回</button>'+acts;
   document.getElementById('auditDetailActions').innerHTML=acts;
   document.getElementById('auditDetailModal').classList.add('show');
+}
+var _editPostIdx=-1;
+function showEditPostModal(idx){
+  _editPostIdx=idx;var p=_postListCache[idx];if(!p)return;
+  hideAuditDetailModal();
+  document.getElementById('editPostId').textContent=p.id;
+  document.getElementById('editPostTitle').value=p.title||'';
+  document.getElementById('editPostContent').value=p.content||'';
+  document.getElementById('editPostType').value=p.type||'purchase';
+  document.getElementById('editPostIndustry').value=p.industry||'';
+  document.getElementById('editPostStatus').value=p.status||'pending';
+  document.getElementById('editPostModal').classList.add('show');
+}
+function hideEditPostModal(){document.getElementById('editPostModal').classList.remove('show');}
+async function saveEditPost(){
+  var id=_postListCache[_editPostIdx]&&_postListCache[_editPostIdx].id;if(!id)return;
+  var dto={
+    title:document.getElementById('editPostTitle').value,
+    content:document.getElementById('editPostContent').value,
+    type:document.getElementById('editPostType').value,
+    industry:document.getElementById('editPostIndustry').value,
+    status:document.getElementById('editPostStatus').value
+  };
+  await api('/posts/'+id,{method:'PUT',body:dto});
+  toast('更新成功','success');hideEditPostModal();loadPosts();
 }
 function hideAuditDetailModal(){document.getElementById('auditDetailModal').classList.remove('show');}
 async function auditPost(id,action){
@@ -1801,6 +1840,20 @@ async function showUserDetail(id){
   h+='</table>';
   if(d.entCert){h+='<h4 style="margin:16px 0 8px">企业认证</h4><table style="width:100%"><tr><td style="width:120px;color:var(--text-muted)">企业名称</td><td>'+d.entCert.companyName+'</td></tr><tr><td style="color:var(--text-muted)">信用代码</td><td>'+d.entCert.creditCode+'</td></tr><tr><td style="color:var(--text-muted)">状态</td><td>'+d.entCert.status+'</td></tr></table>';}
   if(d.workerCert){h+='<h4 style="margin:16px 0 8px">临工认证</h4><table style="width:100%"><tr><td style="width:120px;color:var(--text-muted)">姓名</td><td>'+d.workerCert.realName+'</td></tr><tr><td style="color:var(--text-muted)">身份证号</td><td>'+d.workerCert.idNo+'</td></tr><tr><td style="color:var(--text-muted)">状态</td><td>'+d.workerCert.status+'</td></tr></table>';}
+  var ptm={purchase:'采购需求',stock:'工厂库存',process:'代加工'};
+  var psm={active:['已发布','badge-green'],pending:['待审核','badge-orange'],deleted:['已删除','badge-gray'],expired:['已过期','badge-gray']};
+  if(d.posts&&d.posts.length){
+    h+='<h4 style="margin:16px 0 8px">发布信息（'+d.posts.length+'条）</h4><table style="width:100%;font-size:13px;"><thead><tr><th>ID</th><th>类型</th><th>标题</th><th>状态</th><th>时间</th></tr></thead><tbody>';
+    for(var i=0;i<d.posts.length;i++){var pp=d.posts[i];var ps=psm[pp.status]||['未知','badge-gray'];
+      h+='<tr><td>'+pp.id+'</td><td><span class="badge badge-blue">'+(ptm[pp.type]||pp.type)+'</span></td><td>'+escHtml(pp.title||pp.content&&pp.content.substring(0,30)||'-')+'</td><td><span class="badge '+ps[1]+'">'+ps[0]+'</span></td><td>'+(pp.createdAt||'').substring(0,10)+'</td></tr>';
+    }h+='</tbody></table>';
+  }
+  if(d.jobs&&d.jobs.length){
+    h+='<h4 style="margin:16px 0 8px">招工信息（'+d.jobs.length+'条）</h4><table style="width:100%;font-size:13px;"><thead><tr><th>ID</th><th>标题</th><th>状态</th><th>时间</th></tr></thead><tbody>';
+    for(var i=0;i<d.jobs.length;i++){var jj=d.jobs[i];
+      h+='<tr><td>'+jj.id+'</td><td>'+escHtml(jj.title||'-')+'</td><td>'+jj.status+'</td><td>'+(jj.createdAt||'').substring(0,10)+'</td></tr>';
+    }h+='</tbody></table>';
+  }
   document.getElementById('userDetailContent').innerHTML=h;
   document.getElementById('userDetailModal').classList.add('show');
 }

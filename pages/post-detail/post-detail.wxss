@@ -156,3 +156,36 @@
 }
 .btn-share .bottom-btn-icon { display: none; }
 .flex-1 { flex: 1; }
+.video-wrap { width: 100%; padding: 0; }
+.detail-video { width: 100%; height: 420rpx; }
+.share-btn-wrap {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  width: 64rpx; height: 64rpx;
+}
+.share-icon-gray { font-size: 40rpx; color: #94A3B8; }
+.share-overlay-btn {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0; background: transparent; border: none; padding: 0;
+}
+.share-overlay-btn::after { border: none; }
+
+.bean-shortage-mask {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5); z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+}
+.bean-shortage-dialog {
+  background: #fff; border-radius: 24rpx; width: 600rpx;
+  padding: 48rpx 40rpx 32rpx; text-align: center;
+}
+.bean-shortage-title { font-size: 34rpx; font-weight: 700; color: #1E293B; margin-bottom: 16rpx; }
+.bean-shortage-desc { font-size: 26rpx; color: #64748B; margin-bottom: 32rpx; }
+.bean-shortage-actions { display: flex; gap: 24rpx; margin-bottom: 24rpx; }
+.bean-action-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 24rpx 0; background: #F8FAFC; border-radius: 16rpx;
+}
+.bean-action-icon { font-size: 44rpx; color: #3B82F6; margin-bottom: 8rpx; }
+.bean-action-text { font-size: 24rpx; color: #1E293B; }
+.bean-shortage-disclaimer { font-size: 20rpx; color: #94A3B8; line-height: 1.6; margin-bottom: 20rpx; }
+.bean-shortage-close { font-size: 26rpx; color: #94A3B8; padding: 12rpx 0; }

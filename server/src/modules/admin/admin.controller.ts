@@ -52,6 +52,11 @@ export class AdminController {
     return this.adminService.auditPost(id, action);
   }
 
+  @Put('posts/:id')
+  updatePost(@Param('id') id: number, @Body() dto: any) {
+    return this.adminService.updatePost(id, dto);
+  }
+
   @Get('jobs')
   jobList(@Query() query: any) {
     return this.adminService.jobList(query);

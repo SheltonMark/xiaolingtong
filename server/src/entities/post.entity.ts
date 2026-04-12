@@ -38,6 +38,9 @@ export class Post {
   @Column({ type: 'json', nullable: true })
   images: string[];
 
+  @Column({ type: 'json', nullable: true })
+  videos: string[];
+
   @Column({ length: 32, nullable: true })
   contactName: string;
 

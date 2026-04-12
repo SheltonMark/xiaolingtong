@@ -36,6 +36,15 @@ export class AuthController {
     return this.authService.getProfile(userId);
   }
 
+  @Post('bind-phone')
+  bindPhone(
+    @CurrentUser('sub') userId: number,
+    @Body('code') code: string,
+  ) {
+    if (!code) throw new BadRequestException('code 不能为空');
+    return this.authService.bindPhone(userId, code);
+  }
+
   @Post('logout')
   logout() {
     return { message: '已退出' };

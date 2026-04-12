@@ -23,6 +23,8 @@ Page({
     contactInfo: {},
     isOwner: false,
     isUnlocked: false,
+    showBeanShortageModal: false,
+    beanShortage: { need: 0, balance: 0 },
     wechatCardVisible: false,
     wechatCard: {
       wechatId: '',
@@ -335,11 +337,13 @@ Page({
       const beanBalance = data.beanBalance || 0
       const sufficient = data.sufficient
 
+      var disclaimer = '\n\n免责声明：联系方式由发布者提供，平台不对其真实性负责，请注意交易安全。'
+
       // 会员免费提示
       if (isMember && isFree) {
         wx.showModal({
           title: '会员免费查看',
-          content: `会员专享：今日还有 ${freeRemaining} 次免费查看机会，确认使用？`,
+          content: `会员专享：今日还有 ${freeRemaining} 次免费查看机会，确认使用？` + disclaimer,
           confirmText: '确认',
           cancelText: '取消',
           success: (res) => {
@@ -353,7 +357,7 @@ Page({
       if (isMember && !isFree) {
         wx.showModal({
           title: '会员折扣',
-          content: `会员专享5折优惠：需要 ${cost} 灵豆（原价 ${baseCost} 灵豆），当前余额 ${beanBalance} 灵豆，确认解锁？`,
+          content: `会员专享5折优惠：需要 ${cost} 灵豆（原价 ${baseCost} 灵豆），当前余额 ${beanBalance} 灵豆，确认解锁？` + disclaimer,
           confirmText: '解锁',
           cancelText: '取消',
           success: (res) => {
@@ -363,18 +367,11 @@ Page({
         return
       }
 
-      // 非会员检查灵豆
+      // 非会员灵豆不足
       if (!sufficient) {
-        wx.showModal({
-          title: '灵豆不足',
-          content: `当前灵豆余额为 ${beanBalance}，需要 ${cost} 灵豆才能解锁联系方式。`,
-          confirmText: '去充值',
-          cancelText: '取消',
-          success: (res) => {
-            if (res.confirm) {
-              wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
-            }
-          }
+        this.setData({
+          showBeanShortageModal: true,
+          beanShortage: { need: cost, balance: beanBalance }
         })
         return
       }
@@ -382,7 +379,7 @@ Page({
       // 非会员确认解锁
       wx.showModal({
         title: '解锁联系方式',
-        content: `需要耗费 ${cost} 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？`,
+        content: `需要耗费 ${cost} 灵豆进行解锁，当前余额 ${beanBalance} 灵豆，确认解锁？` + disclaimer,
         confirmText: '解锁',
         cancelText: '取消',
         success: (res) => {
@@ -393,6 +390,20 @@ Page({
       wx.hideLoading()
       wx.showToast({ title: err.message || '获取解锁信息失败', icon: 'none' })
     })
+  },
+
+  onCloseBeanShortage() {
+    this.setData({ showBeanShortageModal: false })
+  },
+
+  onBeanShortageAction(e) {
+    const action = e.currentTarget.dataset.action
+    this.setData({ showBeanShortageModal: false })
+    if (action === 'recharge') {
+      wx.navigateTo({ url: '/pages/bean-recharge/bean-recharge' })
+    } else if (action === 'invite') {
+      wx.navigateTo({ url: '/pages/my-invites/my-invites' })
+    }
   },
 
   _doUnlock() {
@@ -560,6 +571,41 @@ Page({
     }).catch(err => {
       console.error('[post-detail] loadFavStatus error:', err)
     })
+  },
+
+  onShareAppMessage() {
+    const detail = this.data.detail || {}
+    const typeText = TYPE_TEXT_MAP[detail.type] || '供需信息'
+    var title = detail.title || (detail.content ? String(detail.content).slice(0, 28) : '') || typeText
+    var myId = getApp().globalData.userInfo && getApp().globalData.userInfo.id
+    if (myId && String(detail.userId) !== String(myId)) {
+      if (detail.type === 'stock') {
+        title = '库存处理｜' + title + '｜有需要的吗？'
+      } else if (detail.type === 'process') {
+        title = '代加工服务｜' + title + '｜有需要的吗？'
+      } else {
+        title = '有人在找' + title + '｜你有货吗？'
+      }
+    }
+    var payload = {
+      title: title,
+      path: getApp().getSharePath('/pages/post-detail/post-detail?id=' + (detail.id || ''))
+    }
+    var images = detail.images || []
+    if (images.length) payload.imageUrl = images[0]
+    return payload
+  },
+
+  onShareTimeline() {
+    const detail = this.data.detail || {}
+    var title = detail.title || (detail.content ? String(detail.content).slice(0, 28) : '') || '供需信息'
+    var payload = {
+      title: title,
+      query: 'id=' + (detail.id || '')
+    }
+    var images = detail.images || []
+    if (images.length) payload.imageUrl = images[0]
+    return payload
   },
 
   onToggleFav() {

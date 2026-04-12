@@ -180,7 +180,7 @@ Page({
     jobTypes: [], // 可选工种列表
     searchKeyword: '', // 搜索关键词
     banners: [
-      { id: 1, title: '新用户专享', sub: '注册送 50 灵豆', bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' },
+      { id: 1, title: '新用户专享', sub: '注册送 30 灵豆', bg: 'linear-gradient(135deg, #3B82F6 0%, #6366F1 100%)' },
       { id: 2, title: '会员特权', sub: '每日免费查看联系方式', bg: 'linear-gradient(135deg, #F97316 0%, #F59E0B 100%)' },
       { id: 3, title: '发布招工', sub: '快速找到靠谱临工', bg: 'linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)' }
     ],
@@ -695,6 +695,10 @@ Page({
     if (myId && String(item.userId) !== String(myId)) {
       if (isJob) {
         shareTitle = '朋友在招' + shareTitle + '｜能去吗？'
+      } else if (item.type === 'stock') {
+        shareTitle = '库存处理｜' + shareTitle + '｜有需要的吗？'
+      } else if (item.type === 'process') {
+        shareTitle = '代加工服务｜' + shareTitle + '｜有需要的吗？'
       } else {
         shareTitle = '有人在找' + shareTitle + '｜你有货吗？'
       }

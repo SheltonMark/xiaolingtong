@@ -237,5 +237,13 @@ Page({
       title: title,
       path: getApp().getSharePath('/pages/job-detail/job-detail?id=' + (job.id || ''))
     }
+  },
+
+  onShareTimeline() {
+    const job = this.data.job || {}
+    return {
+      title: (job.title || '招工信息') + '｜' + (job.salary || '') + (job.salaryUnit || ''),
+      query: 'id=' + (job.id || '')
+    }
   }
 })

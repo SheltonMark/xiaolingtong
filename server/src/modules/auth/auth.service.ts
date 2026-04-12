@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { User } from '../../entities/user.entity';
 import { Wallet } from '../../entities/wallet.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
+import { SysConfig } from '../../entities/sys-config.entity';
 import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { WorkerCert } from '../../entities/worker-cert.entity';
 import { InviteService } from '../invite/invite.service';
@@ -21,11 +22,18 @@ export class AuthService {
     @InjectRepository(Wallet) private walletRepo: Repository<Wallet>,
     @InjectRepository(BeanTransaction)
     private beanTxRepo: Repository<BeanTransaction>,
+    @InjectRepository(SysConfig)
+    private sysConfigRepo: Repository<SysConfig>,
     private jwt: JwtService,
     private config: ConfigService,
     private inviteService: InviteService,
     private notificationService: NotificationService,
   ) {}
+
+  private async getSysConfigValue(key: string, defaultValue: string): Promise<string> {
+    const config = await this.sysConfigRepo.findOneBy({ key });
+    return config?.value || defaultValue;
+  }
 
   private async markUserActive(userId: number) {
     const normalizedUserId = Number(userId || 0);
@@ -103,24 +111,43 @@ export class AuthService {
     await this.userRepo.update(userId, { role });
 
     if (isFirstRole) {
+      const rewardStr = await this.getSysConfigValue('new_user_bean_reward', '30');
+      const beanReward = parseInt(rewardStr, 10) || 30;
+
       await this.userRepo.update(userId, {
-        beanBalance: () => 'beanBalance + 3',
+        beanBalance: () => `beanBalance + ${beanReward}`,
       });
       await this.beanTxRepo.save(
         this.beanTxRepo.create({
           userId,
           type: 'invite_reward',
-          amount: 3,
+          amount: beanReward,
           refType: 'welcome',
           remark: '新用户注册奖励',
         }),
       );
 
       if (user.invitedBy) {
+        const inviteRewardStr = await this.getSysConfigValue('invite_bean_reward', '5');
+        const inviteBeanReward = parseInt(inviteRewardStr, 10) || 5;
+
+        await this.userRepo.update(user.invitedBy, {
+          beanBalance: () => `beanBalance + ${inviteBeanReward}`,
+        });
+        await this.beanTxRepo.save(
+          this.beanTxRepo.create({
+            userId: user.invitedBy,
+            type: 'invite_reward',
+            amount: inviteBeanReward,
+            refType: 'invite',
+            remark: `邀请用户${user.nickname || userId}注册奖励`,
+          }),
+        );
+
         await this.notificationService.create(user.invitedBy, {
           type: 'invite' as any,
           title: '邀请成功',
-          content: `您邀请的用户已注册，角色：${role === 'enterprise' ? '企业' : '零工'}`,
+          content: `您邀请的用户已注册，角色：${role === 'enterprise' ? '企业' : '零工'}，奖励${inviteBeanReward}灵豆已到账`,
         });
       }
     }
@@ -174,5 +201,30 @@ export class AuthService {
       isVerified: certStatus === 'approved',
       inviteCode: user.inviteCode,
     };
+  }
+
+  async bindPhone(userId: number, code: string) {
+    const appid = this.config.get('WX_APPID');
+    const secret = this.config.get('WX_SECRET');
+
+    const tokenRes = await axios.get(
+      `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`,
+    );
+    const accessToken = tokenRes.data?.access_token;
+    if (!accessToken) {
+      throw new BadRequestException('获取 access_token 失败');
+    }
+
+    const phoneRes = await axios.post(
+      `https://api.weixin.qq.com/wxa/business/getuserphonenumber?access_token=${accessToken}`,
+      { code },
+    );
+    const phoneInfo = phoneRes.data?.phone_info;
+    if (!phoneInfo?.phoneNumber) {
+      throw new BadRequestException('获取手机号失败');
+    }
+
+    await this.userRepo.update(userId, { phone: phoneInfo.phoneNumber });
+    return { phone: phoneInfo.phoneNumber };
   }
 }

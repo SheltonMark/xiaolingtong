@@ -1,4 +1,4 @@
-const { get, post, upload } = require('../../utils/request')
+const { get, post, upload, uploadVideo } = require('../../utils/request')
 const auth = require('../../utils/auth')
 const { getDefaultContactProfile } = require('../../utils/contact-profile')
 const { normalizeImageUrl } = require('../../utils/image')
@@ -41,7 +41,9 @@ Page({
     typeIndex: 0,
     form: { ...DEFAULT_FORM },
     images: [],
+    videos: [],
     isUploading: false,
+    isVideoUploading: false,
     submitting: false,
     categoryOptions: [],
     processModeOptions: PROCESS_MODE_OPTIONS,
@@ -87,6 +89,7 @@ Page({
       typeIndex: 0,
       form: { ...DEFAULT_FORM },
       images: [],
+      videos: [],
       processModeIndex: -1,
       validityIndex: 2,
       locationAddress: '',
@@ -236,17 +239,47 @@ Page({
     this.setData({ images })
   },
 
+  onChooseVideo() {
+    if (this.data.videos.length >= 1) {
+      wx.showToast({ title: '最多上传1个视频', icon: 'none' })
+      return
+    }
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['video'],
+      maxDuration: 60,
+      success: (res) => {
+        const file = res.tempFiles[0]
+        this.setData({ isVideoUploading: true })
+        uploadVideo(file.tempFilePath).then(result => {
+          const url = (result.data && result.data.url) || result.data || ''
+          if (url) {
+            this.setData({ videos: [url] })
+          }
+        }).catch(() => {
+          wx.showToast({ title: '视频上传失败', icon: 'none' })
+        }).finally(() => {
+          this.setData({ isVideoUploading: false })
+        })
+      }
+    })
+  },
+
+  onDeleteVideo() {
+    this.setData({ videos: [] })
+  },
+
   onSubmit() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
     if (this.data.submitting) {
       return
     }
-    if (this.data.isUploading) {
-      wx.showToast({ title: '图片上传中，请稍后提交', icon: 'none' })
+    if (this.data.isUploading || this.data.isVideoUploading) {
+      wx.showToast({ title: '文件上传中，请稍后提交', icon: 'none' })
       return
     }
 
-    const { form, phoneChecked, wechatChecked, wechatQrChecked, images, typeIndex, contactInfo, locationAddress, locationLat, locationLng } = this.data
+    const { form, phoneChecked, wechatChecked, wechatQrChecked, images, videos, typeIndex, contactInfo, locationAddress, locationLat, locationLng } = this.data
     const types = ['purchase', 'stock', 'process']
     const contactName = (contactInfo.name || '').trim()
     const contactPhone = (contactInfo.phone || '').trim()
@@ -307,6 +340,7 @@ Page({
       minOrder: form.minOrder ? Number(form.minOrder) : undefined,
       capacity: form.capacity,
       images,
+      videos,
       contactName,
       contactPhone,
       contactWechat,

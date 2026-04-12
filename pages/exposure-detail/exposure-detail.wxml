@@ -65,6 +65,10 @@
   </view>
 
   <view class="ed-bottom" style="bottom: {{keyboardHeight}}px;">
+    <view class="ed-share-wrap">
+      <text class="iconfont icon-fenxiang1 ed-share-icon"></text>
+      <button class="ed-share-overlay" open-type="share"></button>
+    </view>
     <input class="ed-input" placeholder="写评论..." bindinput="onCommentInput" value="{{commentText}}" adjust-position="{{false}}" bindfocus="onInputFocus" bindblur="onInputBlur" hold-keyboard="{{true}}" />
     <button class="ed-send-btn" bindtap="onSendComment">发送</button>
   </view>
