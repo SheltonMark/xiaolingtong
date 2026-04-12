@@ -1842,7 +1842,7 @@ function showAdModal(){
   document.getElementById('adModal').classList.add('show');
 }
 function showEditAdModal(id){
-  var ad=adListCache.find(function(a){return a.id===id;});
+  var ad=adListCache.find(function(a){return String(a.id)===String(id);});
   if(!ad)return;
   resetAdModal();
   document.getElementById('adModalTitle').textContent='编辑广告';
