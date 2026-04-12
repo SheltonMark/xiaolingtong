@@ -108,6 +108,10 @@ tr:hover td { background:rgba(35,39,54,.5); }
 .config-group-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .config-item { display:grid; grid-template-columns:minmax(0,1fr) 120px auto; align-items:center; gap:12px; padding:12px 16px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); }
 .config-item-poster { grid-template-columns:1fr; gap:6px; }
+.config-group-hint { font-size:12px; color:#94A3B8; margin-bottom:8px; line-height:1.75; }
+.config-group-hint strong { color:var(--text-sec); }
+.config-poster-actions { display:flex; flex-wrap:wrap; align-items:center; gap:10px; margin-top:4px; }
+.config-poster-hint { font-size:12px; color:var(--text-muted); }
 .config-item label { min-width:0; font-size:13px; color:var(--text-sec); line-height:1.5; word-break:break-word; }
 .config-item input { width:100%; height:32px; padding:0 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; text-align:right; outline:none; box-sizing:border-box; }
 .config-item .save-cfg { min-width:52px; height:32px; padding:0 12px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:12px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; -webkit-appearance:none; appearance:none; }
@@ -1253,7 +1257,8 @@ async function loadConfigs(){
   var groupKeySortMap={
     member: memberPlanKeys,
     price: ['top_price_per_day','top_price_3d','top_price_7d','top_price_30d','view_contact_price','banner_ad_price','feed_ad_price'],
-    poster: ['poster_post_bg','poster_post_qrcode','poster_invite_bg']
+    poster: ['poster_post_bg','poster_post_qrcode','poster_invite_bg'],
+    subscribe: ['subscribe_tpl_new_message','subscribe_tpl_application_status']
   };
   function toDisplayGroup(cfg){
     var k=(cfg&&cfg.key)||'';
@@ -1293,7 +1298,7 @@ async function loadConfigs(){
     if(!grouped[g])grouped[g]=[];
     grouped[g].push(c);
   }
-  var groupOrder=['member','price','work','user','info','job','other','general'];
+  var groupOrder=['member','price','work','user','info','job','poster','subscribe','bean','other','general'];
   var groups=Object.keys(grouped).sort(function(a,b){
     var ai=groupOrder.indexOf(a);var bi=groupOrder.indexOf(b);
     if(ai===-1&&bi===-1)return a.localeCompare(b);
@@ -1307,20 +1312,33 @@ async function loadConfigs(){
     h+='<div class="config-group"><div class="config-group-title">'+(groupTitleMap[gk]||gk)+'</div><div class="config-group-grid">';
     var cfgList=sortConfigList(gk,grouped[gk]||[]);
     if(gk==='poster'){
-      h+='<div style="grid-column:1/-1;font-size:12px;color:#94A3B8;margin-bottom:4px;">提示：帖子海报二维码显示在海报<b>右下角</b>；背景模板图建议尺寸 <b>750×1334px</b>，中间留白区域供程序填充帖子图片和文字</div>';
+      h+='<div class="config-group-hint" style="grid-column:1/-1;">'
+        +'<strong>海报说明</strong>：三张图均为<b>本地上传</b>，上传后点右侧「保存」写入配置。'
+        +'<br>• <b>帖子海报背景</b>：建议 <b>750×1334px</b>，中间留白区会叠帖子首图与文字。'
+        +'<br>• <b>帖子海报二维码图</b>：小程序端会叠在画布<b>右下角</b>（约 <b>140×140px</b>），请按此区域设计或留白。'
+        +'<br>• <b>邀请海报背景</b>：同上比例；邀请码与动态小程序码会叠在模板下半区。'
+        +'</div>';
     }
     if(gk==='subscribe'){
-      h+='<div style="grid-column:1/-1;font-size:12px;color:#94A3B8;margin-bottom:4px;line-height:1.8;">操作步骤：① 登录 <a href="https://mp.weixin.qq.com/" target="_blank" style="color:#3B82F6;">微信公众平台</a> → ② 左侧菜单「功能」→「订阅消息」→ ③ 点击「选用」搜索并添加模板 → ④ 复制模板ID粘贴到下方对应配置项中保存</div>';
+      h+='<div class="config-group-hint" style="grid-column:1/-1;">'
+        +'<strong>在微信公众平台配置模板（小程序后台）</strong>'
+        +'<br>1. 使用小程序管理员微信登录 <a href="https://mp.weixin.qq.com/" target="_blank" rel="noopener" style="color:#3B82F6;">mp.weixin.qq.com</a>，进入你的<b>小程序</b>账号（不是公众号）。'
+        +'<br>2. 左侧菜单 <b>功能</b> → <b>订阅消息</b>（若看不到，需先完善小程序基本信息与服务类目）。'
+        +'<br>3. 在「公共模板库」中点击 <b>选用</b>，按业务需要选择模板（如「新消息通知」「报名状态变更」等关键词相近的模板）。'
+        +'<br>4. 选用后可在「我的模板」里看到每条模板的 <b>模板ID</b>（长串字母数字），复制到下方对应配置项，点<b>保存</b>。'
+        +'<br>5. 本后台仅保存模板ID；实际下发仍须小程序端用户授权订阅，且须与代码里请求的模板字段一致。'
+        +'</div>';
     }
     for(var j=0;j<cfgList.length;j++){
       var c=cfgList[j];
       if(c.key&&c.key.indexOf('poster_')===0){
-        var previewHtml=c.value?'<img src="'+safeText(c.value)+'" style="max-width:120px;max-height:80px;border-radius:6px;object-fit:cover;margin-top:6px;display:block;">':'';
+        var previewHtml=c.value?'<img src="'+safeText(c.value)+'" alt="" style="max-width:160px;max-height:100px;border-radius:6px;object-fit:cover;margin-top:6px;display:block;border:1px solid var(--border);">':'';
         h+='<div class="config-item config-item-poster"><label>'+(safeText(c.label||c.key))+'</label>'
           +'<div id="cfg_preview_'+safeText(c.key)+'">'+previewHtml+'</div>'
           +'<input type="hidden" id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'">'
-          +'<input type="file" accept="image/*" onchange="onPosterUpload(this,\x27'+safeText(c.key)+'\x27)" style="font-size:12px;margin-top:4px;">'
-          +'<button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';
+          +'<div class="config-poster-actions"><label class="notice-file-btn"><input type="file" class="notice-file-sr-only" accept="image/*" onchange="onPosterUpload(this,\x27'+safeText(c.key)+'\x27)">选择图片上传</label>'
+          +'<span class="config-poster-hint">上传成功后点「保存」</span>'
+          +'<button type="button" class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div></div>';
       }else{
         h+='<div class="config-item"><label>'+(safeText(c.label||c.key))+'</label><input id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'"><button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';
       }
