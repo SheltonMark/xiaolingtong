@@ -132,7 +132,7 @@ Page({
 
       const qrPath = qrSrc ? await this._loadImageOrNull(qrSrc) : null
       if (qrSrc && !qrPath) {
-        console.warn('[invite-poster] 小程序码图未加载（多为下载域名未配置），海报将仅含背景与邀请码文字')
+        console.warn('[invite-poster] 小程序码图未加载（合法域名/或资源 404），仅输出背景与邀请码文字', qrSrc)
       }
 
       await new Promise((resolve) => setTimeout(resolve, 50))
