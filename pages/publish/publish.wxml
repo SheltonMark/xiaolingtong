@@ -175,7 +175,7 @@
   <view class="form-card">
     <view class="contact-head">
       <text class="form-label" style="margin-bottom: 0;">联系方式</text>
-      <text class="contact-manage-link" bindtap="onManageContactInfo">去维护</text>
+      <text class="contact-manage-link" bindtap="onManageContactInfo">编辑个人信息</text>
     </view>
     <view class="contact-info">
       <view class="contact-row">
