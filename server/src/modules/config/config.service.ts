@@ -22,11 +22,7 @@ export class ConfigService {
   ) {}
 
   async getPosterConfig() {
-    const keys = [
-      'poster_post_bg',
-      'poster_post_qrcode',
-      'poster_invite_bg',
-    ];
+    const keys = ['poster_post_bg', 'poster_invite_bg'];
     const configs = await this.configRepo
       .createQueryBuilder('c')
       .where('c.key IN (:...keys)', { keys })
@@ -34,7 +30,6 @@ export class ConfigService {
     const map = new Map(configs.map((c) => [c.key, c.value]));
     return {
       postBg: map.get('poster_post_bg') || '',
-      postQrcode: map.get('poster_post_qrcode') || '',
       inviteBg: map.get('poster_invite_bg') || '',
     };
   }

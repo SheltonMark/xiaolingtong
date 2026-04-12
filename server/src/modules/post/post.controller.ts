@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post as HttpPost,
@@ -9,12 +10,16 @@ import {
   Body,
 } from '@nestjs/common';
 import { PostService } from './post.service';
+import { InviteService } from '../invite/invite.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('posts')
 export class PostController {
-  constructor(private postService: PostService) {}
+  constructor(
+    private postService: PostService,
+    private inviteService: InviteService,
+  ) {}
 
   @Public()
   @Get()
@@ -25,6 +30,17 @@ export class PostController {
   @Get('mine')
   myPosts(@CurrentUser('sub') userId: number, @Query() query: any) {
     return this.postService.myPosts(userId, query);
+  }
+
+  /** 帖子海报右下角：扫码直达本帖详情（scene: p=帖子ID） */
+  @Public()
+  @Get(':id/wxacode')
+  postPosterWxacode(@Param('id') id: string) {
+    const pid = parseInt(id, 10);
+    if (!Number.isFinite(pid) || pid <= 0) {
+      throw new BadRequestException('无效的帖子 ID');
+    }
+    return this.inviteService.generatePostWxacode(pid);
   }
 
   @Public()

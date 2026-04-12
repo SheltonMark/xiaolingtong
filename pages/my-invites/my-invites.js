@@ -1,4 +1,5 @@
 const { get } = require('../../utils/request')
+const { normalizeImageUrl } = require('../../utils/image')
 
 Page({
   data: {
@@ -89,14 +90,10 @@ Page({
   async onGenerateInvitePoster() {
     wx.showLoading({ title: '生成海报中...', mask: true })
     try {
-      const [configRes, wxacodeRes] = await Promise.all([
-        get('/config/poster'),
-        get('/invite/wxacode')
-      ])
-
+      // 与帖子详情页 onGeneratePoster 一致：先拉海报配置，再处理图片与画布
+      const configRes = await get('/config/poster')
       const cfg = configRes.data || configRes || {}
       const inviteBg = cfg.inviteBg || ''
-      const wxacodeUrl = (wxacodeRes.data || wxacodeRes || {}).wxacodeUrl || ''
 
       if (!inviteBg) {
         wx.hideLoading()
@@ -104,18 +101,36 @@ Page({
         return
       }
 
-      const loadTasks = [this._loadImage(inviteBg)]
-      if (wxacodeUrl) loadTasks.push(this._loadImage(wxacodeUrl))
+      let wxacodeUrl = ''
+      try {
+        const wxacodeRes = await get('/invite/wxacode')
+        const wr = wxacodeRes.data || wxacodeRes || {}
+        wxacodeUrl = wr.wxacodeUrl || ''
+      } catch (e) {
+        console.warn('[invite-poster] wxacode skip:', e && e.message)
+      }
+
+      const bgSrc = normalizeImageUrl(inviteBg)
+      const qrSrc = wxacodeUrl ? normalizeImageUrl(wxacodeUrl) : ''
+
+      const loadTasks = [this._loadImage(bgSrc)]
+      if (qrSrc) loadTasks.push(this._loadImage(qrSrc))
       const loaded = await Promise.all(loadTasks)
       const bgPath = loaded[0]
-      const qrPath = wxacodeUrl ? loaded[1] : null
+      const qrPath = qrSrc ? loaded[1] : null
 
-      const query = wx.createSelectorQuery()
       const canvas = await new Promise((resolve) => {
-        query.select('#invitePosterCanvas')
+        this.createSelectorQuery()
+          .select('#invitePosterCanvas')
           .fields({ node: true, size: true })
-          .exec((res) => resolve(res[0]))
+          .exec((res) => resolve(res && res[0]))
       })
+
+      if (!canvas || !canvas.node) {
+        wx.hideLoading()
+        wx.showToast({ title: '画布未就绪，请重试', icon: 'none' })
+        return
+      }
 
       const canvasNode = canvas.node
       const ctx = canvasNode.getContext('2d')
@@ -165,7 +180,7 @@ Page({
           destHeight: H * dpr,
           success: (res) => resolve(res.tempFilePath),
           fail: reject
-        })
+        }, this)
       })
 
       wx.hideLoading()

@@ -3,6 +3,24 @@ const { normalizeImageUrl, normalizeImageList } = require('../../utils/image')
 const { calculateDistanceForList, getUserLocation } = require('../../utils/distance')
 const auth = require('../../utils/auth')
 
+/** 扫帖子海报小程序码时 scene 为 p=帖子ID */
+function parsePostIdFromScene(raw) {
+  if (raw == null || raw === '') return ''
+  try {
+    const decoded = decodeURIComponent(String(raw))
+    const pairs = decoded.split('&')
+    for (let i = 0; i < pairs.length; i++) {
+      const kv = pairs[i].split('=')
+      if (kv[0] === 'p' && kv[1]) {
+        return String(decodeURIComponent(kv[1])).trim()
+      }
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  return ''
+}
+
 const TYPE_TEXT_MAP = {
   purchase: '采购需求',
   stock: '工厂库存',
@@ -35,9 +53,13 @@ Page({
   },
 
   onLoad(options) {
-    if (options.id) {
-      this.loadDetail(options.id)
-      this.loadFavStatus(options.id)
+    let id = options.id
+    if (!id && options.scene) {
+      id = parsePostIdFromScene(options.scene)
+    }
+    if (id) {
+      this.loadDetail(id)
+      this.loadFavStatus(id)
     }
   },
 
@@ -45,9 +67,13 @@ Page({
     // 重新加载收藏状态
     const pages = getCurrentPages()
     const currentPage = pages[pages.length - 1]
-    const options = currentPage.options
-    if (options && options.id) {
-      this.loadFavStatus(options.id)
+    const options = currentPage.options || {}
+    let id = options.id
+    if (!id && options.scene) {
+      id = parsePostIdFromScene(options.scene)
+    }
+    if (id) {
+      this.loadFavStatus(id)
     }
   },
 
@@ -702,7 +728,6 @@ Page({
       const configRes = await get('/config/poster')
       const cfg = configRes.data || configRes || {}
       const postBg = cfg.postBg || ''
-      const postQr = cfg.postQrcode || ''
 
       if (!postBg) {
         wx.hideLoading()
@@ -710,17 +735,27 @@ Page({
         return
       }
 
+      let postQrUrl = ''
+      try {
+        const wxacodeRes = await get(`/posts/${detail.id}/wxacode`)
+        const wr = wxacodeRes.data || wxacodeRes || {}
+        postQrUrl = wr.wxacodeUrl || ''
+      } catch (e) {
+        console.warn('[poster] post wxacode:', e && e.message)
+      }
+      const qrSrc = postQrUrl
+
       const images = detail.images || []
       const firstImg = images.length ? images[0] : ''
 
       const loadTasks = [this._loadImage(postBg)]
       if (firstImg) loadTasks.push(this._loadImage(firstImg))
-      if (postQr) loadTasks.push(this._loadImage(postQr))
+      if (qrSrc) loadTasks.push(this._loadImage(normalizeImageUrl(qrSrc)))
 
       const loaded = await Promise.all(loadTasks)
       const bgPath = loaded[0]
       const imgPath = firstImg ? loaded[1] : null
-      const qrPath = postQr ? loaded[loadTasks.length - 1] : null
+      const qrPath = qrSrc ? loaded[loadTasks.length - 1] : null
 
       const query = wx.createSelectorQuery()
       const canvas = await new Promise((resolve) => {
@@ -770,45 +805,85 @@ Page({
         ctx.clip()
         await drawImg(imgPath, imgX, curY, imgW, imgH)
         ctx.restore()
-        curY += imgH + 30
+        // 图片与下方文案之间留白，避免贴太紧
+        curY += imgH + 56
       }
 
-      const textX = 50
-      const textMaxW = W - 100
-
-      ctx.font = 'bold 30px sans-serif'
-      ctx.fillStyle = '#1E293B'
+      const textX = 48
+      const textMaxW = W - 96
       const titleText = detail.title || ''
-      const titleLines = this._wrapText(ctx, titleText, textMaxW)
-      titleLines.slice(0, 2).forEach((line) => {
-        ctx.fillText(line, textX, curY)
-        curY += 42
-      })
-      curY += 10
 
-      const fields = detail.fields || []
-      ctx.font = '24px sans-serif'
-      ctx.fillStyle = '#475569'
-      fields.slice(0, 6).forEach((f) => {
-        if (curY > 1050) return
-        const row = (f.label || '') + '：' + (f.value || '')
-        const rowLines = this._wrapText(ctx, row, textMaxW)
-        rowLines.slice(0, 2).forEach((line) => {
-          ctx.fillText(line, textX, curY)
-          curY += 34
+      // 标题区：左侧色条 + 更大字号，层次更清晰
+      ctx.font = 'bold 36px sans-serif'
+      ctx.fillStyle = '#0F172A'
+      const titleLines = this._wrapText(ctx, titleText, textMaxW - 20)
+      const titleSlice = titleLines.slice(0, 2)
+      const titleLineH = 50
+      const titleBlockH = titleSlice.length * titleLineH
+      if (titleSlice.length) {
+        ctx.fillStyle = '#10B981'
+        ctx.fillRect(textX, curY - 32, 6, titleBlockH + 8)
+        ctx.fillStyle = '#0F172A'
+        titleSlice.forEach((line, i) => {
+          ctx.fillText(line, textX + 18, curY + i * titleLineH)
         })
-        curY += 6
+        curY += titleBlockH + 28
+      }
+
+      // 字段：浅底卡片 + 左强调条 + 标签/内容分层
+      const fields = detail.fields || []
+      const fieldPad = 14
+      const innerX = textX + fieldPad + 10
+      const innerMaxW = textMaxW - fieldPad * 2 - 10
+
+      fields.slice(0, 5).forEach((f) => {
+        if (curY > 1010) return
+        const label = String(f.label || '').trim()
+        const val = String(f.value || '').trim()
+        if (!label && !val) return
+
+        const labelText = label ? label + '：' : ''
+        ctx.font = '600 30px sans-serif'
+        const valLines = this._wrapText(ctx, val || '—', innerMaxW)
+        const valShown = valLines.slice(0, 2)
+        const labelLineH = 30
+        const valLineH = 36
+        let blockH = fieldPad * 2 + (labelText ? labelLineH + 8 : 0) + valShown.length * valLineH
+
+        ctx.fillStyle = '#F1F5F9'
+        ctx.fillRect(textX, curY, textMaxW, blockH)
+        ctx.fillStyle = '#10B981'
+        ctx.fillRect(textX, curY, 5, blockH)
+
+        let lineY = curY + fieldPad + 22
+        if (labelText) {
+          ctx.font = 'bold 24px sans-serif'
+          ctx.fillStyle = '#047857'
+          ctx.fillText(labelText, innerX, lineY)
+          lineY += labelLineH + 8
+        }
+        ctx.font = '600 30px sans-serif'
+        ctx.fillStyle = '#0F172A'
+        valShown.forEach((line) => {
+          ctx.fillText(line, innerX, lineY)
+          lineY += valLineH
+        })
+        curY += blockH + 14
       })
 
-      if (detail.desc && curY < 1000) {
-        curY += 10
-        ctx.font = '22px sans-serif'
-        ctx.fillStyle = '#64748B'
+      if (detail.desc && curY < 980) {
+        curY += 12
+        ctx.font = 'bold 26px sans-serif'
+        ctx.fillStyle = '#475569'
+        ctx.fillText('详情说明', textX, curY)
+        curY += 40
+        ctx.font = '28px sans-serif'
+        ctx.fillStyle = '#334155'
         const descLines = this._wrapText(ctx, detail.desc, textMaxW)
         descLines.slice(0, 4).forEach((line) => {
-          if (curY > 1080) return
+          if (curY > 1085) return
           ctx.fillText(line, textX, curY)
-          curY += 32
+          curY += 36
         })
       }
 

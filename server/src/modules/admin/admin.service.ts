@@ -631,10 +631,12 @@ export class AdminService {
     const configs = await this.configRepo.find({
       order: { group: 'ASC', key: 'ASC' },
     });
-    const defaultCommission = configs.find(
+    const hiddenKeys = new Set(['poster_post_qrcode']);
+    const visibleConfigs = configs.filter((c) => !hiddenKeys.has(c.key));
+    const defaultCommission = visibleConfigs.find(
       (item) => item.key === 'default_commission_rate',
     );
-    const platformFee = configs.find(
+    const platformFee = visibleConfigs.find(
       (item) => item.key === 'platform_fee_rate',
     );
     if (
@@ -644,7 +646,7 @@ export class AdminService {
     ) {
       platformFee.value = defaultCommission.value;
     }
-    return configs;
+    return visibleConfigs;
   }
 
   async updateConfig(key: string, value: string) {
@@ -1865,12 +1867,6 @@ export class AdminService {
         key: 'poster_post_bg',
         value: '',
         label: '帖子海报背景模板图（上传）',
-        group: 'poster',
-      },
-      {
-        key: 'poster_post_qrcode',
-        value: '',
-        label: '帖子海报右下角二维码图（上传）',
         group: 'poster',
       },
       {

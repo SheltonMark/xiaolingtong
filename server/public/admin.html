@@ -1268,7 +1268,7 @@ async function loadConfigs(){
   var groupKeySortMap={
     member: memberPlanKeys,
     price: ['top_price_per_day','top_price_3d','top_price_7d','top_price_30d','view_contact_price','banner_ad_price','feed_ad_price'],
-    poster: ['poster_post_bg','poster_post_qrcode','poster_invite_bg'],
+    poster: ['poster_post_bg','poster_invite_bg'],
     subscribe: ['subscribe_tpl_new_message','subscribe_tpl_application_status']
   };
   function toDisplayGroup(cfg){
@@ -1324,9 +1324,8 @@ async function loadConfigs(){
     var cfgList=sortConfigList(gk,grouped[gk]||[]);
     if(gk==='poster'){
       h+='<div class="config-group-hint" style="grid-column:1/-1;">'
-        +'<strong>海报说明</strong>：三张图均为<b>本地上传</b>，上传后点右侧「保存」写入配置。'
-        +'<br>• <b>帖子海报背景</b>：建议 <b>750×1334px</b>，中间留白区会叠帖子首图与文字。'
-        +'<br>• <b>帖子海报二维码图</b>：小程序端会叠在画布<b>右下角</b>（约 <b>140×140px</b>），请按此区域设计或留白。'
+        +'<strong>海报说明</strong>：下列为<b>背景图本地上传</b>，上传后点右侧「保存」写入配置。'
+        +'<br>• <b>帖子海报背景</b>：建议 <b>750×1334px</b>，中间留白区会叠帖子首图与文字；右下角小程序码由服务端接口生成，无需上传。'
         +'<br>• <b>邀请海报背景</b>：同上比例；邀请码与动态小程序码会叠在模板下半区。'
         +'</div>';
     }

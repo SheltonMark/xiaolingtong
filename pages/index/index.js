@@ -269,27 +269,10 @@ Page({
   },
 
   onLoad(options) {
-    // 扫小程序码进入时 scene 参数解析
-    if (options && options.scene) {
-      try {
-        var decoded = decodeURIComponent(options.scene)
-        var pairs = decoded.split('&')
-        for (var i = 0; i < pairs.length; i++) {
-          var kv = pairs[i].split('=')
-          if (kv[0] === 'inv' && kv[1]) {
-            var app = getApp()
-            if (!app.globalData.pendingInviteCode) {
-              app.globalData.pendingInviteCode = kv[1]
-            }
-            break
-          }
-        }
-      } catch (e) { /* ignore */ }
-    }
-    if (options && options.inviteCode) {
-      var app2 = getApp()
-      if (!app2.globalData.pendingInviteCode) {
-        app2.globalData.pendingInviteCode = options.inviteCode
+    if (options) {
+      var app = getApp()
+      if (app.applyInviteFromQuery) {
+        app.applyInviteFromQuery(options)
       }
     }
     const sysInfo = wx.getSystemInfoSync()

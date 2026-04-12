@@ -12,9 +12,11 @@ import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
 import { WechatSecurityModule } from '../wechat-security/wechat-security.module';
+import { InviteModule } from '../invite/invite.module';
 
 @Module({
   imports: [
+    InviteModule,
     TypeOrmModule.forFeature([
       Post,
       ContactUnlock,

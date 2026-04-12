@@ -69,13 +69,18 @@ export class AuthService {
       const code = await this.inviteService.ensureInviteCode(user.id);
       user.inviteCode = code;
 
-      if (inviteCode) {
-        const inviter = await this.userRepo.findOne({ where: { inviteCode } });
+      const normalizedInvite = inviteCode
+        ? String(inviteCode).trim().toLowerCase()
+        : '';
+      if (normalizedInvite) {
+        const inviter = await this.userRepo.findOne({
+          where: { inviteCode: normalizedInvite },
+        });
         if (inviter && inviter.id !== user.id) {
           await this.inviteService.recordInvite(
             inviter.id,
             user.id,
-            inviteCode,
+            normalizedInvite,
           );
           user.invitedBy = inviter.id;
         }

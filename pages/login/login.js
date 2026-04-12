@@ -21,6 +21,10 @@ Page({
   },
 
   onLoad() {
+    const app = getApp()
+    if (app.syncPendingInviteFromLaunch) {
+      app.syncPendingInviteFromLaunch()
+    }
     const sysInfo = wx.getSystemInfoSync()
     this.setData({
       statusBarHeight: sysInfo.statusBarHeight || 0

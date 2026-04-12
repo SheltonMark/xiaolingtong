@@ -134,21 +134,28 @@ export class InviteService {
     return this.accessToken;
   }
 
-  async generateWxacode(userId: number): Promise<{ wxacodeUrl: string }> {
-    const cacheKey = `wxacode_user_${userId}`;
+  /** 无数量限制小程序码，scene 最长 32 字符 */
+  private async generateWxacodeUnlimited(
+    scene: string,
+    page: string,
+    cacheKey: string,
+    label: string,
+  ): Promise<{ wxacodeUrl: string }> {
+    if (scene.length > 32) {
+      throw new BadRequestException('小程序码 scene 过长');
+    }
     const cached = await this.configRepo.findOne({
       where: { key: cacheKey },
     });
     if (cached?.value) return { wxacodeUrl: cached.value };
 
-    const inviteCode = await this.ensureInviteCode(userId);
     const token = await this.getAccessToken();
 
     const resp = await axios.post(
       `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${token}`,
       {
-        scene: `inv=${inviteCode}`,
-        page: 'pages/index/index',
+        scene,
+        page,
         width: 280,
         auto_color: false,
         line_color: { r: 59, g: 130, b: 246 },
@@ -167,7 +174,7 @@ export class InviteService {
       );
     }
 
-    const filename = `wxacode_${userId}_${Date.now()}.png`;
+    const filename = `wxacode_${cacheKey.replace(/[^a-zA-Z0-9_-]/g, '_')}_${Date.now()}.png`;
     const key = `uploads/wxacode/${filename}`;
     const uploadDir = join(__dirname, '..', '..', '..', 'storage', 'uploads', 'wxacode');
     await mkdir(uploadDir, { recursive: true });
@@ -182,11 +189,37 @@ export class InviteService {
       this.configRepo.create({
         key: cacheKey,
         value: url,
-        label: `用户${userId}邀请小程序码`,
+        label,
         group: 'wxacode',
       }),
     );
 
     return { wxacodeUrl: url };
+  }
+
+  async generateWxacode(userId: number): Promise<{ wxacodeUrl: string }> {
+    const inviteCode = await this.ensureInviteCode(userId);
+    const cacheKey = `wxacode_user_${userId}`;
+    return this.generateWxacodeUnlimited(
+      `inv=${inviteCode}`,
+      'pages/index/index',
+      cacheKey,
+      `用户${userId}邀请小程序码`,
+    );
+  }
+
+  /** 帖子海报用：扫码进入对应帖子详情 */
+  async generatePostWxacode(postId: number): Promise<{ wxacodeUrl: string }> {
+    if (!Number.isFinite(postId) || postId <= 0) {
+      throw new BadRequestException('帖子 ID 无效');
+    }
+    const scene = `p=${Math.floor(postId)}`;
+    const cacheKey = `wxacode_post_${postId}`;
+    return this.generateWxacodeUnlimited(
+      scene,
+      'pages/post-detail/post-detail',
+      cacheKey,
+      `帖子${postId}海报小程序码`,
+    );
   }
 }

@@ -1,5 +1,23 @@
 const { get } = require('./utils/request')
 
+/** 从小程序码 scene 中解析 inv= 邀请码（与 getwxacodeunlimit 的 scene 格式一致） */
+function parseInvFromSceneString(raw) {
+  if (raw == null || raw === '') return ''
+  try {
+    const decoded = decodeURIComponent(String(raw))
+    const pairs = decoded.split('&')
+    for (let i = 0; i < pairs.length; i++) {
+      const kv = pairs[i].split('=')
+      if (kv[0] === 'inv' && kv[1]) {
+        return decodeURIComponent(kv[1]).trim().toLowerCase()
+      }
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  return ''
+}
+
 App({
   globalData: {
     userInfo: null,
@@ -22,26 +40,34 @@ App({
     // ========================
   },
 
+  /** 统一写入 pendingInviteCode：分享 ?inviteCode= 或扫码 scene 中的 inv= */
+  applyInviteFromQuery(query) {
+    if (!query || typeof query !== 'object') return
+    if (query.inviteCode) {
+      const c = String(query.inviteCode).trim()
+      if (c) {
+        this.globalData.pendingInviteCode = c.toLowerCase()
+        return
+      }
+    }
+    if (query.scene) {
+      const inv = parseInvFromSceneString(query.scene)
+      if (inv) this.globalData.pendingInviteCode = inv
+    }
+  },
+
+  /** 登录页等晚于首页加载时，从启动参数再同步一次邀请码 */
+  syncPendingInviteFromLaunch() {
+    try {
+      const lo = wx.getLaunchOptionsSync()
+      if (lo && lo.query) this.applyInviteFromQuery(lo.query)
+    } catch (e) {
+      /* ignore */
+    }
+  },
+
   onLaunch(options) {
-    // 捕获分享链接中的邀请码
-    if (options && options.query && options.query.inviteCode) {
-      this.globalData.pendingInviteCode = options.query.inviteCode
-    }
-    // 扫小程序码进入时，参数在 scene 里（格式 inv=XXXXX）
-    const scene = (options && options.query && options.query.scene) || ''
-    if (scene && !this.globalData.pendingInviteCode) {
-      try {
-        const decoded = decodeURIComponent(scene)
-        const pairs = decoded.split('&')
-        for (let i = 0; i < pairs.length; i++) {
-          const kv = pairs[i].split('=')
-          if (kv[0] === 'inv' && kv[1]) {
-            this.globalData.pendingInviteCode = kv[1]
-            break
-          }
-        }
-      } catch (e) { /* ignore */ }
-    }
+    if (options && options.query) this.applyInviteFromQuery(options.query)
 
     if (!wx.getStorageSync('policyHandled') && wx.getStorageSync('agreedPolicy')) {
       wx.setStorageSync('policyHandled', true)
@@ -57,6 +83,10 @@ App({
       this.globalData.isLoggedIn = true
       this.loadProfile()
     }
+  },
+
+  onShow(options) {
+    if (options && options.query) this.applyInviteFromQuery(options.query)
   },
 
   loadProfile() {
