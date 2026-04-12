@@ -107,6 +107,7 @@ tr:hover td { background:rgba(35,39,54,.5); }
 .config-group-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:10px; }
 .config-group-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
 .config-item { display:grid; grid-template-columns:minmax(0,1fr) 120px auto; align-items:center; gap:12px; padding:12px 16px; background:var(--bg-card); border-radius:8px; border:1px solid var(--border); }
+.config-item-poster { grid-template-columns:1fr; gap:6px; }
 .config-item label { min-width:0; font-size:13px; color:var(--text-sec); line-height:1.5; word-break:break-word; }
 .config-item input { width:100%; height:32px; padding:0 10px; background:var(--bg-card); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:13px; text-align:right; outline:none; box-sizing:border-box; }
 .config-item .save-cfg { min-width:52px; height:32px; padding:0 12px; background:var(--accent); color:#fff; border:1px solid var(--accent); border-radius:6px; cursor:pointer; font-size:12px; box-sizing:border-box; display:inline-flex; align-items:center; justify-content:center; -webkit-appearance:none; appearance:none; }
@@ -1245,7 +1246,8 @@ async function loadConfigs(){
     job:'招工配置',
     other:'其他配置',
     general:'通用配置',
-    poster:'海报配置'
+    poster:'海报配置',
+    subscribe:'订阅消息配置'
   };
   var memberPlanKeys=['member_monthly_price','member_quarterly_price','member_yearly_price'];
   var groupKeySortMap={
@@ -1304,13 +1306,43 @@ async function loadConfigs(){
     var gk=groups[gi];
     h+='<div class="config-group"><div class="config-group-title">'+(groupTitleMap[gk]||gk)+'</div><div class="config-group-grid">';
     var cfgList=sortConfigList(gk,grouped[gk]||[]);
+    if(gk==='poster'){
+      h+='<div style="grid-column:1/-1;font-size:12px;color:#94A3B8;margin-bottom:4px;">提示：帖子海报二维码显示在海报<b>右下角</b>；背景模板图建议尺寸 <b>750×1334px</b>，中间留白区域供程序填充帖子图片和文字</div>';
+    }
+    if(gk==='subscribe'){
+      h+='<div style="grid-column:1/-1;font-size:12px;color:#94A3B8;margin-bottom:4px;line-height:1.8;">操作步骤：① 登录 <a href="https://mp.weixin.qq.com/" target="_blank" style="color:#3B82F6;">微信公众平台</a> → ② 左侧菜单「功能」→「订阅消息」→ ③ 点击「选用」搜索并添加模板 → ④ 复制模板ID粘贴到下方对应配置项中保存</div>';
+    }
     for(var j=0;j<cfgList.length;j++){
       var c=cfgList[j];
-      h+='<div class="config-item"><label>'+(safeText(c.label||c.key))+'</label><input id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'"><button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';
+      if(c.key&&c.key.indexOf('poster_')===0){
+        var previewHtml=c.value?'<img src="'+safeText(c.value)+'" style="max-width:120px;max-height:80px;border-radius:6px;object-fit:cover;margin-top:6px;display:block;">':'';
+        h+='<div class="config-item config-item-poster"><label>'+(safeText(c.label||c.key))+'</label>'
+          +'<div id="cfg_preview_'+safeText(c.key)+'">'+previewHtml+'</div>'
+          +'<input type="hidden" id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'">'
+          +'<input type="file" accept="image/*" onchange="onPosterUpload(this,\x27'+safeText(c.key)+'\x27)" style="font-size:12px;margin-top:4px;">'
+          +'<button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';
+      }else{
+        h+='<div class="config-item"><label>'+(safeText(c.label||c.key))+'</label><input id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'"><button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';
+      }
     }
     h+='</div></div>';
   }
   document.getElementById('configGrid').innerHTML=h||'<div class="empty">暂无配置</div>';
+}
+async function onPosterUpload(input,cfgKey){
+  if(!input.files||!input.files[0])return;
+  var file=input.files[0];
+  if(file.size>5*1024*1024){toast('图片不能超过5MB','error');input.value='';return;}
+  var fd=new FormData();fd.append('file',file);
+  try{
+    var resp=await fetch('/api/upload',{method:'POST',headers:{'Authorization':'Bearer '+localStorage.getItem('admin_token')},body:fd});
+    var data=await resp.json();
+    var url=(data&&data.url)||'';
+    if(!url){toast('上传失败','error');return;}
+    document.getElementById('cfg_'+cfgKey).value=url;
+    document.getElementById('cfg_preview_'+cfgKey).innerHTML='<img src="'+url+'" style="max-width:120px;max-height:80px;border-radius:6px;object-fit:cover;margin-top:6px;display:block;">';
+    toast('图片已上传，请点击保存','success');
+  }catch(e){toast('上传出错','error');}
 }
 async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});toast('已保存','success');}
 
