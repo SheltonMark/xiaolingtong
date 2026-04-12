@@ -9,14 +9,14 @@ Component({
     unreadCount: 0,
     entList: [
       { pagePath: '/pages/index/index', text: '首页', isTab: true },
-      { pagePath: '/pages/exposure-board/exposure-board', text: '维权吧', isTab: true },
+      { pagePath: '/pages/exposure-board/exposure-board', text: '诚信通', isTab: true },
       { pagePath: '/pages/publish/publish', text: '发布', isCenter: true, isTab: true },
       { pagePath: '/pages/messages/messages', text: '消息', isTab: true },
       { pagePath: '/pages/mine/mine', text: '我的', isTab: true }
     ],
     workerList: [
       { pagePath: '/pages/index/index', text: '首页', isTab: true },
-      { pagePath: '/pages/exposure-board/exposure-board', text: '维权吧', isTab: true },
+      { pagePath: '/pages/exposure-board/exposure-board', text: '诚信通', isTab: true },
       { pagePath: '/pages/messages/messages', text: '消息', isTab: true },
       { pagePath: '/pages/mine/mine', text: '我的', isTab: true }
     ]

@@ -3,7 +3,7 @@
 
   <view class="notice-card">
     <text class="notice-title">分享前请确认</text>
-    <text class="notice-text">仅可分享本人真实维权经历、协商过程和结果反馈，禁止指名道姓描述第三方，内容提交后需人工审核并通过内容安全校验。</text>
+    <text class="notice-text">请如实描述本人真实经历，内容提交后需人工审核并通过内容安全校验后展示。</text>
   </view>
 
   <view class="form-card">
@@ -20,6 +20,16 @@
         <text class="category-text">{{item.label}}</text>
       </view>
     </view>
+  </view>
+
+  <view class="form-card">
+    <text class="form-label required">对方公司/人名</text>
+    <input
+      class="form-input"
+      placeholder="请填写对方公司名称或个人姓名"
+      data-field="opponentName"
+      bindinput="onInput"
+    />
   </view>
 
   <view class="form-card">
@@ -42,11 +52,11 @@
       class="form-textarea"
       maxlength="1000"
       show-confirm-bar="{{false}}"
-      placeholder="请用第一人称描述你的维权经过、沟通方式和结果反馈。禁止填写第三方姓名、公司、电话、微信等可识别信息。"
+      placeholder="请您以第一人称详细描述自身经历，说明与对方的合作缘起、合作模式、涉及货品详情、合作过程，并清晰阐述对方拖欠款项、违约失信的具体事实与维权进展，确保内容真实完整。"
       data-field="description"
       bindinput="onInput"
     />
-    <text class="form-tip">建议写清时间线、你采取的措施以及最终结果，方便其他用户参考。</text>
+    <text class="form-tip">建议写清时间线、合作细节、违约事实以及维权进展，方便其他用户参考。</text>
   </view>
 
   <view class="form-card">
@@ -67,7 +77,7 @@
     <view class="agree-check {{agreed ? 'agree-checked' : ''}}">
       <text wx:if="{{agreed}}" class="agree-tick">✓</text>
     </view>
-    <text class="agree-text">我确认分享的是本人真实维权经历，不包含第三方可识别信息，内容将经人工审核和内容安全校验后展示。</text>
+    <text class="agree-text">本人保证发布内容真实、准确、合法，不侵犯第三方权益，由此产生的一切法律责任由发布者自行承担。平台仅为信息发布渠道，不承担连带责任。</text>
   </view>
 
   <view class="submit-area">

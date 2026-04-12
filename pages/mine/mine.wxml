@@ -53,7 +53,7 @@
             <text class="user-name">{{nickname || certName || '未认证用户'}}</text>
             <text class="cert-badge" bindtap="onTapCertStatus">{{certBadge}}</text>
           </view>
-          <text class="user-sub">工贸一体 · 日用百货</text>
+          <text class="user-sub">ID: {{userId}}</text>
         </view>
         <text class="settings-icon iconfont icon-shezhi" bindtap="onSettings"></text>
       </view>
@@ -201,7 +201,7 @@
             <text class="user-name">{{nickname || certName || '未认证用户'}}</text>
             <text class="cert-badge" bindtap="onTapCertStatus">{{certBadge}}</text>
           </view>
-          <text class="user-sub">信用分 <text class="text-cta font-semibold">{{creditScore}}</text> · 组装工/包装工</text>
+          <text class="user-sub">ID: {{userId}} · 信用分 <text class="text-cta font-semibold">{{creditScore}}</text></text>
         </view>
         <text class="settings-icon iconfont icon-shezhi" bindtap="onSettings"></text>
       </view>

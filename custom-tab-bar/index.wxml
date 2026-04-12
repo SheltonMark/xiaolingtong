@@ -6,7 +6,7 @@
   </view>
   <view class="tab-bar-item" data-path="/pages/exposure-board/exposure-board" data-istab="{{true}}" data-index="1" bindtap="switchTab">
     <text class="tab-icon iconfont icon-puguang {{selected === 1 ? 'tab-icon-ent-active' : ''}}"></text>
-    <text class="tab-text {{selected === 1 ? 'tab-text-ent-active' : ''}}">维权吧</text>
+    <text class="tab-text {{selected === 1 ? 'tab-text-ent-active' : ''}}">诚信通</text>
   </view>
   <view class="tab-bar-item" data-path="/pages/publish/publish" data-istab="{{true}}" data-index="2" bindtap="switchTab">
     <view class="publish-btn">
@@ -35,7 +35,7 @@
   </view>
   <view class="tab-bar-item" data-path="/pages/exposure-board/exposure-board" data-istab="{{true}}" data-index="1" bindtap="switchTab">
     <text class="tab-icon iconfont icon-puguang {{selected === 1 ? 'tab-icon-worker-active' : ''}}"></text>
-    <text class="tab-text {{selected === 1 ? 'tab-text-worker-active' : ''}}">维权吧</text>
+    <text class="tab-text {{selected === 1 ? 'tab-text-worker-active' : ''}}">诚信通</text>
   </view>
   <view class="tab-bar-item" data-path="/pages/messages/messages" data-istab="{{true}}" data-index="2" bindtap="switchTab">
     <view class="tab-icon-wrap">

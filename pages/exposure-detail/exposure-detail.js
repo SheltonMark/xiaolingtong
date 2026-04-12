@@ -66,6 +66,7 @@ Page({
           publisherAvatar: normalizeImageUrl(publisher.avatarUrl || ''),
           avatarText: (publisherName || categoryText || '维')[0],
           categoryText,
+          opponentName: data.companyName || data.personName || '',
           amountText: formatAmount(data.amount),
           viewCount: data.viewCount || 0
         },

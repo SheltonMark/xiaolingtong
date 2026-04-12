@@ -45,6 +45,7 @@ function formatJobDate(job) {
 
 Page({
   data: {
+    userId: '',
     userRole: 'enterprise',
     statusBarHeight: 0,
     menuHeight: 0,
@@ -152,6 +153,7 @@ Page({
       }
 
       this.setData({
+        userId: user.id || '',
         nickname: user.nickname || '',
         avatarUrl: normalizeImageUrl(user.avatarUrl || ''),
         beanBalance: user.beanBalance || 0,

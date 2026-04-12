@@ -187,3 +187,13 @@
   color: #fff;
   font-weight: 600;
 }
+
+.eb-dv-highlight { color: #DC2626; font-weight: 600; }
+
+.eb-card-disclaimer {
+  margin-top: 16rpx; padding-top: 16rpx;
+  border-top: 1rpx solid #F1F5F9;
+}
+.eb-card-disclaimer-text {
+  font-size: 20rpx; color: #94A3B8; line-height: 1.6;
+}

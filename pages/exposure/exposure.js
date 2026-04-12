@@ -14,6 +14,7 @@ Page({
     categories: DEFAULT_EXPOSURE_CATEGORIES,
     form: {
       category: getInitialCategory(),
+      opponentName: '',
       amount: '',
       description: ''
     },
@@ -113,12 +114,18 @@ Page({
     const { form, agreed, images } = this.data
     const description = (form.description || '').trim()
 
+    const opponentName = (form.opponentName || '').trim()
+
     if (!form.category) {
       wx.showToast({ title: '请选择经历类型', icon: 'none' })
       return
     }
+    if (!opponentName) {
+      wx.showToast({ title: '请填写对方公司/人名', icon: 'none' })
+      return
+    }
     if (!description) {
-      wx.showToast({ title: '请填写维权经历', icon: 'none' })
+      wx.showToast({ title: '请填写经历描述', icon: 'none' })
       return
     }
     if (description.length < 10) {
@@ -135,6 +142,7 @@ Page({
 
     post('/exposures', {
       category: form.category,
+      opponentName,
       amount: form.amount,
       description,
       images

@@ -296,12 +296,7 @@ export class ExposureService {
     }
 
     const category = this.normalizeCategory(dto.category);
-    const company = String(dto.company || '').trim();
-    const contact = String(dto.contact || '').trim();
-
-    if (company || contact) {
-      throw new BadRequestException('仅支持分享本人维权经历，禁止填写第三方名称');
-    }
+    const opponentName = String(dto.opponentName || '').trim();
 
     const normalizedDto = {
       ...dto,
@@ -315,7 +310,7 @@ export class ExposureService {
     if (existing) return existing;
 
     await this.wechatSecurityService.assertSafeSubmission({
-      texts: [category, dto.company, dto.contact, dto.amount, dto.description],
+      texts: [category, opponentName, dto.amount, dto.description],
       images: [dto.images],
       openid: user?.openid,
     });
@@ -323,7 +318,7 @@ export class ExposureService {
     const exp = this.expRepo.create({
       publisherId,
       category,
-      companyName: undefined,
+      companyName: opponentName || undefined,
       personName: undefined,
       amount: dto.amount,
       description: dto.description,

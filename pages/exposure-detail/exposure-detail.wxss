@@ -40,3 +40,4 @@
 .ed-share-icon { font-size: 36rpx; color: #94A3B8; }
 .ed-share-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; background: transparent; border: none; padding: 0; }
 .ed-share-overlay::after { border: none; }
+.ed-field-highlight { color: #DC2626; font-weight: 600; }

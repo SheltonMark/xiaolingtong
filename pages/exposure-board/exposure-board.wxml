@@ -1,5 +1,5 @@
 <view class="eb-page">
-  <nav-bar title="维权" showBack="{{false}}" />
+  <nav-bar title="诚信通" showBack="{{false}}" />
 
   <view class="eb-tab-wrap">
     <view class="eb-tabs">
@@ -37,6 +37,10 @@
           </view>
         </view>
 
+        <view class="eb-detail-row" wx:if="{{item.company}}">
+          <text class="eb-dl">对方</text>
+          <text class="eb-dv eb-dv-highlight">{{item.company}}</text>
+        </view>
         <view class="eb-detail-row" wx:if="{{item.amount}}">
           <text class="eb-dl">涉及金额</text>
           <text class="eb-dv">{{item.amount}}</text>
@@ -66,6 +70,9 @@
               <button class="share-overlay" open-type="share" data-id="{{item.id}}" data-type="{{item.type}}"></button>
             </view>
           </view>
+        </view>
+        <view class="eb-card-disclaimer">
+          <text class="eb-card-disclaimer-text">聚采通声明：该曝光所涉及内容、信息和数据来自于用户自发，不代表平台的观点和立场。如有任何不实或疑问，请联系聚采通工作人员。</text>
         </view>
       </view>
 

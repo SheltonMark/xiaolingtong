@@ -248,6 +248,11 @@
   color: #94A3B8;
   display: block;
 }
+.contact-hint-tip {
+  margin-top: 8rpx;
+  color: #3B82F6;
+  font-size: 20rpx;
+}
 .qr-brief {
   display: flex;
   align-items: center;

@@ -234,6 +234,7 @@
         <text wx:else class="contact-link" bindtap="onManageContactInfo">去上传</text>
       </view>
       <text class="contact-hint">至少选择一种联系方式</text>
+      <text class="contact-hint contact-hint-tip">💡 在「我的→我的资料」中维护一次，后续发布自动填入，也可在此修改</text>
       <view class="contact-row">
         <text class="contact-label">有效期</text>
         <picker mode="selector" range="{{validityOptions}}" value="{{validityIndex}}" bindchange="onValidityChange">
