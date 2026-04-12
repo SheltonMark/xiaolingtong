@@ -1244,12 +1244,14 @@ async function loadConfigs(){
     info:'信息发布',
     job:'招工配置',
     other:'其他配置',
-    general:'通用配置'
+    general:'通用配置',
+    poster:'海报配置'
   };
   var memberPlanKeys=['member_monthly_price','member_quarterly_price','member_yearly_price'];
   var groupKeySortMap={
     member: memberPlanKeys,
-    price: ['top_price_per_day','top_price_3d','top_price_7d','top_price_30d','view_contact_price','banner_ad_price','feed_ad_price']
+    price: ['top_price_per_day','top_price_3d','top_price_7d','top_price_30d','view_contact_price','banner_ad_price','feed_ad_price'],
+    poster: ['poster_post_bg','poster_post_qrcode','poster_invite_bg']
   };
   function toDisplayGroup(cfg){
     var k=(cfg&&cfg.key)||'';

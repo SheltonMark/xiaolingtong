@@ -27,6 +27,21 @@ App({
     if (options && options.query && options.query.inviteCode) {
       this.globalData.pendingInviteCode = options.query.inviteCode
     }
+    // 扫小程序码进入时，参数在 scene 里（格式 inv=XXXXX）
+    const scene = (options && options.query && options.query.scene) || ''
+    if (scene && !this.globalData.pendingInviteCode) {
+      try {
+        const decoded = decodeURIComponent(scene)
+        const pairs = decoded.split('&')
+        for (let i = 0; i < pairs.length; i++) {
+          const kv = pairs[i].split('=')
+          if (kv[0] === 'inv' && kv[1]) {
+            this.globalData.pendingInviteCode = kv[1]
+            break
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
 
     if (!wx.getStorageSync('policyHandled') && wx.getStorageSync('agreedPolicy')) {
       wx.setStorageSync('policyHandled', true)

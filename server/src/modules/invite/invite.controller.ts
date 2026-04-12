@@ -22,4 +22,9 @@ export class InviteController {
   getStats(@CurrentUser('sub') userId: number) {
     return this.inviteService.getInviteStats(userId);
   }
+
+  @Get('wxacode')
+  getWxacode(@CurrentUser('sub') userId: number) {
+    return this.inviteService.generateWxacode(userId);
+  }
 }

@@ -1862,6 +1862,24 @@ export class AdminService {
         group: 'other',
       },
       {
+        key: 'poster_post_bg',
+        value: '',
+        label: '帖子海报背景模板图URL',
+        group: 'poster',
+      },
+      {
+        key: 'poster_post_qrcode',
+        value: '',
+        label: '帖子海报二维码图URL',
+        group: 'poster',
+      },
+      {
+        key: 'poster_invite_bg',
+        value: '',
+        label: '邀请海报背景模板图URL',
+        group: 'poster',
+      },
+      {
         key: 'exposure_category_false_info_label',
         value: '维权经历',
         label: '维权分类-维权经历',

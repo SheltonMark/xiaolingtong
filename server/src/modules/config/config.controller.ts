@@ -25,6 +25,12 @@ export class ConfigController {
   }
 
   @Public()
+  @Get('poster')
+  getPosterConfig() {
+    return this.configService.getPosterConfig();
+  }
+
+  @Public()
   @Get('agreements/:type')
   getAgreement(@Param('type') type: string) {
     return this.configService.getAgreement(type);

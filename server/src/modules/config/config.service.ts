@@ -21,6 +21,24 @@ export class ConfigService {
     @InjectRepository(SysConfig) private configRepo: Repository<SysConfig>,
   ) {}
 
+  async getPosterConfig() {
+    const keys = [
+      'poster_post_bg',
+      'poster_post_qrcode',
+      'poster_invite_bg',
+    ];
+    const configs = await this.configRepo
+      .createQueryBuilder('c')
+      .where('c.key IN (:...keys)', { keys })
+      .getMany();
+    const map = new Map(configs.map((c) => [c.key, c.value]));
+    return {
+      postBg: map.get('poster_post_bg') || '',
+      postQrcode: map.get('poster_post_qrcode') || '',
+      inviteBg: map.get('poster_invite_bg') || '',
+    };
+  }
+
   async getAgreement(type: string) {
     const key = AGREEMENT_KEY_MAP[type];
     if (!key) throw new NotFoundException('协议类型不存在');

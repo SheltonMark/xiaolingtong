@@ -16,7 +16,7 @@
         <text class="inv-code-label">邀请码</text>
         <text class="inv-code">{{inviteCode || '------'}}</text>
       </view>
-      <text class="inv-copy" bindtap="onCopyCode">复制邀请码</text>
+      <text class="inv-copy" bindtap="onGenerateInvitePoster">生成海报</text>
     </view>
   </view>
 
@@ -59,5 +59,17 @@
   <!-- 底部分享按钮 -->
   <view class="bottom-share">
     <button class="share-btn" open-type="share">邀请好友</button>
+  </view>
+
+  <!-- 海报 Canvas（隐藏） -->
+  <canvas type="2d" id="invitePosterCanvas" style="position:fixed;left:-9999px;top:0;width:750px;height:1334px;" />
+
+  <!-- 海报预览弹窗 -->
+  <view class="poster-overlay" wx:if="{{showPoster}}" catchtap="onClosePoster">
+    <view class="poster-dialog" catchtap="">
+      <image class="poster-img" src="{{posterImage}}" mode="widthFix" show-menu-by-longpress="true" />
+      <view class="poster-tip">长按图片保存到相册</view>
+      <view class="poster-close-btn" bindtap="onClosePoster">关闭</view>
+    </view>
   </view>
 </view>

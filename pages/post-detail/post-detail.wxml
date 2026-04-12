@@ -24,7 +24,12 @@
       <text class="tag tag-cyan" wx:if="{{detail.processModeLabel}}">{{detail.processModeLabel}}</text>
       <text class="tag tag-amber">{{detail.industry}}</text>
     </view>
-    <text class="detail-title">{{detail.title}}</text>
+    <view class="title-row">
+      <text class="detail-title">{{detail.title}}</text>
+      <view class="poster-btn" bindtap="onGeneratePoster" wx:if="{{detail.type !== 'job'}}">
+        <text class="poster-btn-text">生成海报</text>
+      </view>
+    </view>
     <view class="location-row" wx:if="{{detail.address || detail.location}}">
       <text class="loc-icon iconfont icon-address"></text>
       <text class="loc-text">{{detail.address || detail.location}}</text>
@@ -121,6 +126,18 @@
       </view>
       <view class="bean-shortage-disclaimer">免责声明：联系方式由发布者提供，平台不对其真实性负责，请注意交易安全。</view>
       <view class="bean-shortage-close" bindtap="onCloseBeanShortage">关闭</view>
+    </view>
+  </view>
+
+  <!-- 海报 Canvas（隐藏） -->
+  <canvas type="2d" id="posterCanvas" style="position:fixed;left:-9999px;top:0;width:750px;height:1334px;" />
+
+  <!-- 海报预览弹窗 -->
+  <view class="poster-overlay" wx:if="{{showPoster}}" catchtap="onClosePoster">
+    <view class="poster-dialog" catchtap="">
+      <image class="poster-img" src="{{posterImage}}" mode="widthFix" show-menu-by-longpress="true" />
+      <view class="poster-tip">长按图片保存到相册</view>
+      <view class="poster-close-btn" bindtap="onClosePoster">关闭</view>
     </view>
   </view>
 </view>

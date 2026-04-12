@@ -29,7 +29,9 @@ Page({
     wechatCard: {
       wechatId: '',
       wechatQrImage: ''
-    }
+    },
+    showPoster: false,
+    posterImage: ''
   },
 
   onLoad(options) {
@@ -616,10 +618,186 @@ Page({
       console.log('[post-detail] toggle response:', res)
       this.setData({ isFav: !this.data.isFav })
       wx.showToast({ title: this.data.isFav ? '已收藏' : '已取消', icon: 'success' })
-      // 重新加载收藏状态以确保同步
       setTimeout(() => this.loadFavStatus(id), 500)
     }).catch(err => {
       console.error('[post-detail] toggle error:', err)
     })
+  },
+
+  onClosePoster() {
+    this.setData({ showPoster: false })
+  },
+
+  _loadImage(src) {
+    return new Promise((resolve, reject) => {
+      wx.getImageInfo({
+        src,
+        success: (res) => resolve(res.path),
+        fail: reject
+      })
+    })
+  },
+
+  _wrapText(ctx, text, maxWidth) {
+    const lines = []
+    let line = ''
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i]
+      if (ch === '\n') { lines.push(line); line = ''; continue }
+      const test = line + ch
+      if (ctx.measureText(test).width > maxWidth) {
+        lines.push(line)
+        line = ch
+      } else {
+        line = test
+      }
+    }
+    if (line) lines.push(line)
+    return lines
+  },
+
+  async onGeneratePoster() {
+    const detail = this.data.detail
+    if (!detail || !detail.id) return
+
+    wx.showLoading({ title: '生成海报中...', mask: true })
+
+    try {
+      const configRes = await get('/config/poster')
+      const cfg = configRes.data || configRes || {}
+      const postBg = cfg.postBg || ''
+      const postQr = cfg.postQrcode || ''
+
+      if (!postBg) {
+        wx.hideLoading()
+        wx.showToast({ title: '海报模板未配置', icon: 'none' })
+        return
+      }
+
+      const images = detail.images || []
+      const firstImg = images.length ? images[0] : ''
+
+      const loadTasks = [this._loadImage(postBg)]
+      if (firstImg) loadTasks.push(this._loadImage(firstImg))
+      if (postQr) loadTasks.push(this._loadImage(postQr))
+
+      const loaded = await Promise.all(loadTasks)
+      const bgPath = loaded[0]
+      const imgPath = firstImg ? loaded[1] : null
+      const qrPath = postQr ? loaded[loadTasks.length - 1] : null
+
+      const query = wx.createSelectorQuery()
+      const canvas = await new Promise((resolve) => {
+        query.select('#posterCanvas')
+          .fields({ node: true, size: true })
+          .exec((res) => resolve(res[0]))
+      })
+
+      const canvasNode = canvas.node
+      const ctx = canvasNode.getContext('2d')
+      const W = 750
+      const H = 1334
+      const dpr = 2
+      canvasNode.width = W * dpr
+      canvasNode.height = H * dpr
+      ctx.scale(dpr, dpr)
+
+      const drawImg = (path, x, y, w, h) => {
+        return new Promise((resolve) => {
+          const img = canvasNode.createImage()
+          img.onload = () => { ctx.drawImage(img, x, y, w, h); resolve() }
+          img.onerror = () => resolve()
+          img.src = path
+        })
+      }
+
+      await drawImg(bgPath, 0, 0, W, H)
+
+      let curY = 200
+      if (imgPath) {
+        const imgW = 670
+        const imgH = 420
+        const imgX = (W - imgW) / 2
+        ctx.save()
+        const r = 16
+        ctx.beginPath()
+        ctx.moveTo(imgX + r, curY)
+        ctx.lineTo(imgX + imgW - r, curY)
+        ctx.arcTo(imgX + imgW, curY, imgX + imgW, curY + r, r)
+        ctx.lineTo(imgX + imgW, curY + imgH - r)
+        ctx.arcTo(imgX + imgW, curY + imgH, imgX + imgW - r, curY + imgH, r)
+        ctx.lineTo(imgX + r, curY + imgH)
+        ctx.arcTo(imgX, curY + imgH, imgX, curY + imgH - r, r)
+        ctx.lineTo(imgX, curY + r)
+        ctx.arcTo(imgX, curY, imgX + r, curY, r)
+        ctx.closePath()
+        ctx.clip()
+        await drawImg(imgPath, imgX, curY, imgW, imgH)
+        ctx.restore()
+        curY += imgH + 30
+      }
+
+      const textX = 50
+      const textMaxW = W - 100
+
+      ctx.font = 'bold 30px sans-serif'
+      ctx.fillStyle = '#1E293B'
+      const titleText = detail.title || ''
+      const titleLines = this._wrapText(ctx, titleText, textMaxW)
+      titleLines.slice(0, 2).forEach((line) => {
+        ctx.fillText(line, textX, curY)
+        curY += 42
+      })
+      curY += 10
+
+      const fields = detail.fields || []
+      ctx.font = '24px sans-serif'
+      ctx.fillStyle = '#475569'
+      fields.slice(0, 6).forEach((f) => {
+        if (curY > 1050) return
+        const row = (f.label || '') + '：' + (f.value || '')
+        const rowLines = this._wrapText(ctx, row, textMaxW)
+        rowLines.slice(0, 2).forEach((line) => {
+          ctx.fillText(line, textX, curY)
+          curY += 34
+        })
+        curY += 6
+      })
+
+      if (detail.desc && curY < 1000) {
+        curY += 10
+        ctx.font = '22px sans-serif'
+        ctx.fillStyle = '#64748B'
+        const descLines = this._wrapText(ctx, detail.desc, textMaxW)
+        descLines.slice(0, 4).forEach((line) => {
+          if (curY > 1080) return
+          ctx.fillText(line, textX, curY)
+          curY += 32
+        })
+      }
+
+      if (qrPath) {
+        await drawImg(qrPath, W - 180, H - 200, 140, 140)
+      }
+
+      const tempPath = await new Promise((resolve, reject) => {
+        wx.canvasToTempFilePath({
+          canvas: canvasNode,
+          width: W * dpr,
+          height: H * dpr,
+          destWidth: W * dpr,
+          destHeight: H * dpr,
+          success: (res) => resolve(res.tempFilePath),
+          fail: reject
+        })
+      })
+
+      wx.hideLoading()
+      this.setData({ showPoster: true, posterImage: tempPath })
+    } catch (err) {
+      wx.hideLoading()
+      console.error('[poster] error:', err)
+      wx.showToast({ title: '海报生成失败', icon: 'none' })
+    }
   }
 })
