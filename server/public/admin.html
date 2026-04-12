@@ -1324,7 +1324,7 @@ async function loadConfigs(){
     var cfgList=sortConfigList(gk,grouped[gk]||[]);
     if(gk==='poster'){
       h+='<div class="config-group-hint" style="grid-column:1/-1;">'
-        +'<strong>海报说明</strong>：下列为<b>背景图本地上传</b>，上传后点右侧「保存」写入配置。'
+        +'<strong>海报说明</strong>：下列为<b>背景图本地上传</b>，选择文件上传后会<b>自动保存</b>到配置。'
         +'<br>• <b>帖子海报背景</b>：建议 <b>750×1334px</b>，中间留白区会叠帖子首图与文字；右下角小程序码由服务端接口生成，无需上传。'
         +'<br>• <b>邀请海报背景</b>：同上比例；邀请码与动态小程序码会叠在模板下半区。'
         +'</div>';
@@ -1347,8 +1347,7 @@ async function loadConfigs(){
           +'<div id="cfg_preview_'+safeText(c.key)+'">'+previewHtml+'</div>'
           +'<input type="hidden" id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'">'
           +'<div class="config-poster-actions"><label class="notice-file-btn"><input type="file" class="notice-file-sr-only" accept="image/*" onchange="onPosterUpload(this,\x27'+safeText(c.key)+'\x27)">选择图片上传</label>'
-          +'<span class="config-poster-hint">上传成功后点「保存」</span>'
-          +'<button type="button" class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div></div>';
+          +'<span class="config-poster-hint">上传后自动保存</span></div></div>';
       }else{
         h+='<div class="config-item"><label>'+(safeText(c.label||c.key))+'</label><input id="cfg_'+safeText(c.key)+'" value="'+safeText(c.value)+'"><button class="save-cfg" onclick="saveConfig(\x27'+safeText(c.key)+'\x27)">保存</button></div>';
       }
@@ -1367,11 +1366,13 @@ async function onPosterUpload(input,cfgKey){
     var data=await resp.json();
     // 与公告/广告上传一致：接口经 TransformInterceptor 包装为 { code, data: { url } }
     var url=data.url||(data.data&&data.data.url)||'';
-    if(!url){toast('上传失败: '+(data.message||'未返回地址'),'error');return;}
+    if(!url){toast('上传失败: '+(data.message||'未返回地址'),'error');input.value='';return;}
     document.getElementById('cfg_'+cfgKey).value=url;
     document.getElementById('cfg_preview_'+cfgKey).innerHTML='<img src="'+url+'" style="max-width:120px;max-height:80px;border-radius:6px;object-fit:cover;margin-top:6px;display:block;">';
-    toast('图片已上传，请点击保存','success');
-  }catch(e){toast('上传出错: '+(e&&e.message||''),'error');}
+    await api('/configs',{method:'PUT',body:{key:cfgKey,value:url}});
+    toast('已上传并保存','success');
+    input.value='';
+  }catch(e){toast('上传或保存出错: '+(e&&e.message||''),'error');input.value='';}
 }
 async function saveConfig(key){var v=document.getElementById('cfg_'+key).value;await api('/configs',{method:'PUT',body:{key:key,value:v}});toast('已保存','success');}
 

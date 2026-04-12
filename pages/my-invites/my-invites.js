@@ -87,6 +87,17 @@ Page({
     })
   },
 
+  /** 单张图加载失败不抛错，避免「接口已返回小程序码 URL 但下载域名未配置」导致整张海报失败 */
+  async _loadImageOrNull(src) {
+    if (!src) return null
+    try {
+      return await this._loadImage(src)
+    } catch (e) {
+      console.warn('[invite-poster] getImageInfo fail:', src, e && e.errMsg)
+      return null
+    }
+  },
+
   async onGenerateInvitePoster() {
     wx.showLoading({ title: '生成海报中...', mask: true })
     try {
@@ -113,11 +124,19 @@ Page({
       const bgSrc = normalizeImageUrl(inviteBg)
       const qrSrc = wxacodeUrl ? normalizeImageUrl(wxacodeUrl) : ''
 
-      const loadTasks = [this._loadImage(bgSrc)]
-      if (qrSrc) loadTasks.push(this._loadImage(qrSrc))
-      const loaded = await Promise.all(loadTasks)
-      const bgPath = loaded[0]
-      const qrPath = qrSrc ? loaded[1] : null
+      const bgPath = await this._loadImageOrNull(bgSrc)
+      if (!bgPath) {
+        wx.hideLoading()
+        wx.showToast({ title: '背景图加载失败，请检查网络', icon: 'none' })
+        return
+      }
+
+      const qrPath = qrSrc ? await this._loadImageOrNull(qrSrc) : null
+      if (qrSrc && !qrPath) {
+        console.warn('[invite-poster] 小程序码图未加载（多为下载域名未配置），海报将仅含背景与邀请码文字')
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 50))
 
       const canvas = await new Promise((resolve) => {
         this.createSelectorQuery()
@@ -180,15 +199,19 @@ Page({
           destHeight: H * dpr,
           success: (res) => resolve(res.tempFilePath),
           fail: reject
-        }, this)
+        })
       })
 
       wx.hideLoading()
       this.setData({ showPoster: true, posterImage: tempPath })
     } catch (err) {
       wx.hideLoading()
+      const msg = (err && err.errMsg) || (err && err.message) || ''
       console.error('[invite-poster] error:', err)
-      wx.showToast({ title: '海报生成失败', icon: 'none' })
+      wx.showToast({
+        title: msg.indexOf('canvas') !== -1 ? '导出图片失败，请重试' : '海报生成失败',
+        icon: 'none'
+      })
     }
   },
 

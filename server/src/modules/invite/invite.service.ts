@@ -134,6 +134,22 @@ export class InviteService {
     return this.accessToken;
   }
 
+  /**
+   * 缓存里存的是「当时」的完整 URL；换域名/API_HOST 后旧链接可能不在小程序 download 白名单内。
+   * 文件仍在服务端同一路径，按当前 API_HOST 重拼公开地址即可。
+   */
+  private normalizeWxacodePublicUrl(stored: string): string {
+    const apiHost = String(this.nestConfig.get('API_HOST') || '').replace(
+      /\/+$/,
+      '',
+    );
+    if (!stored?.trim() || !apiHost) return stored;
+
+    const m = stored.match(/(\/uploads\/wxacode\/[^?#\s]+)/i);
+    if (!m) return stored;
+    return `${apiHost}${m[1]}`;
+  }
+
   /** 无数量限制小程序码，scene 最长 32 字符 */
   private async generateWxacodeUnlimited(
     scene: string,
@@ -147,7 +163,9 @@ export class InviteService {
     const cached = await this.configRepo.findOne({
       where: { key: cacheKey },
     });
-    if (cached?.value) return { wxacodeUrl: cached.value };
+    if (cached?.value) {
+      return { wxacodeUrl: this.normalizeWxacodePublicUrl(cached.value) };
+    }
 
     const token = await this.getAccessToken();
 
