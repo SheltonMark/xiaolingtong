@@ -77,7 +77,7 @@ Page({
     if (mergedUser.avatarUrl) {
       wx.setStorageSync('avatarUrl', mergedUser.avatarUrl)
     }
-    this.goToIndexPage()
+    auth.navigateAfterLoginOrHome()
   },
 
   syncRoleAfterLogin(role, user) {
@@ -132,7 +132,7 @@ Page({
   },
 
   /**
-   * 一次点击：按钮带 getPhoneNumber，用户在微信弹窗中同意后执行登录。
+   * 一次点击：按钮带 getPhoneNumber，用户在系统授权弹窗中同意后执行登录。
    * 服务端已有手机号的用户不再调 bind-phone；新用户用本次 code 写入手机号。
    */
   onWeChatLogin(e) {
@@ -154,7 +154,7 @@ Page({
     wx.login({
       success: (loginRes) => {
         if (!loginRes.code) {
-          wx.showToast({ title: '微信登录失败', icon: 'none' })
+          wx.showToast({ title: '登录失败', icon: 'none' })
           this.setData({ loading: false })
           return
         }
@@ -191,7 +191,7 @@ Page({
           })
       },
       fail: () => {
-        wx.showToast({ title: '微信登录失败', icon: 'none' })
+        wx.showToast({ title: '登录失败', icon: 'none' })
         this.setData({ loading: false })
       }
     })

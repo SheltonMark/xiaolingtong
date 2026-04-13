@@ -1,4 +1,13 @@
-const config = require('./config')
+const POST_LOGIN_REDIRECT_KEY = 'postLoginRedirect'
+
+/** 与 custom-tab-bar 企业端一致；仅这些 path 可用 switchTab */
+const TAB_BAR_PATHS = [
+  '/pages/index/index',
+  '/pages/exposure-board/exposure-board',
+  '/pages/publish/publish',
+  '/pages/messages/messages',
+  '/pages/mine/mine'
+]
 
 function getToken() {
   return wx.getStorageSync('token') || ''
@@ -18,13 +27,61 @@ function isLoggedIn() {
   return !!getToken()
 }
 
-// 跳转登录页
-function goLogin() {
+/**
+ * 跳转登录页。可选 redirectUrl：登录/选身份成功后跳转（须为 /pages/ 开头，防开放重定向）
+ */
+function goLogin(redirectUrl) {
   clearToken()
   const app = getApp()
   app.globalData.isLoggedIn = false
-  // 保留 userRole，登录后可以直接回首页
+  try {
+    if (redirectUrl && typeof redirectUrl === 'string' && redirectUrl.startsWith('/pages/')) {
+      wx.setStorageSync(POST_LOGIN_REDIRECT_KEY, redirectUrl)
+    } else {
+      wx.removeStorageSync(POST_LOGIN_REDIRECT_KEY)
+    }
+  } catch (e) {
+    /* ignore */
+  }
   wx.navigateTo({ url: '/pages/login/login' })
+}
+
+/** 登录或选角完成后调用：有则 redirectTo非 tab 页，否则回首页 */
+function navigateAfterLoginOrHome() {
+  let url = ''
+  try {
+    url = wx.getStorageSync(POST_LOGIN_REDIRECT_KEY) || ''
+    if (url) wx.removeStorageSync(POST_LOGIN_REDIRECT_KEY)
+  } catch (e) {
+    /* ignore */
+  }
+
+  const goHome = () => {
+    wx.switchTab({
+      url: '/pages/index/index',
+      fail: () => wx.reLaunch({ url: '/pages/index/index' })
+    })
+  }
+
+  if (!url || typeof url !== 'string' || !url.startsWith('/pages/')) {
+    goHome()
+    return
+  }
+
+  const q = url.indexOf('?')
+  const pathOnly = q === -1 ? url : url.slice(0, q)
+  if (TAB_BAR_PATHS.indexOf(pathOnly) !== -1) {
+    wx.switchTab({
+      url: pathOnly,
+      fail: () => goHome()
+    })
+    return
+  }
+
+  wx.redirectTo({
+    url,
+    fail: () => goHome()
+  })
 }
 
 module.exports = {
@@ -32,5 +89,6 @@ module.exports = {
   setToken,
   clearToken,
   isLoggedIn,
-  goLogin
+  goLogin,
+  navigateAfterLoginOrHome
 }

@@ -57,10 +57,18 @@ Page({
     if (!id && options.scene) {
       id = parsePostIdFromScene(options.scene)
     }
+    this._entryPostId = id ? String(id) : ''
     if (id) {
       this.loadDetail(id)
       this.loadFavStatus(id)
     }
+  },
+
+  /** 登录成功后回到本帖（scene 扫码同样有 _entryPostId） */
+  buildLoginRedirectUrl() {
+    const id = (this.data.detail && this.data.detail.id) || this._entryPostId
+    if (!id) return ''
+    return '/pages/post-detail/post-detail?id=' + encodeURIComponent(String(id))
   },
 
   onShow() {
@@ -325,7 +333,7 @@ Page({
   },
 
   onUnlockContact() {
-    if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    if (!auth.isLoggedIn()) { auth.goLogin(this.buildLoginRedirectUrl()); return }
     const postId = this.data.detail.id
     if (!postId) {
       wx.showToast({ title: '信息不存在', icon: 'none' })
@@ -572,7 +580,7 @@ Page({
   },
 
   onChat() {
-    if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    if (!auth.isLoggedIn()) { auth.goLogin(this.buildLoginRedirectUrl()); return }
     const detail = this.data.detail || {}
     const currentUserId = this.getCurrentUserId()
     const targetUserId = this.getOwnerUserId(detail)
@@ -619,6 +627,10 @@ Page({
   },
 
   loadFavStatus(id) {
+    if (!auth.isLoggedIn()) {
+      this.setData({ isFav: false })
+      return
+    }
     console.log('[post-detail] loadFavStatus called with id:', id)
     get('/favorites').then(res => {
       const list = res.data.list || res.data || []
@@ -673,7 +685,7 @@ Page({
   },
 
   onToggleFav() {
-    if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    if (!auth.isLoggedIn()) { auth.goLogin(this.buildLoginRedirectUrl()); return }
     const id = this.data.detail.id
     console.log('[post-detail] onToggleFav called with id:', id, 'current isFav:', this.data.isFav)
     post('/favorites/toggle', { targetType: 'post', targetId: id }).then((res) => {

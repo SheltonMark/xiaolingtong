@@ -7,7 +7,7 @@ Page({
     loading: false
   },
   goToIndexPage() {
-    wx.reLaunch({ url: '/pages/index/index' })
+    auth.navigateAfterLoginOrHome()
   },
   onSelectEnterprise() {
     this.setData({ selected: 'enterprise' })
@@ -51,8 +51,8 @@ Page({
         this.setData({ loading: false })
       })
     } else {
-      // Guest mode keeps the role locally for browsing.
-      this.goToIndexPage()
+      // 游客选角：始终进首页，勿消费 postLoginRedirect（留给真正登录成功）
+      wx.reLaunch({ url: '/pages/index/index' })
       this.setData({ loading: false })
     }
   }
