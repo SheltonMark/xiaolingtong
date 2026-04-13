@@ -718,6 +718,30 @@ Page({
     return lines
   },
 
+  /** 海报用正文：与详情页 desc 一致，并兜底 content（避免异常数据下 desc 为空） */
+  _posterSupplementText(detail) {
+    if (!detail) return ''
+    const fromDesc = this.normalizeText(detail.desc)
+    if (fromDesc) return fromDesc
+    return this.normalizeText(detail.content)
+  },
+
+  /** 按最大行数截断，末行过长时加省略号（…） */
+  _sliceLinesWithEllipsis(ctx, text, maxWidth, maxLines) {
+    const t = String(text || '').trim()
+    if (!t) return []
+    const lines = this._wrapText(ctx, t, maxWidth)
+    if (lines.length <= maxLines) return lines
+    const out = lines.slice(0, maxLines)
+    let last = out[maxLines - 1]
+    const ell = '\u2026'
+    while (last.length > 0 && ctx.measureText(last + ell).width > maxWidth) {
+      last = last.slice(0, -1)
+    }
+    out[maxLines - 1] = (last || '') + ell
+    return out
+  },
+
   async onGeneratePoster() {
     const detail = this.data.detail
     if (!detail || !detail.id) return
@@ -767,8 +791,21 @@ Page({
 
       const canvasNode = canvas.node
       const ctx = canvasNode.getContext('2d')
+      /**
+       * 海报画布 W×H = 750×1334（逻辑 px）
+       * - 主图：670×400，起始 y=POSTER_TOP_Y，圆角 16
+       * - 标题/字段/补充描述：左 textX=48，宽 textMaxW=W-96
+       * - 补充描述正文最多 3 行，超出在第三行末加省略号
+       * - 小程序码：140×140，(QR_X, QR_Y)
+       */
       const W = 750
       const H = 1334
+      const POSTER_TOP_Y = 96
+      const QR_SIZE = 140
+      const QR_X = W - 180
+      const QR_Y = H - 200
+      const textX = 48
+      const textMaxW = W - 96
       const dpr = 2
       canvasNode.width = W * dpr
       canvasNode.height = H * dpr
@@ -785,10 +822,10 @@ Page({
 
       await drawImg(bgPath, 0, 0, W, H)
 
-      let curY = 200
+      let curY = POSTER_TOP_Y
       if (imgPath) {
         const imgW = 670
-        const imgH = 420
+        const imgH = 400
         const imgX = (W - imgW) / 2
         ctx.save()
         const r = 16
@@ -806,12 +843,10 @@ Page({
         ctx.clip()
         await drawImg(imgPath, imgX, curY, imgW, imgH)
         ctx.restore()
-        // 图片与下方文案之间留白，避免贴太紧
-        curY += imgH + 56
+        // 图片底与标题区留白（主图与标题勿贴太紧）
+        curY += imgH + 88
       }
 
-      const textX = 48
-      const textMaxW = W - 96
       const titleText = detail.title || ''
 
       // 标题区：左侧色条 + 更大字号，层次更清晰
@@ -823,12 +858,15 @@ Page({
       const titleBlockH = titleSlice.length * titleLineH
       if (titleSlice.length) {
         ctx.fillStyle = '#10B981'
-        ctx.fillRect(textX, curY - 32, 6, titleBlockH + 8)
+        ctx.fillRect(textX, curY - 28, 6, titleBlockH + 8)
         ctx.fillStyle = '#0F172A'
         titleSlice.forEach((line, i) => {
           ctx.fillText(line, textX + 18, curY + i * titleLineH)
         })
-        curY += titleBlockH + 28
+        // 按「末行基线」下移，避免 curY+=整格 titleLineH*n 在最后一行下多留一整行空白
+        const titleBelowLastLine = 28
+        const titleToFieldGap = 6
+        curY += (titleSlice.length - 1) * titleLineH + titleBelowLastLine + titleToFieldGap
       }
 
       // 字段：浅底卡片 + 左强调条 + 标签/内容分层
@@ -872,24 +910,27 @@ Page({
         curY += blockH + 14
       })
 
-      if (detail.desc && curY < 980) {
+      // 补充描述：与详情页一致。正文行勿用 curY>1100 截断——字段多时节流后 curY 常已超过 1100，会导致只画出「补充描述」标题、正文全被跳过。
+      const supplementText = this._posterSupplementText(detail)
+      const posterBodyMaxY = H - 16
+      if (supplementText) {
         curY += 12
         ctx.font = 'bold 26px sans-serif'
         ctx.fillStyle = '#475569'
-        ctx.fillText('详情说明', textX, curY)
+        ctx.fillText('补充描述', textX, curY)
         curY += 40
         ctx.font = '28px sans-serif'
         ctx.fillStyle = '#334155'
-        const descLines = this._wrapText(ctx, detail.desc, textMaxW)
-        descLines.slice(0, 4).forEach((line) => {
-          if (curY > 1085) return
+        const descLines = this._sliceLinesWithEllipsis(ctx, supplementText, textMaxW, 3)
+        descLines.forEach((line) => {
+          if (curY > posterBodyMaxY) return
           ctx.fillText(line, textX, curY)
           curY += 36
         })
       }
 
       if (qrPath) {
-        await drawImg(qrPath, W - 180, H - 200, 140, 140)
+        await drawImg(qrPath, QR_X, QR_Y, QR_SIZE, QR_SIZE)
       }
 
       const tempPath = await new Promise((resolve, reject) => {

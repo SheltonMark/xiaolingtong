@@ -152,6 +152,13 @@ Page({
 
       const canvasNode = canvas.node
       const ctx = canvasNode.getContext('2d')
+      /**
+       * 邀请海报画布：750×1334（与帖子海报一致）
+       * - 背景：全幅
+       * - 小程序码：180×180，左上 (530, 1074) 即 (W-220, H-260)
+       * - 「我的邀请码：…」：左侧 x=40，垂直与二维码中线对齐（textBaseline middle）
+       * - 「扫描二维码…」：水平居中 x=375，基线约 y=1290（qr 底 +36）
+       */
       const W = 750
       const H = 1334
       const dpr = 2
