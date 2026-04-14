@@ -110,15 +110,41 @@ export class InviteService {
     return config ? parseFloat(config.value) || 0.1 : 0.1;
   }
 
-  private async getAccessToken(): Promise<string> {
-    const now = Date.now();
-    if (this.accessToken && now < this.accessTokenExpireAt) {
-      return this.accessToken;
-    }
+  /** 拉取接口调用凭据：优先 stable_token，与其它模块 cgi-bin/token 并存时更不易被顶掉导致 40001 */
+  private async fetchAccessTokenFromWechat(): Promise<{
+    token: string;
+    expiresIn: number;
+  }> {
     const appid = this.nestConfig.get('WX_APPID');
     const secret = this.nestConfig.get('WX_SECRET');
     if (!appid || !secret) {
       throw new BadRequestException('未配置微信小程序参数');
+    }
+    try {
+      const { data } = await axios.post(
+        'https://api.weixin.qq.com/cgi-bin/stable_token',
+        {
+          grant_type: 'client_credential',
+          appid,
+          secret,
+        },
+        {
+          timeout: 10000,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+      if (data?.access_token && !data.errcode) {
+        return {
+          token: data.access_token,
+          expiresIn: Number(data.expires_in || 7200),
+        };
+      }
+      this.logger.warn(
+        `stable_token 未返回有效 access_token: ${JSON.stringify(data)}`,
+      );
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.logger.warn(`stable_token 请求失败，回退 cgi-bin/token: ${msg}`);
     }
     const { data } = await axios.get(
       `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appid}&secret=${secret}`,
@@ -128,8 +154,23 @@ export class InviteService {
       this.logger.warn(`getAccessToken failed: ${JSON.stringify(data)}`);
       throw new BadRequestException('获取 access_token 失败');
     }
-    this.accessToken = data.access_token;
-    const expiresIn = Number(data.expires_in || 7200);
+    return {
+      token: data.access_token,
+      expiresIn: Number(data.expires_in || 7200),
+    };
+  }
+
+  private async getAccessToken(forceRefresh = false): Promise<string> {
+    const now = Date.now();
+    if (forceRefresh) {
+      this.accessToken = '';
+      this.accessTokenExpireAt = 0;
+    }
+    if (this.accessToken && now < this.accessTokenExpireAt) {
+      return this.accessToken;
+    }
+    const { token, expiresIn } = await this.fetchAccessTokenFromWechat();
+    this.accessToken = token;
     this.accessTokenExpireAt =
       Date.now() + Math.max(expiresIn - 300, 60) * 1000;
     return this.accessToken;
@@ -241,25 +282,41 @@ export class InviteService {
       await this.configRepo.delete({ key: cacheKey });
     }
 
-    const token = await this.getAccessToken();
+    let resp: { data: ArrayBuffer; headers: Record<string, unknown> };
+    let contentType = '';
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const token = await this.getAccessToken(attempt > 0);
+      resp = await axios.post(
+        `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${token}`,
+        {
+          scene,
+          page,
+          width: 280,
+          auto_color: false,
+          line_color: { r: 59, g: 130, b: 246 },
+        },
+        { responseType: 'arraybuffer', timeout: 15000 },
+      );
 
-    const resp = await axios.post(
-      `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${token}`,
-      {
-        scene,
-        page,
-        width: 280,
-        auto_color: false,
-        line_color: { r: 59, g: 130, b: 246 },
-      },
-      { responseType: 'arraybuffer', timeout: 15000 },
-    );
-
-    const contentType = String(
-      resp.headers['content-type'] || '',
-    ).toLowerCase();
-    if (contentType.includes('json') || !contentType.includes('image')) {
+      contentType = String(
+        resp.headers['content-type'] || '',
+      ).toLowerCase();
+      if (!contentType.includes('json') && contentType.includes('image')) {
+        break;
+      }
       const errText = Buffer.from(resp.data).toString('utf-8');
+      let errcode = 0;
+      try {
+        errcode = Number(JSON.parse(errText).errcode || 0);
+      } catch {
+        /* ignore */
+      }
+      if (errcode === 40001 && attempt === 0) {
+        this.logger.warn(
+          'getwxacodeunlimit 40001 invalid credential，强制刷新 token 重试一次',
+        );
+        continue;
+      }
       this.logger.warn(`getwxacodeunlimit error: ${errText}`);
       throw new BadRequestException(
         '生成小程序码失败: ' + errText.slice(0, 200),

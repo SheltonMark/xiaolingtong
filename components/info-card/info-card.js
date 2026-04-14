@@ -66,7 +66,8 @@ Component({
       }
     },
     onTapCard() {
-      this.triggerEvent('tap', { id: this.data.item.id })
+      // 勿用事件名 tap：与原生 tap 冲突，父级 bind:tap 会先收到无 detail.id 的冒泡，导致 id=undefined
+      this.triggerEvent('cardtap', { id: this.data.item.id })
     },
     onTapWechat() {
       this.triggerEvent('wechat', { id: this.data.item.id })
