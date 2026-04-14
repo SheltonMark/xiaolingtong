@@ -282,11 +282,10 @@ export class InviteService {
       await this.configRepo.delete({ key: cacheKey });
     }
 
-    let resp: { data: ArrayBuffer; headers: Record<string, unknown> };
-    let contentType = '';
+    let resp: { data: ArrayBuffer; headers: Record<string, unknown> } | undefined;
     for (let attempt = 0; attempt < 2; attempt++) {
       const token = await this.getAccessToken(attempt > 0);
-      resp = await axios.post(
+      const r = await axios.post(
         `https://api.weixin.qq.com/wxa/getwxacodeunlimit?access_token=${token}`,
         {
           scene,
@@ -298,13 +297,14 @@ export class InviteService {
         { responseType: 'arraybuffer', timeout: 15000 },
       );
 
-      contentType = String(
-        resp.headers['content-type'] || '',
+      const contentType = String(
+        r.headers['content-type'] || '',
       ).toLowerCase();
       if (!contentType.includes('json') && contentType.includes('image')) {
+        resp = r;
         break;
       }
-      const errText = Buffer.from(resp.data).toString('utf-8');
+      const errText = Buffer.from(r.data).toString('utf-8');
       let errcode = 0;
       try {
         errcode = Number(JSON.parse(errText).errcode || 0);
@@ -321,6 +321,10 @@ export class InviteService {
       throw new BadRequestException(
         '生成小程序码失败: ' + errText.slice(0, 200),
       );
+    }
+
+    if (!resp?.data) {
+      throw new BadRequestException('生成小程序码失败');
     }
 
     const filename = `wxacode_${cacheKey.replace(/[^a-zA-Z0-9_-]/g, '_')}_${Date.now()}.png`;
