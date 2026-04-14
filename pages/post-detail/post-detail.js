@@ -805,10 +805,8 @@ Page({
       const ctx = canvasNode.getContext('2d')
       /**
        * 海报画布 W×H = 750×1334（逻辑 px）
-       * - 主图：670×400，起始 y=POSTER_TOP_Y，圆角 16
-       * - 标题/字段/补充描述：左 textX=48，宽 textMaxW=W-96
-       * - 补充描述正文最多 3 行，超出在第三行末加省略号
-       * - 小程序码：140×140，(QR_X, QR_Y)
+       * - 主图：670×670；帖标题在卡片外；字段+补充描述合并单张圆角卡片
+       * - 字段：标签常规字重，值加粗；卡片底不超过 QR_Y - QR_MARGIN_ABOVE，避免与码重叠
        */
       const W = 750
       const H = 1334
@@ -816,6 +814,8 @@ Page({
       const QR_SIZE = 140
       const QR_X = W - 180
       const QR_Y = H - 200
+      const QR_MARGIN_ABOVE = 56
+      const cardRectBottomMax = QR_Y - QR_MARGIN_ABOVE
       const textX = 48
       const textMaxW = W - 96
       const dpr = 2
@@ -834,10 +834,27 @@ Page({
 
       await drawImg(bgPath, 0, 0, W, H)
 
+      const fillRoundRect = (x, y, rw, rh, rad, fillStyle) => {
+        const rr = Math.min(rad, rw / 2, rh / 2)
+        ctx.fillStyle = fillStyle
+        ctx.beginPath()
+        ctx.moveTo(x + rr, y)
+        ctx.lineTo(x + rw - rr, y)
+        ctx.arcTo(x + rw, y, x + rw, y + rr, rr)
+        ctx.lineTo(x + rw, y + rh - rr)
+        ctx.arcTo(x + rw, y + rh, x + rw - rr, y + rh, rr)
+        ctx.lineTo(x + rr, y + rh)
+        ctx.arcTo(x, y + rh, x, y + rh - rr, rr)
+        ctx.lineTo(x, y + rr)
+        ctx.arcTo(x, y, x + rr, y, rr)
+        ctx.closePath()
+        ctx.fill()
+      }
+
       let curY = POSTER_TOP_Y
       if (imgPath) {
         const imgW = 670
-        const imgH = 400
+        const imgH = imgW
         const imgX = (W - imgW) / 2
         ctx.save()
         const r = 16
@@ -861,84 +878,149 @@ Page({
 
       const titleText = detail.title || ''
 
-      // 标题区：左侧色条 + 更大字号，层次更清晰
-      ctx.font = 'bold 36px sans-serif'
+      // 帖标题（卡片外）：略收字号，竖条与卡片左条宽一致
+      const titleAccentW = 5
+      const titleTextLeft = textX + titleAccentW + 12
+      const titleMaxW = textMaxW - (titleTextLeft - textX)
+      ctx.font = 'bold 32px sans-serif'
       ctx.fillStyle = '#0F172A'
-      const titleLines = this._wrapText(ctx, titleText, textMaxW - 20)
+      const titleLines = this._wrapText(ctx, titleText, titleMaxW)
       const titleSlice = titleLines.slice(0, 2)
-      const titleLineH = 50
-      const titleBlockH = titleSlice.length * titleLineH
+      const titleLineH = 46
       if (titleSlice.length) {
+        const barTop = curY - 26
+        const barH = titleSlice.length * titleLineH + 8
         ctx.fillStyle = '#10B981'
-        ctx.fillRect(textX, curY - 28, 6, titleBlockH + 8)
+        ctx.fillRect(textX, barTop, titleAccentW, barH)
         ctx.fillStyle = '#0F172A'
         titleSlice.forEach((line, i) => {
-          ctx.fillText(line, textX + 18, curY + i * titleLineH)
+          ctx.fillText(line, titleTextLeft, curY + i * titleLineH)
         })
-        // 按「末行基线」下移，避免 curY+=整格 titleLineH*n 在最后一行下多留一整行空白
-        const titleBelowLastLine = 28
-        const titleToFieldGap = 6
-        curY += (titleSlice.length - 1) * titleLineH + titleBelowLastLine + titleToFieldGap
+        curY += (titleSlice.length - 1) * titleLineH + 26 + 14
       }
 
-      // 字段：浅底卡片 + 左强调条 + 标签/内容分层
-      const fields = detail.fields || []
-      const fieldPad = 14
-      const innerX = textX + fieldPad + 10
-      const innerMaxW = textMaxW - fieldPad * 2 - 10
+      // —— 单卡片：字段 + 补充描述（先预排版，避免与右下角码重叠）——
+      const CARD_PAD = 16
+      const CARD_RADIUS = 12
+      const STRIPE_W = 5
+      const contentX = textX + CARD_PAD + STRIPE_W + 10
+      const contentW = textMaxW - CARD_PAD * 2 - STRIPE_W - 10
+      const supplementText = this._posterSupplementText(detail)
+      const reserveSup = supplementText ? 96 : 0
+      const labelLineH = 26
+      const labelToValGap = 6
+      const valLineH = 32
+      const fieldSectionGap = 12
+      const supTitleH = 24
+      const supTitleGap = 8
+      const supBodyLineH = 28
 
-      fields.slice(0, 5).forEach((f) => {
-        if (curY > 1010) return
+      const innerBottomY = cardRectBottomMax - CARD_PAD
+      const cardTop = curY + 10
+      let simCursor = CARD_PAD + 22
+      const fieldBlocks = []
+      const fieldsList = detail.fields || []
+      ctx.font = 'bold 28px sans-serif'
+
+           for (let i = 0; i < fieldsList.length && i < 12; i += 1) {
+        const f = fieldsList[i]
         const label = String(f.label || '').trim()
         const val = String(f.value || '').trim()
-        if (!label && !val) return
-
-        const labelText = label ? label + '：' : ''
-        ctx.font = '600 30px sans-serif'
-        const valLines = this._wrapText(ctx, val || '—', innerMaxW)
-        const valShown = valLines.slice(0, 2)
-        const labelLineH = 30
-        const valLineH = 36
-        let blockH = fieldPad * 2 + (labelText ? labelLineH + 8 : 0) + valShown.length * valLineH
-
-        ctx.fillStyle = '#F1F5F9'
-        ctx.fillRect(textX, curY, textMaxW, blockH)
-        ctx.fillStyle = '#10B981'
-        ctx.fillRect(textX, curY, 5, blockH)
-
-        let lineY = curY + fieldPad + 22
-        if (labelText) {
-          ctx.font = 'bold 24px sans-serif'
-          ctx.fillStyle = '#047857'
-          ctx.fillText(labelText, innerX, lineY)
-          lineY += labelLineH + 8
+        if (!label && !val) continue
+        const valLinesAll = this._wrapText(ctx, val || '—', contentW)
+        let take = Math.min(3, Math.max(1, valLinesAll.length))
+        let placed = false
+        while (take >= 1) {
+          const blockH = labelLineH + labelToValGap + take * valLineH + fieldSectionGap
+          if (cardTop + simCursor + blockH <= innerBottomY - reserveSup) {
+            fieldBlocks.push({ label, valLines: valLinesAll.slice(0, take) })
+            simCursor += blockH
+            placed = true
+            break
+          }
+          take -= 1
         }
-        ctx.font = '600 30px sans-serif'
-        ctx.fillStyle = '#0F172A'
-        valShown.forEach((line) => {
-          ctx.fillText(line, innerX, lineY)
-          lineY += valLineH
-        })
-        curY += blockH + 14
-      })
+        if (!placed) break
+      }
 
-      // 补充描述：与详情页一致。正文行勿用 curY>1100 截断——字段多时节流后 curY 常已超过 1100，会导致只画出「补充描述」标题、正文全被跳过。
-      const supplementText = this._posterSupplementText(detail)
-      const posterBodyMaxY = H - 16
-      if (supplementText) {
-        curY += 12
-        ctx.font = 'bold 26px sans-serif'
-        ctx.fillStyle = '#475569'
-        ctx.fillText('补充描述', textX, curY)
-        curY += 40
-        ctx.font = '28px sans-serif'
-        ctx.fillStyle = '#334155'
-        const descLines = this._sliceLinesWithEllipsis(ctx, supplementText, textMaxW, 3)
-        descLines.forEach((line) => {
-          if (curY > posterBodyMaxY) return
-          ctx.fillText(line, textX, curY)
-          curY += 36
+      if (fieldBlocks.length === 0) {
+        simCursor = CARD_PAD + 16
+      }
+
+      ctx.font = '26px sans-serif'
+      let supLines = supplementText
+        ? this._sliceLinesWithEllipsis(ctx, supplementText, contentW, 4)
+        : []
+      const supExtraBase = 4 + 14 + supTitleH + supTitleGap
+      const trimSup = () => {
+        while (
+          supLines.length > 0 &&
+          cardTop + simCursor + supExtraBase + supLines.length * supBodyLineH > innerBottomY
+        ) {
+          supLines = supLines.slice(0, -1)
+        }
+      }
+      trimSup()
+      if (supplementText && supLines.length === 0) {
+        supLines = []
+      }
+
+      const supH =
+        supLines.length > 0 ? supExtraBase + supLines.length * supBodyLineH : 0
+      let cardH = simCursor + supH + CARD_PAD
+      cardH = Math.min(cardH, cardRectBottomMax - cardTop)
+      cardH = Math.max(cardH, CARD_PAD * 2 + 24)
+
+      if (fieldBlocks.length > 0 || supLines.length > 0) {
+        fillRoundRect(textX, cardTop, textMaxW, cardH, CARD_RADIUS, '#F1F5F9')
+        ctx.fillStyle = '#10B981'
+        ctx.beginPath()
+        ctx.moveTo(textX + CARD_RADIUS, cardTop)
+        ctx.lineTo(textX + STRIPE_W, cardTop)
+        ctx.lineTo(textX + STRIPE_W, cardTop + cardH)
+        ctx.lineTo(textX + CARD_RADIUS, cardTop + cardH)
+        ctx.quadraticCurveTo(textX, cardTop + cardH, textX, cardTop + cardH - CARD_RADIUS)
+        ctx.lineTo(textX, cardTop + CARD_RADIUS)
+        ctx.quadraticCurveTo(textX, cardTop, textX + CARD_RADIUS, cardTop)
+        ctx.closePath()
+        ctx.fill()
+
+        let penY =
+          fieldBlocks.length > 0 ? cardTop + CARD_PAD + 22 : cardTop + CARD_PAD + 16
+        fieldBlocks.forEach((blk) => {
+          const lab = blk.label ? `${blk.label}：` : ''
+          ctx.font = '26px sans-serif'
+          ctx.fillStyle = '#64748B'
+          ctx.fillText(lab, contentX, penY)
+          penY += labelLineH + labelToValGap
+          ctx.font = 'bold 28px sans-serif'
+          ctx.fillStyle = '#0F172A'
+          blk.valLines.forEach((line) => {
+            ctx.fillText(line, contentX, penY)
+            penY += valLineH
+          })
+          penY += fieldSectionGap
         })
+
+        if (supLines.length > 0) {
+          penY += 4
+          ctx.strokeStyle = '#E2E8F0'
+          ctx.lineWidth = 1
+          ctx.beginPath()
+          ctx.moveTo(contentX, penY)
+          ctx.lineTo(textX + textMaxW - CARD_PAD, penY)
+          ctx.stroke()
+          penY += 14
+          ctx.font = '26px sans-serif'
+          ctx.fillStyle = '#64748B'
+          ctx.fillText('补充描述', contentX, penY)
+          penY += supTitleH + supTitleGap
+          ctx.fillStyle = '#334155'
+          supLines.forEach((line) => {
+            ctx.fillText(line, contentX, penY)
+            penY += supBodyLineH
+          })
+        }
       }
 
       if (qrPath) {
