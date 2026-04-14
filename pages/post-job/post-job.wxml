@@ -7,6 +7,19 @@
     <input class="form-input" placeholder="如：电子组装工15人，20元/时" data-field="title" bindinput="onInput" />
   </view>
 
+  <!-- 展示地区（与首页开放城市一致） -->
+  <view class="form-card">
+    <view class="form-group">
+      <text class="form-label required">展示地区</text>
+      <picker mode="selector" range="{{openCityNames}}" value="{{openCityIndex}}" bindchange="onOpenCityChange">
+        <view class="form-picker">
+          <text class="{{openCityId ? '' : 'placeholder'}}">{{openCityNames[openCityIndex] || '请选择地区'}}</text>
+          <text class="picker-arrow">▼</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+
   <!-- 工种 + 结算方式 -->
   <view class="form-card">
     <view class="form-group">

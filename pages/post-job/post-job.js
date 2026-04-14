@@ -40,7 +40,11 @@ Page({
     submitting: false,
     phoneChecked: false,
     wechatChecked: false,
-    wechatQrChecked: false
+    wechatQrChecked: false,
+    openCities: [],
+    openCityNames: [],
+    openCityIndex: 0,
+    openCityId: 0
   },
 
   onLoad() {
@@ -82,11 +86,41 @@ Page({
       }
 
       this.loadJobTypes()
+      this.loadOpenCities()
       this.initContactInfo()
     }).catch(() => {
       this.loadJobTypes()
+      this.loadOpenCities()
       this.initContactInfo()
     })
+  },
+
+  loadOpenCities() {
+    get('/config/cities')
+      .then((res) => {
+        const openCities = res.data.list || []
+        const openCityNames = openCities.map((c) => c.name).filter(Boolean)
+        const savedName = wx.getStorageSync('currentCity') || '义乌'
+        let idx = savedName ? openCityNames.indexOf(savedName) : -1
+        if (idx < 0 && openCities.length) idx = 0
+        const picked = openCities[idx]
+        const openCityId =
+          picked && picked.id != null && picked.id !== ''
+            ? Number(picked.id)
+            : 0
+        this.setData({ openCities, openCityNames, openCityIndex: idx < 0 ? 0 : idx, openCityId })
+      })
+      .catch(() => {})
+  },
+
+  onOpenCityChange(e) {
+    const idx = Number(e.detail.value)
+    const list = this.data.openCities || []
+    const city = list[idx]
+    if (!city) return
+    const openCityId =
+      city.id != null && city.id !== '' ? Number(city.id) : 0
+    this.setData({ openCityIndex: idx, openCityId })
   },
 
   loadJobTypes() {
@@ -265,6 +299,10 @@ Page({
     if (!form.price) { wx.showToast({ title: '请输入工价', icon: 'none' }); return }
     if (!form.headcount) { wx.showToast({ title: '请输入招工人数', icon: 'none' }); return }
     if (!form.startDate || !form.endDate) { wx.showToast({ title: '请选择工作日期', icon: 'none' }); return }
+    if (!(this.data.openCityId > 0)) {
+      wx.showToast({ title: '请选择地区', icon: 'none' })
+      return
+    }
     if (!form.address) { wx.showToast({ title: '请选择工作地点', icon: 'none' }); return }
     if (!form.contactName) { wx.showToast({ title: '请输入联系人', icon: 'none' }); return }
     if (!phoneChecked && !wechatChecked && !wechatQrChecked) {
@@ -290,6 +328,7 @@ Page({
       dateEnd: form.endDate,
       workHours: `${form.startTime || '08:00'}-${form.endTime || '18:00'}`,
       location: form.address,
+      openCityId: this.data.openCityId,
       lat: form.lat,
       lng: form.lng,
       contactName: form.contactName,

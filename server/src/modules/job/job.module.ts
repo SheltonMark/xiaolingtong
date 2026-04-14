@@ -11,10 +11,11 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { OpenCity } from '../../entities/open-city.entity';
 import { WechatSecurityModule } from '../wechat-security/wechat-security.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert, WorkerCert, User, BeanTransaction, Notification, SysConfig]), WechatSecurityModule],
+  imports: [TypeOrmModule.forFeature([Job, Keyword, JobApplication, EnterpriseCert, WorkerCert, User, BeanTransaction, Notification, SysConfig, OpenCity]), WechatSecurityModule],
   controllers: [JobController],
   providers: [JobService],
   exports: [JobService],

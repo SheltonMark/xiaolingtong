@@ -14,6 +14,8 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { OpenCity } from '../../entities/open-city.entity';
+import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
 const createJobQueryBuilder = (rows: any[], total: number) => ({
   leftJoinAndSelect: jest.fn().mockReturnThis(),
@@ -45,6 +47,7 @@ describe('JobService', () => {
   let beanTransactionRepository: any;
   let notificationRepository: any;
   let sysConfigRepository: any;
+  let openCityRepository: any;
 
   beforeEach(async () => {
     jobRepository = {
@@ -111,6 +114,26 @@ describe('JobService', () => {
       findOne: jest.fn().mockResolvedValue(null),
     };
 
+    openCityRepository = {
+      findOne: jest.fn().mockImplementation((opts: any) => {
+        const w = opts?.where || {};
+        if (w.id != null && w.isActive === 1) {
+          return Promise.resolve({
+            id: Number(w.id),
+            name: '义乌',
+            isActive: 1,
+          });
+        }
+        if (w.name === '义乌' && w.isActive === 1) {
+          return Promise.resolve({ id: 1, name: '义乌', isActive: 1 });
+        }
+        return Promise.resolve(null);
+      }),
+      find: jest
+        .fn()
+        .mockResolvedValue([{ id: 1, name: '义乌', isActive: 1 }]),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         JobService,
@@ -149,6 +172,16 @@ describe('JobService', () => {
         {
           provide: getRepositoryToken(SysConfig),
           useValue: sysConfigRepository,
+        },
+        {
+          provide: getRepositoryToken(OpenCity),
+          useValue: openCityRepository,
+        },
+        {
+          provide: WechatSecurityService,
+          useValue: {
+            assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
+          },
         },
       ],
     }).compile();
@@ -306,6 +339,7 @@ describe('JobService', () => {
     it('creates a job successfully', async () => {
       const dto = {
         title: '新岗位',
+        jobType: '电工',
         salary: 100,
         needCount: 5,
         location: 'Beijing',
@@ -313,10 +347,13 @@ describe('JobService', () => {
         contactPhone: '13800000000',
         dateStart: '2026-03-10',
         dateEnd: '2026-03-20',
+        openCityId: 1,
+        showPhone: true,
       };
 
       keywordRepository.find.mockResolvedValue([]);
       jobRepository.findOne.mockResolvedValue(null);
+      userRepository.findOneBy.mockResolvedValue({ id: 1, openid: 'o-test' });
       jobRepository.create.mockImplementation((payload) => ({
         id: 1,
         ...payload,
@@ -339,6 +376,7 @@ describe('JobService', () => {
     it('normalizes object-shaped benefits and images before saving', async () => {
       const dto = {
         title: '新岗位',
+        jobType: '电工',
         salary: 100,
         needCount: 5,
         location: 'Beijing',
@@ -346,12 +384,15 @@ describe('JobService', () => {
         contactPhone: '13800000000',
         dateStart: '2026-03-10',
         dateEnd: '2026-03-20',
+        openCityId: 1,
+        showPhone: true,
         benefits: { 0: '包午餐', 1: '包住宿' },
         images: { 0: 'image1.jpg', 1: 'image2.jpg' },
       };
 
       keywordRepository.find.mockResolvedValue([]);
       jobRepository.findOne.mockResolvedValue(null);
+      userRepository.findOneBy.mockResolvedValue({ id: 1, openid: 'o-test' });
       jobRepository.create.mockImplementation((payload) => ({
         id: 1,
         ...payload,
@@ -379,6 +420,7 @@ describe('JobService', () => {
     it('returns the recent existing job for duplicate submits', async () => {
       const dto = {
         title: 'duplicate job',
+        jobType: '电工',
         salary: 100,
         needCount: 5,
         location: 'Beijing',
@@ -386,6 +428,8 @@ describe('JobService', () => {
         contactPhone: '13800000000',
         dateStart: '2026-03-10',
         dateEnd: '2026-03-20',
+        openCityId: 1,
+        showPhone: true,
       };
       const existingJob = {
         id: 9,
@@ -396,6 +440,7 @@ describe('JobService', () => {
 
       keywordRepository.find.mockResolvedValue([]);
       jobRepository.findOne.mockResolvedValue(existingJob);
+      userRepository.findOneBy.mockResolvedValue({ id: 1, openid: 'o-test' });
 
       const result = await service.create(1, dto);
 
@@ -417,6 +462,7 @@ describe('JobService', () => {
     it('throws on keyword violation', async () => {
       const dto = {
         title: 'forbidden job',
+        jobType: '电工',
         salary: 100,
         needCount: 5,
         location: 'Beijing',
@@ -424,9 +470,12 @@ describe('JobService', () => {
         contactPhone: '13800000000',
         dateStart: '2026-03-10',
         dateEnd: '2026-03-20',
+        openCityId: 1,
+        showPhone: true,
       };
 
       keywordRepository.find.mockResolvedValue([{ word: 'forbidden' }]);
+      userRepository.findOneBy.mockResolvedValue({ id: 1, openid: 'o-test' });
 
       await expect(service.create(1, dto)).rejects.toThrow(BadRequestException);
     });
@@ -439,6 +488,7 @@ describe('JobService', () => {
       jobRepository.findOne.mockResolvedValue(job);
       keywordRepository.find.mockResolvedValue([]);
       jobRepository.save.mockImplementation(async (payload) => payload);
+      userRepository.findOneBy.mockResolvedValue({ id: 7, openid: 'o-test' });
 
       const result = await service.update(1, 7, { title: '新标题' });
 

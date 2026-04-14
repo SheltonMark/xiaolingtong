@@ -10,6 +10,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
+import { OpenCity } from '../../entities/open-city.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 import { findRecentDuplicate } from '../../common/recent-create-dedupe';
 
@@ -30,8 +31,42 @@ export class PostService {
     @InjectRepository(Job) private jobRepo: Repository<Job>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
     @InjectRepository(Promotion) private promoRepo: Repository<Promotion>,
+    @InjectRepository(OpenCity) private openCityRepo: Repository<OpenCity>,
     private wechatSecurityService: WechatSecurityService,
   ) {}
+
+  /** 解析首页默认城市「义乌」的 id，未配置时返回 null */
+  private async resolveDefaultOpenCityId(): Promise<number | null> {
+    const row = await this.openCityRepo.findOne({
+      where: { name: '义乌', isActive: 1 },
+    });
+    return row ? Number(row.id) : null;
+  }
+
+  private async assertOpenCityActive(openCityId: number): Promise<OpenCity> {
+    const city = await this.openCityRepo.findOne({
+      where: { id: openCityId, isActive: 1 },
+    });
+    if (!city) {
+      throw new BadRequestException('无效或未启用的地区');
+    }
+    return city;
+  }
+
+  private async mapOpenCityNames(posts: Post[]): Promise<Map<number, string>> {
+    const ids = [
+      ...new Set(
+        (posts || [])
+          .map((p) => (p.openCityId != null ? Number(p.openCityId) : null))
+          .filter((id): id is number => id != null && id > 0),
+      ),
+    ];
+    if (!ids.length) return new Map();
+    const rows = await this.openCityRepo.find({
+      where: { id: In(ids) },
+    });
+    return new Map(rows.map((r) => [Number(r.id), r.name]));
+  }
 
   private async getConfig(key: string, defaultValue: string): Promise<string> {
     const row = await this.sysConfigRepo.findOne({ where: { key } });
@@ -280,6 +315,15 @@ export class PostService {
       );
     }
 
+    const rawOcid = query.openCityId ?? query.cityId;
+    let filterOcid = parseInt(String(rawOcid), 10);
+    if (!Number.isFinite(filterOcid) || filterOcid <= 0) {
+      filterOcid = (await this.resolveDefaultOpenCityId()) ?? 0;
+    }
+    if (filterOcid > 0) {
+      qb.andWhere('p.openCityId = :filterOcid', { filterOcid });
+    }
+
     qb.orderBy('p.createdAt', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize);
@@ -287,6 +331,7 @@ export class PostService {
     const [list, total] = await qb.getManyAndCount();
     const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
     const promotedIds = await this.getPromotedPostIds((list || []).map(item => Number(item.id)));
+    const cityNameById = await this.mapOpenCityNames(list || []);
 
     // 查询当前用户已解锁的信息
     const postIds = list.map(item => Number(item.id));
@@ -305,8 +350,15 @@ export class PostService {
       const isUnlocked = isOwner || unlockedPostIds.has(postId);
 
       // 构建基础信息
+      const ocRaw = item.openCityId as number | string | null | undefined;
+      const ocId =
+        ocRaw != null && String(ocRaw).trim() !== ''
+          ? Number(ocRaw)
+          : null;
       const baseInfo = {
         ...this.buildCompanyInfo(item, certMap),
+        openCityId: ocId,
+        openCityName: ocId ? cityNameById.get(ocId) ?? null : null,
         isPromoted: promotedIds.has(postId),
         contactUnlocked: isUnlocked,
       };
@@ -367,12 +419,19 @@ export class PostService {
     const [list, total] = await qb.getManyAndCount();
     const certMap = await this.getEnterpriseCertMap((list || []).map(item => Number(item.userId)));
     const promotedIds = await this.getPromotedPostIds((list || []).map(item => Number(item.id)));
-    const normalizedList = (list || []).map(item => ({
-      ...this.buildCompanyInfo(item, certMap),
-      isPromoted: promotedIds.has(Number(item.id)),
-      contactUnlocked: true, // 自己的信息始终已解锁
-      ...this.buildVisibleContactInfo(item, true),
-    }));
+    const cityNameById = await this.mapOpenCityNames(list || []);
+    const normalizedList = (list || []).map(item => {
+      const ocId =
+        item.openCityId != null ? Number(item.openCityId) : null;
+      return {
+        ...this.buildCompanyInfo(item, certMap),
+        openCityId: ocId,
+        openCityName: ocId ? cityNameById.get(ocId) ?? null : null,
+        isPromoted: promotedIds.has(Number(item.id)),
+        contactUnlocked: true,
+        ...this.buildVisibleContactInfo(item, true),
+      };
+    });
     return { list: normalizedList, total, page: +page, pageSize: +pageSize };
   }
 
@@ -396,6 +455,9 @@ export class PostService {
     const certMap = await this.getEnterpriseCertMap([Number(post.userId)]);
 
     const normalizedPost = this.buildCompanyInfo(post, certMap);
+    const cityNameById = await this.mapOpenCityNames([post]);
+    const detailOpenCityId =
+      post.openCityId != null ? Number(post.openCityId) : null;
 
     // 判断是否已解锁（修复类型比较问题）
     const postUserId = Number(post.userId);
@@ -407,6 +469,10 @@ export class PostService {
 
     return {
       ...normalizedPost,
+      openCityId: detailOpenCityId,
+      openCityName: detailOpenCityId
+        ? cityNameById.get(detailOpenCityId) ?? null
+        : null,
       ...contactInfo,
       postCount: userPostCount,
       contactUnlocked: isUnlocked,
@@ -433,13 +499,14 @@ export class PostService {
       address: rawAddress,
       lat: rawLat,
       lng: rawLng,
+      openCityId: rawOpenCityId,
       ...structuredFields
     } = dto;
 
     const processMode =
       type === 'process' ? this.normalizeProcessMode(rawProcessMode) : '';
     if (type === 'process' && !processMode) {
-      throw new BadRequestException('璇烽€夋嫨鍔犲伐绫诲瀷');
+      throw new BadRequestException('请选择加工类型');
     }
     const normalizedTitle =
       type === 'process'
@@ -513,6 +580,14 @@ export class PostService {
     const normalizedAddress = this.normalizeText(rawAddress) || null;
     const parsedLat = rawLat !== undefined && rawLat !== null && rawLat !== '' ? Number(rawLat) : null;
     const parsedLng = rawLng !== undefined && rawLng !== null && rawLng !== '' ? Number(rawLng) : null;
+    const parsedOpenCityId =
+      rawOpenCityId !== undefined && rawOpenCityId !== null && rawOpenCityId !== ''
+        ? Number(rawOpenCityId)
+        : NaN;
+    if (!Number.isFinite(parsedOpenCityId) || parsedOpenCityId <= 0) {
+      throw new BadRequestException('请选择地区');
+    }
+    await this.assertOpenCityActive(parsedOpenCityId);
 
     const postData: Partial<Post> = {
       userId,
@@ -521,6 +596,7 @@ export class PostService {
       industry: category,
       processMode: processMode || undefined,
       content,
+      openCityId: parsedOpenCityId,
       expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : undefined,
       showPhone: phoneVisible ? 1 : 0,
       showWechat: wechatVisible ? 1 : 0,
@@ -552,7 +628,20 @@ export class PostService {
       images: [dto.images, dto.contactWechatQr],
       openid: submitter?.openid,
     });
-    Object.assign(post, dto);
+    const { openCityId: rawOc, ...rest } = dto || {};
+    if (
+      rawOc !== undefined &&
+      rawOc !== null &&
+      rawOc !== ''
+    ) {
+      const ocid = parseInt(String(rawOc), 10);
+      if (!Number.isFinite(ocid) || ocid <= 0) {
+        throw new BadRequestException('请选择地区');
+      }
+      await this.assertOpenCityActive(ocid);
+      post.openCityId = ocid;
+    }
+    Object.assign(post, rest);
     return this.postRepo.save(post);
   }
 

@@ -10,6 +10,7 @@ import { User } from '../../entities/user.entity';
 import { BeanTransaction } from '../../entities/bean-transaction.entity';
 import { Notification } from '../../entities/notification.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
+import { OpenCity } from '../../entities/open-city.entity';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 import { findRecentDuplicate } from '../../common/recent-create-dedupe';
 import { getEnterpriseStatusDisplay, getEnterpriseStatusTone } from '../application/status-mapping';
@@ -30,8 +31,39 @@ export class JobService {
     @InjectRepository(BeanTransaction) private beanTxRepo: Repository<BeanTransaction>,
     @InjectRepository(Notification) private notiRepo: Repository<Notification>,
     @InjectRepository(SysConfig) private sysConfigRepo: Repository<SysConfig>,
+    @InjectRepository(OpenCity) private openCityRepo: Repository<OpenCity>,
     private wechatSecurityService: WechatSecurityService,
   ) {}
+
+  private async resolveDefaultOpenCityId(): Promise<number | null> {
+    const row = await this.openCityRepo.findOne({
+      where: { name: '义乌', isActive: 1 },
+    });
+    return row ? Number(row.id) : null;
+  }
+
+  private async assertOpenCityActive(openCityId: number): Promise<OpenCity> {
+    const city = await this.openCityRepo.findOne({
+      where: { id: openCityId, isActive: 1 },
+    });
+    if (!city) {
+      throw new BadRequestException('无效或未启用的地区');
+    }
+    return city;
+  }
+
+  private async mapOpenCityNames(jobs: Job[]): Promise<Map<number, string>> {
+    const ids = [
+      ...new Set(
+        (jobs || [])
+          .map((j) => (j.openCityId != null ? Number(j.openCityId) : null))
+          .filter((id): id is number => id != null && id > 0),
+      ),
+    ];
+    if (!ids.length) return new Map();
+    const rows = await this.openCityRepo.find({ where: { id: In(ids) } });
+    return new Map(rows.map((r) => [Number(r.id), r.name]));
+  }
 
   private async getEnterpriseCompanyName(userId: number, fallback = '企业用户') {
     const cert = await this.entCertRepo.findOne({
@@ -348,6 +380,11 @@ export class JobService {
     const hasShowPhone = Object.prototype.hasOwnProperty.call(dto, 'showPhone');
     const hasShowWechat = Object.prototype.hasOwnProperty.call(dto, 'showWechat');
     const hasShowWechatQr = Object.prototype.hasOwnProperty.call(dto, 'showWechatQr');
+    const rawOcid = dto.openCityId;
+    const ocid =
+      rawOcid !== undefined && rawOcid !== null && rawOcid !== ''
+        ? Number(rawOcid)
+        : NaN;
 
     return {
       title: this.normalizeText(dto.title || dto.jobType),
@@ -374,6 +411,8 @@ export class JobService {
       images: this.normalizeImages(dto.images),
       videos: this.normalizeImages(dto.videos),
       urgent: dto.urgent ? 1 : 0,
+      openCityId:
+        Number.isFinite(ocid) && ocid > 0 ? ocid : undefined,
     };
   }
 
@@ -422,12 +461,22 @@ export class JobService {
     if (minSalary) qb.andWhere('j.salary >= :minSalary', { minSalary });
     if (maxSalary) qb.andWhere('j.salary <= :maxSalary', { maxSalary });
 
+    const rawOcid = query.openCityId ?? query.cityId;
+    let filterOcid = parseInt(String(rawOcid), 10);
+    if (!Number.isFinite(filterOcid) || filterOcid <= 0) {
+      filterOcid = (await this.resolveDefaultOpenCityId()) ?? 0;
+    }
+    if (filterOcid > 0) {
+      qb.andWhere('j.openCityId = :filterOcid', { filterOcid });
+    }
+
     qb.orderBy('j.urgent', 'DESC')
       .addOrderBy('j.createdAt', 'DESC')
       .skip((page - 1) * pageSize)
       .take(pageSize);
 
     const [list, total] = await qb.getManyAndCount();
+    const cityNameById = await this.mapOpenCityNames(list);
 
     const now = new Date();
     for (const job of list) {
@@ -477,6 +526,8 @@ export class JobService {
       const benefitTags = this.buildBenefitTags(normalizedBenefits);
       const allTags = this.buildAllTags(normalizedBenefits, job.workHours);
 
+      const ocId =
+        job.openCityId != null ? Number(job.openCityId) : null;
       return {
         id: job.id,
         title: job.title,
@@ -491,6 +542,8 @@ export class JobService {
         location: job.location,
         lat: this.parseCoordinate(job.lat) ?? null,
         lng: this.parseCoordinate(job.lng) ?? null,
+        openCityId: ocId,
+        openCityName: ocId ? cityNameById.get(ocId) ?? null : null,
         cityDistrict: this.extractCityDistrict(job.location),
         dateRange: job.dateStart && job.dateEnd ? `${job.dateStart}~${job.dateEnd}` : '',
         publishDate: job.createdAt
@@ -566,9 +619,16 @@ export class JobService {
 
     const isOwner = currentUserId === job.userId;
     const contactInfo = this.buildVisibleContactInfo(job, { includeHidden: isOwner, hasApplied });
+    const cityNameById = await this.mapOpenCityNames([job]);
+    const detailOpenCityId =
+      job.openCityId != null ? Number(job.openCityId) : null;
 
     return {
       ...job,
+      openCityId: detailOpenCityId,
+      openCityName: detailOpenCityId
+        ? cityNameById.get(detailOpenCityId) ?? null
+        : null,
       images: this.normalizeImages(job.images) || [],
       videos: this.normalizeImages(job.videos) || [],
       need: job.needCount,
@@ -1016,6 +1076,11 @@ export class JobService {
     if (payload.showWechat && !payload.contactWechat) throw new BadRequestException('请填写微信号');
     if (payload.showWechatQr && !payload.contactWechatQr) throw new BadRequestException('请上传微信二维码');
     if (!payload.dateStart || !payload.dateEnd) throw new BadRequestException('请选择工作日期');
+    const createOpenCityId = Number(payload.openCityId);
+    if (!Number.isFinite(createOpenCityId) || createOpenCityId <= 0) {
+      throw new BadRequestException('请选择地区');
+    }
+    await this.assertOpenCityActive(createOpenCityId);
 
     await this.checkKeywords(payload.title + (payload.description || ''));
     const existing = await this.findRecentDuplicateJob(userId, payload);
@@ -1045,7 +1110,16 @@ export class JobService {
       images: [dto.images, dto.contactWechatQr, dto.videos],
       openid: submitter?.openid,
     });
-    Object.assign(job, dto);
+    const { openCityId: rawOc, ...rest } = dto || {};
+    if (rawOc !== undefined && rawOc !== null && rawOc !== '') {
+      const ocid = parseInt(String(rawOc), 10);
+      if (!Number.isFinite(ocid) || ocid <= 0) {
+        throw new BadRequestException('请选择地区');
+      }
+      await this.assertOpenCityActive(ocid);
+      job.openCityId = ocid;
+    }
+    Object.assign(job, rest);
     if (Object.prototype.hasOwnProperty.call(dto, 'videos')) {
       job.videos = this.normalizeImages(dto.videos) ?? null;
     }

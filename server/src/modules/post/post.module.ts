@@ -11,6 +11,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
+import { OpenCity } from '../../entities/open-city.entity';
 import { WechatSecurityModule } from '../wechat-security/wechat-security.module';
 import { InviteModule } from '../invite/invite.module';
 
@@ -27,6 +28,7 @@ import { InviteModule } from '../invite/invite.module';
       Job,
       SysConfig,
       Promotion,
+      OpenCity,
     ]),
     WechatSecurityModule,
   ],

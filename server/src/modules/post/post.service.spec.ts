@@ -13,6 +13,7 @@ import { EnterpriseCert } from '../../entities/enterprise-cert.entity';
 import { Job } from '../../entities/job.entity';
 import { SysConfig } from '../../entities/sys-config.entity';
 import { Promotion } from '../../entities/promotion.entity';
+import { OpenCity } from '../../entities/open-city.entity';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { WechatSecurityService } from '../wechat-security/wechat-security.service';
 
@@ -27,6 +28,7 @@ describe('PostService', () => {
   let jobRepo: any;
   let sysConfigRepo: any;
   let promoRepo: any;
+  let openCityRepo: any;
   let wechatSecurityService: any;
 
   beforeEach(async () => {
@@ -81,6 +83,20 @@ describe('PostService', () => {
       }),
     };
 
+    openCityRepo = {
+      findOne: jest.fn((opts: { where?: Record<string, unknown> }) => {
+        const w = opts?.where || {};
+        if (w.name === '义乌' && w.isActive === 1) {
+          return Promise.resolve({ id: 1, name: '义乌', isActive: 1 });
+        }
+        if (typeof w.id === 'number' && w.isActive === 1) {
+          return Promise.resolve({ id: w.id, name: '义乌', isActive: 1 });
+        }
+        return Promise.resolve(null);
+      }),
+      find: jest.fn().mockResolvedValue([]),
+    };
+
     wechatSecurityService = {
       assertSafeSubmission: jest.fn().mockResolvedValue(undefined),
     };
@@ -125,6 +141,10 @@ describe('PostService', () => {
           useValue: promoRepo,
         },
         {
+          provide: getRepositoryToken(OpenCity),
+          useValue: openCityRepo,
+        },
+        {
           provide: WechatSecurityService,
           useValue: wechatSecurityService,
         },
@@ -167,6 +187,7 @@ describe('PostService', () => {
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.pageSize).toBe(20);
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.openCityId = :filterOcid', { filterOcid: 1 });
     });
 
     it('should filter posts by type', async () => {
@@ -239,6 +260,7 @@ describe('PostService', () => {
       await service.list({ keyword: 'test', page: 1, pageSize: 20 });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('(p.title LIKE :kw OR p.content LIKE :kw)', { kw: '%test%' });
+      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.openCityId = :filterOcid', { filterOcid: 1 });
     });
 
     it('should return empty list when no posts found', async () => {
@@ -491,6 +513,7 @@ describe('PostService', () => {
         contactName: 'John',
         contactPhone: '13800138000',
         contactWechat: 'john_wechat',
+        openCityId: 1,
       };
 
       const mockPost = { id: 1, userId: 1, ...dto };
@@ -516,6 +539,7 @@ describe('PostService', () => {
         showPhone: true,
         contactName: 'John',
         contactPhone: '13800138000',
+        openCityId: 1,
       };
 
       keywordRepo.find.mockResolvedValue([]);
@@ -609,6 +633,7 @@ describe('PostService', () => {
         validityDays: 30,
         showPhone: true,
         contactPhone: '13800138000',
+        openCityId: 1,
       };
 
       const mockPost = { id: 1, userId: 1, ...dto };
@@ -646,6 +671,7 @@ describe('PostService', () => {
         deliveryDays: '15天内',
         showPhone: true,
         contactPhone: '13800138000',
+        openCityId: 1,
       };
 
       keywordRepo.find.mockResolvedValue([]);
@@ -676,6 +702,7 @@ describe('PostService', () => {
         processDesc: '长期稳定单量',
         showPhone: true,
         contactPhone: '13800138000',
+        openCityId: 1,
       };
 
       keywordRepo.find.mockResolvedValue([]);

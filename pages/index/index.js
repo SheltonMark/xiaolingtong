@@ -4,6 +4,8 @@ const auth = require('../../utils/auth')
 const { calculateDistanceForList, getUserLocation, filterByDistance } = require('../../utils/distance')
 const { countSystemUnread } = require('../../utils/system-messages')
 const DISTANCE_DEBUG = false
+/** 首页左上角城市筛选默认值（须与开放城市配置中的名称一致） */
+const DEFAULT_HOME_CITY_NAME = '义乌'
 
 function normalizeBenefitItems(value) {
   if (Array.isArray(value)) {
@@ -175,7 +177,9 @@ Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
     statusBarHeight: 0,
-    currentCity: '东莞', // 当前选择的城市
+    currentCity: DEFAULT_HOME_CITY_NAME, // 当前选择的城市（默认义乌）
+    /** 开放城市 id，与 /config/cities 一致；招工/帖子列表筛选用 */
+    currentOpenCityId: 0,
     unreadCount: 0, // 未读消息总数
     cityIndex: 0, // picker 当前索引
     cityNames: [], // picker 用的城市名数组
@@ -313,7 +317,7 @@ Page({
     }
 
     const userRole = getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-    const currentCity = wx.getStorageSync('currentCity') || '东莞'
+    const currentCity = wx.getStorageSync('currentCity') || DEFAULT_HOME_CITY_NAME
     this.setData({ userRole, currentCity })
     this.loadCities()
     this.loadCategoryFilters()
@@ -341,17 +345,33 @@ Page({
     setTimeout(() => this.measureHeader(), 100)
   },
 
+  /** 列表请求用开放城市 id（优先已同步的 currentOpenCityId，避免 cities 尚未 setData 时的竞态） */
+  _resolveListOpenCityId() {
+    let ocid = Number(this.data.currentOpenCityId) || 0
+    if (ocid > 0) return ocid
+    const cities = this.data.cities || []
+    if (!cities.length) return 0
+    const idx = this.data.cityIndex
+    const c = cities[typeof idx === 'number' && idx >= 0 ? idx : 0] || cities[0]
+    if (c && c.id != null && c.id !== '') return Number(c.id)
+    return 0
+  },
+
   loadCities() {
     get('/config/cities').then(res => {
       const cities = res.data.list || []
       const cityNames = cities.map(c => c.name)
       let cityIndex = cityNames.indexOf(this.data.currentCity)
       if (cityIndex < 0 && cities.length > 0) {
-        cityIndex = 0
-        this.setData({ currentCity: cities[0].name })
-        wx.setStorageSync('currentCity', cities[0].name)
+        const prefer = cityNames.indexOf(DEFAULT_HOME_CITY_NAME)
+        cityIndex = prefer >= 0 ? prefer : 0
+        this.setData({ currentCity: cities[cityIndex].name })
+        wx.setStorageSync('currentCity', cities[cityIndex].name)
       }
-      this.setData({ cities, cityNames, cityIndex })
+      const picked = cities[cityIndex]
+      const currentOpenCityId =
+        picked && picked.id != null && picked.id !== '' ? Number(picked.id) : 0
+      this.setData({ cities, cityNames, cityIndex, currentOpenCityId })
     }).catch(() => {})
   },
 
@@ -510,6 +530,8 @@ Page({
       else if (range === '30-50元') { params.minSalary = 30; params.maxSalary = 50 }
       else if (range === '50元以上') params.minSalary = 50
     }
+    const ocid = this._resolveListOpenCityId()
+    if (ocid > 0) params.openCityId = ocid
     get('/jobs', params).then(res => {
       let list = res.data.list || res.data || []
       list = this._mapJobs(list)
@@ -660,9 +682,12 @@ Page({
     const maxPages = 100
     const all = []
     let page = 1
+    const ocid = this._resolveListOpenCityId()
+    const baseParams =
+      ocid > 0 ? Object.assign({}, params, { openCityId: ocid }) : params
 
     while (page <= maxPages) {
-      const res = await get('/posts', { ...params, page, pageSize })
+      const res = await get('/posts', { ...baseParams, page, pageSize })
       const { list, total } = this._extractPagedList(res)
       if (!list.length) break
 
@@ -821,8 +846,11 @@ Page({
         }).catch(() => {})
       }
     } else {
-      // 临工端
-      get('/jobs', params).then(res => {
+      // 临工端：招工列表按首页所选开放城市筛选
+      const jp = { ...params }
+      const ocid = this._resolveListOpenCityId()
+      if (ocid > 0) jp.openCityId = ocid
+      get('/jobs', jp).then(res => {
         this.setData({ jobList: this._mapJobs(res.data.list || res.data || []) })
       }).catch(() => {})
     }
@@ -891,6 +919,10 @@ Page({
     const params = {}
     if (this.data.searchKeyword) {
       params.keyword = this.data.searchKeyword
+    }
+    if (this.data.userRole === 'worker') {
+      const ocid = this._resolveListOpenCityId()
+      if (ocid > 0) params.openCityId = ocid
     }
     get('/jobs', params).then(res => {
       const list = res.data.list || res.data || []
@@ -1374,7 +1406,9 @@ Page({
     const idx = e.detail.value
     const city = this.data.cities[idx]
     if (!city) return
-    this.setData({ cityIndex: idx, currentCity: city.name })
+    const currentOpenCityId =
+      city.id != null && city.id !== '' ? Number(city.id) : 0
+    this.setData({ cityIndex: idx, currentCity: city.name, currentOpenCityId })
     wx.setStorageSync('currentCity', city.name)
     this.loadData()
   },

@@ -58,6 +58,10 @@ export class Job {
   @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
   lng: number;
 
+  /** 开放城市（临工首页地区筛选），关联 open_cities.id */
+  @Column({ type: 'int', nullable: true })
+  openCityId: number | null;
+
   @Column({ type: 'date' })
   dateStart: string;
 
