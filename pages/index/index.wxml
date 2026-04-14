@@ -111,12 +111,26 @@
     <view wx:if="{{currentTab === 0}}">
       <view class="cate-grid-wrap">
         <view class="cate-grid">
-          <view class="cate-item" wx:for="{{catePurchase}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
-            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
-              <image wx:if="{{item.iconUrl}}" class="cate-icon-img" src="{{item.iconUrl}}" mode="aspectFit" />
-              <text wx:else class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
-            </view>
-            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+          <view class="cate-item" wx:for="{{catePurchaseDisplay}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
+            <block wx:if="{{item._cellType === 'more'}}">
+              <view class="cate-icon cate-icon--meta cate-icon--meta-more">
+                <text class="cate-more-plus">+</text>
+              </view>
+              <text class="cate-label">更多</text>
+            </block>
+            <block wx:elif="{{item._cellType === 'collapse'}}">
+              <view class="cate-icon cate-icon--meta cate-icon--meta-collapse">
+                <text class="cate-more-plus cate-more-plus--minus">−</text>
+              </view>
+              <text class="cate-label">收起</text>
+            </block>
+            <block wx:else>
+              <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+                <image wx:if="{{item.iconUrl}}" class="cate-icon-img" src="{{item.iconUrl}}" mode="aspectFit" />
+                <text wx:else class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
+              </view>
+              <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+            </block>
           </view>
         </view>
       </view>
@@ -140,12 +154,26 @@
     <view wx:if="{{currentTab === 1}}">
       <view class="cate-grid-wrap">
         <view class="cate-grid">
-          <view class="cate-item" wx:for="{{cateStock}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
-            <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
-              <image wx:if="{{item.iconUrl}}" class="cate-icon-img" src="{{item.iconUrl}}" mode="aspectFit" />
-              <text wx:else class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
-            </view>
-            <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+          <view class="cate-item" wx:for="{{cateStockDisplay}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
+            <block wx:if="{{item._cellType === 'more'}}">
+              <view class="cate-icon cate-icon--meta cate-icon--meta-more">
+                <text class="cate-more-plus">+</text>
+              </view>
+              <text class="cate-label">更多</text>
+            </block>
+            <block wx:elif="{{item._cellType === 'collapse'}}">
+              <view class="cate-icon cate-icon--meta cate-icon--meta-collapse">
+                <text class="cate-more-plus cate-more-plus--minus">−</text>
+              </view>
+              <text class="cate-label">收起</text>
+            </block>
+            <block wx:else>
+              <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+                <image wx:if="{{item.iconUrl}}" class="cate-icon-img" src="{{item.iconUrl}}" mode="aspectFit" />
+                <text wx:else class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
+              </view>
+              <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+            </block>
           </view>
         </view>
       </view>
@@ -168,17 +196,36 @@
 
     <!-- Tab 2: 代加工 -->
     <view wx:if="{{currentTab === 2}}">
-      <view class="pf-bar">
-        <view class="pf-mode-row">
+      <view class="cate-grid-wrap cate-grid-wrap--process">
+        <view class="cate-grid">
+          <view class="cate-item" wx:for="{{cateProcessDisplay}}" wx:key="label" data-label="{{item.label}}" bindtap="onCategoryTap">
+            <block wx:if="{{item._cellType === 'more'}}">
+              <view class="cate-icon cate-icon--meta cate-icon--meta-more">
+                <text class="cate-more-plus">+</text>
+              </view>
+              <text class="cate-label">更多</text>
+            </block>
+            <block wx:elif="{{item._cellType === 'collapse'}}">
+              <view class="cate-icon cate-icon--meta cate-icon--meta-collapse">
+                <text class="cate-more-plus cate-more-plus--minus">−</text>
+              </view>
+              <text class="cate-label">收起</text>
+            </block>
+            <block wx:else>
+              <view class="cate-icon {{item.active ? 'cate-icon-active' : ''}}" style="background-color: {{item.active ? '#3B82F6' : item.bg}};">
+                <image wx:if="{{item.iconUrl}}" class="cate-icon-img" src="{{item.iconUrl}}" mode="aspectFit" />
+                <text wx:else class="cate-icon-text {{item.active ? 'cate-icon-text-white' : ''}}" style="{{item.active ? '' : 'color:' + (item.iconColor || '#64748B')}}">{{item.icon}}</text>
+              </view>
+              <text class="cate-label {{item.active ? 'cate-label-active' : ''}}">{{item.label}}</text>
+            </block>
+          </view>
+        </view>
+      </view>
+      <view class="pf-bar pf-bar--process">
+        <view class="pf-mode-row pf-mode-row--two">
           <picker mode="selector" range="{{processModeFilterOptions}}" bindchange="onProcessModeFilterPicker">
             <view class="pf-pill pf-pill-filter {{processFilterMode ? 'pf-pill-on' : ''}}">
               <text>{{processFilterModeLabel || '类型'}}</text>
-              <text class="pf-arrow">▾</text>
-            </view>
-          </picker>
-          <picker mode="selector" range="{{processCategoryPickerRange}}" bindchange="onProcessCategoryFilter">
-            <view class="pf-pill pf-pill-filter {{processFilterCategory ? 'pf-pill-on' : ''}}">
-              <text>{{processFilterCategory || '品类'}}</text>
               <text class="pf-arrow">▾</text>
             </view>
           </picker>

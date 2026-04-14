@@ -464,7 +464,7 @@ export class JobService {
     const rawOcid = query.openCityId ?? query.cityId;
     let filterOcid = parseInt(String(rawOcid), 10);
     if (!Number.isFinite(filterOcid) || filterOcid <= 0) {
-      filterOcid = (await this.resolveDefaultOpenCityId()) ?? 0;
+      filterOcid = 0;
     }
     if (filterOcid > 0) {
       qb.andWhere('j.openCityId = :filterOcid', { filterOcid });
@@ -1076,11 +1076,14 @@ export class JobService {
     if (payload.showWechat && !payload.contactWechat) throw new BadRequestException('请填写微信号');
     if (payload.showWechatQr && !payload.contactWechatQr) throw new BadRequestException('请上传微信二维码');
     if (!payload.dateStart || !payload.dateEnd) throw new BadRequestException('请选择工作日期');
+    let resolvedOpenCityId: number | null = null;
     const createOpenCityId = Number(payload.openCityId);
-    if (!Number.isFinite(createOpenCityId) || createOpenCityId <= 0) {
-      throw new BadRequestException('请选择地区');
+    if (Number.isFinite(createOpenCityId) && createOpenCityId > 0) {
+      await this.assertOpenCityActive(createOpenCityId);
+      resolvedOpenCityId = createOpenCityId;
+    } else {
+      resolvedOpenCityId = (await this.resolveDefaultOpenCityId()) ?? null;
     }
-    await this.assertOpenCityActive(createOpenCityId);
 
     await this.checkKeywords(payload.title + (payload.description || ''));
     const existing = await this.findRecentDuplicateJob(userId, payload);
@@ -1093,7 +1096,11 @@ export class JobService {
       openid: submitter?.openid,
     });
 
-    const job = this.jobRepo.create({ ...payload, userId });
+    const job = this.jobRepo.create({
+      ...payload,
+      openCityId: resolvedOpenCityId,
+      userId,
+    });
     return this.jobRepo.save(job);
   }
 
@@ -1113,11 +1120,12 @@ export class JobService {
     const { openCityId: rawOc, ...rest } = dto || {};
     if (rawOc !== undefined && rawOc !== null && rawOc !== '') {
       const ocid = parseInt(String(rawOc), 10);
-      if (!Number.isFinite(ocid) || ocid <= 0) {
-        throw new BadRequestException('请选择地区');
+      if (Number.isFinite(ocid) && ocid > 0) {
+        await this.assertOpenCityActive(ocid);
+        job.openCityId = ocid;
+      } else {
+        job.openCityId = (await this.resolveDefaultOpenCityId()) ?? null;
       }
-      await this.assertOpenCityActive(ocid);
-      job.openCityId = ocid;
     }
     Object.assign(job, rest);
     if (Object.prototype.hasOwnProperty.call(dto, 'videos')) {

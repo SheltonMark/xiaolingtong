@@ -6,6 +6,12 @@
 .swiper-wrap { position: relative; background-color: #0F172A; }
 .image-swiper { width: 100%; height: 750rpx; }
 .swiper-img { width: 100%; height: 100%; }
+.swiper-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: #0F172A;
+}
 .swiper-counter {
   position: absolute; bottom: 16rpx; right: 24rpx;
   background-color: rgba(0,0,0,0.5); color: #fff;
@@ -13,8 +19,33 @@
   z-index: 10;
 }
 
-/* 标签行 */
-.tag-row { display: flex; align-items: center; gap: 12rpx; margin-bottom: 16rpx; }
+/* 标签行：左侧标签 + 右侧收藏（与「生成海报」上下对齐在右侧区域） */
+.tag-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+.tag-row-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+.fav-tag-cell {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rpx 4rpx;
+  margin-top: -4rpx;
+}
+.fav-tag-cell .iconfont { font-size: 30rpx; line-height: 1; }
+.fav-tag-text { font-size: 20rpx; color: #64748B; margin-top: 2rpx; line-height: 1; }
 .tag { font-size: 20rpx; padding: 4rpx 16rpx; border-radius: 8rpx; font-weight: 500; }
 .tag-blue { background-color: #EFF6FF; color: #3B82F6; }
 .tag-cyan { background-color: #ECFEFF; color: #0891B2; }
@@ -102,17 +133,20 @@
 .view-count { padding: 24rpx 32rpx 32rpx; text-align: center; }
 .view-count-text { font-size: 20rpx; color: #CBD5E1; }
 
-/* 底部操作 */
-.fav-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 72rpx; height: 72rpx; flex-shrink: 0;
-  border-radius: 50%;
+.fav-active { color: #F59E0B; }
+.fav-inactive { color: #CBD5E1; }
+
+/* 底部：回到首页 */
+.home-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  width: 72rpx; height: 72rpx;
+  border-radius: 16rpx;
   background-color: #F8FAFC;
   border: 1rpx solid #E2E8F0;
 }
-.fav-btn .iconfont { font-size: 36rpx; }
-.fav-active { color: #F59E0B; }
-.fav-inactive { color: #CBD5E1; }
+.home-btn-icon { font-size: 30rpx; color: #3B82F6; line-height: 1; }
+.home-btn-text { font-size: 18rpx; color: #64748B; margin-top: 4rpx; line-height: 1; }
 .bottom-actions-placeholder {
   height: calc(120rpx + env(safe-area-inset-bottom));
 }
@@ -156,8 +190,6 @@
 }
 .btn-share .bottom-btn-icon { display: none; }
 .flex-1 { flex: 1; }
-.video-wrap { width: 100%; padding: 0; }
-.detail-video { width: 100%; height: 420rpx; }
 .share-btn-wrap {
   position: relative; display: flex; align-items: center; justify-content: center;
   width: 64rpx; height: 64rpx;

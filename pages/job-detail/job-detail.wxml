@@ -1,15 +1,28 @@
 <!--pages/job-detail/job-detail.wxml-->
 <view class="jd-page">
   <nav-bar title="招工详情" />
-  <!-- 现场媒体（视频优先 + 图片） -->
+  <!-- 现场媒体：与帖子详情一致，先图片后视频，同一轮播 -->
   <view style="position:relative;" wx:if="{{mediaList && mediaList.length > 0}}">
-    <swiper class="jd-swiper"
-            indicator-dots="{{false}}" circular bindchange="onSwiperChange">
-      <swiper-item wx:for="{{mediaList}}" wx:key="src">
-        <video wx:if="{{item.type === 'video'}}" src="{{item.src}}" class="jd-swiper-img"
-          controls show-center-play-btn object-fit="cover"
-          style="width:100%;height:100%;border-radius:0;" />
-        <image wx:else src="{{item.src}}" mode="aspectFill" class="jd-swiper-img" />
+    <swiper
+      class="jd-swiper"
+      indicator-dots="{{mediaList.length > 1}}"
+      circular="{{mediaList.length > 1}}"
+      autoplay="{{!hasVideoSlide && mediaList.length > 1}}"
+      bindchange="onSwiperChange"
+    >
+      <swiper-item wx:for="{{mediaList}}" wx:for-item="item" wx:for-index="sidx" wx:key="sidx">
+        <image wx:if="{{item.type === 'image'}}" src="{{item.src}}" mode="aspectFill" class="jd-swiper-img" />
+        <video
+          wx:else
+          src="{{item.src}}"
+          class="jd-swiper-img"
+          controls
+          show-fullscreen-btn
+          show-center-play-btn
+          object-fit="cover"
+          enable-play-gesture
+          style="width:100%;height:100%;border-radius:0;"
+        />
       </swiper-item>
     </swiper>
     <view class="swiper-counter">{{swiperCurrent + 1}}/{{mediaList.length}}</view>

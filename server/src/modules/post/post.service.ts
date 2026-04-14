@@ -318,7 +318,7 @@ export class PostService {
     const rawOcid = query.openCityId ?? query.cityId;
     let filterOcid = parseInt(String(rawOcid), 10);
     if (!Number.isFinite(filterOcid) || filterOcid <= 0) {
-      filterOcid = (await this.resolveDefaultOpenCityId()) ?? 0;
+      filterOcid = 0;
     }
     if (filterOcid > 0) {
       qb.andWhere('p.openCityId = :filterOcid', { filterOcid });
@@ -584,10 +584,13 @@ export class PostService {
       rawOpenCityId !== undefined && rawOpenCityId !== null && rawOpenCityId !== ''
         ? Number(rawOpenCityId)
         : NaN;
-    if (!Number.isFinite(parsedOpenCityId) || parsedOpenCityId <= 0) {
-      throw new BadRequestException('请选择地区');
+    let resolvedOpenCityId: number | null = null;
+    if (Number.isFinite(parsedOpenCityId) && parsedOpenCityId > 0) {
+      await this.assertOpenCityActive(parsedOpenCityId);
+      resolvedOpenCityId = parsedOpenCityId;
+    } else {
+      resolvedOpenCityId = (await this.resolveDefaultOpenCityId()) ?? null;
     }
-    await this.assertOpenCityActive(parsedOpenCityId);
 
     const postData: Partial<Post> = {
       userId,
@@ -596,7 +599,7 @@ export class PostService {
       industry: category,
       processMode: processMode || undefined,
       content,
-      openCityId: parsedOpenCityId,
+      openCityId: resolvedOpenCityId,
       expireAt: validityDays ? new Date(Date.now() + Number(validityDays) * 24 * 3600 * 1000) : undefined,
       showPhone: phoneVisible ? 1 : 0,
       showWechat: wechatVisible ? 1 : 0,
@@ -629,17 +632,14 @@ export class PostService {
       openid: submitter?.openid,
     });
     const { openCityId: rawOc, ...rest } = dto || {};
-    if (
-      rawOc !== undefined &&
-      rawOc !== null &&
-      rawOc !== ''
-    ) {
+    if (rawOc !== undefined && rawOc !== null && rawOc !== '') {
       const ocid = parseInt(String(rawOc), 10);
-      if (!Number.isFinite(ocid) || ocid <= 0) {
-        throw new BadRequestException('请选择地区');
+      if (Number.isFinite(ocid) && ocid > 0) {
+        await this.assertOpenCityActive(ocid);
+        post.openCityId = ocid;
+      } else {
+        post.openCityId = (await this.resolveDefaultOpenCityId()) ?? null;
       }
-      await this.assertOpenCityActive(ocid);
-      post.openCityId = ocid;
     }
     Object.assign(post, rest);
     return this.postRepo.save(post);

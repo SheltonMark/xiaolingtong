@@ -29,8 +29,12 @@
 .card-author { flex: 1; min-width: 0; }
 .author-name-row { display: flex; align-items: center; gap: 8rpx; }
 .author-name {
-  font-size: 26rpx; font-weight: 600; color: #1E293B;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1E293B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .vip-badge {
   font-size: 18rpx; font-weight: 600; color: #fff;
@@ -78,8 +82,11 @@
 }
 
 .card-content {
-  font-size: 26rpx; color: #1E293B; line-height: 1.7;
-  display: block; padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  color: #1E293B;
+  line-height: 1.7;
+  display: block;
+  padding: 20rpx 24rpx;
 }
 .img-grid {
   margin: 0 24rpx 16rpx;

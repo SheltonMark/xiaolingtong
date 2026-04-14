@@ -35,6 +35,9 @@ const PROCESS_MODE_LABEL_MAP = {
 Page({
   data: {
     swiperCurrent: 0,
+    /** 轮播：先图片后视频，与顶部展示区域一致 */
+    mediaSlides: [],
+    hasVideoSlide: false,
     isFav: false,
     detail: {},
     contactUnlocked: false,
@@ -229,12 +232,18 @@ Page({
     const companyName = this.getDisplayCompanyName(companyNameRaw)
     const hasCompanyName = !!this.normalizeText(companyNameRaw)
     const avatarText = hasCompanyName ? this.normalizeText(companyNameRaw).slice(0, 1) : '企'
+    const fieldSource =
+      raw.fields && typeof raw.fields === 'object' && !Array.isArray(raw.fields)
+        ? raw.fields
+        : {}
     const fields = this.formatDetailFields(raw.type, raw.fields, raw)
     const enterpriseVerified = this.resolveEnterpriseVerified(raw)
     const processModeLabel = this.getProcessModeLabel(raw)
     return {
       ...raw,
+      fieldSource,
       images: normalizeImageList(raw.images),
+      videos: normalizeImageList(raw.videos),
       typeText: TYPE_TEXT_MAP[raw.type] || '供需信息',
       processModeLabel,
       publishTime: this.formatDate(raw.createdAt),
@@ -248,6 +257,19 @@ Page({
       industry: raw.industry || '未分类',
       postCount: (raw.user && raw.user.postCount) || raw.postCount || '--'
     }
+  },
+
+  buildMediaSlides(detail) {
+    const images = (detail && detail.images) || []
+    const videos = (detail && detail.videos) || []
+    const slides = []
+    images.forEach((src) => {
+      if (src) slides.push({ type: 'image', src })
+    })
+    videos.forEach((src) => {
+      if (src) slides.push({ type: 'video', src })
+    })
+    return slides
   },
 
   loadDetail(id) {
@@ -267,8 +289,13 @@ Page({
         wechatQrImage: data.contactWechatQr || ''
       }
 
+      const mediaSlides = this.buildMediaSlides(detail)
+      const hasVideoSlide = mediaSlides.some((s) => s.type === 'video')
       this.setData({
         detail,
+        mediaSlides,
+        hasVideoSlide,
+        swiperCurrent: 0,
         contactUnlocked,
         contactInfo,
         isOwner,
@@ -698,6 +725,10 @@ Page({
     })
   },
 
+  onGoHome() {
+    wx.switchTab({ url: '/pages/index/index' })
+  },
+
   onClosePoster() {
     this.setData({ showPoster: false })
   },
@@ -736,6 +767,38 @@ Page({
     const fromDesc = this.normalizeText(detail.desc)
     if (fromDesc) return fromDesc
     return this.normalizeText(detail.content)
+  },
+
+  /**
+   * 海报字段行：与详情 info-list 一致，并保证采购/库存含品类、数量（避免布局预留补充描述后字段被挤掉时不显示）
+   */
+  _posterFieldList(detail) {
+    if (!detail) return []
+    const base = (detail.fields || [])
+      .map((f) => ({
+        label: String(f.label || '').trim(),
+        value: String(f.value || '').trim()
+      }))
+      .filter((f) => f.label || f.value)
+    const type = detail.type
+    const src = detail.fieldSource || {}
+    const extras = []
+    if (type === 'purchase' || type === 'stock') {
+      const industry = this.normalizeText(detail.industry)
+      const qtyRaw = src.quantity
+      const qty =
+        qtyRaw != null && String(qtyRaw).trim() !== ''
+          ? String(qtyRaw).trim() + '个'
+          : ''
+      if (!base.some((r) => r.label === '品类') && industry) {
+        extras.push({ label: '品类', value: industry })
+      }
+      const qtyLabel = type === 'purchase' ? '采购数量' : '库存数量'
+      if (!base.some((r) => r.label === qtyLabel) && qty) {
+        extras.push({ label: qtyLabel, value: qty })
+      }
+    }
+    return extras.concat(base)
   },
 
   /** 按最大行数截断，末行过长时加省略号（…） */
@@ -906,7 +969,8 @@ Page({
       const contentX = textX + CARD_PAD + STRIPE_W + 10
       const contentW = textMaxW - CARD_PAD * 2 - STRIPE_W - 10
       const supplementText = this._posterSupplementText(detail)
-      const reserveSup = supplementText ? 96 : 0
+      /** 排字段时不为「补充描述」预留高度，避免有主图时卡片过矮导致只显示补充说明 */
+      const reserveSupForFields = 0
       const labelLineH = 26
       const labelToValGap = 6
       const valLineH = 32
@@ -919,10 +983,10 @@ Page({
       const cardTop = curY + 10
       let simCursor = CARD_PAD + 22
       const fieldBlocks = []
-      const fieldsList = detail.fields || []
+      const fieldsList = this._posterFieldList(detail)
       ctx.font = 'bold 28px sans-serif'
 
-           for (let i = 0; i < fieldsList.length && i < 12; i += 1) {
+      for (let i = 0; i < fieldsList.length && i < 12; i += 1) {
         const f = fieldsList[i]
         const label = String(f.label || '').trim()
         const val = String(f.value || '').trim()
@@ -932,7 +996,7 @@ Page({
         let placed = false
         while (take >= 1) {
           const blockH = labelLineH + labelToValGap + take * valLineH + fieldSectionGap
-          if (cardTop + simCursor + blockH <= innerBottomY - reserveSup) {
+          if (cardTop + simCursor + blockH <= innerBottomY - reserveSupForFields) {
             fieldBlocks.push({ label, valLines: valLinesAll.slice(0, take) })
             simCursor += blockH
             placed = true

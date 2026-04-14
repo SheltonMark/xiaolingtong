@@ -187,6 +187,33 @@ describe('PostService', () => {
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.pageSize).toBe(20);
+      const openCityFilters = mockQueryBuilder.andWhere.mock.calls.filter(
+        (c: unknown[]) => c[0] === 'p.openCityId = :filterOcid',
+      );
+      expect(openCityFilters.length).toBe(0);
+    });
+
+    it('should filter posts by openCityId when provided', async () => {
+      const mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        take: jest.fn().mockReturnThis(),
+        getManyAndCount: jest.fn().mockResolvedValue([[], 0]),
+      };
+
+      postRepo.createQueryBuilder.mockReturnValue(mockQueryBuilder);
+      entCertRepo.createQueryBuilder.mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        orderBy: jest.fn().mockReturnThis(),
+        addOrderBy: jest.fn().mockReturnThis(),
+        getMany: jest.fn().mockResolvedValue([]),
+      });
+
+      await service.list({ openCityId: 1, page: 1, pageSize: 20 });
+
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.openCityId = :filterOcid', { filterOcid: 1 });
     });
 
@@ -260,7 +287,10 @@ describe('PostService', () => {
       await service.list({ keyword: 'test', page: 1, pageSize: 20 });
 
       expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('(p.title LIKE :kw OR p.content LIKE :kw)', { kw: '%test%' });
-      expect(mockQueryBuilder.andWhere).toHaveBeenCalledWith('p.openCityId = :filterOcid', { filterOcid: 1 });
+      const openCityFilters = mockQueryBuilder.andWhere.mock.calls.filter(
+        (c: unknown[]) => c[0] === 'p.openCityId = :filterOcid',
+      );
+      expect(openCityFilters.length).toBe(0);
     });
 
     it('should return empty list when no posts found', async () => {
@@ -527,6 +557,32 @@ describe('PostService', () => {
       expect(postRepo.create).toHaveBeenCalled();
       expect(postRepo.save).toHaveBeenCalled();
       expect(result.id).toBe(1);
+    });
+
+    it('should assign default open city when openCityId omitted', async () => {
+      const dto = {
+        type: 'purchase',
+        title: 'test product',
+        category: 'electronics',
+        description: 'test description',
+        images: ['image1.jpg'],
+        showPhone: true,
+        showWechat: true,
+        validityDays: 30,
+        contactName: 'John',
+        contactPhone: '13800138000',
+        contactWechat: 'john_wechat',
+      };
+
+      keywordRepo.find.mockResolvedValue([]);
+      postRepo.create.mockImplementation((payload) => payload);
+      postRepo.save.mockImplementation(async (payload) => ({ id: 1, ...payload }));
+
+      await service.create(1, dto);
+
+      expect(postRepo.create).toHaveBeenCalledWith(
+        expect.objectContaining({ openCityId: 1 }),
+      );
     });
 
     it('should normalize object-shaped images before saving', async () => {

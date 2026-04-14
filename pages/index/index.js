@@ -4,7 +4,7 @@ const auth = require('../../utils/auth')
 const { calculateDistanceForList, getUserLocation, filterByDistance } = require('../../utils/distance')
 const { countSystemUnread } = require('../../utils/system-messages')
 const DISTANCE_DEBUG = false
-/** 首页左上角城市筛选默认值（须与开放城市配置中的名称一致） */
+/** 与开放城市配置名称一致，用于首页展示与同步 storage */
 const DEFAULT_HOME_CITY_NAME = '义乌'
 
 function normalizeBenefitItems(value) {
@@ -149,6 +149,91 @@ const CATEGORY_FILTER_ICON_PRESETS = [
   { icon: '\ue626', bg: '#FFF1F2', iconColor: '#F43F5E' }
 ]
 
+/** 按品类名称关键词匹配图标（更具体的词放前面） */
+const CATEGORY_KEYWORD_ICONS = [
+  ['服装鞋帽', { icon: '\ue8c7', bg: '#FCE7F3', iconColor: '#EC4899' }],
+  ['服装纺织', { icon: '\ue8c7', bg: '#FCE7F3', iconColor: '#EC4899' }],
+  ['服装', { icon: '\ue8c7', bg: '#FCE7F3', iconColor: '#EC4899' }],
+  ['鞋帽', { icon: '\ue8c7', bg: '#FCE7F3', iconColor: '#EC4899' }],
+  ['纺织', { icon: '\ue8c7', bg: '#FCE7F3', iconColor: '#EC4899' }],
+  ['电子数码', { icon: '\ue605', bg: '#E0F2FE', iconColor: '#3B82F6' }],
+  ['电子', { icon: '\ue605', bg: '#E0F2FE', iconColor: '#3B82F6' }],
+  ['数码', { icon: '\ue605', bg: '#E0F2FE', iconColor: '#3B82F6' }],
+  ['五金工具', { icon: '\ue659', bg: '#EFF6FF', iconColor: '#6366F1' }],
+  ['五金', { icon: '\ue659', bg: '#EFF6FF', iconColor: '#6366F1' }],
+  ['日用百货', { icon: '\ue625', bg: '#FFF7ED', iconColor: '#F97316' }],
+  ['日用', { icon: '\ue625', bg: '#FFF7ED', iconColor: '#F97316' }],
+  ['百货', { icon: '\ue625', bg: '#FFF7ED', iconColor: '#F97316' }],
+  ['厨房卫浴', { icon: '\ue832', bg: '#ECFDF5', iconColor: '#10B981' }],
+  ['厨房', { icon: '\ue832', bg: '#ECFDF5', iconColor: '#10B981' }],
+  ['卫浴', { icon: '\ue832', bg: '#ECFDF5', iconColor: '#10B981' }],
+  ['母婴玩具', { icon: '\ue626', bg: '#FFF1F2', iconColor: '#F43F5E' }],
+  ['母婴', { icon: '\ue626', bg: '#FFF1F2', iconColor: '#F43F5E' }],
+  ['玩具', { icon: '\ue626', bg: '#FFF1F2', iconColor: '#F43F5E' }],
+  ['家具家电', { icon: '\ue670', bg: '#F3E8FF', iconColor: '#8B5CF6' }],
+  ['家具', { icon: '\ue670', bg: '#F3E8FF', iconColor: '#8B5CF6' }],
+  ['家电', { icon: '\ue670', bg: '#F3E8FF', iconColor: '#8B5CF6' }],
+  ['注塑加工', { icon: '\ue6a0', bg: '#FFFBEB', iconColor: '#F59E0B' }],
+  ['注塑', { icon: '\ue6a0', bg: '#FFFBEB', iconColor: '#F59E0B' }],
+  ['CNC', { icon: '\ue659', bg: '#EFF6FF', iconColor: '#6366F1' }],
+  ['丝印印刷', { icon: '\ue63b', bg: '#F3E8FF', iconColor: '#8B5CF6' }],
+  ['丝印', { icon: '\ue63b', bg: '#F3E8FF', iconColor: '#8B5CF6' }],
+  ['印刷', { icon: '\ue63b', bg: '#F3E8FF', iconColor: '#8B5CF6' }],
+  ['缝纫加工', { icon: '\ue617', bg: '#FCE7F3', iconColor: '#EC4899' }],
+  ['缝纫', { icon: '\ue617', bg: '#FCE7F3', iconColor: '#EC4899' }],
+  ['模具制造', { icon: '\ue770', bg: '#ECFDF5', iconColor: '#10B981' }],
+  ['模具', { icon: '\ue770', bg: '#ECFDF5', iconColor: '#10B981' }]
+]
+
+/** 采购/库存/代加工分类网格：每行 5 个，最多先展示 2 行共 10 格 */
+const CATE_GRID_VISIBLE = 10
+const CATE_GRID_MORE_SLICE = 9
+
+function pickCategoryStyle(label, index, presets) {
+  const text = String(label || '')
+  for (let i = 0; i < CATEGORY_KEYWORD_ICONS.length; i++) {
+    const kw = CATEGORY_KEYWORD_ICONS[i][0]
+    if (text.indexOf(kw) !== -1) {
+      return Object.assign({}, CATEGORY_KEYWORD_ICONS[i][1])
+    }
+  }
+  return Object.assign({}, presets[index % presets.length])
+}
+
+function buildCateDisplayList(list, expanded) {
+  const arr = list || []
+  const n = arr.length
+  if (n <= CATE_GRID_VISIBLE) {
+    return arr.map(item => Object.assign({}, item, { _cellType: 'normal' }))
+  }
+  if (expanded) {
+    const rows = arr.map(item => Object.assign({}, item, { _cellType: 'normal' }))
+    rows.push({
+      label: '__collapse__',
+      _cellType: 'collapse',
+      bg: '#F1F5F9',
+      iconColor: '#64748B',
+      icon: '',
+      iconUrl: '',
+      active: false
+    })
+    return rows
+  }
+  const slice = arr.slice(0, CATE_GRID_MORE_SLICE).map(item =>
+    Object.assign({}, item, { _cellType: 'normal' })
+  )
+  slice.push({
+    label: '__more__',
+    _cellType: 'more',
+    bg: '#F1F5F9',
+    iconColor: '#64748B',
+    icon: '',
+    iconUrl: '',
+    active: false
+  })
+  return slice
+}
+
 const JOB_FILTER_ICON_PRESETS = [
   { icon: '\ue687', bg: '#E0F2FE', iconColor: '#3B82F6' },
   { icon: '\ue670', bg: '#FFFBEB', iconColor: '#F59E0B' },
@@ -161,7 +246,7 @@ function buildIconFilters(items, presets) {
   return (items || []).filter(Boolean).map((item, index) => {
     const label = typeof item === 'string' ? item : item.name
     const iconUrl = typeof item === 'string' ? '' : (item.iconUrl || '')
-    const preset = presets[index % presets.length]
+    const preset = pickCategoryStyle(label, index, presets)
     return {
       icon: iconUrl ? '' : preset.icon,
       iconUrl,
@@ -173,17 +258,40 @@ function buildIconFilters(items, presets) {
   })
 }
 
+const DEFAULT_CATE_PURCHASE = [
+  { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
+  { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
+  { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
+  { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
+  { icon: '\ue832', label: '厨房卫浴', bg: '#ECFDF5', iconColor: '#10B981' },
+  { icon: '\ue626', label: '母婴玩具', bg: '#FFF1F2', iconColor: '#F43F5E' }
+]
+const DEFAULT_CATE_STOCK = [
+  { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
+  { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
+  { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
+  { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
+  { icon: '\ue670', label: '家具家电', bg: '#F3E8FF', iconColor: '#8B5CF6' }
+]
+const DEFAULT_CATE_PROCESS = [
+  { icon: '\ue6a0', label: '注塑加工', bg: '#FFFBEB', iconColor: '#F59E0B' },
+  { icon: '\ue659', label: 'CNC加工', bg: '#EFF6FF', iconColor: '#6366F1' },
+  { icon: '\ue63b', label: '丝印印刷', bg: '#F3E8FF', iconColor: '#8B5CF6' },
+  { icon: '\ue617', label: '缝纫加工', bg: '#FCE7F3', iconColor: '#EC4899' },
+  { icon: '\ue770', label: '模具制造', bg: '#ECFDF5', iconColor: '#10B981' }
+]
+
 Page({
   data: {
     userRole: 'enterprise', // enterprise | worker
     statusBarHeight: 0,
-    currentCity: DEFAULT_HOME_CITY_NAME, // 当前选择的城市（默认义乌）
-    /** 开放城市 id，与 /config/cities 一致；招工/帖子列表筛选用 */
+    currentCity: DEFAULT_HOME_CITY_NAME,
+    /** 与 /config/cities 对应；发布/招工提交时带上，列表请求不按此筛选 */
     currentOpenCityId: 0,
+    cityIndex: 0,
+    cityNames: [],
+    cities: [],
     unreadCount: 0, // 未读消息总数
-    cityIndex: 0, // picker 当前索引
-    cityNames: [], // picker 用的城市名数组
-    cities: [], // 可选城市列表
     jobTypes: [], // 可选工种列表
     searchKeyword: '', // 搜索关键词
     banners: [
@@ -200,29 +308,14 @@ Page({
     purchaseList: [],
     stockList: [],
     processList: [],
-    // 分类图标
-    catePurchase: [
-      { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
-      { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
-      { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
-      { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
-      { icon: '\ue832', label: '厨房卫浴', bg: '#ECFDF5', iconColor: '#10B981' },
-      { icon: '\ue626', label: '母婴玩具', bg: '#FFF1F2', iconColor: '#F43F5E' }
-    ],
-    cateStock: [
-      { icon: '\ue605', label: '电子数码', bg: '#E0F2FE', iconColor: '#3B82F6' },
-      { icon: '\ue625', label: '日用百货', bg: '#FFF7ED', iconColor: '#F97316' },
-      { icon: '\ue8c7', label: '服装鞋帽', bg: '#FCE7F3', iconColor: '#EC4899' },
-      { icon: '\ue659', label: '五金工具', bg: '#EFF6FF', iconColor: '#6366F1' },
-      { icon: '\ue670', label: '家具家电', bg: '#F3E8FF', iconColor: '#8B5CF6' }
-    ],
-    cateProcess: [
-      { icon: '\ue6a0', label: '注塑加工', bg: '#FFFBEB', iconColor: '#F59E0B' },
-      { icon: '\ue659', label: 'CNC加工', bg: '#EFF6FF', iconColor: '#6366F1' },
-      { icon: '\ue63b', label: '丝印印刷', bg: '#F3E8FF', iconColor: '#8B5CF6' },
-      { icon: '\ue617', label: '缝纫加工', bg: '#FCE7F3', iconColor: '#EC4899' },
-      { icon: '\ue770', label: '模具制造', bg: '#ECFDF5', iconColor: '#10B981' }
-    ],
+    // 分类图标（采购/库存/代加工列表用 cate*Display 渲染，支持两排 + 更多）
+    cateMoreExpanded: { purchase: false, stock: false, process: false },
+    catePurchase: DEFAULT_CATE_PURCHASE,
+    cateStock: DEFAULT_CATE_STOCK,
+    cateProcess: DEFAULT_CATE_PROCESS,
+    catePurchaseDisplay: buildCateDisplayList(DEFAULT_CATE_PURCHASE, false),
+    cateStockDisplay: buildCateDisplayList(DEFAULT_CATE_STOCK, false),
+    cateProcessDisplay: buildCateDisplayList(DEFAULT_CATE_PROCESS, false),
     cateJob: [
       { icon: '\ue687', label: '电子组装', bg: '#E0F2FE', iconColor: '#3B82F6' },
       { icon: '\ue670', label: '包装工', bg: '#FFFBEB', iconColor: '#F59E0B' },
@@ -265,11 +358,8 @@ Page({
     processFilterMode: '',
     processFilterModeLabel: '',
     processModeFilterOptions: ['全部', '承接加工', '找代加工'],
-    processFilterCategory: '',
     processFilterDistance: '',
     processDistanceOptions: ['不限', '3km内', '5km内', '10km内'],
-    processCategoryOptions: [],
-    processCategoryPickerRange: ['不限'],
     wechatCardVisible: false,
     wechatCard: {
       wechatId: '',
@@ -345,18 +435,6 @@ Page({
     setTimeout(() => this.measureHeader(), 100)
   },
 
-  /** 列表请求用开放城市 id（优先已同步的 currentOpenCityId，避免 cities 尚未 setData 时的竞态） */
-  _resolveListOpenCityId() {
-    let ocid = Number(this.data.currentOpenCityId) || 0
-    if (ocid > 0) return ocid
-    const cities = this.data.cities || []
-    if (!cities.length) return 0
-    const idx = this.data.cityIndex
-    const c = cities[typeof idx === 'number' && idx >= 0 ? idx : 0] || cities[0]
-    if (c && c.id != null && c.id !== '') return Number(c.id)
-    return 0
-  },
-
   loadCities() {
     get('/config/cities').then(res => {
       const cities = res.data.list || []
@@ -372,7 +450,24 @@ Page({
       const currentOpenCityId =
         picked && picked.id != null && picked.id !== '' ? Number(picked.id) : 0
       this.setData({ cities, cityNames, cityIndex, currentOpenCityId })
+      if (currentOpenCityId > 0) {
+        wx.setStorageSync('currentOpenCityId', currentOpenCityId)
+      }
     }).catch(() => {})
+  },
+
+  /** 切换展示城市：只写入本地与发布用，不触发列表按城市重新筛选 */
+  onCityChange(e) {
+    const idx = Number(e.detail.value)
+    const city = this.data.cities[idx]
+    if (!city) return
+    const currentOpenCityId =
+      city.id != null && city.id !== '' ? Number(city.id) : 0
+    this.setData({ cityIndex: idx, currentCity: city.name, currentOpenCityId })
+    wx.setStorageSync('currentCity', city.name)
+    if (currentOpenCityId > 0) {
+      wx.setStorageSync('currentOpenCityId', currentOpenCityId)
+    }
   },
 
   loadCategoryFilters() {
@@ -390,11 +485,37 @@ Page({
       }
       if (prItems.length) {
         updates.cateProcess = buildIconFilters(prItems, CATEGORY_FILTER_ICON_PRESETS)
-        updates.processCategoryOptions = prItems.map(i => i.name)
-        updates.processCategoryPickerRange = ['不限'].concat(prItems.map(i => i.name))
       }
-      if (Object.keys(updates).length) this.setData(updates)
+      if (Object.keys(updates).length) {
+        this.setData(updates, () => {
+          if (updates.catePurchase) this._syncCateDisplayForBiz('purchase')
+          if (updates.cateStock) this._syncCateDisplayForBiz('stock')
+          if (updates.cateProcess) this._syncCateDisplayForBiz('process')
+        })
+      }
     })
+  },
+
+  _syncCateDisplayForBiz(key) {
+    const listKey = { purchase: 'catePurchase', stock: 'cateStock', process: 'cateProcess' }[key]
+    const displayKey = {
+      purchase: 'catePurchaseDisplay',
+      stock: 'cateStockDisplay',
+      process: 'cateProcessDisplay'
+    }[key]
+    if (!listKey || !displayKey) return
+    const list = this.data[listKey] || []
+    let expanded = this.data.cateMoreExpanded[key]
+    const activeIdx = list.findIndex(c => c.active)
+    const needExpand =
+      !expanded && list.length > CATE_GRID_VISIBLE && activeIdx >= CATE_GRID_MORE_SLICE
+    if (needExpand) expanded = true
+    const display = buildCateDisplayList(list, expanded)
+    const patch = { [displayKey]: display }
+    if (needExpand) {
+      patch.cateMoreExpanded = Object.assign({}, this.data.cateMoreExpanded, { [key]: true })
+    }
+    this.setData(patch)
   },
 
   loadJobTypes() {
@@ -530,8 +651,6 @@ Page({
       else if (range === '30-50元') { params.minSalary = 30; params.maxSalary = 50 }
       else if (range === '50元以上') params.minSalary = 50
     }
-    const ocid = this._resolveListOpenCityId()
-    if (ocid > 0) params.openCityId = ocid
     get('/jobs', params).then(res => {
       let list = res.data.list || res.data || []
       list = this._mapJobs(list)
@@ -682,12 +801,9 @@ Page({
     const maxPages = 100
     const all = []
     let page = 1
-    const ocid = this._resolveListOpenCityId()
-    const baseParams =
-      ocid > 0 ? Object.assign({}, params, { openCityId: ocid }) : params
 
     while (page <= maxPages) {
-      const res = await get('/posts', { ...baseParams, page, pageSize })
+      const res = await get('/posts', { ...params, page, pageSize })
       const { list, total } = this._extractPagedList(res)
       if (!list.length) break
 
@@ -771,6 +887,25 @@ Page({
     const { label } = e.currentTarget.dataset
     const currentTab = this.data.currentTab
 
+    if (label === '__more__') {
+      const key = currentTab === 0 ? 'purchase' : currentTab === 1 ? 'stock' : currentTab === 2 ? 'process' : ''
+      if (!key) return
+      this.setData(
+        { cateMoreExpanded: Object.assign({}, this.data.cateMoreExpanded, { [key]: true }) },
+        () => this._syncCateDisplayForBiz(key)
+      )
+      return
+    }
+    if (label === '__collapse__') {
+      const key = currentTab === 0 ? 'purchase' : currentTab === 1 ? 'stock' : currentTab === 2 ? 'process' : ''
+      if (!key) return
+      this.setData(
+        { cateMoreExpanded: Object.assign({}, this.data.cateMoreExpanded, { [key]: false }) },
+        () => this._syncCateDisplayForBiz(key)
+      )
+      return
+    }
+
     // 根据当前tab确定要更新的分类数组
     let cateKey = ''
     if (currentTab === 0) cateKey = 'catePurchase'
@@ -787,10 +922,12 @@ Page({
       active: item.label === label ? !item.active : false
     }))
 
-    this.setData({ [cateKey]: categories })
-
-    // 重新加载数据
-    this.loadDataByCategory()
+    this.setData({ [cateKey]: categories }, () => {
+      if (cateKey === 'catePurchase') this._syncCateDisplayForBiz('purchase')
+      else if (cateKey === 'cateStock') this._syncCateDisplayForBiz('stock')
+      else if (cateKey === 'cateProcess') this._syncCateDisplayForBiz('process')
+      this.loadDataByCategory()
+    })
   },
 
   loadDataByCategory() {
@@ -846,10 +983,7 @@ Page({
         }).catch(() => {})
       }
     } else {
-      // 临工端：招工列表按首页所选开放城市筛选
       const jp = { ...params }
-      const ocid = this._resolveListOpenCityId()
-      if (ocid > 0) jp.openCityId = ocid
       get('/jobs', jp).then(res => {
         this.setData({ jobList: this._mapJobs(res.data.list || res.data || []) })
       }).catch(() => {})
@@ -861,8 +995,9 @@ Page({
     if (this.data.processFilterMode) {
       params.processMode = this.data.processFilterMode
     }
-    if (this.data.processFilterCategory) {
-      params.industry = this.data.processFilterCategory
+    if (!params.industry) {
+      const active = (this.data.cateProcess || []).find(c => c.active)
+      if (active && active.label) params.industry = active.label
     }
     this._fetchAllPosts(params).then(rawList => {
       let list = this._mapPosts(rawList)
@@ -919,10 +1054,6 @@ Page({
     const params = {}
     if (this.data.searchKeyword) {
       params.keyword = this.data.searchKeyword
-    }
-    if (this.data.userRole === 'worker') {
-      const ocid = this._resolveListOpenCityId()
-      if (ocid > 0) params.openCityId = ocid
     }
     get('/jobs', params).then(res => {
       const list = res.data.list || res.data || []
@@ -1401,18 +1532,6 @@ Page({
     setTimeout(() => wx.stopPullDownRefresh(), 800)
   },
 
-  // picker 城市选择
-  onCityChange(e) {
-    const idx = e.detail.value
-    const city = this.data.cities[idx]
-    if (!city) return
-    const currentOpenCityId =
-      city.id != null && city.id !== '' ? Number(city.id) : 0
-    this.setData({ cityIndex: idx, currentCity: city.name, currentOpenCityId })
-    wx.setStorageSync('currentCity', city.name)
-    this.loadData()
-  },
-
   onJobTypeChange(e) {
     const idx = e.detail.value
     const val = this.data.jobTypeOptions[idx]
@@ -1485,14 +1604,6 @@ Page({
       processFilterMode: modeMap[idx] || '',
       processFilterModeLabel: labelMap[idx] || ''
     })
-    this.loadProcessList()
-  },
-
-  onProcessCategoryFilter(e) {
-    const idx = Number(e.detail.value)
-    const allOptions = this.data.processCategoryPickerRange
-    const val = allOptions[idx] || ''
-    this.setData({ processFilterCategory: val === '不限' ? '' : val })
     this.loadProcessList()
   },
 

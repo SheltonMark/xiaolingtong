@@ -3,6 +3,8 @@ const auth = require('../../utils/auth')
 const { getDefaultContactProfile } = require('../../utils/contact-profile')
 const { normalizeImageUrl } = require('../../utils/image')
 
+const DEFAULT_OPEN_CITY_NAME = '义乌'
+
 Page({
   data: {
     settleType: 0,
@@ -40,16 +42,31 @@ Page({
     submitting: false,
     phoneChecked: false,
     wechatChecked: false,
-    wechatQrChecked: false,
-    openCities: [],
-    openCityNames: [],
-    openCityIndex: 0,
-    openCityId: 0
+    wechatQrChecked: false
   },
 
   onLoad() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
+    this.syncOpenCityStorageIfNeeded()
     this.checkCertAndInit()
+  },
+
+  syncOpenCityStorageIfNeeded() {
+    if (Number(wx.getStorageSync('currentOpenCityId')) > 0) return
+    get('/config/cities').then((res) => {
+      const list = (res.data && res.data.list) || []
+      if (!list.length) return
+      const name = wx.getStorageSync('currentCity') || DEFAULT_OPEN_CITY_NAME
+      const picked = list.find((c) => c && c.name === name) || list[0]
+      if (!picked || picked.id == null || picked.id === '') return
+      const id = Number(picked.id)
+      if (id > 0) {
+        wx.setStorageSync('currentOpenCityId', id)
+        if (!wx.getStorageSync('currentCity') && picked.name) {
+          wx.setStorageSync('currentCity', picked.name)
+        }
+      }
+    }).catch(() => {})
   },
 
   // 发布招工前校验企业认证（以接口为准，避免 globalData 尚未同步）
@@ -86,41 +103,11 @@ Page({
       }
 
       this.loadJobTypes()
-      this.loadOpenCities()
       this.initContactInfo()
     }).catch(() => {
       this.loadJobTypes()
-      this.loadOpenCities()
       this.initContactInfo()
     })
-  },
-
-  loadOpenCities() {
-    get('/config/cities')
-      .then((res) => {
-        const openCities = res.data.list || []
-        const openCityNames = openCities.map((c) => c.name).filter(Boolean)
-        const savedName = wx.getStorageSync('currentCity') || '义乌'
-        let idx = savedName ? openCityNames.indexOf(savedName) : -1
-        if (idx < 0 && openCities.length) idx = 0
-        const picked = openCities[idx]
-        const openCityId =
-          picked && picked.id != null && picked.id !== ''
-            ? Number(picked.id)
-            : 0
-        this.setData({ openCities, openCityNames, openCityIndex: idx < 0 ? 0 : idx, openCityId })
-      })
-      .catch(() => {})
-  },
-
-  onOpenCityChange(e) {
-    const idx = Number(e.detail.value)
-    const list = this.data.openCities || []
-    const city = list[idx]
-    if (!city) return
-    const openCityId =
-      city.id != null && city.id !== '' ? Number(city.id) : 0
-    this.setData({ openCityIndex: idx, openCityId })
   },
 
   loadJobTypes() {
@@ -299,10 +286,6 @@ Page({
     if (!form.price) { wx.showToast({ title: '请输入工价', icon: 'none' }); return }
     if (!form.headcount) { wx.showToast({ title: '请输入招工人数', icon: 'none' }); return }
     if (!form.startDate || !form.endDate) { wx.showToast({ title: '请选择工作日期', icon: 'none' }); return }
-    if (!(this.data.openCityId > 0)) {
-      wx.showToast({ title: '请选择地区', icon: 'none' })
-      return
-    }
     if (!form.address) { wx.showToast({ title: '请选择工作地点', icon: 'none' }); return }
     if (!form.contactName) { wx.showToast({ title: '请输入联系人', icon: 'none' }); return }
     if (!phoneChecked && !wechatChecked && !wechatQrChecked) {
@@ -314,9 +297,10 @@ Page({
     if (wechatQrChecked && !form.contactWechatQr) { wx.showToast({ title: '请先上传微信二维码', icon: 'none' }); return }
 
     const selectedBenefits = benefits.filter(b => b.selected).map(b => b.label)
+    const openCityId = Number(wx.getStorageSync('currentOpenCityId')) || 0
     this.setData({ submitting: true })
     wx.showLoading({ title: '发布中...' })
-    post('/jobs', {
+    const jobPayload = {
       title: form.title,
       jobType: form.jobType,
       salary: Number(form.price),
@@ -328,7 +312,6 @@ Page({
       dateEnd: form.endDate,
       workHours: `${form.startTime || '08:00'}-${form.endTime || '18:00'}`,
       location: form.address,
-      openCityId: this.data.openCityId,
       lat: form.lat,
       lng: form.lng,
       contactName: form.contactName,
@@ -341,7 +324,11 @@ Page({
       benefits: selectedBenefits,
       images,
       videos
-    }).then(() => {
+    }
+    if (openCityId > 0) {
+      jobPayload.openCityId = openCityId
+    }
+    post('/jobs', jobPayload).then(() => {
       wx.hideLoading()
       wx.showToast({ title: '发布成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 1500)

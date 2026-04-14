@@ -27,7 +27,7 @@
   display: flex;
   align-items: center;
   padding: 16rpx 32rpx;
-  gap: 16rpx;
+   gap: 16rpx;
 }
 .city-selector {
   display: flex;
@@ -44,10 +44,10 @@
   font-size: 24rpx;
   font-weight: 500;
   color: #1E293B;
-}
-.city-arrow {
-  font-size: 20rpx;
-  color: #94A3B8;
+  max-width: 140rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .search-bar {
   flex: 1;
@@ -57,6 +57,13 @@
   background-color: #F1F5F9;
   border-radius: 9999rpx;
   padding: 12rpx 24rpx;
+  min-width: 0;
+}
+.search-input {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  color: #1E293B;
 }
 .search-icon {
   font-size: 28rpx;
@@ -155,7 +162,7 @@
   margin-left: 4rpx;
 }
 
-/* ===== Banner ===== */
+/* ===== Banner（四 Tab 共用同一套尺寸：仅加高度，宽度仍铺满内容区） ===== */
 .banner-wrap {
   padding: 24rpx 32rpx 0;
 }
@@ -163,7 +170,7 @@
   padding: 0 0 24rpx;
 }
 .banner-swiper {
-  height: 280rpx;
+  height: 320rpx;
   border-radius: 24rpx;
   overflow: hidden;
 }
@@ -205,7 +212,7 @@
 }
 .banner-img {
   width: 100%;
-  height: 280rpx;
+  height: 100%;
   display: block;
 }
 .banner-img-ad {
@@ -328,6 +335,34 @@
   font-weight: 500;
 }
 
+.cate-icon--meta {
+  box-sizing: border-box;
+}
+/* 与品类彩色块区分：略偏主色倾向的淡底，暗示可点 */
+.cate-icon--meta-more {
+  background-color: #EEF2FF;
+  border: 1rpx solid #E0E7FF;
+}
+.cate-icon--meta-collapse {
+  background-color: #F1F5F9;
+  border: 1rpx solid #E2E8F0;
+}
+.cate-more-plus {
+  font-size: 44rpx;
+  font-weight: 300;
+  color: #64748B;
+  line-height: 1;
+}
+.cate-more-plus--minus {
+  font-size: 40rpx;
+  font-weight: 400;
+}
+
+.cate-grid-wrap--process {
+  padding-top: 36rpx;
+  padding-bottom: 24rpx;
+}
+
 /* ===== 列表区域 ===== */
 .list-wrap {
   margin-top: 8rpx;
@@ -385,7 +420,7 @@
   min-width: 0;
 }
 .job-company {
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
   color: #1E293B;
   overflow: hidden;
@@ -430,14 +465,14 @@
 
 /* 薪资行（企业端招工tab用） */
 .job-salary-line {
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #1E293B;
   line-height: 1.625;
   margin-bottom: 8rpx;
   display: block;
 }
 .job-desc {
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #64748B;
   line-height: 1.6;
   margin-bottom: 20rpx;
@@ -671,14 +706,20 @@
 .fab-publish-icon { font-size: 40rpx; font-weight: 300; line-height: 1; }
 .fab-publish-text { font-size: 20rpx; font-weight: 600; margin-top: 2rpx; }
 
-/* ===== 代加工筛选栏 ===== */
+/* ===== 代加工筛选栏（品类为 icon 网格，此处仅类型+距离） ===== */
 .pf-bar {
-  padding: 16rpx 32rpx 0;
+  padding: 40rpx 32rpx 0;
+}
+.pf-bar--process {
+  padding: 12rpx 32rpx 4rpx;
 }
 .pf-mode-row {
   display: flex;
   align-items: center;
   gap: 20rpx;
+}
+.pf-mode-row--two {
+  gap: 24rpx;
 }
 .pf-mode-row picker {
   flex: 1;

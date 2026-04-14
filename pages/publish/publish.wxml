@@ -20,17 +20,6 @@
     </view>
   </view>
 
-  <!-- 展示地区（与首页开放城市一致，列表筛选用） -->
-  <view class="form-card region-card">
-    <text class="form-label required">展示地区</text>
-    <picker mode="selector" range="{{openCityNames}}" value="{{openCityIndex}}" bindchange="onOpenCityChange" disabled="{{!openCityNames.length}}">
-      <view class="form-picker {{!openCityNames.length ? 'form-picker-disabled' : ''}}">
-        <text class="{{openCityId ? '' : 'placeholder'}}">{{openCityNames.length ? (openCityNames[openCityIndex] || '请选择地区') : '城市列表加载中…'}}</text>
-        <text class="picker-arrow">▼</text>
-      </view>
-    </picker>
-  </view>
-
   <!-- ====== 采购需求模版 ====== -->
   <block wx:if="{{typeIndex === 0}}">
     <view class="form-card">

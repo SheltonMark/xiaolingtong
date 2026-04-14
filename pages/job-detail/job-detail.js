@@ -42,6 +42,7 @@ Page({
     hasApplied: false,
     job: {},
     mediaList: [],
+    hasVideoSlide: false,
     wechatCardVisible: false,
     wechatCard: {
       wechatId: '',
@@ -65,10 +66,18 @@ Page({
         benefits: normalizeBenefits(pickBenefitValue(job.benefits, job.tags))
       }
       const mediaList = [
-        ...(jobData.videos || []).map(v => ({ type: 'video', src: v })),
-        ...(jobData.images || []).map(i => ({ type: 'image', src: i }))
+        ...(jobData.images || []).map((i) => ({ type: 'image', src: i })),
+        ...(jobData.videos || []).map((v) => ({ type: 'video', src: v }))
       ]
-      this.setData({ job: jobData, mediaList, hasApplied: !!job.hasApplied, wechatCardVisible: false })
+      const hasVideoSlide = mediaList.some((m) => m.type === 'video')
+      this.setData({
+        job: jobData,
+        mediaList,
+        hasVideoSlide,
+        swiperCurrent: 0,
+        hasApplied: !!job.hasApplied,
+        wechatCardVisible: false
+      })
 
       // 计算距离：优先使用 lat/lng，缺失时自动使用地址地理编码
       getUserLocation()

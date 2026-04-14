@@ -1,28 +1,51 @@
 <!--pages/post-detail/post-detail.wxml-->
 <view class="detail-page">
   <nav-bar title="信息详情" />
-  <!-- 视频播放 -->
-  <view class="video-wrap" wx:if="{{detail.videos && detail.videos.length > 0}}">
-    <video src="{{detail.videos[0]}}" class="detail-video" controls show-fullscreen-btn object-fit="cover" />
-  </view>
-  <!-- 图片轮播 -->
-  <view class="swiper-wrap" wx:if="{{detail.images.length > 0}}">
-    <swiper class="image-swiper"
-            indicator-dots autoplay circular
-            bindchange="onSwiperChange">
-      <swiper-item wx:for="{{detail.images}}" wx:key="*this">
-        <image src="{{item}}" mode="aspectFill" class="swiper-img" data-urls="{{detail.images}}" data-current="{{item}}" catchtap="onPreviewImage" />
+  <!-- 图片 + 视频统一轮播：先全部图片，再全部视频 -->
+  <view class="swiper-wrap" wx:if="{{mediaSlides.length > 0}}">
+    <swiper
+      class="image-swiper"
+      indicator-dots
+      circular="{{mediaSlides.length > 1}}"
+      autoplay="{{!hasVideoSlide && mediaSlides.length > 1}}"
+      bindchange="onSwiperChange"
+    >
+      <swiper-item wx:for="{{mediaSlides}}" wx:for-item="slide" wx:for-index="sidx" wx:key="sidx">
+        <image
+          wx:if="{{slide.type === 'image'}}"
+          src="{{slide.src}}"
+          mode="aspectFill"
+          class="swiper-img"
+          data-urls="{{detail.images}}"
+          data-current="{{slide.src}}"
+          catchtap="onPreviewImage"
+        />
+        <video
+          wx:else
+          src="{{slide.src}}"
+          class="swiper-video"
+          controls
+          show-fullscreen-btn
+          object-fit="cover"
+          enable-play-gesture
+        />
       </swiper-item>
     </swiper>
-    <view class="swiper-counter">{{swiperCurrent + 1}}/{{detail.images.length}}</view>
+    <view class="swiper-counter">{{swiperCurrent + 1}}/{{mediaSlides.length}}</view>
   </view>
 
   <!-- 基本信息 -->
   <view class="title-section">
     <view class="tag-row">
-      <text class="tag tag-blue">{{detail.typeText}}</text>
-      <text class="tag tag-cyan" wx:if="{{detail.processModeLabel}}">{{detail.processModeLabel}}</text>
-      <text class="tag tag-amber">{{detail.industry}}</text>
+      <view class="tag-row-tags">
+        <text class="tag tag-blue">{{detail.typeText}}</text>
+        <text class="tag tag-cyan" wx:if="{{detail.processModeLabel}}">{{detail.processModeLabel}}</text>
+        <text class="tag tag-amber">{{detail.industry}}</text>
+      </view>
+      <view class="fav-tag-cell" bindtap="onToggleFav">
+        <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
+        <text class="fav-tag-text">收藏</text>
+      </view>
     </view>
     <view class="title-row">
       <text class="detail-title">{{detail.title}}</text>
@@ -84,8 +107,9 @@
   <!-- 底部操作 -->
   <view class="bottom-actions-placeholder"></view>
   <view class="bottom-actions">
-    <view class="fav-btn" bindtap="onToggleFav">
-      <text class="iconfont icon-xingxing {{isFav ? 'fav-active' : 'fav-inactive'}}"></text>
+    <view class="home-btn" bindtap="onGoHome">
+      <text class="iconfont icon-shouye home-btn-icon"></text>
+      <text class="home-btn-text">首页</text>
     </view>
     <view class="share-btn-wrap">
       <text class="iconfont icon-fenxiang1 share-icon-gray"></text>

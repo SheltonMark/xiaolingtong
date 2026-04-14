@@ -286,37 +286,44 @@ export class AdminService {
     if (role) qb.andWhere('u.role = :role', { role });
     else qb.andWhere('u.role IS NOT NULL');
     if (keyword) {
-      const kwPattern = `%${keyword}%`;
-      const digitsOnly = keyword.replace(/\D/g, '');
-      qb.andWhere(
-        new Brackets((sub) => {
-          sub
-            .where('u.nickname LIKE :kw', { kw: kwPattern })
-            .orWhere('u.name LIKE :kw', { kw: kwPattern })
-            .orWhere('u.phone LIKE :kw', { kw: kwPattern })
-            .orWhere('u.verifiedPhone LIKE :kw', { kw: kwPattern })
-            .orWhere(
-              'EXISTS (SELECT 1 FROM enterprise_certs ent WHERE ent.userId = u.id AND ent.companyName LIKE :kw)',
-              { kw: kwPattern },
-            )
-            .orWhere(
-              'EXISTS (SELECT 1 FROM worker_certs worker WHERE worker.userId = u.id AND worker.realName LIKE :kw)',
-              { kw: kwPattern },
-            );
-          if (digitsOnly.length >= 3) {
-            const dPat = `%${digitsOnly}%`;
+      const exactIdMatch = keyword.match(/^id\s+(\d+)$/i);
+      if (exactIdMatch) {
+        qb.andWhere('u.id = :exactId', {
+          exactId: Number(exactIdMatch[1]),
+        });
+      } else {
+        const kwPattern = `%${keyword}%`;
+        const digitsOnly = keyword.replace(/\D/g, '');
+        qb.andWhere(
+          new Brackets((sub) => {
             sub
+              .where('u.nickname LIKE :kw', { kw: kwPattern })
+              .orWhere('u.name LIKE :kw', { kw: kwPattern })
+              .orWhere('u.phone LIKE :kw', { kw: kwPattern })
+              .orWhere('u.verifiedPhone LIKE :kw', { kw: kwPattern })
               .orWhere(
-                "REPLACE(REPLACE(REPLACE(COALESCE(u.phone,''),' ',''),'-',''),'+','') LIKE :digits",
-                { digits: dPat },
+                'EXISTS (SELECT 1 FROM enterprise_certs ent WHERE ent.userId = u.id AND ent.companyName LIKE :kw)',
+                { kw: kwPattern },
               )
               .orWhere(
-                "REPLACE(REPLACE(REPLACE(COALESCE(u.verifiedPhone,''),' ',''),'-',''),'+','') LIKE :digits",
-                { digits: dPat },
+                'EXISTS (SELECT 1 FROM worker_certs worker WHERE worker.userId = u.id AND worker.realName LIKE :kw)',
+                { kw: kwPattern },
               );
-          }
-        }),
-      );
+            if (digitsOnly.length >= 3) {
+              const dPat = `%${digitsOnly}%`;
+              sub
+                .orWhere(
+                  "REPLACE(REPLACE(REPLACE(COALESCE(u.phone,''),' ',''),'-',''),'+','') LIKE :digits",
+                  { digits: dPat },
+                )
+                .orWhere(
+                  "REPLACE(REPLACE(REPLACE(COALESCE(u.verifiedPhone,''),' ',''),'-',''),'+','') LIKE :digits",
+                  { digits: dPat },
+                );
+            }
+          }),
+        );
+      }
     }
     qb.orderBy('u.createdAt', 'DESC')
       .skip((page - 1) * pageSize)

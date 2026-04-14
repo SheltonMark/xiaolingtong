@@ -606,6 +606,25 @@ describe('AdminModule Integration Tests', () => {
       expect(qb.leftJoin).not.toHaveBeenCalled();
       expect(qb.andWhere).toHaveBeenCalledWith(expect.any(Brackets));
     });
+
+    it('should support exact id search when keyword uses "id N" syntax', async () => {
+      const qb = createPagedQueryBuilder([], 0);
+      userRepository.createQueryBuilder.mockReturnValue(qb);
+
+      await controller.userList({
+        keyword: 'id 7',
+        page: 1,
+        pageSize: 20,
+      });
+
+      expect(qb.andWhere).toHaveBeenCalledWith('u.id = :exactId', {
+        exactId: 7,
+      });
+      const hasBracketKeywordSearch = qb.andWhere.mock.calls.some(
+        (call: any[]) => call[0] instanceof Brackets,
+      );
+      expect(hasBracketKeywordSearch).toBe(false);
+    });
   });
 
   describe('banUser Integration', () => {

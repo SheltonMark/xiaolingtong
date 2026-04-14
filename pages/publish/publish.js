@@ -25,6 +25,8 @@ const PROCESS_MODE_OPTIONS = [
   { label: '承接加工', value: 'offering' }
 ]
 
+const DEFAULT_OPEN_CITY_NAME = '义乌'
+
 function buildFallbackContactInfo() {
   const app = getApp()
   const userInfo = app.globalData.userInfo || {}
@@ -57,51 +59,33 @@ Page({
     wechatQrChecked: false,
     locationAddress: '',
     locationLat: null,
-    locationLng: null,
-    openCities: [],
-    openCityNames: [],
-    openCityIndex: 0,
-    openCityId: 0
+    locationLng: null
   },
 
   onLoad() {
     if (!auth.isLoggedIn()) { auth.goLogin(); return }
-    this.loadOpenCities()
+    this.syncOpenCityStorageIfNeeded()
     this.loadCategories()
     this.initContactInfo()
   },
 
-  loadOpenCities() {
-    get('/config/cities')
-      .then((res) => {
-        const openCities = (res.data && res.data.list) || res.list || []
-        const openCityNames = openCities.map((c) => c.name).filter(Boolean)
-        const savedName = wx.getStorageSync('currentCity') || '义乌'
-        let idx = savedName ? openCityNames.indexOf(savedName) : -1
-        if (idx < 0 && openCities.length) idx = 0
-        const picked = openCities[idx]
-        const openCityId =
-          picked && picked.id != null && picked.id !== ''
-            ? Number(picked.id)
-            : 0
-        this.setData({
-          openCities,
-          openCityNames,
-          openCityIndex: idx < 0 ? 0 : idx,
-          openCityId
-        })
-      })
-      .catch(() => {})
-  },
-
-  onOpenCityChange(e) {
-    const idx = Number(e.detail.value)
-    const list = this.data.openCities || []
-    const city = list[idx]
-    if (!city) return
-    const openCityId =
-      city.id != null && city.id !== '' ? Number(city.id) : 0
-    this.setData({ openCityIndex: idx, openCityId })
+  /** 未进首页时 storage 无 currentOpenCityId，发布前补一次，便于请求带上 openCityId */
+  syncOpenCityStorageIfNeeded() {
+    if (Number(wx.getStorageSync('currentOpenCityId')) > 0) return
+    get('/config/cities').then((res) => {
+      const list = (res.data && res.data.list) || []
+      if (!list.length) return
+      const name = wx.getStorageSync('currentCity') || DEFAULT_OPEN_CITY_NAME
+      const picked = list.find((c) => c && c.name === name) || list[0]
+      if (!picked || picked.id == null || picked.id === '') return
+      const id = Number(picked.id)
+      if (id > 0) {
+        wx.setStorageSync('currentOpenCityId', id)
+        if (!wx.getStorageSync('currentCity') && picked.name) {
+          wx.setStorageSync('currentCity', picked.name)
+        }
+      }
+    }).catch(() => {})
   },
 
   loadCategories() {
@@ -316,12 +300,8 @@ Page({
       wx.showToast({ title: '文件上传中，请稍后提交', icon: 'none' })
       return
     }
-    if (!(this.data.openCityId > 0)) {
-      wx.showToast({ title: '请选择展示地区', icon: 'none' })
-      return
-    }
 
-    const { form, phoneChecked, wechatChecked, wechatQrChecked, images, videos, typeIndex, contactInfo, locationAddress, locationLat, locationLng, openCityId } = this.data
+    const { form, phoneChecked, wechatChecked, wechatQrChecked, images, videos, typeIndex, contactInfo, locationAddress, locationLat, locationLng } = this.data
     const types = ['purchase', 'stock', 'process']
     const contactName = (contactInfo.name || '').trim()
     const contactPhone = (contactInfo.phone || '').trim()
@@ -365,9 +345,10 @@ Page({
       return
     }
 
+    const openCityId = Number(wx.getStorageSync('currentOpenCityId')) || 0
+
     const data = {
       type: types[typeIndex],
-      openCityId,
       title: typeIndex === 2 ? undefined : form.productName,
       category: form.category,
       processMode: form.processMode || undefined,
@@ -396,6 +377,9 @@ Page({
       lat: locationLat || undefined,
       lng: locationLng || undefined
     }
+    if (openCityId > 0) {
+      data.openCityId = openCityId
+    }
 
     wx.showLoading({ title: '发布中...' })
     this.setData({ submitting: true })
@@ -414,7 +398,6 @@ Page({
   onShow() {
     const loggedIn = auth.isLoggedIn()
     if (loggedIn) {
-      this.loadOpenCities()
       this.loadCategories()
     }
     if (this._shouldRefreshContact && loggedIn) {
