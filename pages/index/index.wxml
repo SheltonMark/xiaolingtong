@@ -141,8 +141,7 @@
         <info-card wx:for="{{purchaseList}}" wx:key="id"
                    item="{{item}}"
                    bind:cardtap="onCardTap"
-                   bind:wechat="onWechat"
-                   bind:phone="onPhone"
+                   bind:contact="onContactAction"
                    bind:chat="onChat"
                    bind:share="onShare"
                    bind:report="onReport" />
@@ -185,8 +184,7 @@
                    item="{{item}}"
                    show-distance="{{true}}"
                    bind:cardtap="onCardTap"
-                   bind:wechat="onWechat"
-                   bind:phone="onPhone"
+                   bind:contact="onContactAction"
                    bind:chat="onChat"
                    bind:share="onShare"
                    bind:report="onReport" />
@@ -245,8 +243,7 @@
                    item="{{item}}"
                    show-distance="{{true}}"
                    bind:cardtap="onCardTap"
-                   bind:wechat="onWechat"
-                   bind:phone="onPhone"
+                   bind:contact="onContactAction"
                    bind:chat="onChat"
                    bind:share="onShare"
                    bind:report="onReport" />

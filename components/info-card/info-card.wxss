@@ -106,10 +106,10 @@
   border-radius: 12rpx 0 0 0;
 }
 
-/* 底部三按钮 */
+/* 底部两按钮 */
 .card-actions {
   display: flex;
-  gap: 12rpx;
+  gap: 16rpx;
   padding: 12rpx 16rpx 16rpx;
   border-top: 1rpx solid #F1F5F9;
 }
@@ -123,6 +123,5 @@
 }
 .action-btn .iconfont { font-size: 28rpx; }
 .action-icon-align { position: relative; top: 2rpx; }
-.action-wechat { color: #10B981; background-color: #ECFDF5; }
-.action-phone { color: #3B82F6; background-color: #EFF6FF; }
+.action-contact { color: #059669; background-color: #ECFDF5; }
 .action-chat { color: #F97316; background-color: #FFF7ED; }

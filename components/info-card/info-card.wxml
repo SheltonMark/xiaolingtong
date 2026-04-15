@@ -41,15 +41,11 @@
       </view>
     </view>
   </view>
-  <!-- 底部三按钮 -->
+  <!-- 底部两按钮：联系方式 + 在线聊 -->
   <view class="card-actions" wx:if="{{showContact}}">
-    <view class="action-btn action-wechat" catchtap="onTapWechat">
-      <text class="iconfont icon-xiaoxi action-icon-align"></text>
-      <text>微信</text>
-    </view>
-    <view class="action-btn action-phone" catchtap="onTapPhone">
-      <text class="iconfont icon-shouji action-icon-align"></text>
-      <text>电话</text>
+    <view class="action-btn action-contact" catchtap="onTapContact">
+      <text class="iconfont {{item.contactActionLabel === '立即联系' ? 'icon-lianxi' : 'icon-jiesuo'}} action-icon-align"></text>
+      <text>{{item.contactActionLabel || '解锁联系方式'}}</text>
     </view>
     <view class="action-btn action-chat" catchtap="onTapChat">
       <text class="iconfont icon-pinglun action-icon-align"></text>

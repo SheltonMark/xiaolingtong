@@ -730,9 +730,13 @@ Page({
   },
 
   _mapPosts(list) {
+    const uid = this.getCurrentUserId()
     return (Array.isArray(list) ? list : []).map(item => {
       const companyName = resolveEnterpriseName(item)
       const user = item.user || {}
+      const ownerId = Number(item.userId || (user && user.id) || 0)
+      const isOwner = !!(uid && ownerId && uid === ownerId)
+      const contactUnlocked = !!(item.contactUnlocked || isOwner)
       return {
         ...item,
         companyName,
@@ -752,7 +756,9 @@ Page({
         address: item.address || item.location || '',
         lat: item.lat || null,
         lng: item.lng || null,
-        distanceText: item.distanceText || ''
+        distanceText: item.distanceText || '',
+        _isOwnerPost: isOwner,
+        contactActionLabel: contactUnlocked ? '立即联系' : '解锁联系方式'
       }
     })
   },
@@ -1194,7 +1200,7 @@ Page({
       if (String(item.contactPhone || item.phone || '').trim()) {
         wx.showModal({
           title: '提示',
-          content: '发布者未留微信，可点击「电话」联系发布者',
+          content: '发布者未留微信，可在「立即联系」中选择拨打电话',
           showCancel: false,
           confirmText: '知道了'
         })
@@ -1213,29 +1219,39 @@ Page({
     this.setData({ wechatCardVisible: false })
   },
 
-  onWechat(e) {
-    const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
-    const item = this.getPostItemById(id)
+  /** 与帖子详情页 onShowContact 一致：双渠道先选；仅电话直拨；仅微信弹卡片 */
+  showContactChoices(item) {
+    if (!item) return
+    const phone = String(item.contactPhone || item.phone || '').trim()
+    const wechat = (item.contactWechat || item.wechat || '').trim()
+    const wechatQrImage = (item.contactWechatQr || item.wechatQrImage || '').trim()
+    const hasWechat = !!(wechat || wechatQrImage)
 
-    if (!item) {
-      wx.showToast({ title: '信息不存在', icon: 'none' })
+    if (!hasWechat && !phone) {
+      wx.showToast({ title: '发布者未留联系方式', icon: 'none' })
       return
     }
 
-    if (this.isOwnerPost(item)) {
-      wx.showToast({ title: '无需获取自己的微信', icon: 'none' })
+    if (hasWechat && phone) {
+      wx.showActionSheet({
+        itemList: ['查看微信', '拨打电话'],
+        success: (res) => {
+          if (res.tapIndex === 0) this.openWechatCard(item)
+          else if (res.tapIndex === 1) wx.makePhoneCall({ phoneNumber: phone, fail() {} })
+        }
+      })
       return
     }
 
-    if (this.isPostUnlocked(item)) {
+    if (hasWechat) {
       this.openWechatCard(item)
       return
     }
 
-    this._unlockContact(id, 'wechat')
+    wx.makePhoneCall({ phoneNumber: phone, fail() {} })
   },
 
-  onPhone(e) {
+  onContactAction(e) {
     const id = e.detail ? e.detail.id : (e.currentTarget.dataset.id || '')
     const item = this.getPostItemById(id)
 
@@ -1245,32 +1261,16 @@ Page({
     }
 
     if (this.isOwnerPost(item)) {
-      wx.showToast({ title: '无需获取自己的电话', icon: 'none' })
+      wx.showToast({ title: '无需获取自己的联系方式', icon: 'none' })
       return
     }
 
     if (this.isPostUnlocked(item)) {
-      const phone = String(item.contactPhone || item.phone || '').trim()
-      if (!phone) {
-        const w = (item.contactWechat || item.wechat || '').trim()
-        const qr = (item.contactWechatQr || item.wechatQrImage || '').trim()
-        if (w || qr) {
-          wx.showModal({
-            title: '提示',
-            content: '发布者未留电话，可点击「微信」联系发布者',
-            showCancel: false,
-            confirmText: '知道了'
-          })
-        } else {
-          wx.showToast({ title: '发布者未留电话', icon: 'none' })
-        }
-        return
-      }
-      wx.makePhoneCall({ phoneNumber: phone, fail() {} })
+      this.showContactChoices(item)
       return
     }
 
-    this._unlockContact(id, 'phone')
+    this._unlockContact(id, 'contact')
   },
 
   _unlockContact(postId, type) {
@@ -1283,9 +1283,11 @@ Page({
       wx.hideLoading()
       const data = response.data || response
 
-      // 如果已经解锁过了
+      // 如果已经解锁过了（与详情页一致：直接走联系方式选择）
       if (data.alreadyUnlocked) {
-        wx.showToast({ title: '已解锁，无需重复解锁', icon: 'none' })
+        wx.showToast({ title: '已解锁', icon: 'none' })
+        const row = this.getPostItemById(postId)
+        if (row) this.showContactChoices(Object.assign({}, row, { contactUnlocked: true }))
         return
       }
 
@@ -1378,12 +1380,10 @@ Page({
       // 重新加载数据
       this.loadData()
 
-      // 根据类型执行相应操作
       setTimeout(() => {
-        if (type === 'wechat') {
-          this.onWechat({ detail: { id: postId } })
-        } else if (type === 'phone') {
-          this.onPhone({ detail: { id: postId } })
+        if (type === 'contact') {
+          const row = this.getPostItemById(postId)
+          if (row) this.showContactChoices(Object.assign({}, row, { contactUnlocked: true }))
         } else if (type === 'chat') {
           this.onChat({ detail: { id: postId } })
         }
