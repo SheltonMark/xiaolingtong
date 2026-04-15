@@ -6,6 +6,8 @@ const { countSystemUnread } = require('../../utils/system-messages')
 const DISTANCE_DEBUG = false
 /** 与开放城市配置名称一致，用于首页展示与同步 storage */
 const DEFAULT_HOME_CITY_NAME = '义乌'
+/** 首页分享小程序（右上角或默认入口，无具体卡片）时的标题 */
+const INDEX_DEFAULT_SHARE_TITLE = '上聚采通，生意一路通'
 
 function normalizeBenefitItems(value) {
   if (Array.isArray(value)) {
@@ -841,7 +843,7 @@ Page({
     }
     if (!item) {
       return {
-        title: '聚采通供需平台',
+        title: INDEX_DEFAULT_SHARE_TITLE,
         path: '/pages/index/index'
       }
     }
@@ -1448,18 +1450,18 @@ Page({
     const type = (res && res.target && res.target.dataset && res.target.dataset.type) || ''
     const payload = this._buildSharePayloadById(id, type)
     return payload && payload.path ? payload : (this._lastSharePayload || {
-      title: '聚采通供需平台',
+      title: INDEX_DEFAULT_SHARE_TITLE,
       path: getApp().getSharePath('/pages/index/index')
     })
   },
 
   onShareTimeline() {
     const payload = this._lastSharePayload || {
-      title: '聚采通供需平台',
+      title: INDEX_DEFAULT_SHARE_TITLE,
       path: '/pages/index/index'
     }
     const query = payload.path.includes('?') ? payload.path.split('?')[1] : ''
-    const result = { title: payload.title || '聚采通供需平台', query }
+    const result = { title: payload.title || INDEX_DEFAULT_SHARE_TITLE, query }
     if (payload.imageUrl) result.imageUrl = payload.imageUrl
     return result
   },
