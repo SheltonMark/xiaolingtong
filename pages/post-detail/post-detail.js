@@ -769,36 +769,110 @@ Page({
     return this.normalizeText(detail.content)
   },
 
-  /**
-   * 海报字段行：与详情 info-list 一致，并保证采购/库存含品类、数量（避免布局预留补充描述后字段被挤掉时不显示）
-   */
-  _posterFieldList(detail) {
-    if (!detail) return []
-    const base = (detail.fields || [])
-      .map((f) => ({
-        label: String(f.label || '').trim(),
-        value: String(f.value || '').trim()
-      }))
-      .filter((f) => f.label || f.value)
-    const type = detail.type
-    const src = detail.fieldSource || {}
-    const extras = []
-    if (type === 'purchase' || type === 'stock') {
-      const industry = this.normalizeText(detail.industry)
-      const qtyRaw = src.quantity
-      const qty =
-        qtyRaw != null && String(qtyRaw).trim() !== ''
-          ? String(qtyRaw).trim() + '个'
-          : ''
-      if (!base.some((r) => r.label === '品类') && industry) {
-        extras.push({ label: '品类', value: industry })
-      }
-      const qtyLabel = type === 'purchase' ? '采购数量' : '库存数量'
-      if (!base.some((r) => r.label === qtyLabel) && qty) {
-        extras.push({ label: qtyLabel, value: qty })
-      }
+  /** 海报标题（与详情页标题一致，可兜底） */
+  _posterTitleText(detail) {
+    if (!detail) return ''
+    const typeText = TYPE_TEXT_MAP[detail.type] || '供需信息'
+    let title = this.normalizeText(detail.title)
+    if (!title) {
+      const first = (detail.fields || [])[0]
+      const v = first && this.normalizeText(first.value)
+      if (v) title = v
+      else title = typeText
     }
-    return extras.concat(base)
+    return title
+  },
+
+  /** 用「 · 」拼接非空片段（无「物品：」等标签，节省海报空间） */
+  _posterJoinParts(parts) {
+    return (parts || [])
+      .map((p) => this.normalizeText(p))
+      .filter(Boolean)
+      .join(' · ')
+  },
+
+  /**
+   * 海报正文一段流：按类型把结构化字段 + 详细描述拼成连续文案（缺字段自动跳过）
+   */
+  _buildPosterFlowText(detail) {
+    if (!detail) return ''
+    const src =
+      detail.fieldSource && typeof detail.fieldSource === 'object'
+        ? detail.fieldSource
+        : {}
+    const type = detail.type
+    const industry =
+      this.normalizeText(detail.industry) &&
+      this.normalizeText(detail.industry) !== '未分类'
+        ? this.normalizeText(detail.industry)
+        : ''
+    const desc = this._posterSupplementText(detail).trim()
+
+    const budgetText =
+      src.priceMin && src.priceMax
+        ? `${src.priceMin}-${src.priceMax}元`
+        : src.priceMin
+          ? `${src.priceMin}元起`
+          : src.priceMax
+            ? `${src.priceMax}元以内`
+            : ''
+
+    let head = ''
+    if (type === 'purchase') {
+      const qty =
+        src.quantity != null && String(src.quantity).trim() !== ''
+          ? `${String(src.quantity).trim()}个`
+          : ''
+      head = this._posterJoinParts([
+        '采购',
+        src.productName || detail.title,
+        industry,
+        qty,
+        src.spec,
+        src.deliveryDays ? `交货周期${src.deliveryDays}` : '',
+        budgetText,
+        src.quality
+      ])
+    } else if (type === 'stock') {
+      const qty =
+        src.quantity != null && String(src.quantity).trim() !== ''
+          ? `${String(src.quantity).trim()}个`
+          : ''
+      const price = src.price ? `${src.price}元` : ''
+      const addr = this.normalizeText(detail.address || detail.location)
+      head = this._posterJoinParts([
+        '库存',
+        src.productName || detail.title,
+        industry,
+        qty,
+        price,
+        addr
+      ])
+    } else if (type === 'process') {
+      const mode =
+        this.getProcessModeLabel(detail) ||
+        this.normalizeText(src.processType) ||
+        ''
+      const addr = this.normalizeText(detail.address || detail.location)
+      head = this._posterJoinParts([
+        '代加工',
+        mode,
+        industry,
+        addr
+      ])
+    } else {
+      head = this._posterJoinParts([detail.title, industry])
+    }
+
+    if (!head && !desc) {
+      return this.normalizeText(detail.content) || '扫码查看详情'
+    }
+    if (!head) return desc
+    if (!desc) return head
+    if (desc === head) return head
+    if (head.indexOf(desc) !== -1) return head
+    if (desc.indexOf(head) !== -1) return desc
+    return `${head}\n\n${desc}`
   },
 
   /** 按最大行数截断，末行过长时加省略号（…） */
@@ -868,8 +942,8 @@ Page({
       const ctx = canvasNode.getContext('2d')
       /**
        * 海报画布 W×H = 750×1334（逻辑 px）
-       * - 主图：670×670；帖标题在卡片外；字段+补充描述合并单张圆角卡片
-       * - 字段：标签常规字重，值加粗；卡片底不超过 QR_Y - QR_MARGIN_ABOVE，避免与码重叠
+       * - 主图 620×620（为正文预留约 7 行）；下方单圆角框：标题 + 一段拼接正文（采购/库存/代加工按类型拼字段+描述，「 · 」分隔）
+       * - 正文区底边抬高，避免与右下角小程序码视觉重叠；过长末行省略号
        */
       const W = 750
       const H = 1334
@@ -877,7 +951,7 @@ Page({
       const QR_SIZE = 140
       const QR_X = W - 180
       const QR_Y = H - 200
-      const QR_MARGIN_ABOVE = 56
+      const QR_MARGIN_ABOVE = 88
       const cardRectBottomMax = QR_Y - QR_MARGIN_ABOVE
       const textX = 48
       const textMaxW = W - 96
@@ -916,8 +990,8 @@ Page({
 
       let curY = POSTER_TOP_Y
       if (imgPath) {
-        const imgW = 670
-        const imgH = imgW
+        const imgW = 620
+        const imgH = 620
         const imgX = (W - imgW) / 2
         ctx.save()
         const r = 16
@@ -935,107 +1009,81 @@ Page({
         ctx.clip()
         await drawImg(imgPath, imgX, curY, imgW, imgH)
         ctx.restore()
-        // 图片底与标题区留白（主图与标题勿贴太紧）
-        curY += imgH + 88
+        curY += imgH + 26
+      } else {
+        curY += 8
       }
 
-      const titleText = detail.title || ''
-
-      // 帖标题（卡片外）：略收字号，竖条与卡片左条宽一致
-      const titleAccentW = 5
-      const titleTextLeft = textX + titleAccentW + 12
-      const titleMaxW = textMaxW - (titleTextLeft - textX)
-      ctx.font = 'bold 32px sans-serif'
-      ctx.fillStyle = '#0F172A'
-      const titleLines = this._wrapText(ctx, titleText, titleMaxW)
-      const titleSlice = titleLines.slice(0, 2)
-      const titleLineH = 46
-      if (titleSlice.length) {
-        const barTop = curY - 26
-        const barH = titleSlice.length * titleLineH + 8
-        ctx.fillStyle = '#10B981'
-        ctx.fillRect(textX, barTop, titleAccentW, barH)
-        ctx.fillStyle = '#0F172A'
-        titleSlice.forEach((line, i) => {
-          ctx.fillText(line, titleTextLeft, curY + i * titleLineH)
-        })
-        curY += (titleSlice.length - 1) * titleLineH + 26 + 14
-      }
-
-      // —— 单卡片：字段 + 补充描述（先预排版，避免与右下角码重叠）——
       const CARD_PAD = 16
       const CARD_RADIUS = 12
       const STRIPE_W = 5
       const contentX = textX + CARD_PAD + STRIPE_W + 10
       const contentW = textMaxW - CARD_PAD * 2 - STRIPE_W - 10
-      const supplementText = this._posterSupplementText(detail)
-      /** 排字段时不为「补充描述」预留高度，避免有主图时卡片过矮导致只显示补充说明 */
-      const reserveSupForFields = 0
-      const labelLineH = 26
-      const labelToValGap = 6
-      const valLineH = 32
-      const fieldSectionGap = 12
-      const supTitleH = 24
-      const supTitleGap = 8
-      const supBodyLineH = 28
-
       const innerBottomY = cardRectBottomMax - CARD_PAD
-      const cardTop = curY + 10
-      let simCursor = CARD_PAD + 22
-      const fieldBlocks = []
-      const fieldsList = this._posterFieldList(detail)
-      ctx.font = 'bold 28px sans-serif'
+      const cardTop = curY + 4
 
-      for (let i = 0; i < fieldsList.length && i < 12; i += 1) {
-        const f = fieldsList[i]
-        const label = String(f.label || '').trim()
-        const val = String(f.value || '').trim()
-        if (!label && !val) continue
-        const valLinesAll = this._wrapText(ctx, val || '—', contentW)
-        let take = Math.min(3, Math.max(1, valLinesAll.length))
-        let placed = false
-        while (take >= 1) {
-          const blockH = labelLineH + labelToValGap + take * valLineH + fieldSectionGap
-          if (cardTop + simCursor + blockH <= innerBottomY - reserveSupForFields) {
-            fieldBlocks.push({ label, valLines: valLinesAll.slice(0, take) })
-            simCursor += blockH
-            placed = true
-            break
-          }
-          take -= 1
+      const titleLineH = 38
+      const bodyLineH = 28
+      const titleGap = 10
+      /** 正文自然换行 ≤ 此行数时不加省略号（不含标题行） */
+      const POSTER_BODY_FULL_LINES = 7
+
+      const flowText = this._buildPosterFlowText(detail)
+      const posterTitle = this._posterTitleText(detail) || '供需信息'
+      const maxCardBottom = innerBottomY
+
+      let titleMaxLines = 2
+      let titleLines = []
+      let titleBlockH = 0
+      let maxBodyLines = POSTER_BODY_FULL_LINES
+      for (;;) {
+        ctx.font = 'bold 30px sans-serif'
+        titleLines = this._sliceLinesWithEllipsis(
+          ctx,
+          posterTitle,
+          contentW,
+          titleMaxLines
+        )
+        titleBlockH = titleLines.length * titleLineH + titleGap
+        const availBodyH =
+          maxCardBottom -
+          cardTop -
+          CARD_PAD -
+          titleBlockH -
+          CARD_PAD -
+          8
+        maxBodyLines = Math.min(28, Math.max(1, Math.floor(availBodyH / bodyLineH)))
+        if (maxBodyLines >= POSTER_BODY_FULL_LINES || titleMaxLines <= 1) {
+          break
         }
-        if (!placed) break
-      }
-
-      if (fieldBlocks.length === 0) {
-        simCursor = CARD_PAD + 16
+        titleMaxLines -= 1
       }
 
       ctx.font = '26px sans-serif'
-      let supLines = supplementText
-        ? this._sliceLinesWithEllipsis(ctx, supplementText, contentW, 4)
-        : []
-      const supExtraBase = 4 + 14 + supTitleH + supTitleGap
-      const trimSup = () => {
-        while (
-          supLines.length > 0 &&
-          cardTop + simCursor + supExtraBase + supLines.length * supBodyLineH > innerBottomY
-        ) {
-          supLines = supLines.slice(0, -1)
-        }
-      }
-      trimSup()
-      if (supplementText && supLines.length === 0) {
-        supLines = []
+      const fullBodyLines = flowText ? this._wrapText(ctx, flowText, contentW) : []
+      const naturalBodyCount = fullBodyLines.length
+      let bodyLines = []
+      if (naturalBodyCount === 0) {
+        bodyLines = []
+      } else if (naturalBodyCount <= POSTER_BODY_FULL_LINES) {
+        bodyLines = fullBodyLines.slice()
+      } else {
+        bodyLines = this._sliceLinesWithEllipsis(
+          ctx,
+          flowText,
+          contentW,
+          Math.max(POSTER_BODY_FULL_LINES, maxBodyLines)
+        )
       }
 
-      const supH =
-        supLines.length > 0 ? supExtraBase + supLines.length * supBodyLineH : 0
-      let cardH = simCursor + supH + CARD_PAD
-      cardH = Math.min(cardH, cardRectBottomMax - cardTop)
-      cardH = Math.max(cardH, CARD_PAD * 2 + 24)
+      const contentH = titleBlockH + bodyLines.length * bodyLineH
+      let cardH = CARD_PAD + contentH + CARD_PAD + 8
+      const maxCardH = maxCardBottom - cardTop
+      cardH = Math.min(cardH, maxCardH)
+      cardH = Math.max(cardH, CARD_PAD * 2 + 40)
 
-      if (fieldBlocks.length > 0 || supLines.length > 0) {
+      const hasCard = titleLines.length > 0 || bodyLines.length > 0
+      if (hasCard) {
         fillRoundRect(textX, cardTop, textMaxW, cardH, CARD_RADIUS, '#F1F5F9')
         ctx.fillStyle = '#10B981'
         ctx.beginPath()
@@ -1049,42 +1097,21 @@ Page({
         ctx.closePath()
         ctx.fill()
 
-        let penY =
-          fieldBlocks.length > 0 ? cardTop + CARD_PAD + 22 : cardTop + CARD_PAD + 16
-        fieldBlocks.forEach((blk) => {
-          const lab = blk.label ? `${blk.label}：` : ''
-          ctx.font = '26px sans-serif'
-          ctx.fillStyle = '#64748B'
-          ctx.fillText(lab, contentX, penY)
-          penY += labelLineH + labelToValGap
-          ctx.font = 'bold 28px sans-serif'
-          ctx.fillStyle = '#0F172A'
-          blk.valLines.forEach((line) => {
-            ctx.fillText(line, contentX, penY)
-            penY += valLineH
-          })
-          penY += fieldSectionGap
+        let penY = cardTop + CARD_PAD + 16
+        ctx.fillStyle = '#0F172A'
+        ctx.font = 'bold 30px sans-serif'
+        titleLines.forEach((line) => {
+          ctx.fillText(line, contentX, penY)
+          penY += titleLineH
         })
+        penY += titleGap
 
-        if (supLines.length > 0) {
-          penY += 4
-          ctx.strokeStyle = '#E2E8F0'
-          ctx.lineWidth = 1
-          ctx.beginPath()
-          ctx.moveTo(contentX, penY)
-          ctx.lineTo(textX + textMaxW - CARD_PAD, penY)
-          ctx.stroke()
-          penY += 14
-          ctx.font = '26px sans-serif'
-          ctx.fillStyle = '#64748B'
-          ctx.fillText('补充描述', contentX, penY)
-          penY += supTitleH + supTitleGap
-          ctx.fillStyle = '#334155'
-          supLines.forEach((line) => {
-            ctx.fillText(line, contentX, penY)
-            penY += supBodyLineH
-          })
-        }
+        ctx.font = '26px sans-serif'
+        ctx.fillStyle = '#334155'
+        bodyLines.forEach((line) => {
+          ctx.fillText(line, contentX, penY)
+          penY += bodyLineH
+        })
       }
 
       if (qrPath) {
