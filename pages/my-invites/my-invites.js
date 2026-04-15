@@ -233,7 +233,7 @@ Page({
   onShareAppMessage() {
     const code = this.data.inviteCode
     return {
-      title: '我在用小灵通，快来一起找活接单！',
+      title: '我在用聚采通，快来一起找活接单！',
       path: '/pages/index/index?inviteCode=' + (code || '')
     }
   }

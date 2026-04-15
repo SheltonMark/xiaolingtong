@@ -841,7 +841,7 @@ Page({
     }
     if (!item) {
       return {
-        title: '小灵通供需平台',
+        title: '聚采通供需平台',
         path: '/pages/index/index'
       }
     }
@@ -1448,18 +1448,18 @@ Page({
     const type = (res && res.target && res.target.dataset && res.target.dataset.type) || ''
     const payload = this._buildSharePayloadById(id, type)
     return payload && payload.path ? payload : (this._lastSharePayload || {
-      title: '小灵通供需平台',
+      title: '聚采通供需平台',
       path: getApp().getSharePath('/pages/index/index')
     })
   },
 
   onShareTimeline() {
     const payload = this._lastSharePayload || {
-      title: '小灵通供需平台',
+      title: '聚采通供需平台',
       path: '/pages/index/index'
     }
     const query = payload.path.includes('?') ? payload.path.split('?')[1] : ''
-    const result = { title: payload.title || '小灵通供需平台', query }
+    const result = { title: payload.title || '聚采通供需平台', query }
     if (payload.imageUrl) result.imageUrl = payload.imageUrl
     return result
   },

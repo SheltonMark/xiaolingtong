@@ -61,7 +61,7 @@ export class BeanService {
 
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
-      description: `小灵通灵豆充值-${dto.amount}个`,
+      description: `聚采通灵豆充值-${dto.amount}个`,
       totalFee,
       openid: user.openid,
       notifyUrl: `${host}/api/payment/notify`,

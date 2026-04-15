@@ -148,13 +148,13 @@ Page({
 
     if (id) {
       return {
-        title: (type || '维权经验') + ' - 小灵通维权吧',
+        title: (type || '维权经验') + ' - 聚采通维权吧',
         path: getApp().getSharePath('/pages/exposure-detail/exposure-detail?id=' + id)
       }
     }
 
     return {
-      title: '小灵通维权吧',
+      title: '聚采通维权吧',
       path: getApp().getSharePath('/pages/exposure-board/exposure-board')
     }
   }

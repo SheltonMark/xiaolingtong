@@ -578,7 +578,7 @@ export class SettlementService {
     const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
-      description: `小灵通用工结算-${settlement.totalWorkers}人`,
+      description: `聚采通用工结算-${settlement.totalWorkers}人`,
       totalFee: Math.round(+settlement.factoryTotal * 100),
       openid: user.openid,
       notifyUrl: `${host}/api/payment/notify`,

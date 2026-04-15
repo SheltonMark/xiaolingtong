@@ -1,12 +1,12 @@
 <view class="doc-page">
   <nav-bar title="会员协议" showBack="{{true}}" />
   <view class="doc-card">
-    <text class="doc-main-title">小灵通平台会员服务协议</text>
+    <text class="doc-main-title">聚采通平台会员服务协议</text>
     <text class="doc-update">更新日期：2026年03月11日 · 生效日期：2026年03月11日</text>
 
     <view class="doc-section">
       <text class="doc-title">一、协议说明</text>
-      <text class="doc-text">1.1 本协议适用于您在小灵通平台购买和使用会员服务的全部行为。</text>
+      <text class="doc-text">1.1 本协议适用于您在聚采通平台购买和使用会员服务的全部行为。</text>
       <text class="doc-text">1.2 会员服务为付费增值服务，您完成支付即视为已阅读并同意本协议。</text>
       <text class="doc-text">1.3 本协议与《用户协议》《隐私政策》共同构成平台服务规则。</text>
     </view>

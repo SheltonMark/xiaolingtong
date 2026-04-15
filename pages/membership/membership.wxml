@@ -14,7 +14,7 @@
     </view>
     <view class="mb-vip-row">
       <text class="mb-star">★</text>
-      <text class="mb-vip-text">{{isMember ? '小灵通 VIP 会员' : '未开通会员'}}</text>
+      <text class="mb-vip-text">{{isMember ? '聚采通 VIP 会员' : '未开通会员'}}</text>
     </view>
   </view>
 

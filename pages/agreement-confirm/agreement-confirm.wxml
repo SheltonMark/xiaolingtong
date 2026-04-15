@@ -13,7 +13,7 @@
 
       <scroll-view class="ac-scroll" scroll-y enhanced show-scrollbar="{{false}}">
         <view class="ac-doc">
-          <text class="ac-doc-title">小灵通平台服务与隐私说明</text>
+          <text class="ac-doc-title">聚采通平台服务与隐私说明</text>
           <text class="ac-doc-paragraph" wx:for="{{paragraphs}}" wx:key="index">{{item}}</text>
         </view>
       </scroll-view>

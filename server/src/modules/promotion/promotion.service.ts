@@ -279,7 +279,7 @@ export class PromotionService {
     const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
-      description: `小灵通广告投放-${dto.durationDays}天`,
+      description: `聚采通广告投放-${dto.durationDays}天`,
       totalFee: Math.round(actualPrice * 100),
       openid: user.openid,
       notifyUrl: `${host}/api/payment/notify`,

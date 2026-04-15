@@ -153,14 +153,14 @@ Page({
 
   onShareAppMessage() {
     return {
-      title: (this.data.detail.categoryText || '维权经验') + ' - 小灵通维权吧',
+      title: (this.data.detail.categoryText || '维权经验') + ' - 聚采通维权吧',
       path: getApp().getSharePath('/pages/exposure-detail/exposure-detail?id=' + this.data.detail.id)
     }
   },
 
   onShareTimeline() {
     return {
-      title: (this.data.detail.categoryText || '维权经验') + ' - 小灵通维权吧',
+      title: (this.data.detail.categoryText || '维权经验') + ' - 聚采通维权吧',
       query: 'id=' + (this.data.detail.id || '')
     }
   }

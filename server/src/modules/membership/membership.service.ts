@@ -128,7 +128,7 @@ export class MembershipService {
     const host = this.config.get('API_HOST', 'https://quanqiutong888.com');
     const result = await this.paymentService.createJsapiOrder({
       outTradeNo,
-      description: `小灵通会员-${plan.name}`,
+      description: `聚采通会员-${plan.name}`,
       totalFee: Math.round(plan.price * 100),
       openid: user.openid,
       notifyUrl: `${host}/api/payment/notify`,
