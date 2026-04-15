@@ -94,6 +94,18 @@
 .img-grid-item {
   position: relative;
 }
+
+/* 两张图：与宽度等高的正方形（覆盖 app.wxss 里 200rpx 扁图） */
+.info-card .img-grid.img-count-2 .img-grid-item {
+  width: calc((100% - 8rpx) / 2);
+  aspect-ratio: 1;
+  height: auto;
+  flex-shrink: 0;
+}
+.info-card .img-grid.img-count-2 .img-grid-img {
+  width: 100%;
+  height: 100%;
+}
 .img-extra-badge {
   position: absolute;
   right: 0;
