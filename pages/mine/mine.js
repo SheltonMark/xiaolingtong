@@ -152,10 +152,14 @@ Page({
         certBadge = '未认证'
       }
 
+      const displayName = user.nickname || user.certName || ''
+      const initial = displayName ? displayName.trim().slice(0, 1) : ''
       this.setData({
         userId: user.id || '',
         nickname: user.nickname || '',
         avatarUrl: normalizeImageUrl(user.avatarUrl || ''),
+        enterpriseInfo: { avatarText: initial || '企' },
+        workerInfo: { avatarText: initial || '工' },
         beanBalance: user.beanBalance || 0,
         isMember: user.isMember || false,
         creditScore: user.creditScore || 100,
@@ -473,6 +477,11 @@ Page({
         }).catch(() => {})
       }
     })
+  },
+
+  onAvatarTap() {
+    if (!this.requireLogin()) return
+    wx.navigateTo({ url: '/pages/contact-profile/contact-profile' })
   },
 
   onSettings() {

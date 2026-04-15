@@ -7,6 +7,18 @@
   </view>
 
   <view class="form-card">
+    <view class="label-row">
+      <text class="form-label">头像</text>
+      <text class="link-text" bindtap="onChooseAvatar">{{uploadingAvatar ? '上传中…' : '更换'}}</text>
+    </view>
+    <view class="avatar-row" bindtap="onChooseAvatar">
+      <image wx:if="{{avatarUrl}}" class="profile-avatar-img" src="{{avatarUrl}}" mode="aspectFill" />
+      <view wx:else class="text-avatar profile-avatar-fallback" style="background-color:{{avatarColor}};">{{avatarText}}</view>
+      <text class="avatar-hint">点击头像或「更换」上传，全平台展示</text>
+    </view>
+  </view>
+
+  <view class="form-card">
     <text class="form-label required">名称</text>
     <input
       class="form-input"

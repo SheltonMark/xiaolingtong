@@ -44,11 +44,6 @@
   font-size: 32rpx;
   color: #94A3B8;
 }
-.cell-avatar {
-  width: 64rpx;
-  height: 64rpx;
-  border-radius: 50%;
-}
 
 /* 协议/隐私链接行 */
 .cell-link {

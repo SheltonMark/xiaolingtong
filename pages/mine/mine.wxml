@@ -46,8 +46,8 @@
         <text class="header-label">我的</text>
       </view>
       <view class="user-info">
-        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="user-avatar-img" mode="aspectFill" bindtap="onSettings" />
-        <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;" bindtap="onSettings">{{enterpriseInfo.avatarText}}</view>
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="user-avatar-img" mode="aspectFill" bindtap="onAvatarTap" />
+        <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #3B82F6;" bindtap="onAvatarTap">{{enterpriseInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">{{nickname || certName || '未认证用户'}}</text>
@@ -194,8 +194,8 @@
         <text class="header-label">我的</text>
       </view>
       <view class="user-info">
-        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="user-avatar-img" mode="aspectFill" bindtap="onSettings" />
-        <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #F97316;" bindtap="onSettings">{{workerInfo.avatarText}}</view>
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="user-avatar-img" mode="aspectFill" bindtap="onAvatarTap" />
+        <view wx:else class="text-avatar text-avatar-2xl" style="background-color: #F97316;" bindtap="onAvatarTap">{{workerInfo.avatarText}}</view>
         <view class="user-detail">
           <view class="user-name-row">
             <text class="user-name">{{nickname || certName || '未认证用户'}}</text>

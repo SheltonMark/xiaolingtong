@@ -8,6 +8,10 @@ Page({
     loading: false,
     saving: false,
     uploadingQr: false,
+    uploadingAvatar: false,
+    avatarUrl: '',
+    avatarText: '',
+    avatarColor: '#3B82F6',
     verifiedPhone: '',
     phoneVerified: false,
     form: {
@@ -32,10 +36,16 @@ Page({
     ]).then(([profileRes, contactProfile]) => {
       const user = profileRes.data || {}
       const verifiedPhone = contactProfile.phoneVerified ? (contactProfile.phone || '') : ''
+      const userRole =
+        getApp().globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
+      const nick = (user.nickname || '').trim()
       this.setData({
         loading: false,
         verifiedPhone,
         phoneVerified: !!contactProfile.phoneVerified,
+        avatarUrl: normalizeImageUrl(user.avatarUrl || ''),
+        avatarText: nick ? nick.slice(0, 1) : '用',
+        avatarColor: userRole === 'enterprise' ? '#3B82F6' : '#F97316',
         form: {
           nickname: user.nickname || '',
           contactName: contactProfile.contactName || '',
@@ -58,7 +68,46 @@ Page({
       const verifiedPhone = this.data.verifiedPhone || ''
       nextData.phoneVerified = !!(verifiedPhone && value.trim() === verifiedPhone)
     }
+    if (field === 'nickname' && !this.data.avatarUrl) {
+      const t = value.trim()
+      nextData.avatarText = t ? t.slice(0, 1) : '用'
+    }
     this.setData(nextData)
+  },
+
+  onChooseAvatar() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      success: (res) => {
+        const tempPath = res.tempFiles[0].tempFilePath
+        this.setData({ uploadingAvatar: true })
+        upload(tempPath)
+          .then((r) => {
+            const url = (r.data && r.data.url) || r.data
+            return put('/settings/avatar', { avatarUrl: url }).then(() => {
+              const normalized = normalizeImageUrl(url || '')
+              const app = getApp()
+              app.globalData.avatarUrl = normalized
+              wx.setStorageSync('avatarUrl', normalized)
+              if (app.globalData.userInfo) {
+                app.globalData.userInfo.avatarUrl = normalized
+              }
+              const nick = (this.data.form.nickname || '').trim()
+              this.setData({
+                uploadingAvatar: false,
+                avatarUrl: normalized,
+                avatarText: nick ? nick.slice(0, 1) : this.data.avatarText
+              })
+              wx.showToast({ title: '头像已更新', icon: 'success' })
+            })
+          })
+          .catch(() => {
+            this.setData({ uploadingAvatar: false })
+            wx.showToast({ title: '头像更新失败，请重试', icon: 'none' })
+          })
+      }
+    })
   },
 
   onChooseQr() {
@@ -125,10 +174,15 @@ Page({
         app.globalData.userInfo = app.globalData.userInfo || {}
         app.globalData.userInfo.nickname = form.nickname.trim()
       }
-      this.setData({
+      const nickT = form.nickname.trim()
+      const patch = {
         saving: false,
         verifiedPhone: this.data.phoneVerified ? form.phone.trim() : this.data.verifiedPhone
-      })
+      }
+      if (!this.data.avatarUrl) {
+        patch.avatarText = nickT ? nickT.slice(0, 1) : '用'
+      }
+      this.setData(patch)
       wx.showToast({ title: '已保存', icon: 'success' })
     }).catch(() => {
       this.setData({ saving: false })

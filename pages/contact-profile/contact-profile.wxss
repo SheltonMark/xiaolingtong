@@ -79,6 +79,37 @@
   color: #2563EB;
 }
 
+.label-row .form-label {
+  margin-bottom: 0;
+}
+
+.avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 28rpx;
+}
+
+.profile-avatar-img,
+.profile-avatar-fallback {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.profile-avatar-fallback {
+  font-size: 56rpx;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.avatar-hint {
+  flex: 1;
+  font-size: 22rpx;
+  color: #64748b;
+  line-height: 1.5;
+}
+
 .qr-empty {
   height: 220rpx;
   border-radius: 20rpx;

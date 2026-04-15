@@ -1,51 +1,7 @@
-const { put, upload } = require('../../utils/request')
-const { normalizeImageUrl } = require('../../utils/image')
-
 Page({
   data: {
-    userRole: 'enterprise',
-    nickname: '',
     cacheSize: '0 MB',
-    version: 'v1.0.0',
-    avatarUrl: '',
-    avatarText: '',
-    avatarColor: '#3B82F6'
-  },
-
-  onShow() {
-    const app = getApp()
-    const userRole = app.globalData.userRole || wx.getStorageSync('userRole') || 'enterprise'
-    const userInfo = app.globalData.userInfo || {}
-    const nickname = userInfo.nickname || ''
-    const avatarUrl = normalizeImageUrl(app.globalData.avatarUrl || wx.getStorageSync('avatarUrl') || '')
-    this.setData({
-      userRole,
-      nickname,
-      avatarUrl,
-      avatarText: nickname ? nickname[0] : '',
-      avatarColor: userRole === 'enterprise' ? '#3B82F6' : '#F97316'
-    })
-  },
-
-  onChooseAvatar() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      success: (res) => {
-        const tempPath = res.tempFiles[0].tempFilePath
-        upload(tempPath).then(r => {
-          const url = (r.data && r.data.url) || r.data
-          return put('/settings/avatar', { avatarUrl: url }).then(() => {
-            getApp().globalData.avatarUrl = url
-            wx.setStorageSync('avatarUrl', url)
-            this.setData({ avatarUrl: url })
-            wx.showToast({ title: '头像已更新', icon: 'success' })
-          })
-        }).catch(() => {
-          wx.showToast({ title: '头像更新失败，请重试', icon: 'none' })
-        })
-      }
-    })
+    version: 'v1.0.0'
   },
 
   onClearCache() {
