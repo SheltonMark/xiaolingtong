@@ -7,7 +7,7 @@
 .mb-card {
   margin: 24rpx 32rpx 0;
   border-radius: 32rpx;
-  padding: 40rpx;
+  padding: 24rpx 28rpx;
   background: linear-gradient(135deg, #FBBF24, #F97316);
   color: #fff;
   position: relative;
@@ -34,53 +34,82 @@
   border-radius: 50%;
 }
 
-.mb-user {
+.mb-user-row {
   display: flex;
   align-items: center;
-  gap: 24rpx;
-  margin-bottom: 32rpx;
+  justify-content: space-between;
+  gap: 16rpx;
   position: relative;
 }
 
+.mb-user-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+  flex: 1;
+}
+
 .mb-user-avatar {
-  width: 96rpx;
-  height: 96rpx;
+  width: 72rpx;
+  height: 72rpx;
   border-radius: 50%;
-  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  border: 3rpx solid rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
 }
 
-.mb-user-info {
-  display: flex;
-  flex-direction: column;
+.mb-user-avatar-ph {
+  width: 72rpx;
+  height: 72rpx;
+  font-size: 26rpx;
+  background-color: #3B82F6;
+  flex-shrink: 0;
 }
 
 .mb-user-name {
   font-size: 28rpx;
   font-weight: 600;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.mb-user-status {
-  font-size: 22rpx;
-  opacity: 0.8;
-  margin-top: 4rpx;
-}
-
-.mb-vip-row {
+.mb-user-status-right {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  position: relative;
+  gap: 8rpx;
+  flex-shrink: 0;
+  max-width: 52%;
 }
 
 .mb-star {
-  font-size: 36rpx;
+  font-size: 26rpx;
   opacity: 0.9;
+  flex-shrink: 0;
 }
 
 .mb-vip-text {
-  font-size: 32rpx;
+  font-size: 24rpx;
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mb-poster-wrap {
+  margin: 16rpx 32rpx 0;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background-color: #fff;
+  line-height: 0;
+}
+
+.mb-poster-img {
+  width: 100%;
+  display: block;
+  vertical-align: top;
 }
 
 .mb-section {

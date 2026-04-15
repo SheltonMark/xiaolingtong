@@ -1883,6 +1883,12 @@ export class AdminService {
         group: 'poster',
       },
       {
+        key: 'poster_membership_center',
+        value: '',
+        label: '会员中心海报配置',
+        group: 'poster',
+      },
+      {
         key: 'exposure_category_false_info_label',
         value: '维权经历',
         label: '维权分类-维权经历',

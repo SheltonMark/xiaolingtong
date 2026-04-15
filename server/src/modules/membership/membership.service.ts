@@ -44,6 +44,15 @@ export class MembershipService {
     return Math.max(0, Math.round(n));
   }
 
+  private async getConfigString(
+    key: string,
+    defaultValue: string,
+  ): Promise<string> {
+    const row = await this.configRepo.findOne({ where: { key } });
+    const v = row?.value != null ? String(row.value).trim() : '';
+    return v || defaultValue;
+  }
+
   private async getMembershipPlansInternal(): Promise<MembershipPlan[]> {
     const [monthlyPrice, quarterlyPrice, yearlyPrice] = await Promise.all([
       this.getConfigNumber('member_monthly_price', 99),
@@ -99,12 +108,13 @@ export class MembershipService {
   }
 
   async getPlans() {
-    const [list, dailyFreeViews] = await Promise.all([
+    const [list, dailyFreeViews, centerPosterUrl] = await Promise.all([
       this.getMembershipPlansInternal(),
       this.getConfigInt('member_daily_free_views', 5),
+      this.getConfigString('poster_membership_center', ''),
     ]);
 
-    return { list, dailyFreeViews };
+    return { list, dailyFreeViews, centerPosterUrl };
   }
 
   async subscribe(userId: number, dto: any) {

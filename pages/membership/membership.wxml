@@ -5,17 +5,21 @@
   <view class="mb-card">
     <view class="mb-card-bg1"></view>
     <view class="mb-card-bg2"></view>
-    <view class="mb-user">
-      <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="mb-user-avatar" mode="aspectFill" />
-      <view wx:else class="text-avatar" style="width:80rpx;height:80rpx;font-size:28rpx;background-color:#3B82F6;">{{avatarText}}</view>
-      <view class="mb-user-info">
+    <view class="mb-user-row">
+      <view class="mb-user-left">
+        <image wx:if="{{avatarUrl}}" src="{{avatarUrl}}" class="mb-user-avatar" mode="aspectFill" />
+        <view wx:else class="text-avatar mb-user-avatar-ph">{{avatarText}}</view>
         <text class="mb-user-name">{{nickname || '用户'}}</text>
       </view>
+      <view class="mb-user-status-right">
+        <text class="mb-star">★</text>
+        <text class="mb-vip-text">{{isMember ? '聚采通 VIP 会员' : '未开通会员'}}</text>
+      </view>
     </view>
-    <view class="mb-vip-row">
-      <text class="mb-star">★</text>
-      <text class="mb-vip-text">{{isMember ? '聚采通 VIP 会员' : '未开通会员'}}</text>
-    </view>
+  </view>
+
+  <view class="mb-poster-wrap" wx:if="{{centerPosterUrl}}">
+    <image src="{{centerPosterUrl}}" mode="widthFix" class="mb-poster-img" />
   </view>
 
   <view class="mb-section">

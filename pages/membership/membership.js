@@ -1,4 +1,5 @@
 const { get, post } = require('../../utils/request')
+const { normalizeImageUrl } = require('../../utils/image')
 
 const PLAN_META_MAP = {
   monthly: { desc: '适合短期采购需求', original: '199', tag: '', tagColor: '' },
@@ -13,6 +14,7 @@ Page({
     nickname: '',
     isMember: false,
     dailyFreeViews: 5,
+    centerPosterUrl: '',
     agreedMember: false,
     selectedIndex: 0,
     plansLoaded: false,
@@ -86,14 +88,16 @@ Page({
       const selectedIndex = cards.length
         ? Math.min(this.data.selectedIndex, cards.length - 1)
         : 0
+      const poster = normalizeImageUrl(String(d.centerPosterUrl || '').trim())
       this.setData({
         plans: cards,
         plansLoaded: cards.length > 0,
         selectedIndex,
-        dailyFreeViews: Number(d.dailyFreeViews || this.data.dailyFreeViews)
+        dailyFreeViews: Number(d.dailyFreeViews || this.data.dailyFreeViews),
+        centerPosterUrl: poster || ''
       })
     }).catch(() => {
-      this.setData({ plansLoaded: false, plans: [] })
+      this.setData({ plansLoaded: false, plans: [], centerPosterUrl: '' })
     })
   },
 
