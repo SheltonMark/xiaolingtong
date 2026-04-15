@@ -41,6 +41,19 @@
       </view>
     </view>
   </view>
+  <!-- 仅视频、无配图：详情页轮播视频的缩小版 -->
+  <view class="card-video-wrap" wx:if="{{cardVideoUrl && cardImages.length === 0}}" catchtap="onVideoAreaCatch">
+    <video
+      class="card-video"
+      src="{{cardVideoUrl}}"
+      controls
+      show-play-btn
+      show-center-play-btn
+      show-fullscreen-btn
+      object-fit="cover"
+      enable-play-gesture
+    />
+  </view>
   <!-- 底部两按钮：联系方式 + 在线聊 -->
   <view class="card-actions" wx:if="{{showContact}}">
     <view class="action-btn action-contact" catchtap="onTapContact">

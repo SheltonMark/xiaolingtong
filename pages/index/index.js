@@ -745,6 +745,7 @@ Page({
         content: item.type === 'process' ? normalizeProcessContent(item) : item.content,
         avatarUrl: normalizeImageUrl((user.avatarUrl) || ''),
         images: normalizeImageList(item.images),
+        videos: normalizeImageList(item.videos || []),
         avatarText: companyName ? companyName[0] : '企',
         time: item.createdAt ? item.createdAt.substring(0, 10) : '',
         contactWechat: item.contactWechat || item.wechat || '',

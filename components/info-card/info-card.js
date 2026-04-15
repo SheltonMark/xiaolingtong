@@ -1,3 +1,5 @@
+const { normalizeImageUrl } = require('../../utils/image')
+
 Component({
   properties: {
     item: { type: Object, value: {} },
@@ -8,7 +10,9 @@ Component({
   data: {
     displayName: '',
     cardImages: [],
-    extraImageCount: 0
+    extraImageCount: 0,
+    /** 无配图时展示的首条视频地址 */
+    cardVideoUrl: ''
   },
   lifetimes: {
     attached() {
@@ -35,15 +39,21 @@ Component({
   },
   methods: {
     updateCardImages() {
-      const images = this.data.item.images || []
+      const item = this.data.item || {}
+      const images = item.images || []
       const max = this.data.maxImages
-      if (!Array.isArray(images) || images.length === 0) {
-        this.setData({ cardImages: [], extraImageCount: 0 })
-        return
+      let cardImages = []
+      let extraImageCount = 0
+      if (Array.isArray(images) && images.length > 0) {
+        cardImages = images.slice(0, max)
+        extraImageCount = Math.max(0, images.length - max)
       }
-      const cardImages = images.slice(0, max)
-      const extraImageCount = Math.max(0, images.length - max)
-      this.setData({ cardImages, extraImageCount })
+      const videosRaw = item.videos || []
+      const videos = Array.isArray(videosRaw)
+        ? videosRaw.map((v) => normalizeImageUrl(String(v || '').trim())).filter(Boolean)
+        : []
+      const cardVideoUrl = cardImages.length === 0 && videos.length > 0 ? videos[0] : ''
+      this.setData({ cardImages, extraImageCount, cardVideoUrl })
     },
 
     maskCompanyName(name) {
@@ -83,6 +93,9 @@ Component({
     },
     onPreviewImage(e) {
       wx.previewImage({ current: e.currentTarget.dataset.current, urls: e.currentTarget.dataset.urls })
-    }
+    },
+
+    /** 阻止点击视频区域冒泡到卡片跳转 */
+    onVideoAreaCatch() {}
   }
 })
