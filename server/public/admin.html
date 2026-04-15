@@ -1305,6 +1305,9 @@ async function loadConfigs(){
     var c=list[i];
     if(agreementKeys.indexOf(c.key)!==-1)continue;
     if(exposureKeys.indexOf(c.key)!==-1)continue;
+    /* 小程序码 URL 缓存由服务端生成并写入配置表，不在后台展示、不可手工编辑 */
+    if((c.group||'')==='wxacode')continue;
+    if(c.key&&String(c.key).indexOf('wxacode_')===0)continue;
     var g=toDisplayGroup(c);
     if(!grouped[g])grouped[g]=[];
     grouped[g].push(c);
