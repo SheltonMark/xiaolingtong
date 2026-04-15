@@ -1193,6 +1193,53 @@ Page({
     return allItems.find(i => String(i.id) === String(id))
   },
 
+  /** 解锁后拉详情并弹出微信/电话选择（不 Toast「解锁成功」） */
+  _openContactSheetAfterUnlock(postId) {
+    const local = this.getPostItemById(postId) || { id: Number(postId) }
+    return get('/posts/' + postId)
+      .then((res) => {
+        const d = res.data || res || {}
+        const row = Object.assign({}, local, {
+          contactUnlocked: true,
+          contactPhone: d.contactPhone || local.contactPhone || '',
+          contactWechat: d.contactWechat || local.contactWechat || '',
+          contactWechatQr: normalizeImageUrl(d.contactWechatQr || local.contactWechatQr || ''),
+          phone: d.contactPhone || local.phone || '',
+          wechat: d.contactWechat || local.wechat || ''
+        })
+        this.showContactChoices(row)
+      })
+      .catch(() => {
+        this.showContactChoices(Object.assign({}, local, { contactUnlocked: true }))
+      })
+  },
+
+  /** 已解锁时创建会话并进入聊天 */
+  _startConversationFromPost(postId) {
+    const id = String(postId)
+    const item = this.getPostItemById(id)
+    const targetUserId = this.getPostOwnerId(item)
+    const pid = Number((item && item.id) || postId) || 0
+
+    if (!item || !targetUserId) {
+      wx.showToast({ title: '暂不支持该条信息直接聊天', icon: 'none' })
+      return
+    }
+    if (this.isOwnerPost(item)) {
+      wx.showToast({ title: '不能和自己对话', icon: 'none' })
+      return
+    }
+
+    post('/conversations/with-user/' + targetUserId, { postId: pid }).then((res) => {
+      const conversationId = res.data && res.data.id
+      if (!conversationId) {
+        wx.showToast({ title: '创建会话失败', icon: 'none' })
+        return
+      }
+      wx.navigateTo({ url: '/pages/chat/chat?id=' + conversationId })
+    }).catch(() => {})
+  },
+
   openWechatCard(item) {
     const wechatId = (item.contactWechat || item.wechat || '').trim()
     const wechatQrImage = (item.contactWechatQr || item.wechatQrImage || '').trim()
@@ -1283,11 +1330,13 @@ Page({
       wx.hideLoading()
       const data = response.data || response
 
-      // 如果已经解锁过了（与详情页一致：直接走联系方式选择）
+      // 已解锁：不 Toast，直接进微信/电话或聊天
       if (data.alreadyUnlocked) {
-        wx.showToast({ title: '已解锁', icon: 'none' })
-        const row = this.getPostItemById(postId)
-        if (row) this.showContactChoices(Object.assign({}, row, { contactUnlocked: true }))
+        if (type === 'chat') {
+          this._startConversationFromPost(postId)
+        } else {
+          this._openContactSheetAfterUnlock(postId)
+        }
         return
       }
 
@@ -1373,21 +1422,14 @@ Page({
       if (data.beanBalance !== undefined) {
         app.globalData.beanBalance = data.beanBalance
       }
-      const cost = data.cost || 0
-      const msg = cost === 0 ? '免费解锁成功' : `解锁成功，已扣 ${cost} 灵豆`
-      wx.showToast({ title: msg, icon: 'success' })
 
-      // 重新加载数据
       this.loadData()
 
-      setTimeout(() => {
-        if (type === 'contact') {
-          const row = this.getPostItemById(postId)
-          if (row) this.showContactChoices(Object.assign({}, row, { contactUnlocked: true }))
-        } else if (type === 'chat') {
-          this.onChat({ detail: { id: postId } })
-        }
-      }, 1500)
+      if (type === 'contact') {
+        this._openContactSheetAfterUnlock(postId)
+      } else if (type === 'chat') {
+        this._startConversationFromPost(postId)
+      }
     }).catch((err) => {
       wx.hideLoading()
       wx.showToast({ title: err.message || '解锁失败', icon: 'none' })
@@ -1424,14 +1466,7 @@ Page({
       return
     }
 
-    post('/conversations/with-user/' + targetUserId, { postId }).then(res => {
-      const conversationId = res.data && res.data.id
-      if (!conversationId) {
-        wx.showToast({ title: '创建会话失败', icon: 'none' })
-        return
-      }
-      wx.navigateTo({ url: '/pages/chat/chat?id=' + conversationId })
-    }).catch(() => {})
+    this._startConversationFromPost(id)
   },
 
   onReport(e) {
