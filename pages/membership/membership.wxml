@@ -23,47 +23,6 @@
   </view>
 
   <view class="mb-section">
-    <text class="section-title">会员专属权益</text>
-    <view class="benefit-grid">
-      <view class="benefit-item">
-        <view class="benefit-icon benefit-icon-amber">
-          <text class="iconfont icon-chakan"></text>
-        </view>
-        <text class="benefit-name">每日免费查看</text>
-        <text class="benefit-desc">每天 {{dailyFreeViews}} 次免费解锁</text>
-      </view>
-      <view class="benefit-item">
-        <view class="benefit-icon benefit-icon-rose">
-          <text class="iconfont icon-douzi"></text>
-        </view>
-        <text class="benefit-name">查看 5 折</text>
-        <text class="benefit-desc">超出后灵豆半价</text>
-      </view>
-      <view class="benefit-item">
-        <view class="benefit-icon benefit-icon-blue">
-          <text class="iconfont icon-xingxing"></text>
-        </view>
-        <text class="benefit-name">置顶 8 折</text>
-        <text class="benefit-desc">推广费用享折扣</text>
-      </view>
-      <view class="benefit-item">
-        <view class="benefit-icon benefit-icon-green">
-          <text class="iconfont icon-anquan"></text>
-        </view>
-        <text class="benefit-name">VIP 标识</text>
-        <text class="benefit-desc">专属认证图标</text>
-      </view>
-      <view class="benefit-item">
-        <view class="benefit-icon benefit-icon-sky">
-          <text class="iconfont icon-gonggao"></text>
-        </view>
-        <text class="benefit-name">广告 9 折</text>
-        <text class="benefit-desc">投放费用享折扣</text>
-      </view>
-    </view>
-  </view>
-
-  <view class="mb-section">
     <text class="section-title">选择套餐</text>
     <view class="plan-list">
       <view

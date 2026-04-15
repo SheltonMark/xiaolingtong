@@ -13,7 +13,6 @@ Page({
     avatarUrl: '',
     nickname: '',
     isMember: false,
-    dailyFreeViews: 5,
     centerPosterUrl: '',
     agreedMember: false,
     selectedIndex: 0,
@@ -93,7 +92,6 @@ Page({
         plans: cards,
         plansLoaded: cards.length > 0,
         selectedIndex,
-        dailyFreeViews: Number(d.dailyFreeViews || this.data.dailyFreeViews),
         centerPosterUrl: poster || ''
       })
     }).catch(() => {
