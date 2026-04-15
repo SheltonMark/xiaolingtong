@@ -1885,7 +1885,7 @@ export class AdminService {
       {
         key: 'poster_membership_center',
         value: '',
-        label: '会员中心海报配置',
+        label: '会员中心海报（上传）',
         group: 'poster',
       },
       {
